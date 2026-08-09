@@ -65,12 +65,57 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
         }
 
-        .top-navbar .text-muted,
-        .top-navbar i,
-        .top-navbar #toggleSidebar i,
-        .top-navbar p,
-        .top-navbar a {
+        .top-navbar > div > .text-muted,
+        .top-navbar > div > i,
+        .top-navbar > div > p,
+        .top-navbar > div > a,
+        .top-navbar #toggleSidebar i {
             color: #FFFFFF !important;
+        }
+
+        /* Scoped Dropdown Menu Overrides inside Top Navbar */
+        .top-navbar .dropdown-menu {
+            background-color: var(--card-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .top-navbar .dropdown-menu .dropdown-item,
+        .top-navbar .dropdown-menu .dropdown-item *,
+        .top-navbar .dropdown-menu .dropdown-item i,
+        .top-navbar .dropdown-menu .dropdown-item p,
+        .top-navbar .dropdown-menu .dropdown-item span {
+            color: var(--text-primary) !important;
+        }
+
+        .top-navbar .dropdown-menu .dropdown-item:hover,
+        .top-navbar .dropdown-menu .dropdown-item:focus {
+            background-color: var(--surface-alt) !important;
+            color: var(--primary) !important;
+        }
+
+        .top-navbar .dropdown-menu .dropdown-item:hover *,
+        .top-navbar .dropdown-menu .dropdown-item:hover i,
+        .top-navbar .dropdown-menu .dropdown-item:hover p,
+        .top-navbar .dropdown-menu .dropdown-item:hover span,
+        .top-navbar .dropdown-menu .dropdown-item:focus *,
+        .top-navbar .dropdown-menu .dropdown-item:focus i,
+        .top-navbar .dropdown-menu .dropdown-item:focus p,
+        .top-navbar .dropdown-menu .dropdown-item:focus span {
+            color: var(--primary) !important;
+        }
+
+        .top-navbar .dropdown-menu .dropdown-item.text-danger,
+        .top-navbar .dropdown-menu .dropdown-item.text-danger *,
+        .top-navbar .dropdown-menu .dropdown-item.text-danger i {
+            color: #dc3545 !important;
+        }
+
+        .top-navbar .dropdown-menu .dropdown-item.text-danger:hover,
+        .top-navbar .dropdown-menu .dropdown-item.text-danger:hover *,
+        .top-navbar .dropdown-menu .dropdown-item.text-danger:hover i {
+            background-color: rgba(220, 53, 69, 0.1) !important;
+            color: #dc3545 !important;
         }
 
         .main-global-footer {
@@ -280,8 +325,7 @@
         }
 
         .text-white, .btn-primary, .btn-success, .btn-danger, .btn-secondary, .btn-dark,
-        .badge-approved, .badge-rejected, .bg-primary, .bg-success, .bg-danger, .bg-dark,
-        .table-dark, .table-dark th, .table-dark td, .top-navbar, .main-global-footer {
+        .table-dark, .table-dark th, .table-dark td, .main-global-footer {
             color: #FFFFFF !important;
         }
 
