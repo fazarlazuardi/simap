@@ -70,6 +70,15 @@ class GoogleOAuthToken(models.Model):
                 return json.loads(raw)
             except (json.JSONDecodeError, TypeError):
                 pass
+        
+        # Fallback ke berkas credentials.json
+        creds_path = getattr(settings, 'GOOGLE_DRIVE_CREDENTIALS', None) or os.path.join(settings.BASE_DIR, 'credentials.json')
+        if creds_path and os.path.exists(creds_path):
+            try:
+                with open(creds_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                pass
         return None
 
     def get_credentials(self):
