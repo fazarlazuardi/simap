@@ -331,7 +331,7 @@ class GoogleDriveService:
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 4, 'endRowIndex': 5,
-                                'startColumnIndex': 0, 'endColumnIndex': 24
+                                'startColumnIndex': 0, 'endColumnIndex': 25
                             },
                             'cell': {
                                 'userEnteredFormat': {
@@ -342,6 +342,22 @@ class GoogleDriveService:
                                 }
                             },
                             'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
+                        }
+                    },
+                    # Bingkai Garis Tabel Seluruh Data (Full Borders Thin Solid)
+                    {
+                        'updateBorders': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 4, 'endRowIndex': max(5, 5 + len(rows)),
+                                'startColumnIndex': 0, 'endColumnIndex': 25
+                            },
+                            'top': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.6, 'green': 0.6, 'blue': 0.6}},
+                            'bottom': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.6, 'green': 0.6, 'blue': 0.6}},
+                            'left': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.6, 'green': 0.6, 'blue': 0.6}},
+                            'right': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.6, 'green': 0.6, 'blue': 0.6}},
+                            'innerHorizontal': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.8, 'green': 0.8, 'blue': 0.8}},
+                            'innerVertical': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.8, 'green': 0.8, 'blue': 0.8}}
                         }
                     }
                 ]

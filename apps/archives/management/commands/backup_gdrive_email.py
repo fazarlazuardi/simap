@@ -21,69 +21,100 @@ class Command(BaseCommand):
         backed_up_details = []
         total_backed_up = 0
 
-        # 1. Backup Dokumen Arsip
-        archives_to_backup = Archive.objects.filter(drive_backed_up=False)
-        if not archives_to_backup.exists():
-            archives_to_backup = Archive.objects.all().order_by('-created_at')[:10]
+        # 1. (Instruksi Pengguna) Berkas PDF fisik tidak diunggah ke Drive, cukup disinkronkan via tautan sistem SIMAP
+        self.stdout.write(self.style.SUCCESS("[INFO] Pengunggahan PDF ke Drive dilewati (Tautan langsung sistem SIMAP digunakan)."))
 
-        for archive in archives_to_backup:
-            if archive.file_path and hasattr(archive.file_path, 'path') and os.path.exists(archive.file_path.path):
-                file_name = f"ARSIP_{archive.archive_number or archive.id}_{os.path.basename(archive.file_path.name)}"
-                drive_res = gdrive.upload_file(archive.file_path.path, custom_filename=file_name)
-                drive_id = drive_res.get('id') if isinstance(drive_res, dict) else (str(drive_res) if drive_res else None)
-                
-                if drive_id:
-                    archive.drive_backed_up = True
-                    archive.drive_file_id = drive_id
-                    archive.save(update_fields=['drive_backed_up', 'drive_file_id'])
-                    total_backed_up += 1
-                    backed_up_details.append({
-                        'type': 'ARSIP',
-                        'title': archive.title,
-                        'drive_id': drive_id
-                    })
-                    self.stdout.write(self.style.SUCCESS(f"[OK] Arsip '{archive.title}' berhasil diunggah ke GDrive. (ID: {drive_id})"))
-
-        # 2. Backup Berkas Laporan Hasil
-        reports_to_backup = Report.objects.filter(file__isnull=False).order_by('-created_at')[:5]
-        for report in reports_to_backup:
-            if report.file and hasattr(report.file, 'path') and os.path.exists(report.file.path):
-                file_name = f"LAPORAN_{report.report_number}_{os.path.basename(report.file.name)}"
-                drive_res = gdrive.upload_file(report.file.path, custom_filename=file_name)
-                drive_id = drive_res.get('id') if isinstance(drive_res, dict) else (str(drive_res) if drive_res else None)
-                if drive_id:
-                    total_backed_up += 1
-                    backed_up_details.append({
-                        'type': 'LAPORAN',
-                        'title': report.title,
-                        'drive_id': drive_id
-                    })
-                    self.stdout.write(self.style.SUCCESS(f"[OK] Laporan '{report.title}' berhasil diunggah ke GDrive. (ID: {drive_id})"))
-
-        # 2.5 Sinkronisasi Data Rekap ke Google Sheets Target
+        # 2. Sinkronisasi Data Rekap ke Google Sheets Target (Standar Ekspor Laporan Lembaga)
         try:
             now = timezone.now()
-            all_archives = Archive.objects.all().order_by('-created_at')[:50]
+            all_archives = Archive.objects.all().select_related('category', 'uploaded_by').prefetch_related(
+                'dispositions', 'agendas'
+            ).order_by('-created_at')[:100]
+
             rows = []
-            for arc in all_archives:
+            for idx, arc in enumerate(all_archives, start=1):
+                dispo = arc.latest_dispo
+                tgl_letter = arc.letter_date.strftime('%d/%m/%Y') if arc.letter_date else arc.created_at.strftime('%d/%m/%Y')
+                sender_receiver = arc.sender or arc.receiver or '-'
+                description = arc.description or '-'
+                status_dok = arc.activity_name
+                jenis_arsip = arc.get_archive_type_display()
+                kategori = arc.category.name if arc.category else '-'
+
+                if dispo:
+                    dispo_number = dispo.disposition_number or f'DISP-{dispo.id}'
+                    pj_list = arc.current_assignee_names
+                    sender_name = dispo.sender.username if dispo.sender else '-'
+                    prioritas = dispo.get_priority_display()
+                    status_dispo = dispo.get_status_display()
+                    catatan = (dispo.waka_note if dispo.is_stage_waka and dispo.waka_note else dispo.note) or '-'
+                    tgl_pelaksanaan = dispo.implementation_date.strftime('%d/%m/%Y') if dispo.implementation_date else '-'
+                    inst_selesaikan = 'Ya' if (dispo.waka_inst_selesaikan if dispo.is_stage_waka else dispo.inst_selesaikan) else 'Tidak'
+                    inst_diketahui = 'Ya' if (dispo.waka_inst_untuk_diketahui if dispo.is_stage_waka else dispo.inst_untuk_diketahui) else 'Tidak'
+                    inst_laporkan = 'Ya' if (dispo.waka_inst_laporkan_hasilnya if dispo.is_stage_waka else dispo.inst_laporkan_hasilnya) else 'Tidak'
+                    inst_koordinasikan = 'Ya' if (dispo.waka_inst_koordinasikan if dispo.is_stage_waka else dispo.inst_koordinasikan) else 'Tidak'
+                else:
+                    dispo_number = '-'
+                    pj_list = '-'
+                    sender_name = '-'
+                    prioritas = '-'
+                    status_dispo = '-'
+                    catatan = '-'
+                    tgl_pelaksanaan = '-'
+                    inst_selesaikan = '-'
+                    inst_diketahui = '-'
+                    inst_laporkan = '-'
+                    inst_koordinasikan = '-'
+
+                sppd_obj = arc.latest_sppd
+                st_obj = arc.latest_st
+                sppd_number = sppd_obj.sppd_number if sppd_obj else (st_obj.nomor_surat if st_obj else '-')
+
+                report_obj = arc.latest_report
+                report_number = report_obj.report_number if report_obj else '-'
+
+                tgl_agenda = arc.latest_agenda_date.strftime('%d/%m/%Y') if arc.latest_agenda_date else '-'
+
+                dok_link = f"http://localhost:8000{arc.file_path.url}" if arc.file_path else ''
+                arsip_link = f"http://localhost:8000/archives/{arc.pk}/"
+
                 rows.append([
+                    idx,
                     arc.archive_number or 'DRAFT',
                     arc.title,
-                    arc.get_archive_type_display(),
-                    arc.category.name if arc.category else '-',
-                    arc.letter_date.strftime('%d/%m/%Y') if arc.letter_date else '-',
-                    arc.sender or '-',
-                    arc.description or '-',
-                    arc.activity_name,
-                    arc.latest_dispo.disposition_number if arc.latest_dispo else '-',
-                    arc.current_assignee_names,
-                    '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-',
-                    f'https://drive.google.com/file/d/{arc.drive_file_id}/view' if arc.drive_file_id else '-',
-                    f'http://localhost:8000/archives/{arc.pk}/'
+                    jenis_arsip,
+                    kategori,
+                    tgl_letter,
+                    sender_receiver,
+                    description,
+                    status_dok,
+                    dispo_number,
+                    pj_list,
+                    sender_name,
+                    prioritas,
+                    status_dispo,
+                    catatan,
+                    tgl_pelaksanaan,
+                    inst_selesaikan,
+                    inst_diketahui,
+                    inst_laporkan,
+                    inst_koordinasikan,
+                    tgl_agenda,
+                    sppd_number,
+                    report_number,
+                    f'=HYPERLINK("{dok_link}", "Buka Berkas SIMAP")' if dok_link else '-',
+                    f'=HYPERLINK("{arsip_link}", "Lihat Detail Sistem")',
                 ])
+
             sp_id, sp_url, err = gdrive.create_monthly_backup(now.month, now.year, rows)
             if sp_id:
-                self.stdout.write(self.style.SUCCESS(f"[OK] Data rekap berhasil disinkronkan ke Google Sheet ({sp_url})."))
+                total_backed_up = len(rows)
+                backed_up_details.append({
+                    'type': 'REKAP_GSHEET',
+                    'title': f'Rekapitulasi Dokumen {now.strftime("%B %Y")}',
+                    'drive_id': sp_id
+                })
+                self.stdout.write(self.style.SUCCESS(f"[OK] Spreadsheet Rekapitulasi Berhasil Disinkronkan ke Google Sheet ({sp_url})."))
         except Exception as e:
             self.stdout.write(self.style.WARNING(f"Peringatan sync Google Sheets: {e}"))
 
