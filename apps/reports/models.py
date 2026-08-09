@@ -1,3 +1,4 @@
+import os
 import json
 from django.db import models
 from django.conf import settings
@@ -63,16 +64,30 @@ class GoogleOAuthToken(models.Model):
 
     @staticmethod
     def get_client_config():
+        from django.conf import settings
+        # 1. Prioritaskan berkas credentials.json utama di root proyek
+        creds_path = getattr(settings, 'GOOGLE_DRIVE_CREDENTIALS', None) or os.path.join(settings.BASE_DIR, 'credentials.json')
+        if creds_path and os.path.exists(creds_path):
+            try:
+                with open(creds_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    if 'installed' in data or 'web' in data:
+                        return data
+            except Exception:
+                pass
+
+        # 2. Cek SystemSetting dari database
         from users.models import SystemSetting
         raw = SystemSetting.get_value('GOOGLE_OAUTH_CLIENT_CONFIG', '')
         if raw:
             try:
-                return json.loads(raw)
+                data = json.loads(raw)
+                if 'installed' in data or 'web' in data:
+                    return data
             except (json.JSONDecodeError, TypeError):
                 pass
         
-        # Fallback ke berkas credentials.json
-        creds_path = getattr(settings, 'GOOGLE_DRIVE_CREDENTIALS', None) or os.path.join(settings.BASE_DIR, 'credentials.json')
+        # 3. Fallback baca berkas langsung
         if creds_path and os.path.exists(creds_path):
             try:
                 with open(creds_path, 'r', encoding='utf-8') as f:
