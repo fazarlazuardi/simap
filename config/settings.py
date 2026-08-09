@@ -134,7 +134,7 @@ CELERY_TIMEZONE = TIME_ZONE
 WA_GATEWAY_URL = env('WA_GATEWAY_URL', default='')
 GOOGLE_DRIVE_FOLDER_ID = env('GOOGLE_DRIVE_FOLDER_ID', default='')
 GOOGLE_DRIVE_CREDENTIALS = env('GOOGLE_DRIVE_CREDENTIALS', default=os.path.join(BASE_DIR, 'credentials.json'))
-GOOGLE_SHEET_ID = env('GOOGLE_SHEET_ID', default='')
+GOOGLE_SHEET_ID = env('GOOGLE_SHEET_ID', default='1WX3-UvF4okkXKRuui9oiTzF6TZFgsdtSyoQR89QyiTc')
 GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
 
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)

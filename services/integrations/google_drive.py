@@ -17,6 +17,7 @@ class GoogleDriveService:
     def __init__(self):
         self.creds_path = self._get_creds_path_from_db()
         self.folder_id = self._get_folder_id_from_db()
+        self.sheet_id = self._get_sheet_id_from_db()
         self._service = None
         self._sheets_service = None
         self._oauth_token = None
@@ -41,6 +42,16 @@ class GoogleDriveService:
             pass
         val = getattr(settings, 'GOOGLE_DRIVE_FOLDER_ID', '')
         return val if val and val != 'your_folder_id_here' and len(val) > 10 else None
+
+    def _get_sheet_id_from_db(self):
+        try:
+            from users.models import SystemSetting
+            setting = SystemSetting.objects.filter(key='GOOGLE_SHEET_ID').first()
+            if setting and setting.value and setting.value != 'your_spreadsheet_id_here':
+                return setting.value
+        except Exception:
+            pass
+        return getattr(settings, 'GOOGLE_SHEET_ID', '1WX3-UvF4okkXKRuui9oiTzF6TZFgsdtSyoQR89QyiTc')
 
     def _get_oauth_token(self):
         if self._oauth_token:
@@ -216,22 +227,24 @@ class GoogleDriveService:
             month_str = month_names[month] if 1 <= month <= 12 else str(month)
             title = f"Backup_Laporan_BAZNAS_{month_str}_{year}"
 
-            file_metadata = {
-                'name': title,
-                'mimeType': 'application/vnd.google-apps.spreadsheet',
-            }
-            if self.folder_id:
-                file_metadata['parents'] = [self.folder_id]
+            spreadsheet_id = self.sheet_id
+            if not spreadsheet_id:
+                file_metadata = {
+                    'name': title,
+                    'mimeType': 'application/vnd.google-apps.spreadsheet',
+                }
+                if self.folder_id:
+                    file_metadata['parents'] = [self.folder_id]
 
-            created_file = drive.files().create(body=file_metadata, fields='id').execute()
-            spreadsheet_id = created_file.get('id')
+                created_file = drive.files().create(body=file_metadata, fields='id').execute()
+                spreadsheet_id = created_file.get('id')
 
             body = {
                 'values': values
             }
             sheets.spreadsheets().values().update(
                 spreadsheetId=spreadsheet_id,
-                range='Sheet1!A1',
+                range='A1',
                 valueInputOption='USER_ENTERED',
                 body=body
             ).execute()

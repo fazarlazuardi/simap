@@ -29,7 +29,8 @@ class Command(BaseCommand):
         for archive in archives_to_backup:
             if archive.file_path and hasattr(archive.file_path, 'path') and os.path.exists(archive.file_path.path):
                 file_name = f"ARSIP_{archive.archive_number or archive.id}_{os.path.basename(archive.file_path.name)}"
-                drive_id = gdrive.upload_file(archive.file_path.path, custom_filename=file_name)
+                drive_res = gdrive.upload_file(archive.file_path.path, custom_filename=file_name)
+                drive_id = drive_res.get('id') if isinstance(drive_res, dict) else (str(drive_res) if drive_res else None)
                 
                 if drive_id:
                     archive.drive_backed_up = True
@@ -48,7 +49,8 @@ class Command(BaseCommand):
         for report in reports_to_backup:
             if report.file and hasattr(report.file, 'path') and os.path.exists(report.file.path):
                 file_name = f"LAPORAN_{report.report_number}_{os.path.basename(report.file.name)}"
-                drive_id = gdrive.upload_file(report.file.path, custom_filename=file_name)
+                drive_res = gdrive.upload_file(report.file.path, custom_filename=file_name)
+                drive_id = drive_res.get('id') if isinstance(drive_res, dict) else (str(drive_res) if drive_res else None)
                 if drive_id:
                     total_backed_up += 1
                     backed_up_details.append({
@@ -57,6 +59,33 @@ class Command(BaseCommand):
                         'drive_id': drive_id
                     })
                     self.stdout.write(self.style.SUCCESS(f"[OK] Laporan '{report.title}' berhasil diunggah ke GDrive. (ID: {drive_id})"))
+
+        # 2.5 Sinkronisasi Data Rekap ke Google Sheets Target
+        try:
+            now = timezone.now()
+            all_archives = Archive.objects.all().order_by('-created_at')[:50]
+            rows = []
+            for arc in all_archives:
+                rows.append([
+                    arc.archive_number or 'DRAFT',
+                    arc.title,
+                    arc.get_archive_type_display(),
+                    arc.category.name if arc.category else '-',
+                    arc.letter_date.strftime('%d/%m/%Y') if arc.letter_date else '-',
+                    arc.sender or '-',
+                    arc.description or '-',
+                    arc.activity_name,
+                    arc.latest_dispo.disposition_number if arc.latest_dispo else '-',
+                    arc.current_assignee_names,
+                    '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-',
+                    f'https://drive.google.com/file/d/{arc.drive_file_id}/view' if arc.drive_file_id else '-',
+                    f'http://localhost:8000/archives/{arc.pk}/'
+                ])
+            sp_id, sp_url, err = gdrive.create_monthly_backup(now.month, now.year, rows)
+            if sp_id:
+                self.stdout.write(self.style.SUCCESS(f"[OK] Data rekap berhasil disinkronkan ke Google Sheet ({sp_url})."))
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f"Peringatan sync Google Sheets: {e}"))
 
         # 3. Buat Dump Database JSON Sementara
         dump_path = None
