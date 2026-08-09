@@ -198,9 +198,42 @@ class GoogleDriveService:
             archive.save(update_fields=['drive_file_id', 'drive_backed_up'])
         return res
 
+    def _get_or_upload_logo_url(self, drive, target_folder):
+        try:
+            q = f"name='BAZNAS_LOGO_KOP.png' and '{target_folder}' in parents and trashed=false"
+            res = drive.files().list(q=q, fields='files(id, name)').execute()
+            files = res.get('files', [])
+            if files:
+                logo_id = files[0].get('id')
+                return f"https://drive.google.com/uc?export=view&id={logo_id}"
+
+            logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_baznas.png')
+            if not os.path.exists(logo_path):
+                logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo.png')
+
+            if os.path.exists(logo_path):
+                from googleapiclient.http import MediaFileUpload
+                file_metadata = {'name': 'BAZNAS_LOGO_KOP.png', 'parents': [target_folder]}
+                media = MediaFileUpload(logo_path, mimetype='image/png')
+                created = drive.files().create(body=file_metadata, media_body=media, fields='id').execute()
+                logo_id = created.get('id')
+
+                try:
+                    drive.permissions().create(
+                        fileId=logo_id,
+                        body={'type': 'anyone', 'role': 'reader'}
+                    ).execute()
+                except Exception:
+                    pass
+
+                return f"https://drive.google.com/uc?export=view&id={logo_id}"
+        except Exception as e:
+            logger.warning(f"Gagal menyiapkan URL logo untuk Google Sheets: {e}")
+        return None
+
     def create_monthly_backup(self, month, year, rows):
         """
-        Membuat spreadsheet Google Sheets rapi dengan Kop BAZNAS di folder 10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm.
+        Membuat spreadsheet Google Sheets rapi dengan Kop BAZNAS, Logo Resmi, dan Auto-Fit Column di folder 10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm.
         """
         try:
             creds = self._get_credentials()
@@ -237,22 +270,25 @@ class GoogleDriveService:
                 created_file = drive.files().create(body=file_metadata, fields='id').execute()
                 spreadsheet_id = created_file.get('id')
 
-            # 3. Formati Kop BAZNAS & Header Tabel
+            # 3. Logo & Kop BAZNAS Header
+            logo_url = self._get_or_upload_logo_url(drive, target_folder)
+            logo_formula = f'=IMAGE("{logo_url}")' if logo_url else 'BAZNAS'
+
             kop_header = [
-                ['BADAN AMIL ZAKAT NASIONAL (BAZNAS) KABUPATEN TANGERANG'],
-                [f'REKAPITULASI DOKUMEN ARSIP & MONITORING PROSES SYSTEM SIMAP - {month_str.upper()} {year}'],
-                ['Jl. H. Somawinata No. 1, Kadu Agung, Tigaraksa, Kabupaten Tangerang | Website: simap.baznas.or.id'],
+                [logo_formula, '', 'BADAN AMIL ZAKAT NASIONAL (BAZNAS) KABUPATEN TANGERANG'],
+                ['', '', f'REKAPITULASI DOKUMEN ARSIP & MONITORING PROSES DISPOSISI SYSTEM SIMAP - {month_str.upper()} {year}'],
+                ['', '', 'Jl. H. Somawinata No. 1, Kadu Agung, Tigaraksa, Kabupaten Tangerang | Email: kabupatenbaznastangerang@gmail.com'],
                 ['']  # Separator
             ]
 
             headers = [
-                'No. Agenda/Reg', 'Judul / Perihal Dokumen', 'Jenis Arsip', 'Kategori',
-                'Tanggal Surat', 'Pengirim / Pemohon', 'Deskripsi / Sinopsis',
-                'Status Dokumen', 'No. Disposisi', 'Penanggung Jawab',
-                'Pengirim Disposisi', 'Prioritas', 'Status Disposisi',
-                'Catatan / Arahan', 'Tgl Pelaksanaan', 'Selesaikan', 'Diketahui',
-                'Laporkan', 'Koordinasikan', 'Tgl Agenda', 'No. SPPD',
-                'No. Laporan', 'Link File SIMAP', 'Link Detail System'
+                'NO.', 'NO. AGENDA/REG', 'JUDUL / PERIHAL DOKUMEN', 'JENIS ARSIP', 'KATEGORI',
+                'TANGGAL SURAT', 'PENGIRIM / PEMOHON', 'DESKRIPSI / SINOPSIS',
+                'STATUS DOKUMEN', 'NO. DISPOSISI', 'PENANGGUNG JAWAB',
+                'PENGIRIM DISPOSISI', 'PRIORITAS', 'STATUS DISPOSISI',
+                'CATATAN / ARAHAN', 'TGL PELAKSANAAN', 'SELESAIKAN', 'DIKETAHUI',
+                'LAPORKAN', 'KOORDINASIKAN', 'TGL AGENDA', 'NO. SPPD',
+                'NO. LAPORAN', 'LINK BERKAS SIMAP', 'LINK DETAIL SISTEM'
             ]
 
             values = kop_header + [headers] + rows
@@ -267,52 +303,73 @@ class GoogleDriveService:
                 body=body
             ).execute()
 
-            # 4. Terapkan Formatting Kop & Header Tabel (Warna Hijau BAZNAS #00583b)
+            # 4. Formatting Kop BAZNAS, Logo, Full Borders & Auto-Fit Width
             try:
                 sheet_metadata = sheets.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
                 first_sheet_id = sheet_metadata['sheets'][0]['properties']['sheetId']
 
                 requests = [
-                    # Merge Kop Row 1 (A1:X1)
+                    # Unmerge cell lama di area Kop A1:Y5
+                    {
+                        'unmergeCells': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 0, 'endRowIndex': 5,
+                                'startColumnIndex': 0, 'endColumnIndex': 25
+                            }
+                        }
+                    },
+                    # Merge Logo Container A1:B3
+                    {
+                        'mergeCells': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 0, 'endRowIndex': 3,
+                                'startColumnIndex': 0, 'endColumnIndex': 2
+                            },
+                            'mergeType': 'MERGE_ALL'
+                        }
+                    },
+                    # Merge Kop Title Row 1 (C1:Y1)
                     {
                         'mergeCells': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 0, 'endRowIndex': 1,
-                                'startColumnIndex': 0, 'endColumnIndex': 24
+                                'startColumnIndex': 2, 'endColumnIndex': 25
                             },
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Merge Kop Row 2 (A2:X2)
+                    # Merge Kop Title Row 2 (C2:Y2)
                     {
                         'mergeCells': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 1, 'endRowIndex': 2,
-                                'startColumnIndex': 0, 'endColumnIndex': 24
+                                'startColumnIndex': 2, 'endColumnIndex': 25
                             },
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Merge Kop Row 3 (A3:X3)
+                    # Merge Kop Title Row 3 (C3:Y3)
                     {
                         'mergeCells': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 2, 'endRowIndex': 3,
-                                'startColumnIndex': 0, 'endColumnIndex': 24
+                                'startColumnIndex': 2, 'endColumnIndex': 25
                             },
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Style Kop Headers (Hijau BAZNAS #00583b, Teks Putih, Centered)
+                    # Style Kop Headers C1:Y3 (Hijau BAZNAS #00583b, Teks Putih Bold, Centered)
                     {
                         'repeatCell': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 0, 'endRowIndex': 3,
-                                'startColumnIndex': 0, 'endColumnIndex': 24
+                                'startColumnIndex': 2, 'endColumnIndex': 25
                             },
                             'cell': {
                                 'userEnteredFormat': {
@@ -325,7 +382,25 @@ class GoogleDriveService:
                             'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
                         }
                     },
-                    # Style Tabel Headers Row 5 (Hijau Pekat #004129, Teks Putih, Bold, Centered)
+                    # Style Logo Cell A1:B3 (Background Putih, Centered & Middle)
+                    {
+                        'repeatCell': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 0, 'endRowIndex': 3,
+                                'startColumnIndex': 0, 'endColumnIndex': 2
+                            },
+                            'cell': {
+                                'userEnteredFormat': {
+                                    'backgroundColor': {'red': 1.0, 'green': 1.0, 'blue': 1.0},
+                                    'horizontalAlignment': 'CENTER',
+                                    'verticalAlignment': 'MIDDLE'
+                                }
+                            },
+                            'fields': 'userEnteredFormat(backgroundColor,horizontalAlignment,verticalAlignment)'
+                        }
+                    },
+                    # Style Header Tabel Row 5 (Hijau Pekat #004129, Teks Putih, Bold, Centered)
                     {
                         'repeatCell': {
                             'range': {
@@ -344,7 +419,7 @@ class GoogleDriveService:
                             'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
                         }
                     },
-                    # Bingkai Garis Tabel Seluruh Data (Full Borders Thin Solid)
+                    # Garis Bingkai Tabel Utuh Seluruh Data (Full Thin Solid Borders)
                     {
                         'updateBorders': {
                             'range': {
@@ -352,12 +427,23 @@ class GoogleDriveService:
                                 'startRowIndex': 4, 'endRowIndex': max(5, 5 + len(rows)),
                                 'startColumnIndex': 0, 'endColumnIndex': 25
                             },
-                            'top': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.6, 'green': 0.6, 'blue': 0.6}},
-                            'bottom': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.6, 'green': 0.6, 'blue': 0.6}},
-                            'left': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.6, 'green': 0.6, 'blue': 0.6}},
-                            'right': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.6, 'green': 0.6, 'blue': 0.6}},
+                            'top': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.5, 'green': 0.5, 'blue': 0.5}},
+                            'bottom': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.5, 'green': 0.5, 'blue': 0.5}},
+                            'left': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.5, 'green': 0.5, 'blue': 0.5}},
+                            'right': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.5, 'green': 0.5, 'blue': 0.5}},
                             'innerHorizontal': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.8, 'green': 0.8, 'blue': 0.8}},
                             'innerVertical': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.8, 'green': 0.8, 'blue': 0.8}}
+                        }
+                    },
+                    # AUTO FIT (AUTORESIZE) SELURUH KOLOM KONTEN TABEL (Kolom A-Y)
+                    {
+                        'autoResizeDimensions': {
+                            'dimensions': {
+                                'sheetId': first_sheet_id,
+                                'dimension': 'COLUMNS',
+                                'startIndex': 0,
+                                'endIndex': 25
+                            }
                         }
                     }
                 ]
