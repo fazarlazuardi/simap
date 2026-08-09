@@ -702,8 +702,8 @@ def drive_backup_monthly(request):
             tgl_agenda,
             sppd_number,
             report_number,
-            f'=HIPERLINK("{dok_link}";"Buka File Drive")' if dok_link else '-',
-            f'=HIPERLINK("{arsip_link}";"Lihat Detail Sistem")',
+            f'=HYPERLINK("{dok_link}", "Buka File Drive")' if dok_link else '-',
+            f'=HYPERLINK("{arsip_link}", "Lihat Detail Sistem")',
         ])
 
     from services.integrations.google_drive import GoogleDriveService
