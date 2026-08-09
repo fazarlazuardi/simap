@@ -1,0 +1,38 @@
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Konfirmasi Hapus Disposisi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <strong>Perhatian!</strong> Tindakan ini tidak dapat dibatalkan. Data disposisi yang dihapus akan hilang dari sistem.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p class="mb-1"><strong>Nomor Agenda:</strong> {{ disposition.disposition_number }}</p>
+                        <p class="mb-1"><strong>Perihal Surat:</strong> {{ disposition.archive.title }}</p>
+                        <p class="mb-1"><strong>Asal Surat:</strong> {{ disposition.archive.sender }}</p>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'dispositions:detail' disposition.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Batal
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Ya, Hapus Data
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

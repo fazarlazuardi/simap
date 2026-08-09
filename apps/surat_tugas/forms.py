@@ -1,0 +1,163 @@
+import datetime
+import logging
+from django import forms
+from django.utils import timezone
+from .models import SuratTugas, Disposition
+from users.models import Employee
+from services.integrations.gateway_service import WhatsAppService
+
+logger = logging.getLogger(__name__)
+
+PIMPINAN_CHOICES = [
+    ("Drs. Achmad Nawawi, M.Si|Ketua BAZNAS", "Drs. Achmad Nawawi, M.Si (Ketua BAZNAS)"),
+    ("Haris Syarif Mansyur, S.H, M.H|Wakil Ketua I", "Haris Syarif Mansyur, S.H, M.H (Wakil Ketua I - Pengumpulan)"),
+    ("Andi Irawan, S.Pd.I, M.Pd|Wakil Ketua II", "Andi Irawan, S.Pd.I, M.Pd (Wakil Ketua II - Pendistribusian & Pendayagunaan)"),
+    ("H. Supriyadinata, M.Si|Wakil Ketua III", "H. Supriyadinata, M.Si (Wakil Ketua III - Perencanaan, Keuangan, & Pelaporan)"),
+    ("Haetami, S.Sos.I|Wakil Ketua IV", "Haetami, S.Sos.I (Wakil Ketua IV - Administrasi, Umum, & SDM)"),
+]
+
+class SuratTugasForm(forms.ModelForm):
+    pilihan_penandatangan = forms.ChoiceField(
+        choices=PIMPINAN_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select shadow-sm fw-bold text-success', 'id': 'id_pilihan_penandatangan'}),
+        label="Pejabat Penandatangan"
+    )
+
+    class Meta:
+        model = SuratTugas
+        fields = [
+            'nomor_surat', 'tentang', 'hari_kegiatan', 'tanggal_mulai',
+            'lokasi_tujuan', 'disposition', 'pegawai_ditugaskan',
+            'pilihan_penandatangan',
+        ]
+        widgets = {
+            'nomor_surat': forms.TextInput(attrs={
+                'class': 'form-control shadow-sm bg-light', 
+                'readonly': 'readonly',  
+                'placeholder': 'Otomatis digenerate oleh sistem'
+            }),
+            'tentang': forms.Textarea(attrs={'class': 'form-control shadow-sm', 'rows': 3, 'placeholder': 'Masukkan perihal atau tujuan penugasan...'}),
+            'hari_kegiatan': forms.TextInput(attrs={'class': 'form-control shadow-sm', 'placeholder': 'Contoh: Senin s.d. Rabu'}),
+            'tanggal_mulai': forms.DateInput(attrs={'class': 'form-control shadow-sm', 'type': 'date'}),
+            'lokasi_tujuan': forms.TextInput(attrs={'class': 'form-control shadow-sm', 'placeholder': 'Masukkan lokasi tujuan penugasan'}),
+            'disposition': forms.Select(attrs={'class': 'form-select shadow-sm'}),
+            'pegawai_ditugaskan': forms.SelectMultiple(attrs={'class': 'form-select select2-employee', 'data-placeholder': 'Ketik nama, jabatan, atau bidang pegawai...'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        if not self.instance.pk and 'nomor_surat' in self.fields:
+            now = datetime.datetime.now()
+            tahun_ini = now.year
+            romawi_bulan = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]
+            bulan_romawi = romawi_bulan[now.month]
+            
+            last_st = SuratTugas.objects.filter(created_at__year=tahun_ini).order_by('-id').first()
+            surat_ke = (int(last_st.nomor_surat.split('/')[1]) + 1) if (last_st and last_st.nomor_surat and len(last_st.nomor_surat.split('/')) >= 2 and last_st.nomor_surat.split('/')[1].isdigit()) else (SuratTugas.objects.filter(created_at__year=tahun_ini).count() + 1)
+            
+            self.initial['nomor_surat'] = f"ST/{str(surat_ke).zfill(3)}/BAZNAS-TGN/{bulan_romawi}/{tahun_ini}"
+
+        if 'pegawai_ditugaskan' in self.fields:
+            self.fields['pegawai_ditugaskan'].queryset = Employee.objects.all().select_related('dept_relation').order_by('full_name')
+            self.fields['pegawai_ditugaskan'].required = False
+            self.fields['pegawai_ditugaskan'].label_from_instance = lambda obj: (
+                f"{obj.full_name} — {getattr(obj, 'position', 'Amil')} "
+                f"({getattr(obj.dept_relation, 'name', 'Tanpa Bidang')})"
+            )
+
+        if 'disposition' in self.fields:
+            self.fields['disposition'].queryset = Disposition.objects.all().order_by('-id')
+            self.fields['disposition'].required = False
+            
+            def get_disposition_perihal(obj):
+                perihal_val = None
+                try:
+                    archive_obj = getattr(obj, 'archive', None)
+                    if archive_obj:
+                        perihal_val = (
+                            getattr(archive_obj, 'perihal', None) or
+                            getattr(archive_obj, 'subject', None) or
+                            getattr(archive_obj, 'judul', None) or
+                            getattr(archive_obj, 'title', None)
+                        )
+                except Exception:
+                    # Mencegah error jika relasi archive terputus (DoesNotExist)
+                    pass
+
+                if not perihal_val:
+                    perihal_val = (
+                        getattr(obj, 'perihal', None) or
+                        getattr(obj, 'subject', None) or
+                        getattr(obj, 'judul', None)
+                    )
+
+                text_display = perihal_val if perihal_val else f"Disposisi ID: {obj.pk}"
+                return f"Disposisi #{obj.id} — {text_display}"
+
+            self.fields['disposition'].label_from_instance = get_disposition_perihal
+
+        if self.instance and self.instance.pk:
+            combined = f"{self.instance.pejabat_penandatangan}|{self.instance.jabatan_penandatangan}"
+            if combined in [c[0] for c in PIMPINAN_CHOICES]:
+                self.initial['pilihan_penandatangan'] = combined
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        if not instance.tanggal_mulai:
+            instance.tanggal_mulai = timezone.now().date()
+
+        if not instance.nomor_surat:
+            now = datetime.datetime.now()
+            tahun_ini = now.year
+            romawi_bulan = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]
+            bulan_romawi = romawi_bulan[now.month]
+            
+            last_st = SuratTugas.objects.filter(created_at__year=tahun_ini).order_by('-id').first()
+            surat_ke = (int(last_st.nomor_surat.split('/')[1]) + 1) if (last_st and last_st.nomor_surat and len(last_st.nomor_surat.split('/')) >= 2 and last_st.nomor_surat.split('/')[1].isdigit()) else (SuratTugas.objects.filter(created_at__year=tahun_ini).count() + 1)
+            instance.nomor_surat = f"ST/{str(surat_ke).zfill(3)}/BAZNAS-TGN/{bulan_romawi}/{tahun_ini}"
+
+        pilihan = self.cleaned_data.get('pilihan_penandatangan')
+        if pilihan and '|' in pilihan:
+            nama, jabatan = pilihan.split('|', 1)
+            instance.pejabat_penandatangan = nama.strip()
+            instance.jabatan_penandatangan = jabatan.strip()
+        else:
+            instance.pejabat_penandatangan = "Drs. Achmad Nawawi, M.Si"
+            instance.jabatan_penandatangan = "Ketua BAZNAS"
+
+        instance.save()
+        self.save_m2m()
+
+        tanggal_format = instance.tanggal_mulai.strftime('%d-%m-%Y') if instance.tanggal_mulai else '-'
+        
+        msg = (
+            f"━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"   📋 *SURAT TUGAS BARU*\n"
+            f"   BAZNAS Kab. Tangerang\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📄 *Perihal:* {instance.tentang}\n"
+            f"🔢 *No. Surat:* {instance.nomor_surat}\n"
+            f"👤 *Pejabat Pemberi:* {instance.pejabat_penandatangan} ({instance.jabatan_penandatangan})\n"
+            f"📅 *Tanggal:* {tanggal_format} ({instance.hari_kegiatan or '-'})\n"
+            f"📍 *Lokasi Tujuan:* {instance.lokasi_tujuan}\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"Silakan login ke sistem untuk melihat detail dan mencetak surat."
+        )
+
+        for emp in instance.pegawai_ditugaskan.all():
+            try:
+                user_target = getattr(emp, 'user_account', None)
+                WhatsAppService.send_notification(
+                    user=user_target,
+                    message=msg,
+                    employee=emp,
+                    category='surat_tugas',
+                    title="Surat Tugas Baru"
+                )
+            except Exception as e:
+                logger.error(f"Gagal mengirim notifikasi WA Surat Tugas ke {emp}: {str(e)}")
+
+        return instance

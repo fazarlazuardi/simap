@@ -1,0 +1,58 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Audit Log Sistem - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'reports:index' %}" class="text-decoration-none text-primary">Laporan</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Audit Log</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold mb-1">Audit Log System</h4>
+        <p class="text-secondary small">Rekam jejak aktivitas seluruh pengguna di dalam sistem manajemen arsip.</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr class="text-secondary small text-uppercase">
+                    <th class="border-0">Waktu</th>
+                    <th class="border-0">Pengguna</th>
+                    <th class="border-0">Aksi / Aktivitas</th>
+                    <th class="border-0">Alamat IP</th>
+                    <th class="border-0">User Agent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td class="small text-nowrap">{{ log.created_at|date:"d M Y, H:i:s" }}</td>
+                    <td>
+                        <span class="fw-bold">{{ log.user.username|default:"System" }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark px-3 rounded-pill border">{{ log.action }}</span>
+                    </td>
+                    <td class="small font-monospace">{{ log.ip_address|default:"-" }}</td>
+                    <td class="small text-muted text-truncate" style="max-width: 200px;" title="{{ log.user_agent }}">
+                        {{ log.user_agent|default:"-" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-secondary">
+                        Belum ada riwayat aktivitas yang tercatat.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'includes/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

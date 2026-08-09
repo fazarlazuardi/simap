@@ -1,0 +1,352 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Cetak Surat Tugas - {{ surat.nomor_surat|default:"Draft" }}</title>
+    <!-- Library QRCode JS & PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #000;
+            margin: 0;
+            padding: 15px;
+            background: #555;
+        }
+        .container {
+            width: 100%;
+            max-width: 210mm; /* Lebar standar Kertas A4 */
+            min-height: 297mm; /* Tinggi standar Kertas A4 */
+            margin: 0 auto;
+            background: #fff;
+            padding: 15mm 20mm 20mm 20mm;
+            box-sizing: border-box;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .main-body {
+            flex: 1;
+            padding-bottom: 20px;
+        }
+        
+        /* Kop Surat: Hanya Logo BAZNAS di Tengah */
+        .kop-surat {
+            text-align: center;
+            border-bottom: 3px double #000;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        .logo-baznas {
+            width: 80px;
+            height: auto;
+        }
+        
+        /* Judul Surat */
+        .judul-surat {
+            text-align: center;
+            margin: 12px 0;
+        }
+        .judul-surat h4 {
+            font-size: 12pt;
+            font-weight: bold;
+            text-decoration: underline;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .judul-surat p {
+            margin: 3px 0 0 0;
+            font-size: 11pt;
+        }
+
+        /* Isi Surat */
+        .content {
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+        .table-data {
+            width: 100%;
+            margin-left: 15px;
+            margin-bottom: 10px;
+            border-collapse: collapse;
+        }
+        .table-data td {
+            vertical-align: top;
+            padding: 2px 0;
+        }
+        
+        /* Tabel Pegawai yang Ditugaskan */
+        .pegawai-wrapper {
+            margin: 8px 0 12px 15px;
+            width: calc(100% - 15px);
+        }
+        .pegawai-list {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .pegawai-list th, .pegawai-list td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            font-size: 11pt;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+        .pegawai-list th {
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+
+        /* Bagian Penandatangan dengan Barcode & Logo */
+        .ttd-container {
+            width: 100%;
+            margin-top: 15px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .ttd-section {
+            float: right;
+            width: 270px;
+            text-align: left;
+        }
+        .ttd-section p {
+            margin: 2px 0;
+        }
+        .ttd-flex {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+        .barcode-box {
+            width: 60px;
+            height: 60px;
+            border: 1px solid #ccc;
+            padding: 2px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .space-ttd {
+            height: 50px;
+        }
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        /* Footer Alamat 3 Baris Italic */
+        .footer-alamat {
+            width: 100%;
+            text-align: center;
+            font-style: italic;
+            font-size: 8.5pt;
+            border-top: 1px solid #bbb;
+            padding-top: 6px;
+            line-height: 1.2;
+            margin-top: 15px;
+        }
+        .footer-alamat p {
+            margin: 0;
+        }
+
+        /* Tombol Cetak */
+        .no-print {
+            text-align: center;
+            margin-bottom: 15px;
+            background: #333;
+            padding: 10px;
+        }
+        .btn-print {
+            background: #198754;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            font-size: 11pt;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-print:hover {
+            background: #157347;
+        }
+
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                min-height: 100vh;
+                padding: 10mm 15mm;
+            }
+            .no-print {
+                display: none;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body onload="generateQRCode();">
+
+    <div class="no-print" style="max-width: 210mm; margin: 15px auto; text-align: center; display: flex; justify-content: center; gap: 12px;">
+        <button class="btn-print" onclick="window.print()">🖨️ Cetak Surat Tugas (Printer)</button>
+        <button class="btn-print" style="background: #0284C7;" onclick="downloadPDF()">📥 Download File PDF</button>
+    </div>
+
+    <div class="container">
+        <div class="main-body">
+            <!-- KOP SURAT: MENGGUNAKAN LOGO STATIS -->
+            <div class="kop-surat">
+                <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS" class="logo-baznas">
+            </div>
+
+            <!-- JUDUL SURAT -->
+            <div class="judul-surat">
+                <h4>SURAT TUGAS</h4>
+                <p>Nomor: {{ surat.nomor_surat|default:"[Nomor Belum Terbit]" }}</p>
+            </div>
+
+            <!-- ISI SURAT -->
+            <div class="content">
+                <p>Yang bertanda tangan di bawah ini:</p>
+                <table class="table-data">
+                    <tr>
+                        <td style="width: 110px;">Nama</td>
+                        <td style="width: 15px;">:</td>
+                        <td><strong>{{ surat.pejabat_penandatangan }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Jabatan</td>
+                        <td>:</td>
+                        <td>{{ surat.jabatan_penandatangan }} Badan Amil Zakat Nasional (BAZNAS) Kabupaten Tangerang</td>
+                    </tr>
+                </table>
+
+                <p>Memberikan tugas kepada:</p>
+
+                <!-- TABEL PEGAWAI -->
+                <div class="pegawai-wrapper">
+                    <table class="pegawai-list">
+                        <thead>
+                            <tr>
+                                <th style="width: 35px;">No</th>
+                                <th style="width: 170px;">Nama Pegawai</th>
+                                <th style="width: 120px;">Jabatan / Amil</th>
+                                <th>Bidang / Unit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pegawai in surat.pegawai_ditugaskan.all %}
+                            <tr>
+                                <td style="text-align: center;">{{ forloop.counter }}</td>
+                                <td><strong>{{ pegawai.full_name }}</strong></td>
+                                <td>{{ pegawai.position|default:"Amil" }}</td>
+                                <td>{{ pegawai.dept_relation.name|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #777;">Tidak ada pegawai yang ditugaskan.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>Untuk melaksanakan tugas sebagai berikut:</p>
+                <table class="table-data">
+                    <tr>
+                        <td style="width: 110px;">Perihal / Tujuan</td>
+                        <td style="width: 15px;">:</td>
+                        <td><strong>{{ surat.tentang }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Hari / Tanggal</td>
+                        <td>:</td>
+                        <td>{{ surat.hari_kegiatan|default:"-" }} / {{ surat.tanggal_mulai|date:"d F Y"|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Lokasi Tujuan</td>
+                        <td>:</td>
+                        <td><strong>{{ surat.lokasi_tujuan }}</strong></td>
+                    </tr>
+                </table>
+
+                <p>Demikian Surat Tugas ini dibuat untuk dilaksanakan dengan penuh tanggung jawab dan dipergunakan sebagaimana mestinya.</p>
+            </div>
+
+            <!-- TANDA TANGAN & BARCODE DENGAN LOGO BAZNAS DI TENGAH -->
+            <div class="ttd-container clearfix">
+                <div class="ttd-section">
+                    <p>Ditetapkan di : Tangerang</p>
+                    <p>Pada tanggal : {{ surat.created_at|date:"d F Y" }}</p>
+                    <p style="margin-top: 3px;"><strong>{{ surat.jabatan_penandatangan }},</strong></p>
+                    
+                    <div class="ttd-flex">
+                        <!-- Barcode dengan Logo BAZNAS di tengahnya -->
+                        <div class="barcode-box" id="qrcode-container">
+                            <div id="qrcode"></div>
+                            <img src="{% static 'img/logo_baznas.png' %}" style="position: absolute; width: 14px; height: 14px; background: white; padding: 1px; border-radius: 2px;" alt="Logo">
+                        </div>
+                        <div class="space-ttd"></div>
+                    </div>
+
+                    <p style="margin-top: 3px;"><strong><u>{{ surat.pejabat_penandatangan }}</u></strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER ALAMAT 3 BARIS ITALIK -->
+        <div class="footer-alamat">
+            <p>Badan Amil Zakat Nasional (BAZNAS) Kabupaten Tangerang</p>
+            <p>Komplek Gedung Islamic Center, Jl. Islamic Center No. 1, Citra Raya, Desa Ciakar, Kec. Panongan, Kab. Tangerang</p>
+            <p>Website: kabtangerang.baznas.go.id | Email: info@baznas.tangerangkab.go.id</p>
+        </div>
+
+    </div>
+
+    <!-- Script untuk men-generate barcode secara otomatis -->
+    <script>
+        function generateQRCode() {
+            var qrText = "ST: {{ surat.nomor_surat }} - {{ surat.pejabat_penandatangan }} - BAZNAS Kab. Tangerang";
+            var qrcode = new QRCode(document.getElementById("qrcode"), {
+                text: qrText,
+                width: 56,
+                height: 56,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const element = document.querySelector('.container');
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+            pdf.save('Surat_Tugas_{{ surat.nomor_surat|slugify|default:"baznas" }}.pdf');
+        }
+    </script>
+
+</body>
+</html>

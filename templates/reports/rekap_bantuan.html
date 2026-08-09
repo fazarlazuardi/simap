@@ -1,0 +1,407 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Rekap Penanganan Dokumen - BAZNAS{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<style>
+    /* CSS Penyelarasan Tema Dual Mode (Dark & Light Mode) */
+    .rekap-card {
+        background-color: var(--card-bg, #ffffff) !important;
+        color: var(--text-primary, #0f172a) !important;
+        border: 1px solid var(--border-color, #e2e8f0) !important;
+    }
+    .rekap-header {
+        background-color: var(--card-bg, #ffffff) !important;
+        color: var(--text-primary, #0f172a) !important;
+        border-bottom: 1px solid var(--border-color, #e2e8f0) !important;
+    }
+    .table-rekap {
+        color: var(--text-primary, #0f172a) !important;
+    }
+    .table-rekap thead th {
+        background-color: var(--surface-alt, #f8fafc) !important;
+        color: var(--text-secondary, #475569) !important;
+        border-bottom: 1px solid var(--border-color, #cbd5e1) !important;
+    }
+
+    /* High-Contrast Tabs for Light Mode & Dark Mode */
+    .nav-pills .nav-link {
+        color: var(--text-primary, #1e293b) !important;
+        background-color: var(--surface-alt, #f1f5f9) !important;
+        border: 1px solid var(--border-color, #cbd5e1) !important;
+        font-weight: 700 !important;
+        transition: all 0.2s ease-in-out;
+    }
+    .nav-pills .nav-link:hover {
+        background-color: rgba(14, 159, 110, 0.15) !important;
+        color: var(--primary, #0e9f6e) !important;
+    }
+    .nav-pills .nav-link.active {
+        background-color: var(--primary, #0e9f6e) !important;
+        color: #ffffff !important;
+        border-color: var(--primary, #0e9f6e) !important;
+    }
+
+    div.dataTables_wrapper div.dataTables_info,
+    div.dataTables_wrapper div.dataTables_paginate,
+    div.dataTables_wrapper div.dataTables_length,
+    div.dataTables_wrapper div.dataTables_filter {
+        color: var(--text-primary, #0f172a) !important;
+        padding-top: 0.75rem !important;
+        font-size: 0.85rem !important;
+    }
+    div.dataTables_wrapper div.dataTables_filter input {
+        background-color: var(--card-bg, #ffffff) !important;
+        color: var(--text-primary, #0f172a) !important;
+        border: 1px solid var(--border-color, #cbd5e1) !important;
+        border-radius: 8px !important;
+        padding: 4px 10px !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-7">
+        <h4 class="fw-bold mb-1"><i class="bi bi-bar-chart-line-fill text-success me-2"></i>Rekap Penanganan Dokumen</h4>
+        <p class="text-secondary small mb-0">Analisis statistik real-time penanganan permohonan bantuan (termasuk Pelunasan Hutang/Gharimin) dan dokumen umum BAZNAS.</p>
+    </div>
+    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+        <form method="get" class="d-flex gap-2 justify-content-md-end align-items-center flex-wrap">
+            <select name="month" class="form-select form-select-sm rounded-pill custom-input" style="width: 160px;">
+                <option value="all" {% if all_time %}selected{% endif %}>Semua Bulan Data</option>
+                {% for m_num, m_name in month_names %}
+                <option value="{{ m_num }}" {% if not all_time and selected_month == m_num %}selected{% endif %}>{{ m_name }}</option>
+                {% endfor %}
+            </select>
+            <select name="year" class="form-select form-select-sm rounded-pill custom-input" style="width: 100px;">
+                <option value="2026" {% if selected_year == 2026 %}selected{% endif %}>2026</option>
+                <option value="2025" {% if selected_year == 2025 %}selected{% endif %}>2025</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                <i class="bi bi-filter me-1"></i> Tampilkan
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards (Dual Mode Adaptive) -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card rekap-card rounded-4 p-3 border-start border-4 border-primary shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block">Total Dokumen Masuk</span>
+                    <h3 class="fw-bold mb-0 text-primary">{{ analytics.total_documents|default:0 }}</h3>
+                </div>
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                    <i class="bi bi-files fs-3 text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card rekap-card rounded-4 p-3 border-start border-4 border-success shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block">Penanganan Bantuan</span>
+                    <h3 class="fw-bold mb-0 text-success">{{ analytics.total_bantuan|default:0 }}</h3>
+                </div>
+                <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                    <i class="bi bi-handbag-fill fs-3 text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card rekap-card rounded-4 p-3 border-start border-4 border-info shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block">Penanganan Dokumen Umum</span>
+                    <h3 class="fw-bold mb-0 text-info">{{ analytics.total_umum|default:0 }}</h3>
+                </div>
+                <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                    <i class="bi bi-envelope-paper-fill fs-3 text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DUA GRAFIK BATANG: BANTUAN & UMUM -->
+<div class="row g-4 mb-4">
+    <!-- GRAFIK 1: PENANGANAN BANTUAN (BATANG) -->
+    <div class="col-lg-6">
+        <div class="card rekap-card rounded-4 shadow-sm h-100">
+            <div class="card-header rekap-header py-3">
+                <h5 class="fw-bold mb-0 text-success"><i class="bi bi-bar-chart-fill me-2"></i>1. Grafik Penanganan Permohonan Bantuan</h5>
+                <small class="text-secondary">Sub-kategori Berobat, Gerobak, Beasiswa, Pelunasan Hutang (Gharimin), RTLH, Kemanusiaan, Santunan</small>
+            </div>
+            <div class="card-body">
+                <div id="chartPenangananBantuan" style="min-height: 340px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRAFIK 2: PENANGANAN DOKUMEN UMUM (BATANG) -->
+    <div class="col-lg-6">
+        <div class="card rekap-card rounded-4 shadow-sm h-100">
+            <div class="card-header rekap-header py-3">
+                <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-bar-chart-line-fill me-2"></i>2. Grafik Penanganan Tindak Lanjut Dokumen Umum</h5>
+                <small class="text-secondary">Sub-kategori Audiensi, Undangan, Kerjasama, Narasumber, Kunjungan, Nota Dinas, Rapat</small>
+            </div>
+            <div class="card-body">
+                <div id="chartPenangananUmum" style="min-height: 340px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TABEL RINCIAN (Minimal 10 Data Terlihat Per Halaman) -->
+<div class="card rekap-card rounded-4 p-4 shadow-sm">
+    <ul class="nav nav-pills mb-3 border-bottom pb-2" id="rekapTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active fw-bold rounded-pill px-4" id="bantuan-tab" data-bs-toggle="pill" data-bs-target="#bantuan-pane" type="button">
+                <i class="bi bi-handbag me-2"></i>Daftar Penanganan Bantuan ({{ analytics.total_bantuan }})
+            </button>
+        </li>
+        <li class="nav-item ms-2">
+            <button class="nav-link fw-bold rounded-pill px-4" id="umum-tab" data-bs-toggle="pill" data-bs-target="#umum-pane" type="button">
+                <i class="bi bi-envelope-open me-2"></i>Daftar Penanganan Dokumen Umum ({{ analytics.total_umum }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="rekapTabContent">
+        <!-- TAB 1: BANTUAN -->
+        <div class="tab-pane fade show active" id="bantuan-pane" role="tabpanel">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle table-rekap" id="bantuanTable">
+                    <thead>
+                        <tr class="small text-uppercase">
+                            <th>Tanggal</th>
+                            <th>No. Dokumen</th>
+                            <th>Perihal</th>
+                            <th>Sub-Kategori Bantuan</th>
+                            <th>Status</th>
+                            <th class="text-end">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in analytics.bantuan_details %}
+                        <tr>
+                            <td class="small text-nowrap" data-order="{{ item.archive.created_at|date:'U' }}">{{ item.archive.created_at|date:"d/m/Y" }}</td>
+                            <td class="fw-bold text-primary">{{ item.archive.archive_number|default:"(DRAFT)" }}</td>
+                            <td class="fw-bold">{{ item.archive.title }}</td>
+                            <td><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">{{ item.sub_category }}</span></td>
+                            <td><span class="badge bg-primary rounded-pill px-3">{{ item.archive.workflow_status_display }}</span></td>
+                            <td class="text-end">
+                                <a href="{% url 'archives:detail' item.archive.pk %}" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-eye"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: UMUM -->
+        <div class="tab-pane fade" id="umum-pane" role="tabpanel">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle table-rekap" id="umumTable">
+                    <thead>
+                        <tr class="small text-uppercase">
+                            <th>Tanggal</th>
+                            <th>No. Dokumen</th>
+                            <th>Perihal</th>
+                            <th>Klasifikasi Umum</th>
+                            <th>Status</th>
+                            <th class="text-end">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in analytics.umum_details %}
+                        <tr>
+                            <td class="small text-nowrap" data-order="{{ item.archive.created_at|date:'U' }}">{{ item.archive.created_at|date:"d/m/Y" }}</td>
+                            <td class="fw-bold text-primary">{{ item.archive.archive_number|default:"(DRAFT)" }}</td>
+                            <td class="fw-bold">{{ item.archive.title }}</td>
+                            <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3">{{ item.sub_category }}</span></td>
+                            <td><span class="badge bg-secondary text-white rounded-pill px-3">{{ item.archive.workflow_status_display }}</span></td>
+                            <td class="text-end">
+                                <a href="{% url 'archives:detail' item.archive.pk %}" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-eye"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+{{ bantuan_chart_labels|json_script:"bantuan-labels" }}
+{{ bantuan_chart_series|json_script:"bantuan-series" }}
+{{ umum_chart_labels|json_script:"umum-labels" }}
+{{ umum_chart_series|json_script:"umum-series" }}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // DataTables (pageLength: 10)
+    $('#bantuanTable').DataTable({
+        language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' },
+        pageLength: 10,
+        ordering: true,
+        order: [[0, 'desc']]
+    });
+
+    $('#umumTable').DataTable({
+        language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' },
+        pageLength: 10,
+        ordering: true,
+        order: [[0, 'desc']]
+    });
+
+    $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function () {
+        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+    });
+
+    // Extract Data Safely from json_script
+    var bLabels = JSON.parse(document.getElementById('bantuan-labels').textContent || '[]');
+    var bSeries = JSON.parse(document.getElementById('bantuan-series').textContent || '[]');
+    var uLabels = JSON.parse(document.getElementById('umum-labels').textContent || '[]');
+    var uSeries = JSON.parse(document.getElementById('umum-series').textContent || '[]');
+
+    // Convert string numbers to integer array if needed
+    bSeries = bSeries.map(function(val) { return parseInt(val, 10) || 0; });
+    uSeries = uSeries.map(function(val) { return parseInt(val, 10) || 0; });
+
+    // Dynamic Theme Helper for Crisp Readable Text in Dark & Light Mode
+    const getChartTheme = () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        return {
+            mode: isDark ? 'dark' : 'light',
+            text: isDark ? '#F3F4F6' : '#1E293B',
+            grid: isDark ? 'rgba(255, 255, 255, 0.12)' : '#E2E8F0'
+        };
+    };
+
+    let t = getChartTheme();
+
+    // Futuristic Elegan Multi-Color Palettes
+    const bColors = ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#06B6D4', '#EC4899', '#EAB308', '#6366F1', '#14B8A6'];
+    const uColors = ['#3B82F6', '#06B6D4', '#8B5CF6', '#F59E0B', '#10B981', '#EC4899', '#F43F5E', '#A855F7', '#6366F1'];
+
+    // 1. Render Grafik Batang Penanganan Bantuan
+    var optionsBantuan = {
+        series: [{ name: 'Jumlah Dokumen Bantuan', data: bSeries }],
+        chart: { type: 'bar', height: 380, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+        theme: { mode: t.mode },
+        plotOptions: { 
+            bar: { 
+                horizontal: true, 
+                borderRadius: 7, 
+                barHeight: '55%',
+                distributed: true
+            } 
+        },
+        colors: bColors,
+        xaxis: { 
+            categories: bLabels,
+            labels: { 
+                formatter: function(val) { return Math.floor(val); },
+                style: { colors: t.text, fontSize: '11px', fontWeight: 600 }
+            }
+        },
+        yaxis: {
+            labels: { 
+                maxWidth: 240,
+                style: { colors: t.text, fontSize: '11px', fontWeight: 600 }
+            }
+        },
+        legend: { show: false },
+        grid: { borderColor: t.grid },
+        dataLabels: { 
+            enabled: true,
+            style: { fontSize: '12px', fontWeight: 'bold', colors: ['#ffffff'] },
+            dropShadow: { enabled: true, top: 1, left: 1, blur: 1, opacity: 0.5 }
+        },
+        tooltip: { 
+            theme: t.mode,
+            y: { formatter: function(val) { return val + " Dokumen"; } }
+        }
+    };
+    var chartB = new ApexCharts(document.querySelector("#chartPenangananBantuan"), optionsBantuan);
+    chartB.render();
+
+    // 2. Render Grafik Batang Penanganan Dokumen Umum
+    var optionsUmum = {
+        series: [{ name: 'Jumlah Dokumen Umum', data: uSeries }],
+        chart: { type: 'bar', height: 380, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+        theme: { mode: t.mode },
+        plotOptions: { 
+            bar: { 
+                horizontal: true, 
+                borderRadius: 7, 
+                barHeight: '55%',
+                distributed: true
+            } 
+        },
+        colors: uColors,
+        xaxis: { 
+            categories: uLabels,
+            labels: { 
+                formatter: function(val) { return Math.floor(val); },
+                style: { colors: t.text, fontSize: '11px', fontWeight: 600 }
+            }
+        },
+        yaxis: {
+            labels: { 
+                maxWidth: 240,
+                style: { colors: t.text, fontSize: '11px', fontWeight: 600 }
+            }
+        },
+        legend: { show: false },
+        grid: { borderColor: t.grid },
+        dataLabels: { 
+            enabled: true,
+            style: { fontSize: '12px', fontWeight: 'bold', colors: ['#ffffff'] },
+            dropShadow: { enabled: true, top: 1, left: 1, blur: 1, opacity: 0.5 }
+        },
+        tooltip: { 
+            theme: t.mode,
+            y: { formatter: function(val) { return val + " Dokumen"; } }
+        }
+    };
+    var chartU = new ApexCharts(document.querySelector("#chartPenangananUmum"), optionsUmum);
+    chartU.render();
+
+    // MutationObserver to update chart text color when switching Light/Dark Mode
+    const themeObserver = new MutationObserver(() => {
+        const nt = getChartTheme();
+        chartB.updateOptions({
+            theme: { mode: nt.mode },
+            xaxis: { labels: { style: { colors: nt.text } } },
+            yaxis: { labels: { style: { colors: nt.text } } },
+            grid: { borderColor: nt.grid },
+            tooltip: { theme: nt.mode }
+        });
+        chartU.updateOptions({
+            theme: { mode: nt.mode },
+            xaxis: { labels: { style: { colors: nt.text } } },
+            yaxis: { labels: { style: { colors: nt.text } } },
+            grid: { borderColor: nt.grid },
+            tooltip: { theme: nt.mode }
+        });
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+});
+</script>
+
+{% endblock %}

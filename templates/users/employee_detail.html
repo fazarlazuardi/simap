@@ -1,0 +1,157 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Detail Karyawan - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12 d-flex justify-content-between align-items-center">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'users:employee_list' %}" class="text-decoration-none text-primary">Karyawan</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Detail</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold mb-1">Detail Karyawan</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 class="fw-bold mb-4 border-bottom pb-2">Data Pegawai</h5>
+            <table class="table table-borderless mb-0">
+                <tr>
+                    <td class="text-secondary fw-semibold" style="width: 140px;">NIP/NIK</td>
+                    <td class="fw-bold">{{ employee.nip }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Nama Lengkap</td>
+                    <td class="fw-bold">{{ employee.full_name }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Jenis Kelamin</td>
+                    <td>{{ employee.get_gender_display }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Jabatan</td>
+                    <td>{{ employee.position }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Bidang</td>
+                    <td>{{ employee.dept_relation.name|default:'-' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">No. Telepon</td>
+                    <td>{{ employee.phone_number|default:'-' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Email</td>
+                    <td>{{ employee.email|default:'-' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Status</td>
+                    <td>
+                        {% if employee.is_active %}
+                        <span class="badge badge-approved rounded-pill">Aktif</span>
+                        {% else %}
+                        <span class="badge badge-pending rounded-pill">Non-aktif</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+            <div class="mt-4 pt-3 border-top">
+                <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-primary fw-semibold px-4">
+                    <i class="bi bi-pencil-square me-2"></i> Edit Data Pegawai
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 class="fw-bold mb-4 border-bottom pb-2">Akun Sistem</h5>
+            {% if user_account %}
+            <table class="table table-borderless mb-0">
+                <tr>
+                    <td class="text-secondary fw-semibold" style="width: 140px;">Username</td>
+                    <td class="fw-bold">{{ user_account.username }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Role</td>
+                    <td><span class="badge bg-light text-dark rounded-pill">{{ user_account.get_role_display }}</span></td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Status Akun</td>
+                    <td>
+                        {% if user_account.is_active_account %}
+                        <span class="badge badge-approved rounded-pill">Aktif</span>
+                        {% else %}
+                        <span class="badge badge-pending rounded-pill">Non-aktif</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+            <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-warning fw-semibold px-4">
+                    <i class="bi bi-person-gear me-2"></i> Edit Akun
+                </a>
+                <form method="post" action="{% url 'users:employee_delete_user' employee.pk %}" onsubmit="return confirm('Hapus akun {{ user_account.username|escapejs }}?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger fw-semibold px-4">
+                        <i class="bi bi-person-x me-2"></i> Hapus Akun
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <p class="text-muted small mb-4">Belum memiliki akun sistem.</p>
+            <button class="btn btn-success fw-semibold px-4" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                <i class="bi bi-person-plus me-2"></i> Tambah Akun
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if not user_account %}
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'users:employee_create_user' employee.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Tambah Akun untuk {{ employee.full_name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                        <input type="text" name="username" class="form-control" required placeholder="username">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
+                        <select name="role" class="form-select" required>
+                            <option value="" selected disabled>Pilih Role...</option>
+                            {% for code, name in roles %}
+                            <option value="{{ code }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4">
+                        <i class="bi bi-check-lg me-1"></i> Buat Akun
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

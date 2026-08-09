@@ -1,0 +1,267 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Disposisi Tahap 2 — Waka IV BAZNAS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2" style="max-width: 1560px;">
+
+    <!-- Header & Breadcrumb -->
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb m-0 bg-transparent p-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'archives:list' %}" class="text-decoration-none" style="color: var(--primary);">Arsip</a></li>
+                    {% if archive %}
+                    <li class="breadcrumb-item"><a href="{% url 'archives:detail' archive.pk %}" class="text-decoration-none" style="color: var(--primary);">Detail Arsip</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item"><a href="{% url 'dispositions:list' %}" class="text-decoration-none" style="color: var(--primary);">Disposisi</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Disposisi Waka IV</li>
+                </ol>
+            </nav>
+            <h5 class="fw-bold m-0" style="color: var(--text-primary);">
+                Disposisi Tahap 2: {% if archive %}{{ archive.archive_number|default:archive.title }}{% else %}{{ dispo.disposition_number|default:"DISPOSISI" }}{% endif %}
+            </h5>
+            <div class="d-flex gap-2 mt-1 flex-wrap">
+                <span class="badge bg-success text-white px-3 py-2 rounded-pill small fw-bold">
+                    <i class="bi bi-2-circle-fill me-1"></i> TAHAP 2 — DISPOSISI WAKA IV
+                </span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill small fw-bold">
+                    <i class="bi bi-person-badge-fill me-1"></i> Atas Nama: {{ waka_label }}
+                </span>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 rounded-pill small fw-bold">
+                    <i class="bi bi-hash me-1"></i> No. Disposisi: {{ dispo.disposition_number|default:"—" }}
+                </span>
+            </div>
+        </div>
+        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 rounded-pill small fw-bold">
+            {{ dispo.get_status_display }}
+        </span>
+    </div>
+
+    <!-- Info Disposisi Ketua (Tahap 1 - Readonly) -->
+    <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px; border-left: 4px solid #0d8a52 !important;">
+        <div class="card-body p-3">
+            <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle-fill me-1"></i> Ringkasan Disposisi Tahap 1 (Ketua)</h6>
+            <div class="row g-2" style="font-size: 0.85rem;">
+                <div class="col-md-3">
+                    <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Pengirim (Ketua)</label>
+                    <span class="fw-bold text-dark">{{ dispo.sender_label|default:"—" }}</span>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">No. Disposisi</label>
+                    <span class="fw-bold text-primary">{{ dispo.disposition_number|default:"—" }}</span>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Diteruskan Ke (Ketua)</label>
+                    <span class="fw-bold text-dark">
+                        {% for emp in dispo.forwarded_to.all %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+                    </span>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Arahan Ketua</label>
+                    <span class="text-dark">{{ dispo.note|default:"—" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Disposisi Waka IV -->
+    <form method="post" action="{% url 'dispositions:waka_edit' dispo.pk %}" id="formWakaDisposisi">
+        {% csrf_token %}
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+
+            <div class="card-header text-white px-3 py-2 d-flex justify-content-between align-items-center" style="background-color: #1a6ca8 !important;">
+                <div class="d-flex align-items-center gap-2">
+                    <img src="{% static 'images/logo-baznas.png' %}" alt="Logo BAZNAS" style="height: 30px; width: auto; object-fit: contain;" onerror="this.style.display='none';">
+                    <span class="fw-bold text-uppercase small">Formulir Disposisi Waka IV — Tahap 2</span>
+                </div>
+                <small class="text-white-50">BAZNAS Kab. Tangerang</small>
+            </div>
+
+            <div class="card-body p-3">
+                <!-- Metadata arsip -->
+                <div class="row g-2 p-2 rounded-3 mb-3" style="background-color: var(--surface-alt); border: 1px solid var(--border-color); font-size: 0.85rem;">
+                    <div class="col-md-4">
+                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">No. Agenda / Surat</label>
+                        <span class="fw-bold text-dark">{{ archive.archive_number|default:archive.title }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Nomor Disposisi (Tetap)</label>
+                        <span class="fw-bold text-primary">{{ dispo.disposition_number|default:"—" }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Perihal</label>
+                        <span class="fw-bold text-dark">{{ archive.title }}</span>
+                    </div>
+                    {% if archive.address %}
+                    <div class="col-12">
+                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Alamat Pemohon</label>
+                        <span class="fw-bold text-dark">{{ archive.address }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3">
+                    <!-- Kolom Kiri: Penerima dari Waka IV -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-2 small text-uppercase" style="color: var(--text-primary);">
+                            <i class="bi bi-people-fill me-1"></i>Diteruskan Ke (dari Waka IV):
+                        </h6>
+
+                        <!-- Quick Select -->
+                        <div class="p-2 mb-2 rounded-3" style="background-color: var(--surface-alt); border: 1px solid var(--border-color);">
+                            <label class="fw-bold text-muted d-block mb-1" style="font-size: 0.7rem;">Pilih Otomatis Jabatan:</label>
+                            <div class="row g-1">
+                                <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="ketua" id="wk_ketua"><label class="form-check-label small" for="wk_ketua">Ketua</label></div></div>
+                                <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="waka 1" id="wk_waka1"><label class="form-check-label small" for="wk_waka1">Waka I</label></div></div>
+                                <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="waka 2" id="wk_waka2"><label class="form-check-label small" for="wk_waka2">Waka II</label></div></div>
+                                <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="waka 3" id="wk_waka3"><label class="form-check-label small" for="wk_waka3">Waka III</label></div></div>
+                                <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="waka 4" id="wk_waka4"><label class="form-check-label small" for="wk_waka4">Waka IV</label></div></div>
+                                <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="kabid 1" id="wk_kabid1"><label class="form-check-label small" for="wk_kabid1">Kabid I</label></div></div>
+                                <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="kabid 2" id="wk_kabid2"><label class="form-check-label small" for="wk_kabid2">Kabid II</label></div></div>
+                                <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="kabid 3" id="wk_kabid3"><label class="form-check-label small" for="wk_kabid3">Kabid III</label></div></div>
+                                <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="kabid 4" id="wk_kabid4"><label class="form-check-label small" for="wk_kabid4">Kabid IV</label></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Search -->
+                        <div class="mb-2">
+                            <input type="text" id="searchWakaStaff" class="form-control form-control-sm" placeholder="🔍 Cari nama / jabatan...">
+                        </div>
+
+                        <!-- Daftar Pegawai -->
+                        <div class="list-group overflow-auto custom-scroll" style="max-height: 220px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            {% for employee in employees %}
+                            <label class="list-group-item list-group-item-action py-1 px-2 d-flex justify-content-between align-items-center staff-item">
+                                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                    <input class="form-check-input me-1 staff-checkbox flex-shrink-0"
+                                           type="checkbox"
+                                           name="waka_forwarded_to"
+                                           value="{{ employee.id }}"
+                                           {% if employee in dispo.waka_forwarded_to.all %}checked{% endif %}>
+                                    <div class="overflow-hidden">
+                                        <div class="fw-bold text-truncate staff-name" style="font-size: 0.8rem; max-width: 180px;">{{ employee.full_name }}</div>
+                                        <div class="text-muted text-truncate staff-job" style="font-size: 0.7rem; max-width: 180px;">{{ employee.position }}</div>
+                                    </div>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Kolom Kanan: Instruksi Waka IV -->
+                    <div class="col-md-6">
+                        <!-- Instruksi Checkboxes -->
+                        <h6 class="fw-bold mb-2 small text-uppercase" style="color: var(--text-primary);">
+                            <i class="bi bi-check2-square me-1"></i>Instruksi Waka IV:
+                        </h6>
+                        <div class="p-2 rounded-3 mb-3" style="background-color: var(--surface-alt); border: 1px solid var(--border-color);">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="waka_inst_selesaikan" id="wk_selesaikan" {% if dispo.waka_inst_selesaikan %}checked{% endif %}>
+                                        <label class="form-check-label small fw-bold" for="wk_selesaikan">Selesaikan / Jawab</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="waka_inst_untuk_diketahui" id="wk_diketahui" {% if dispo.waka_inst_untuk_diketahui %}checked{% endif %}>
+                                        <label class="form-check-label small fw-bold" for="wk_diketahui">Untuk Diketahui</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="waka_inst_laporkan_hasilnya" id="wk_laporkan" {% if dispo.waka_inst_laporkan_hasilnya %}checked{% endif %}>
+                                        <label class="form-check-label small fw-bold" for="wk_laporkan">Laporkan Hasilnya</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="waka_inst_koordinasikan" id="wk_koordinasi" {% if dispo.waka_inst_koordinasikan %}checked{% endif %}>
+                                        <label class="form-check-label small fw-bold" for="wk_koordinasi">Koordinasikan</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Arahan / Catatan Waka IV -->
+                        <div>
+                            <label class="fw-bold small text-uppercase mb-1" style="font-size: 0.75rem;">
+                                <i class="bi bi-chat-left-text me-1"></i>Arahan / Catatan Waka IV:
+                            </label>
+                            <textarea name="waka_note" class="form-control" rows="6"
+                                placeholder="Tulis arahan dan petunjuk dari Waka IV untuk bidang pelaksana...">{{ dispo.waka_note|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="card-footer d-flex justify-content-between align-items-center py-2 px-3">
+                <a href="{% url 'dispositions:list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali
+                </a>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'dispositions:detail' dispo.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        <i class="bi bi-eye me-1"></i> Lihat Detail
+                    </a>
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-send-fill me-1"></i> Kirim Disposisi Waka IV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search filter
+    document.getElementById('searchWakaStaff').addEventListener('input', function() {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('.staff-item').forEach(function(item) {
+            const name = item.querySelector('.staff-name').textContent.toLowerCase();
+            const job = item.querySelector('.staff-job').textContent.toLowerCase();
+            item.style.display = (name.includes(q) || job.includes(q)) ? '' : 'none';
+        });
+    });
+
+    // Role filter
+    const roleRules = {
+        'ketua': null, // special case
+        'waka 1': [/\b(waka|wakil ketua)\s*(i|1)\b/i, /waka\s*1/i],
+        'waka 2': [/\b(waka|wakil ketua)\s*(ii|2)\b/i, /waka\s*2/i],
+        'waka 3': [/\b(waka|wakil ketua)\s*(iii|3)\b/i, /waka\s*3/i],
+        'waka 4': [/\b(waka|wakil ketua)\s*(iv|4)\b/i, /waka\s*4/i],
+        'kabid 1': [/\b(kabid|kepala bidang)\s*(i|1)\b/i],
+        'kabid 2': [/\b(kabid|kepala bidang)\s*(ii|2)\b/i],
+        'kabid 3': [/\b(kabid|kepala bidang)\s*(iii|3)\b/i],
+        'kabid 4': [/\b(kabid|kepala bidang)\s*(iv|4)\b/i],
+    };
+    document.querySelectorAll('.role-filter').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const targetRole = this.getAttribute('data-role').toLowerCase().trim();
+            const isChecked = this.checked;
+            const patterns = roleRules[targetRole] || [];
+            document.querySelectorAll('.staff-item').forEach(function(item) {
+                const jobText = item.querySelector('.staff-job').textContent.toLowerCase().trim();
+                // Pengecekan khusus untuk "Ketua" agar "Wakil Ketua" tidak ikut tercentang
+                if (targetRole === 'ketua') {
+                    if (jobText.includes('ketua') && !jobText.includes('wakil') && !jobText.includes('waka')) {
+                        const cb = item.querySelector('.staff-checkbox');
+                        if (cb) cb.checked = isChecked;
+                    }
+                    return;
+                }
+                const isMatch = patterns.some(p => p.test(jobText));
+                if (isMatch) {
+                    const cb = item.querySelector('.staff-checkbox');
+                    if (cb) cb.checked = isChecked;
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

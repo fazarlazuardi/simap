@@ -1,0 +1,316 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Pengaturan Sistem - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h4 class="fw-bold">Konfigurasi Aplikasi, Bidang, & Kategori</h4>
+    </div>
+</div>
+
+<div class="row">
+    <!-- System Settings Form -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <h6 class="fw-bold mb-4 text-primary"><i class="bi bi-display me-2"></i> Identitas & Branding</h6>
+
+                <div class="mb-4 text-center">
+                    {% if config.app_logo %}
+                    <img src="{{ config.app_logo.url }}" alt="Logo" class="img-fluid mb-3" style="max-height: 80px;">
+                    {% endif %}
+                    <div>
+                        <label for="app_logo" class="btn btn-sm btn-outline-primary rounded-pill px-4">
+                            <i class="bi bi-upload me-2"></i> {% if config.app_logo %}Ganti Logo{% else %}Unggah Logo{% endif %}
+                        </label>
+                        <input type="file" id="app_logo" name="app_logo" class="d-none" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="app_name" class="form-label fw-bold small">Nama Aplikasi / Instansi</label>
+                    <input type="text" class="form-control custom-input" name="app_name" value="{{ config.app_name }}">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12 mb-4">
+                        <label for="office_address" class="form-label fw-bold small">Alamat Kantor</label>
+                        <textarea class="form-control" name="office_address" rows="2" style="border-radius: 12px;">{{ settings.OFFICE_ADDRESS|default:'' }}</textarea>
+                    </div>
+                    <div class="col-md-12">
+                        <label for="office_email" class="form-label fw-bold small">Email Resmi Instansi</label>
+                        <input type="email" class="form-control custom-input" name="office_email" 
+                               value="{{ settings.OFFICE_EMAIL|default:'' }}">
+                    </div>
+                </div>
+
+                <hr class="my-5 opacity-5">
+
+                <h6 class="fw-bold mb-4 text-success"><i class="bi bi-whatsapp me-2"></i> Integrasi WhatsApp & Cloud</h6>
+                <div class="mb-4">
+                    <label for="wa_url" class="form-label fw-bold small">URL Gateway (Baileys)</label>
+                    <input type="url" class="form-control custom-input" name="wa_url" 
+                           value="{{ settings.WA_GATEWAY_URL|default:'http://localhost:3000' }}">
+                </div>
+
+                <!-- OAuth 2.0 Login Section -->
+                <div class="mb-4 p-3 border rounded-3 bg-light bg-opacity-50">
+                    <label class="form-label fw-bold small text-primary">
+                        <i class="bi bi-google me-1"></i> Backup via Google Sheets (OAuth 2.0)
+                    </label>
+                    <p class="text-secondary small mb-2">Gunakan akun Google pribadi Anda (tanpa billing, kuota 15GB).</p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">File OAuth Client ID (Desktop App JSON)</label>
+                        {% if settings.GOOGLE_OAUTH_CLIENT_CONFIG %}
+                        <div class="alert alert-success py-2 px-3 small mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            File OAuth Client ID terunggah.
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-control" name="oauth_credentials" accept=".json" style="border-radius: 12px; height: 52px;">
+                        <div class="form-text small text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Download dari Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs → Desktop app → Download JSON
+                        </div>
+                    </div>
+
+                    {% if oauth_status == 'connected' %}
+                    <div class="alert alert-success d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Sudah login ke Google. 
+                        <a href="{% url 'reports:oauth_login' %}" class="ms-2">Login ulang</a>
+                    </div>
+                    {% elif oauth_status == 'config_uploaded' %}
+                    <a href="{% url 'reports:oauth_login' %}" class="btn btn-outline-danger btn-sm rounded-pill px-4">
+                        <i class="bi bi-google me-1"></i> Login dengan Google
+                    </a>
+                    {% else %}
+                    <span class="text-muted small">Upload file OAuth Client ID JSON dulu, lalu klik "Login dengan Google".</span>
+                    {% endif %}
+                </div>
+
+                <!-- Service Account (old method) -->
+                <div class="mb-4">
+                    <label for="drive_id" class="form-label fw-bold small">Google Drive Folder ID (opsional)</label>
+                    <input type="text" class="form-control custom-input" name="drive_id" 
+                           value="{{ settings.GOOGLE_DRIVE_ID|default:'' }}" placeholder="Kosongkan jika pakai OAuth di atas">
+                </div>
+                <div class="mb-4">
+                    <label for="drive_impersonated_user" class="form-label fw-bold small">Impersonated Google User (opsional)</label>
+                    <input type="email" class="form-control custom-input" name="drive_impersonated_user"
+                           value="{{ settings.GOOGLE_DRIVE_IMPERSONATED_USER|default:'' }}"
+                           placeholder="user@example.com">
+                    <div class="form-text small text-muted">
+                        Jika service account menggunakan domain-wide delegation, isi email akun Google yang akan diimpersonasi.
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold small">File Credentials (Service Account JSON) - alternatif</label>
+                    {% if settings.GOOGLE_DRIVE_CREDENTIALS and settings.GOOGLE_DRIVE_CREDENTIALS != 'credentials/google-service-account.json' %}
+                    <div class="alert alert-success py-2 px-3 small mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        File terunggah: <code class="ms-1">{{ settings.GOOGLE_DRIVE_CREDENTIALS }}</code>
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="drive_credentials" accept=".json" style="border-radius: 12px; height: 52px;">
+                    <div class="form-text small text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Unggah file JSON service account dari Google Cloud Console (perlu billing).
+                    </div>
+                </div>
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" role="switch" id="drive_backup" name="DRIVE_BACKUP_ENABLED" value="on" 
+                           {% if settings.DRIVE_BACKUP_ENABLED == 'on' or settings.DRIVE_BACKUP_ENABLED is None %}checked{% endif %}>
+                    <label class="form-check-label fw-bold small" for="drive_backup">
+                        <i class="bi bi-cloud-check me-1 text-primary"></i> Aktifkan Backup Google Drive
+                    </label>
+                    <div class="form-text small text-muted mt-1">
+                        Menampilkan kolom status backup dan tombol backup di halaman Traceability.
+                    </div>
+                </div>
+
+                <hr class="my-5 opacity-5">
+
+                <h6 class="fw-bold mb-4 text-info"><i class="bi bi-sort-numeric-up me-2"></i> Penomoran Dokumen</h6>
+                <p class="text-secondary small mb-3">Atur pola penomoran otomatis. Variabel: <code>{index}</code> <code>{type_code}</code> <code>{month_roman}</code> <code>{year}</code> <code>{month}</code> <code>{day}</code></p>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Pola Nomor Arsip</label>
+                    <input type="text" class="form-control form-control-sm" name="NUMBERING_ARCHIVE_PATTERN"
+                           value="{{ settings.NUMBERING_ARCHIVE_PATTERN|default:'{index}/BZ-{type_code}/{month_roman}/{year}' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Pola Nomor SPPD</label>
+                    <input type="text" class="form-control form-control-sm" name="NUMBERING_SPPD_PATTERN"
+                           value="{{ settings.NUMBERING_SPPD_PATTERN|default:'{index}/SPPD/{month_roman}/{year}' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Pola Nomor Laporan</label>
+                    <input type="text" class="form-control form-control-sm" name="NUMBERING_REPORT_PATTERN"
+                           value="{{ settings.NUMBERING_REPORT_PATTERN|default:'{index}/LHP/{month_roman}/{year}' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Pola Nomor Disposisi</label>
+                    <input type="text" class="form-control form-control-sm" name="NUMBERING_DISPOSITION_PATTERN"
+                           value="{{ settings.NUMBERING_DISPOSITION_PATTERN|default:'DISP-{index}' }}">
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">Digit Indeks</label>
+                        <input type="number" class="form-control form-control-sm" name="NUMBERING_INDEX_DIGITS" min="1" max="10"
+                               value="{{ settings.NUMBERING_INDEX_DIGITS|default:'3' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">Reset Indeks</label>
+                        <select name="NUMBERING_RESET" class="form-select form-select-sm">
+                            <option value="yearly" {% if settings.NUMBERING_RESET == 'yearly' or not settings.NUMBERING_RESET %}selected{% endif %}>Tahunan</option>
+                            <option value="monthly" {% if settings.NUMBERING_RESET == 'monthly' %}selected{% endif %}>Bulanan</option>
+                            <option value="never" {% if settings.NUMBERING_RESET == 'never' %}selected{% endif %}>Tidak Pernah</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="my-5 opacity-5">
+
+                <h6 class="fw-bold mb-4 text-warning"><i class="bi bi-gear-wide-connected me-2"></i> Pemeliharaan</h6>
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" role="switch" id="maintenance" name="maintenance" value="on" 
+                           {% if settings.SYSTEM_MAINTENANCE == 'on' %}checked{% endif %}>
+                    <label class="form-check-label fw-bold small" for="maintenance">Aktifkan Mode Pemeliharaan</label>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold">Simpan Pengaturan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Master Data Management Side-by-Side -->
+    <div class="col-lg-6">
+        <div class="row">
+            <!-- Department -->
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm p-4 h-100">
+                    <h6 class="fw-bold mb-3" style="color: var(--text-primary);"><i class="bi bi-diagram-3 me-2 text-primary"></i> Master Bidang</h6>
+                    <form action="{% url 'users:department_create' %}" method="post" class="mb-3">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" name="name" class="form-control" placeholder="Nama Bidang..." required style="border-radius: 12px 0 0 12px;">
+                            <button class="btn btn-success" type="submit" style="border-radius: 0 12px 12px 0;">Tambah</button>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle small">
+                            <thead class="bg-light"><tr><th>Nama Bidang</th><th class="text-end">Aksi</th></tr></thead>
+                            <tbody>
+                                {% for dept in departments %}
+                                <tr>
+                                    <td class="fw-bold" style="color: var(--text-primary);">{{ dept.name }}</td>
+                                    <td class="text-end">
+                                        <form action="{% url 'users:department_delete' dept.id %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('Hapus bidang?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category -->
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm p-4 h-100">
+                    <h6 class="fw-bold mb-3" style="color: var(--text-primary);"><i class="bi bi-tags me-2 text-success"></i> Kategori Arsip</h6>
+
+                    <form action="{% url 'users:category_create' %}" method="post" class="mb-3">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" name="name" class="form-control" placeholder="Nama Kategori..." required style="border-radius: 12px 0 0 12px;">
+                            <button class="btn btn-success" type="submit" style="border-radius: 0 12px 12px 0;">Tambah</button>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle small">
+                            <thead class="bg-light"><tr><th>Nama Kategori</th><th class="text-end">Aksi</th></tr></thead>
+                            <tbody>
+                                {% for cat in categories %}
+                                <tr>
+                                    <td class="fw-bold">{{ cat.name }}</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-link text-primary p-0 me-2 text-decoration-none" title="Edit Kategori" onclick="openEditCategoryModal('{{ cat.id }}', '{{ cat.name|escapejs }}')">
+                                            <i class="bi bi-pencil-square me-1"></i>Edit
+                                        </button>
+                                        <form action="{% url 'users:category_delete' cat.id %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-link text-danger p-0 text-decoration-none" onclick="return confirm('Hapus kategori ini?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Kategori Arsip -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold" id="editCategoryModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Edit Nama Kategori Arsip
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEditCategory" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="editCategoryName" class="form-label fw-bold text-dark">Nama Kategori Arsip <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="editCategoryName" name="name" required placeholder="Masukkan nama kategori baru...">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light rounded-bottom-4 py-3">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-save me-1"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-input { height: 52px; border-radius: 12px; border: 1px solid #E5E7EB; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openEditCategoryModal(id, name) {
+        document.getElementById('editCategoryName').value = name;
+        document.getElementById('formEditCategory').action = '/users/app-settings/category/' + id + '/edit/';
+        var modalEl = document.getElementById('editCategoryModal');
+        document.body.appendChild(modalEl);
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+</script>
+{% endblock %}

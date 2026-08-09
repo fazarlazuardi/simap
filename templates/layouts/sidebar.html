@@ -1,0 +1,82 @@
+<!-- Sidebar -->
+<nav id="sidebar">
+    <div class="sidebar-header text-center py-4">
+        {% if app_config.app_logo %}
+        <img src="{{ app_config.app_logo.url }}" alt="Logo" class="img-fluid mb-2" style="max-height: 85px;">
+        <div class="app-name">
+            <span class="mb-0" style="color: #10B981; font-size: 1.15rem; font-weight: 800; line-height: 1.2; display: block;">{{ app_config.app_name|default:'BAZNAS SIMAP' }}</span>
+        </div>
+        {% else %}
+        <h4 class="mb-0 app-name" style="color: #10B981; font-weight: 800;"><i class="bi bi-shield-check me-1"></i> SIMAP BAZNAS</h4>
+        {% endif %}
+    </div>
+    
+    <div class="sidebar-menu">
+        <!-- 1. Dashboard -->
+        <a href="{% url 'users:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span class="sidebar-text">Dashboard</span>
+        </a>
+
+        <!-- 2. Disposisi -->
+        <a href="{% url 'dispositions:list' %}" class="nav-link {% if request.resolver_match.app_name == 'dispositions' %}active{% endif %}">
+            <i class="bi bi-send-fill"></i>
+            <span class="sidebar-text">Disposisi</span>
+        </a>
+
+        <!-- 3. Surat Tugas -->
+        <a href="{% url 'surat_tugas:list' %}" class="nav-link {% if request.resolver_match.app_name == 'surat_tugas' %}active{% endif %}">
+            <i class="bi bi-file-earmark-text-fill"></i>
+            <span class="sidebar-text">Surat Tugas</span>
+        </a>
+
+        <!-- 4. SPPD -->
+        <a href="{% url 'sppd_service:list' %}" class="nav-link {% if request.resolver_match.app_name == 'sppd_service' %}active{% endif %}">
+            <i class="bi bi-car-front-fill"></i>
+            <span class="sidebar-text">SPPD</span>
+        </a>
+
+        <!-- 5. Laporan (Trace) -->
+        <a href="{% url 'reports:index' %}" class="nav-link {% if request.resolver_match.app_name == 'reports' and request.resolver_match.url_name == 'index' %}active{% endif %}">
+            <i class="bi bi-diagram-3-fill"></i>
+            <span class="sidebar-text">Laporan (Trace)</span>
+        </a>
+
+        <!-- 6. Rekap Penanganan -->
+        <a href="{% url 'reports:rekap_bantuan' %}" class="nav-link {% if request.resolver_match.url_name == 'rekap_bantuan' %}active{% endif %}">
+            <i class="bi bi-pie-chart-fill"></i>
+            <span class="sidebar-text">Rekap Penanganan</span>
+        </a>
+
+        <!-- Navigasi Tambahan Dokumen & Kalender -->
+        <div class="sidebar-divider my-2 border-top border-secondary border-opacity-25 ms-3 me-3"></div>
+
+        <a href="{% url 'archives:list' %}" class="nav-link {% if request.resolver_match.app_name == 'archives' %}active{% endif %}">
+            <i class="bi bi-folder2-open"></i>
+            <span class="sidebar-text">Arsip SDM</span>
+        </a>
+
+        <a href="{% url 'agendas:list' %}" class="nav-link {% if request.resolver_match.app_name == 'agendas' %}active{% endif %}">
+            <i class="bi bi-calendar3"></i>
+            <span class="sidebar-text">Agenda & Kalender</span>
+        </a>
+
+        <a href="{% url 'internal_meetings:list' %}" class="nav-link {% if request.resolver_match.app_name == 'internal_meetings' %}active{% endif %}">
+            <i class="bi bi-journal-bookmark-fill"></i>
+            <span class="sidebar-text">Rapat Internal</span>
+        </a>
+
+        {% if user.is_superadmin %}
+        <a href="{% url 'users:employee_list' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'list' %}active{% endif %}">
+            <i class="bi bi-people-fill"></i>
+            <span class="sidebar-text">Kelola User</span>
+        </a>
+        {% endif %}
+
+        <!-- 7. Keluar (Warna Merah) -->
+        <a href="{% url 'authentication:logout' %}" class="nav-link text-danger mt-4 fw-bold" style="color: #EF4444 !important; background: rgba(239, 68, 68, 0.1); border-radius: 10px;">
+            <i class="bi bi-box-arrow-right text-danger" style="color: #EF4444 !important;"></i>
+            <span class="sidebar-text text-danger" style="color: #EF4444 !important;">Keluar</span>
+        </a>
+    </div>
+</nav>

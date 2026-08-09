@@ -1,0 +1,457 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Detail Arsip - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'archives:list' %}" class="text-decoration-none text-primary">Arsip</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Detail</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="fw-bold mb-0">Detail Dokumen: {{ archive.archive_number|default:"(Belum Diverifikasi)" }}</h4>
+            <span class="badge {% if archive.status == 'selesai' %}badge-approved{% elif archive.status == 'baru' %}badge-pending{% elif archive.status == 'ditolak' %}bg-danger text-white{% else %}bg-primary{% endif %} rounded-pill px-4 py-2">
+                {{ archive.get_status_display|upper }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Archive Info -->
+    <div class="col-lg-7 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 class="fw-bold mb-4 border-bottom pb-2">Informasi Metadata</h5>
+            
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Jenis Dokumen</div>
+                <div class="col-sm-8 fw-bold text-primary">{{ archive.get_archive_type_display }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Tanggal Surat</div>
+                <div class="col-sm-8 fw-bold">{{ archive.letter_date|date:"d F Y"|default:"-" }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Pengirim/Penerima</div>
+                <div class="col-sm-8 fw-bold">{{ archive.sender_receiver|default:"-" }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Kategori Bidang</div>
+                <div class="col-sm-8"><span class="badge bg-light text-dark">{{ archive.category.name }}</span></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Perihal</div>
+                <div class="col-sm-8 fw-bold">{{ archive.title }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Keterangan</div>
+                <div class="col-sm-8 text-secondary small">{{ archive.description|default:"Tidak ada catatan tambahan." }}</div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top">
+                <h6 class="fw-bold mb-3">Pratinjau Berkas Digital</h6>
+                <div class="bg-light rounded-4 overflow-hidden border shadow-sm p-4 text-center">
+                    {% if archive.file_path %}
+                        <i class="bi bi-file-earmark-text fs-1 text-secondary mb-3 d-block"></i>
+                        <p class="fw-bold text-dark mb-1">{{ archive.file_path.name }}</p>
+                        <p class="text-secondary small mb-3">Klik tombol di bawah untuk melihat atau mengunduh file</p>
+                        <a href="{{ archive.file_path.url }}" target="_blank" class="btn btn-outline-primary rounded-pill px-4 fw-bold" rel="noopener">
+                            <i class="bi bi-eye me-2"></i> Lihat / Unduh File
+                        </a>
+                    {% else %}
+                        <i class="bi bi-file-earmark-x fs-1 text-secondary mb-2 d-block"></i>
+                        <p class="text-secondary small">File tidak tersedia</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workflow Timeline -->
+    <div class="col-lg-5 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 class="fw-bold mb-4 border-bottom pb-2">Log Alur Kerja (BPMN)</h5>
+            
+            <div class="timeline-modern mt-2">
+                <!-- 1. Upload -->
+                <div class="tm-item">
+                    <div class="tm-icon bg-success text-white"><i class="bi bi-cloud-upload"></i></div>
+                    <div class="tm-content">
+                        <p class="mb-0 fw-bold">Input & Upload Berhasil</p>
+                        <p class="mb-0 text-muted small">Oleh {{ archive.uploaded_by.username }}</p>
+                        <span class="tm-date">{{ archive.created_at|date:"d M Y, H:i" }}</span>
+                    </div>
+                </div>
+
+                <!-- 2. Tolak Dokumen -->
+                {% if archive.status == 'ditolak' %}
+                <div class="tm-item">
+                    <div class="tm-icon bg-danger text-white"><i class="bi bi-x-circle"></i></div>
+                    <div class="tm-content">
+                        <p class="mb-0 fw-bold text-danger">Dokumen Ditolak</p>
+                        {% if archive.rejection_note %}
+                        <p class="mb-1 text-muted small">Alasan: <em>{{ archive.rejection_note }}</em></p>
+                        {% endif %}
+                        <span class="tm-date">{{ archive.updated_at|date:"d M Y, H:i" }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 3. Verifikasi Arsip -->
+                {% if archive.archive_number %}
+                <div class="tm-item">
+                    <div class="tm-icon bg-info text-white"><i class="bi bi-patch-check"></i></div>
+                    <div class="tm-content">
+                        <p class="mb-0 fw-bold">Arsip Terverifikasi</p>
+                        <p class="mb-0 text-muted small">No. Arsip: <strong>{{ archive.archive_number }}</strong></p>
+                        <span class="tm-date">{{ archive.updated_at|date:"d M Y, H:i" }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 3. Disposisi -->
+                {% for dispo in archive.dispositions.all %}
+                <!-- 3a. Disposisi Diisi -->
+                <div class="tm-item">
+                    <div class="tm-icon {% if dispo.status == 'terisi' or dispo.status == 'terverifikasi' or dispo.status == 'proses' or dispo.status == 'selesai' %}bg-primary{% else %}bg-warning{% endif %} text-white">
+                        <i class="bi bi-send"></i>
+                    </div>
+                    <div class="tm-content">
+                        <p class="mb-0 fw-bold">
+                            Disposisi: 
+                            {% if dispo.status == 'baru' %}PENDING (Belum Diisi)
+                            {% elif dispo.status == 'terisi' %}TERISI (Menunggu Verifikasi)
+                            {% elif dispo.status == 'terverifikasi' %}TERVERIFIKASI
+                            {% elif dispo.status == 'proses' %}PROSES (SPPD)
+                            {% elif dispo.status == 'selesai' %}SELESAI
+                            {% else %}{{ dispo.get_status_display }}{% endif %}
+                        </p>
+                        <p class="mb-0 text-muted small">Dari: {{ dispo.sender.employee.full_name|default:dispo.sender.username }}</p>
+                        {% if dispo.forwarded_to.all %}
+                        <p class="mb-0 text-muted small">Kepada: 
+                            {% for emp in dispo.forwarded_to.all %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </p>
+                        {% endif %}
+                        {% if dispo.note %}
+                        <p class="mt-1 small text-secondary italic">"{{ dispo.note }}"</p>
+                        {% endif %}
+                        {% if dispo.priority %}
+                        <span class="badge {% if dispo.priority == 'segera' %}bg-danger{% elif dispo.priority == 'penting' %}bg-warning{% else %}bg-success{% endif %} rounded-pill small">
+                            {{ dispo.get_priority_display|upper }}
+                        </span>
+                        {% endif %}
+                        <span class="tm-date">{{ dispo.updated_at|date:"d M Y, H:i" }}</span>
+                        <a href="{% url 'dispositions:detail' dispo.pk %}" class="text-decoration-none small d-block mt-1">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Lihat Detail Disposisi
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 4. Agenda -->
+                {% with agendas=dispo.archive.agenda_set.all %}
+                {% if agendas %}
+                {% with last_active=agendas.last %}
+                {% for agenda in agendas %}
+                <div class="tm-item">
+                    <div class="tm-icon 
+                        {% if agenda.status == 'selesai' %}bg-secondary text-white
+                        {% elif agenda.status == 'dibatalkan' %}bg-danger text-white
+                        {% elif agenda.status == 'diundur' %}bg-warning text-dark
+                        {% else %}bg-warning text-dark{% endif %}">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <div class="tm-content {% if agenda == last_active and agenda.status == 'terjadwal' %}border-success border-2{% endif %}">
+                        <p class="mb-0 fw-bold">
+                            Agenda: {{ agenda.title }}
+                            {% if agenda == last_active and agenda.status == 'terjadwal' %}
+                            <span class="badge bg-success rounded-pill ms-1">Aktif</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-0 text-muted small">
+                            {% if agenda.status == 'selesai' %}
+                            <span class="badge badge-approved rounded-pill">SELESAI</span>
+                            {% elif agenda.status == 'dibatalkan' %}
+                            <span class="badge bg-danger text-white rounded-pill">DIBATALKAN</span>
+                            {% elif agenda.status == 'diundur' %}
+                            <span class="badge bg-warning text-dark rounded-pill">DIUNDUR</span>
+                            {% else %}
+                            <span class="badge badge-pending rounded-pill">TERJADWAL</span>
+                            {% endif %}
+                            {{ agenda.scheduled_at|date:"d M Y, H:i" }}
+                        </p>
+                        {% if agenda.description %}
+                        <p class="mb-0 text-muted small italic">{{ agenda.description|truncatechars:80 }}</p>
+                        {% endif %}
+                        {% if agenda.completed_notes %}
+                        <p class="mb-0 text-muted small">Catatan: {{ agenda.completed_notes }}</p>
+                        {% endif %}
+                        {% if agenda.assigned_to.all %}
+                        <p class="mb-0 text-muted small">Ditugaskan ke: 
+                            {% for u in agenda.assigned_to.all %}{{ u.username }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </p>
+                        {% endif %}
+                        <span class="tm-date">{{ agenda.created_at|date:"d M Y, H:i" }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endwith %}
+                {% endif %}
+                {% endwith %}
+
+                <!-- 5. SPPD -->
+                {% if dispo.sppd %}
+                <div class="tm-item">
+                    <div class="tm-icon bg-primary text-white"><i class="bi bi-briefcase"></i></div>
+                    <div class="tm-content">
+                        <p class="mb-0 fw-bold">SPPD: {{ dispo.sppd.sppd_number }}</p>
+                        <p class="mb-0 text-muted small">{{ dispo.sppd.destination }}</p>
+                        <p class="mb-0 text-muted small">{{ dispo.sppd.departure_date|date:"d/m/Y" }} - {{ dispo.sppd.return_date|date:"d/m/Y" }}</p>
+                        {% if dispo.sppd.assigned_employees.all %}
+                        <p class="mb-0 text-muted small">Pegawai: 
+                            {% for emp in dispo.sppd.assigned_employees.all %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </p>
+                        {% endif %}
+                        {% if dispo.sppd.followers.all %}
+                        <p class="mb-0 text-muted small">Pengikut: 
+                            {% for emp in dispo.sppd.followers.all %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </p>
+                        {% endif %}
+                        <span class="tm-date">{{ dispo.sppd.created_at|date:"d M Y, H:i" }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 6. Laporan -->
+                {% if dispo.report %}
+                <div class="tm-item">
+                    <div class="tm-icon bg-success text-white"><i class="bi bi-file-earmark-check"></i></div>
+                    <div class="tm-content">
+                        <p class="mb-0 fw-bold">Laporan: {{ dispo.report.report_number }}</p>
+                        <p class="mb-0 text-muted small">{{ dispo.report.title }}</p>
+                        <p class="mb-0 text-muted small">Oleh {{ dispo.report.created_by.username }}</p>
+                        <span class="tm-date">{{ dispo.report.created_at|date:"d M Y, H:i" }}</span>
+                        <a href="{% url 'reports:detail' dispo.report.pk %}" class="text-decoration-none small d-block mt-1">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Lihat Detail Laporan
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-auto pt-4 border-top">
+                {% if archive.archive_type == 'surat_masuk' or archive.archive_type == 'proposal' %}
+                <div class="row g-2 mb-3">
+                    <div class="col-12">
+                        <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-outline-success w-100 rounded-3 py-3 fw-bold">
+                            <i class="bi bi-printer me-2"></i> Cetak Tanda Terima
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if archive.status == 'baru' %}
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="{% url 'archives:edit' archive.pk %}" class="btn btn-light w-100 rounded-3 py-3 fw-bold">
+                            <i class="bi bi-pencil-square me-2"></i> Edit Berkas
+                        </a>
+                    </div>
+                    {% if user.is_pimpinan or user.is_kabid or user.is_superadmin %}
+                    <div class="col-6">
+                        <button type="button" class="btn btn-success w-100 rounded-3 py-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#verifyModal">
+                            <i class="bi bi-patch-check-fill me-2"></i> Verifikasi
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-danger w-100 rounded-3 py-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#rejectDetailModal">
+                            <i class="bi bi-x-lg me-2"></i> Tolak
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% elif archive.status == 'terverifikasi' or archive.status == 'didisposisikan' or archive.status == 'proses' %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">Dokumen Terkait</h6>
+                </div>
+                <div class="list-group list-group-flush small">
+                    {% with dispo=archive.dispositions.first %}
+                    {% if dispo %}
+                        <!-- SPPD -->
+                        {% if dispo.sppd %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center border rounded-3 mb-2 px-3">
+                            <div>
+                                <span class="fw-bold d-block">{{ dispo.sppd.sppd_number }}</span>
+                                <span class="text-muted">{{ dispo.sppd.destination }}</span>
+                            </div>
+                            <i class="bi bi-file-earmark-check text-success fs-5"></i>
+                        </div>
+                        {% else %}
+                        <p class="text-muted small mb-2 italic">Belum ada SPPD.</p>
+                        {% endif %}
+
+                        <!-- Report Status -->
+                        {% if dispo.report %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center border rounded-3 mb-2 px-3 bg-light">
+                            <div>
+                                <span class="fw-bold d-block">{{ dispo.report.report_number }}</span>
+                                <span class="text-muted">{{ dispo.report.title }}</span>
+                            </div>
+                            <a href="{% url 'reports:detail' dispo.report.pk %}" class="btn btn-sm btn-outline-info rounded-pill">Lihat</a>
+                        </div>
+                        {% else %}
+                        <p class="text-muted small mb-2 italic">Belum ada laporan.</p>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 mt-2">
+                            {% if dispo.status == 'terverifikasi' or dispo.status == 'proses' %}
+                            {% if user.is_pimpinan or user.is_kabid or user.is_superadmin or user.is_sdm %}
+                                {% if not dispo.sppd %}
+                            <a href="{% url 'sppd_service:create' dispo.pk %}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold">
+                                <i class="bi bi-plus-lg me-1"></i> Buat SPPD
+                            </a>
+                                {% endif %}
+                            {% endif %}
+                            {% endif %}
+                            {% if dispo.status == 'terverifikasi' or dispo.status == 'proses' %}
+                            <a href="{% url 'reports:create' dispo.pk %}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">
+                                <i class="bi bi-file-earmark-plus me-1"></i> Input Laporan
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted italic small">Lembar disposisi belum tersedia.</p>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+                {% elif archive.status == 'selesai' %}
+                <div class="text-center py-3">
+                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                    <p class="fw-bold text-success mt-2 mb-0">DOKUMEN SELESAI</p>
+                    <p class="text-muted small">Seluruh alur dokumen telah dilaksanakan.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline-modern { position: relative; padding-left: 30px; }
+    .timeline-modern::before { content: ''; position: absolute; left: 14px; top: 0; bottom: 0; width: 2px; background: var(--border-color); }
+    .tm-item { position: relative; padding-bottom: 25px; }
+    .tm-icon { position: absolute; left: -30px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1; font-size: 0.9rem; }
+    .tm-content {
+        background-color: var(--card-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 12px 15px;
+        border-radius: 12px;
+    }
+    .tm-date { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-top: 5px; display: block; }
+    .italic { font-style: italic; }
+</style>
+
+{% if archive.status == 'baru' %}
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectDetailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'archives:reject' archive.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Tolak Dokumen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">Dokumen: <strong>{{ archive.archive_number|default:archive.title }}</strong></p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Alasan Penolakan <span class="text-danger">*</span></label>
+                        <textarea name="rejection_note" class="form-control" rows="4" required placeholder="Jelaskan alasan mengapa dokumen ditolak..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger fw-bold px-4">
+                        <i class="bi bi-x-lg me-1"></i> Ya, Tolak
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Verify Modal -->
+<div class="modal fade" id="verifyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="bi bi-patch-check-fill text-success me-2"></i>Verifikasi Dokumen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-secondary mb-3">Dokumen: <strong>{{ archive.archive_number|default:archive.title }}</strong></p>
+                <p class="text-secondary small mb-4">Pilih tindakan setelah verifikasi:</p>
+                <div class="d-grid gap-3">
+                    <form method="post" action="{% url 'archives:verify' archive.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="verify_and_disposition">
+                        <button type="submit" class="btn btn-primary w-100 rounded-3 py-3 fw-bold shadow-sm">
+                            <i class="bi bi-send-fill me-2"></i> Verifikasi & Buat Disposisi
+                            <div class="small fw-normal mt-1">Buat lembar disposisi dan isi arahan pimpinan</div>
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'archives:verify' archive.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="verify_only">
+                        <button type="submit" class="btn btn-outline-success w-100 rounded-3 py-3 fw-bold">
+                            <i class="bi bi-patch-check me-2"></i> Verifikasi Saja
+                            <div class="small fw-normal mt-1">Hanya verifikasi, disposisi bisa dibuat nanti</div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if new_upload %}
+<script>
+    $(document).ready(function() {
+        Swal.fire({
+            title: 'Unggah Berhasil!',
+            text: 'Dokumen berhasil diunggah dengan status BARU. Apakah Anda ingin langsung mencetak tanda terima?',
+            icon: 'success',
+            showCancelButton: true,
+            confirmButtonColor: '#0E9F6E',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: '<i class="bi bi-printer me-2"></i> Cetak Tanda Terima',
+            cancelButtonText: 'Nanti Saja',
+            customClass: {
+                confirmButton: 'btn btn-success rounded-3 px-4 py-2 fw-bold me-2',
+                cancelButton: 'btn btn-light rounded-3 px-4 py-2 fw-semibold'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Open receipt in new window/tab
+                window.open("{% url 'archives:receipt' archive.pk %}", "_blank");
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

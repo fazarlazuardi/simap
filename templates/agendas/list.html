@@ -1,0 +1,602 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Kalender Kerja - BAZNAS{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<style>
+    .fc .fc-button-primary { background-color: var(--primary); border-color: var(--primary); padding: 8px 16px; font-weight: 600; color: #fff; }
+    .fc .fc-button-primary:hover { background-color: var(--primary-dark); border-color: var(--primary-dark); color: #fff; }
+    .fc .fc-button-primary:not(:disabled):active,
+    .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: var(--primary-dark) !important; border-color: var(--primary-dark) !important; color: #fff !important; }
+    .fc .fc-toolbar-title { font-weight: 700; font-family: 'Inter', sans-serif; text-transform: capitalize; color: var(--primary); }
+    .fc-header-toolbar { padding: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .fc .fc-toolbar-chunk { display: flex; align-items: center; }
+    .fc .fc-toolbar-chunk:nth-child(1) { justify-content: flex-start; }
+    .fc .fc-toolbar-chunk:nth-child(2) { justify-content: center; }
+    .fc .fc-toolbar-chunk:nth-child(3) { justify-content: flex-end; }
+    .fc .fc-col-header-cell-cushion { color: var(--text-secondary); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; text-decoration: none; }
+    .fc .fc-daygrid-day-number { color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; }
+    .fc .fc-daygrid-day.fc-day-today { background-color: rgba(14, 159, 110, 0.12); }
+    .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number { color: var(--primary); font-weight: 700; }
+    .fc .fc-scrollgrid, .fc .fc-daygrid-day, .fc .fc-timegrid-slot, .fc .fc-col-header-cell, .fc .fc-list-table, .fc .fc-popover, .fc .fc-scrollgrid-sync-inner { border-color: var(--border-color) !important; }
+    .fc .fc-daygrid-day-frame, .fc .fc-timegrid-body, .fc .fc-scrollgrid-section-body, .fc .fc-list, .fc .fc-popover, .fc .fc-scrollgrid-sync-inner, .fc .fc-scrollgrid-section-header, .fc .fc-scrollgrid-section-footer { background-color: var(--card-bg) !important; }
+    .fc .fc-daygrid-day-frame, .fc .fc-list-event, .fc .fc-list-day-cushion, .fc .fc-popover-body, .fc .fc-popover-header, .fc .fc-scrollgrid-sync-inner a, .fc .fc-scrollgrid-sync-inner { color: var(--text-primary) !important; }
+    .fc .fc-event-title, .fc .fc-event-time { color: #fff !important; }
+    .fc .fc-daygrid-day.fc-day-other .fc-daygrid-day-number { color: var(--text-secondary) !important; }
+    .fc .fc-col-header-cell-cushion, .fc .fc-daygrid-day-number, .fc .fc-timegrid-axis-cushion, .fc .fc-list-day-text, .fc .fc-list-day-side-text { color: var(--text-primary) !important; }
+    .fc .fc-theme-standard td, .fc .fc-theme-standard th { background-color: var(--card-bg) !important; }
+    /* Responsive Mobile CSS for FullCalendar */
+    @media (max-width: 768px) {
+        .fc .fc-toolbar {
+            flex-direction: column !important;
+            gap: 10px !important;
+            align-items: center !important;
+        }
+        .fc .fc-toolbar-chunk {
+            display: flex !important;
+            justify-content: center !important;
+            width: 100% !important;
+            flex-wrap: wrap !important;
+            gap: 4px !important;
+        }
+        .fc .fc-toolbar-title {
+            font-size: 1.15rem !important;
+            text-align: center !important;
+            margin: 4px 0 !important;
+        }
+        .fc .fc-button {
+            padding: 6px 12px !important;
+            font-size: 0.75rem !important;
+            border-radius: 8px !important;
+        }
+        .calendar-card {
+            padding: 12px 8px !important;
+            border-radius: 14px !important;
+        }
+        .fc .fc-daygrid-day-number {
+            font-size: 0.75rem !important;
+            padding: 2px 4px !important;
+        }
+        .fc .fc-col-header-cell-cushion {
+            font-size: 0.7rem !important;
+            padding: 4px 2px !important;
+        }
+        .fc .fc-event {
+            font-size: 0.68rem !important;
+            padding: 2px 4px !important;
+            border-radius: 4px !important;
+            margin-bottom: 2px !important;
+        }
+        .fc .fc-daygrid-day-frame {
+            min-height: 60px !important;
+        }
+        .fc .fc-view-harness {
+            min-height: 400px !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1" style="color: var(--text-primary);">Kalender & Agenda Kerja</h4>
+            <p class="text-secondary small mb-0">Pantau jadwal kegiatan secara visual dan terperinci.</p>
+        </div>
+        {% if user.is_superadmin or user.is_pimpinan or user.is_kabid %}
+        <a href="{% url 'agendas:create' %}" class="btn btn-primary px-4">
+            <i class="bi bi-calendar-plus me-2"></i> Buat Agenda
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 mb-4">
+        <!-- Legend Indicator Google Calendar & Agenda BAZNAS -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 p-2 px-3 rounded-3" style="background-color: var(--surface-alt); border: 1px solid var(--border-color); font-size: 0.8rem;">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <span class="fw-bold" style="color: var(--text-primary);"><i class="bi bi-info-circle-fill text-primary me-1"></i> Keterangan Kalender:</span>
+                <span class="badge border px-2 py-1" style="background-color: #0E9F6E; color: #FFFFFF;">
+                    <i class="bi bi-calendar-event me-1"></i> Agenda Kerja / SPPD BAZNAS
+                </span>
+                <span class="badge border px-2 py-1" style="background-color: #DC2626; color: #FFFFFF;">
+                    <i class="bi bi-flag-fill me-1"></i> Hari Libur Nasional & Cuti Bersama (Google Calendar Feed)
+                </span>
+            </div>
+            <span class="small" style="color: var(--text-secondary);"><i class="bi bi-arrow-repeat me-1"></i> Terhubung Realtime dengan Kalender Nasional</span>
+        </div>
+
+        <div class="calendar-card">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card border-0 shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h5 class="fw-bold mb-0" style="color: var(--text-primary);"><i class="bi bi-journal-check me-2 text-primary"></i>Daftar Agenda & Penugasan Kerja</h5>
+                <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+                    <input type="text" name="q" class="form-control form-control-sm" style="width: 180px;" placeholder="🔍 Cari agenda / SPPD..." value="{{ filters.q|default:'' }}">
+                    
+                    <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                        <option value="">Semua Status</option>
+                        <option value="terjadwal" {% if filters.status == 'terjadwal' or filters.status == 'upcoming' %}selected{% endif %}>Terjadwal</option>
+                        <option value="selesai" {% if filters.status == 'selesai' or filters.status == 'completed' %}selected{% endif %}>Selesai</option>
+                        <option value="diundur" {% if filters.status == 'diundur' or filters.status == 'postponed' %}selected{% endif %}>Diundur</option>
+                        <option value="dibatalkan" {% if filters.status == 'dibatalkan' or filters.status == 'cancelled' %}selected{% endif %}>Dibatalkan</option>
+                    </select>
+
+                    <select name="disposer" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                        <option value="">Semua Pengirim Disposisi</option>
+                        {% for u in disposer_users %}
+                        <option value="{{ u.id }}" {% if filters.disposer == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="terkait_user" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                        <option value="">Semua User Terkait</option>
+                        {% for u in terkait_users %}
+                        <option value="{{ u.id }}" {% if filters.terkait_user == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
+                        {% endfor %}
+                    </select>
+
+                    {% if filters.status or filters.disposer or filters.terkait_user or filters.q %}
+                    <a href="{% url 'agendas:list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Reset</a>
+                    {% endif %}
+                    <a href="{% url 'agendas:list' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}&export=1{% else %}?export=1{% endif %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Export Excel
+                    </a>
+                </form>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap align-items-center mb-4 px-1">
+                <span class="fw-semibold me-2 small" style="color: var(--text-primary);"><i class="bi bi-folder me-1"></i> Kategori:</span>
+                <a href="{% url 'agendas:list' %}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if not current_type %}btn-primary shadow-sm{% else %}btn-light border{% endif %}">
+                    <i class="bi bi-grid-3x3-gap me-1"></i> Semua
+                </a>
+                {% for code, label in archive_types %}
+                <a href="{% url 'agendas:list' %}?type={{ code }}{% if filters.q %}&q={{ filters.q }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.disposer %}&disposer={{ filters.disposer }}{% endif %}{% if filters.terkait_user %}&terkait_user={{ filters.terkait_user }}{% endif %}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if current_type == code %}btn-primary shadow-sm{% else %}btn-light border{% endif %}">
+                    {{ label }}
+                </a>
+                {% endfor %}
+            </div>
+            
+            <div class="table-responsive rounded-3 border" style="border-color: var(--border-color) !important;">
+                <table class="table table-hover align-middle mb-0" id="agendaTable">
+                    <thead class="text-white small text-uppercase fw-bold" style="background: linear-gradient(135deg, #046C4E, #057A55);">
+                        <tr>
+                            <th class="py-3 px-3 border-0 text-center" style="width: 140px;">Waktu & Tanggal</th>
+                            <th class="py-3 px-3 border-0" style="min-width: 240px;">Nama Kegiatan & Lokasi</th>
+                            <th class="py-3 px-3 border-0" style="width: 180px;">Dokumen Acuan</th>
+                            <th class="py-3 px-3 border-0 text-center" style="width: 130px;">Status Agenda</th>
+                            <th class="py-3 px-3 border-0" style="min-width: 180px;">Pegawai Ditugaskan</th>
+                            <th class="py-3 px-3 border-0 text-center" style="width: 130px;">Notifikasi WA</th>
+                            <th class="py-3 px-3 border-0 text-end" style="min-width: 220px;">Aksi Cepat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agenda in agendas %}
+                        <tr id="agenda-{{ agenda.id }}" class="agenda-row {% if request.GET.q and request.GET.q in agenda.title or request.GET.highlight == agenda.id|slugify %}table-primary fw-semibold{% endif %}">
+
+                            <!-- 1. Waktu & Tanggal -->
+                            <td class="text-center px-3 py-3" data-order="{{ agenda.scheduled_at|date:'U' }}">
+                                <div class="p-2 rounded-3 text-center" style="background-color: var(--surface-alt); border: 1px solid var(--border-color);">
+                                    <span class="d-block fw-bold text-success small" style="font-size: 0.82rem;">{{ agenda.scheduled_at|date:"l" }}</span>
+                                    <span class="d-block fw-black fs-6" style="color: var(--text-primary);">{{ agenda.scheduled_at|date:"d M Y" }}</span>
+                                    <span class="badge border px-2 py-0" style="background-color: rgba(100, 116, 139, 0.15); color: var(--text-primary); font-size: 0.68rem;"><i class="bi bi-clock me-1"></i>{{ agenda.scheduled_at|time:"H:i" }} WIB</span>
+                                </div>
+                            </td>
+
+                            <!-- 2. Nama Kegiatan & Lokasi -->
+                            <td class="px-3 py-3">
+                                <h6 class="fw-bold mb-1" style="color: var(--text-primary); font-size: 0.9rem;">{{ agenda.title }}</h6>
+                                {% if agenda.location %}
+                                <div class="small fw-semibold mb-1" style="color: #3B82F6;">
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ agenda.location }}
+                                </div>
+                                {% endif %}
+                                {% if agenda.description %}
+                                <p class="mb-0 small italic" style="color: var(--text-secondary); font-size: 0.78rem;">{{ agenda.description|truncatechars:60 }}</p>
+                                {% endif %}
+                                <div class="mt-1 d-flex gap-1 flex-wrap">
+                                    {% if agenda.is_recurring %}
+                                    <span class="badge rounded-pill px-2 py-1 fw-bold" style="background-color: #0284C7; color: #FFFFFF; font-size: 0.68rem;"><i class="bi bi-repeat me-1"></i> Rutin ({{ agenda.get_recurrence_type_display }})</span>
+                                    {% endif %}
+                                    {% if agenda.is_sppd_generated or agenda.sppd_ref %}
+                                    <span class="badge rounded-pill px-2 py-1 fw-bold" style="background-color: #7C3AED; color: #FFFFFF; font-size: 0.68rem;"><i class="bi bi-briefcase-fill me-1"></i> SPPD TERBIT</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <!-- 3. Dokumen Acuan -->
+                            <td class="px-3 py-3">
+                                {% if agenda.archive %}
+                                <a href="{% url 'archives:detail' agenda.archive.pk %}" class="text-decoration-none fw-bold small d-block text-primary">
+                                    <i class="bi bi-file-earmark-text me-1"></i>{{ agenda.archive.archive_number|default:"No. Arsip" }}
+                                </a>
+                                <small class="d-block text-truncate" style="color: var(--text-secondary); max-width: 170px;" title="{{ agenda.archive.title }}">{{ agenda.archive.title }}</small>
+                                {% else %}
+                                <span class="badge rounded-pill px-2 py-1 small fw-semibold" style="background-color: var(--surface-alt); color: var(--text-primary); border: 1px solid var(--border-color);"><i class="bi bi-journal me-1"></i>Agenda Manual</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- 4. Status Agenda -->
+                            <td class="text-center px-3 py-3">
+                                {% if agenda.status == 'selesai' %}
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold small" style="background-color: #0E9F6E; color: #FFFFFF;">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Selesai
+                                    </span>
+                                {% elif agenda.status == 'diundur' %}
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold small" style="background-color: #D97706; color: #FFFFFF;">
+                                        <i class="bi bi-clock-history me-1"></i>Diundur
+                                    </span>
+                                {% elif agenda.status == 'dibatalkan' %}
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold small" style="background-color: #DC2626; color: #FFFFFF;">
+                                        <i class="bi bi-x-circle-fill me-1"></i>Dibatalkan
+                                    </span>
+                                {% else %}
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold small" style="background-color: #2563EB; color: #FFFFFF;">
+                                        <i class="bi bi-calendar-event me-1"></i>Terjadwal
+                                    </span>
+                                {% endif %}
+
+                                {% if agenda.completed_notes or agenda.completed_file %}
+                                <span class="badge rounded-pill px-2 py-1 d-block mt-1 mx-auto fw-bold" style="background-color: #059669; color: #FFFFFF; font-size: 0.65rem; width: fit-content;">
+                                    <i class="bi bi-journal-check me-1"></i>Notulensi Ada
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- 5. Pegawai Ditugaskan / Notulis Rapat -->
+                            <td class="px-3 py-3">
+                                {% if agenda.internal_meeting_id %}
+                                    {% if agenda.assigned_employees.exists %}
+                                        {% for emp in agenda.assigned_employees.all %}
+                                        <span class="badge border rounded-pill px-2 py-1 mb-1 me-1 small fw-semibold" style="background-color: rgba(13, 138, 82, 0.1); color: #0d8a52; border-color: #86efac !important; font-size: 0.72rem;" title="Notulis Rapat Internal">
+                                            <i class="bi bi-journal-text me-1"></i>Notulis: {{ emp.full_name }}
+                                        </span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="badge border rounded-pill px-2 py-1 mb-1 me-1 small text-muted bg-light border" style="font-size: 0.72rem;">
+                                            <i class="bi bi-person-x me-1"></i>Notulis Belum Ditunjuk
+                                        </span>
+                                    {% endif %}
+                                {% elif agenda.assigned_employees.exists %}
+                                    {% for emp in agenda.assigned_employees.all %}
+                                    <span class="badge border rounded-pill px-2 py-1 mb-1 me-1 small fw-semibold" style="background-color: var(--surface-alt); color: var(--text-primary); border-color: var(--border-color) !important; font-size: 0.72rem;">
+                                        <i class="bi bi-person-fill text-success me-1"></i>{{ emp.full_name }}
+                                    </span>
+                                    {% endfor %}
+                                {% elif agenda.assigned_to.exists %}
+                                    {% for u in agenda.assigned_to.all %}
+                                    <span class="badge border rounded-pill px-2 py-1 mb-1 me-1 small fw-semibold" style="background-color: var(--surface-alt); color: var(--text-primary); border-color: var(--border-color) !important; font-size: 0.72rem;">
+                                        <i class="bi bi-person-fill text-primary me-1"></i>{{ u.get_full_name|default:u.username }}
+                                    </span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="small italic" style="color: var(--text-secondary);">—</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- 6. Notifikasi WA -->
+                            <td class="text-center px-3 py-3 small">
+                                {% if agenda.notification_sent_at %}
+                                    <span class="text-success d-block fw-semibold mb-1" style="font-size: 0.72rem;">
+                                        <i class="bi bi-check-all me-1"></i>{{ agenda.notification_sent_at|date:"d/m H:i" }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted d-block mb-1" style="font-size: 0.72rem;">—</span>
+                                {% endif %}
+                                <form action="{% url 'agendas:notify' agenda.pk %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0" style="font-size: 0.7rem;" title="Kirim Pengingat WA">
+                                        <i class="bi bi-send me-1"></i> WA
+                                    </button>
+                                </form>
+                            </td>
+
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-1 flex-wrap">
+                                {% if agenda.status == 'terjadwal' or agenda.status == 'diundur' %}
+                                    <!-- 1. Terbitkan SPPD Direct Button -->
+                                    {% if not agenda.is_sppd_generated and not agenda.sppd_ref %}
+                                    <a href="{% url 'agendas:generate_sppd' agenda.pk %}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Terbitkan SPPD & Surat Tugas untuk Agenda ini">
+                                        <i class="bi bi-briefcase me-1"></i> Terbitkan SPPD
+                                    </a>
+                                    {% endif %}
+
+                                    <!-- 2. Modal Notulensi Agenda Trigger (Hanya untuk Rapat Internal) -->
+                                    {% if agenda.internal_meeting_id %}
+                                    <button type="button" 
+                                            class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}', '{{ agenda.internal_meeting_id }}', '{{ agenda.title|escapejs }}', '{{ agenda.completed_notes|escapejs }}')">
+                                        <i class="bi bi-journal-text me-1"></i> Notulensi
+                                    </button>
+                                    {% endif %}
+
+                                    <!-- Tombol Selesai Agenda (Saling Terintegrasi dengan SPPD & Laporan) -->
+                                    {% if agenda.archive and agenda.archive.dispositions.first %}
+                                    <a href="{% url 'reports:create' agenda.archive.dispositions.first.pk %}" 
+                                       class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                       title="Input Laporan Hasil & Selesaikan SPPD/Agenda">
+                                        <i class="bi bi-check-lg me-1"></i> Selesai
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'agendas:complete' agenda.pk %}" 
+                                       class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                       title="Selesaikan Agenda Kerja">
+                                        <i class="bi bi-check-lg me-1"></i> Selesai
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if agenda.is_sppd_generated or agenda.sppd_ref %}
+                                    <button type="button" class="btn btn-light btn-sm border rounded-pill px-3 fw-bold text-muted" disabled title="Agenda SPPD diedit melalui modul SPPD">
+                                        <i class="bi bi-lock me-1"></i> Edit SPPD
+                                    </button>
+                                    {% else %}
+                                    <a href="{% url 'agendas:edit' agenda.pk %}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Edit / Reschedule Agenda">
+                                        <i class="bi bi-pencil me-1"></i> Edit
+                                    </a>
+                                    {% endif %}
+                                    
+                                    <form action="{% url 'agendas:cancel' agenda.pk %}" method="post" class="d-inline" onsubmit="return confirm('Batalkan agenda {{ agenda.title|escapejs }}?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                            <i class="bi bi-x-circle me-1"></i> Batal
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <!-- Agenda Selesai Actions (Rekap Data Laporan & Notulensi Internal) -->
+                                    {% if agenda.archive and agenda.archive.latest_report %}
+                                    <a href="{% url 'reports:detail' agenda.archive.latest_report.pk %}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Lihat Rekap Data Laporan Hasil Penanganan">
+                                        <i class="bi bi-file-earmark-check-fill me-1"></i> Rekap Laporan
+                                    </a>
+                                    {% endif %}
+
+                                    {% if agenda.internal_meeting_id %}
+                                    <button type="button" 
+                                            class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}', '{{ agenda.internal_meeting_id }}', '{{ agenda.title|escapejs }}', '{{ agenda.completed_notes|escapejs }}')">
+                                        <i class="bi bi-journal-text me-1"></i> Notulensi
+                                    </button>
+                                    {% endif %}
+                                    {% if agenda.completed_file %}
+                                    <a href="{{ agenda.completed_file.url }}" target="_blank" class="btn btn-sm btn-light border text-success rounded-pill px-2 fw-bold" title="Unduh Berkas Dokumentasi Hasil Agenda">
+                                        <i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Berkas Foto/PDF
+                                    </a>
+                                    {% endif %}
+                                {% endif %}
+
+                                <form action="{% url 'agendas:delete' agenda.pk %}" method="post" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin MENGHAPUS agenda {{ agenda.title|escapejs }} ini secara permanen?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="Hapus Agenda">
+                                        <i class="bi bi-trash me-1"></i> Hapus
+                                    </button>
+                                </form>
+
+                                <a href="{% if agenda.archive %}{% url 'archives:detail' agenda.archive.pk %}{% else %}#{% endif %}" class="btn btn-light btn-sm rounded-circle border shadow-sm" title="Detail Agenda/Arsip">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Input Notulensi Agenda (Identik dengan Modal Rapat Internal) -->
+<div class="modal fade" id="modalNotulensiAgendaSync" tabindex="-1" aria-hidden="true" style="z-index: 1060 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-pencil-square me-2"></i>Formulir Notulensi & Risalah Rapat Agenda
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formNotulensiAgendaSync" method="post" action="" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="alert alert-success d-flex align-items-center mb-3">
+                        <i class="bi bi-info-circle-fill fs-5 me-2"></i>
+                        <div>Agenda / Kegiatan: <strong id="notulensiAgendaTitleText">-</strong></div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="id_notulis_agenda" class="form-label fw-bold text-dark">Notulis Rapat <span class="text-danger">*</span></label>
+                            <select name="notulis" id="id_notulis_agenda" class="form-select shadow-sm" required>
+                                <option value="">-- Pilih Notulis Rapat --</option>
+                                {% for emp in employees %}
+                                <option value="{{ emp.pk }}">{{ emp.full_name }} ({% if emp.position %}{{ emp.position }}{% else %}Amil/Pegawai{% endif %})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_status_agenda" class="form-label fw-bold text-dark">Status Agenda / Rapat</label>
+                            <select name="status" id="id_status_agenda" class="form-select shadow-sm">
+                                <option value="selesai" selected>Selesai (Notulensi Terbit)</option>
+                                <option value="berlangsung">Sedang Berlangsung</option>
+                                <option value="terjadwal">Terjadwal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notulensi_summary_agenda" class="form-label fw-bold text-dark">1. Ringkasan Pembahasan & Risalah Rapat <span class="text-danger">*</span></label>
+                        <textarea name="notulensi_summary" id="id_notulensi_summary_agenda" rows="4" class="form-control shadow-sm" placeholder="Tuliskan poin-poin risalah dan pembasahan hasil kegiatan rapat di sini..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notulensi_decision_agenda" class="form-label fw-bold text-dark">2. Kesimpulan & Keputusan Rapat</label>
+                        <textarea name="notulensi_decision" id="id_notulensi_decision_agenda" rows="3" class="form-control shadow-sm" placeholder="Tuliskan keputusan resmi yang disepakati..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notulensi_action_items_agenda" class="form-label fw-bold text-dark">3. Rencana Tindak Lanjut (Action Items)</label>
+                        <textarea name="notulensi_action_items" id="id_notulensi_action_items_agenda" rows="2" class="form-control shadow-sm" placeholder="Tindak lanjut yang harus dijalankan..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notulensi_file_agenda" class="form-label fw-bold text-dark">Upload Dokumen / Foto Bukti Notulensi (Opsional)</label>
+                        <input type="file" name="notulensi_file" id="id_notulensi_file_agenda" class="form-control shadow-sm" accept="image/*,.pdf,.doc,.docx" multiple>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light rounded-bottom-4 py-3">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-send-fill me-1"></i> Simpan & Terbitkan Notulensi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Selesai Agenda -->
+<div class="modal fade" id="modalSelesaiAgenda" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-check-circle-fill me-2"></i>Konfirmasi Selesaikan Agenda
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formSelesaiAgenda" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body p-4 text-start">
+                    <div class="text-center mb-3 text-success">
+                        <i class="bi bi-patch-check-fill display-4"></i>
+                    </div>
+                    <p class="text-secondary small text-center mb-3">Apakah Anda yakin ingin menyatakan agenda kerja berikut telah <strong>SELESAI</strong> dilaksanakan?</p>
+                    
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <h6 class="fw-bold text-dark mb-1" id="selesaiAgendaTitle">-</h6>
+                        <span class="badge bg-secondary text-white rounded-pill px-2 py-1 small" id="selesaiAgendaDocInfo">-</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="selesai_completed_notes" class="form-label fw-bold text-dark">Catatan Pelaksanaan / Hasil Singkat (Opsional)</label>
+                        <textarea name="completed_notes" id="selesai_completed_notes" rows="3" class="form-control" placeholder="Tambahkan ringkasan singkat pelaksanaan kegiatan jika ada..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light rounded-bottom-4 py-3">
+                    <button type="button" class="btn btn-light border fw-semibold rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-check-lg me-1"></i> Ya, Selesaikan Agenda
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/id.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    function getFilterParams() {
+        var params = new URLSearchParams(window.location.search);
+        var result = {};
+        var filterKeys = ['disposer', 'terkait_user'];
+        filterKeys.forEach(function(key) {
+            var val = params.get(key);
+            if (val) result[key] = val;
+        });
+        return result;
+    }
+
+    function buildEventUrl() {
+        var base = '{% url "agendas:events" %}';
+        var params = getFilterParams();
+        var query = new URLSearchParams(params).toString();
+        return query ? base + '?' + query : base;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        if (calendarEl) {
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'id',
+                events: buildEventUrl(),
+                height: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,listMonth'
+                },
+                buttonText: {
+                    today: 'Hari Ini',
+                    month: 'Bulan',
+                    list: 'Daftar Agenda'
+                },
+
+                eventDidMount: function(info) {
+                    info.el.style.backgroundColor = info.event.backgroundColor;
+                    info.el.style.borderColor = info.event.borderColor;
+                    info.el.style.color = info.event.textColor;
+                }
+            });
+            calendar.render();
+        }
+
+        $('#agendaTable').DataTable({
+            language: { 
+                url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' 
+            },
+            pageLength: 10,
+            ordering: true,
+            searching: false,
+            order: [[0, 'desc']]
+        });
+    });
+
+    function bukaModalNotulensiAgenda(agendaId, meetingId, agendaTitle, existingNotes) {
+        if (document.getElementById('notulensiAgendaTitleText')) {
+            document.getElementById('notulensiAgendaTitleText').innerText = agendaTitle;
+        }
+        if (document.getElementById('id_notulensi_summary_agenda')) {
+            document.getElementById('id_notulensi_summary_agenda').value = existingNotes || '';
+        }
+        
+        var form = document.getElementById('formNotulensiAgendaSync');
+        if (agendaId && agendaId !== 'None' && agendaId !== '') {
+            form.action = '/agendas/' + agendaId + '/upload-notulensi/';
+        } else if (meetingId && meetingId !== 'None' && meetingId !== '') {
+            form.action = '/rapat-internal/' + meetingId + '/notulensi/';
+        }
+
+        var modalElement = document.getElementById('modalNotulensiAgendaSync');
+        if (modalElement && modalElement.parentElement !== document.body) {
+            document.body.appendChild(modalElement);
+        }
+        var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+    }
+
+    function bukaModalSelesai(agendaTitle, agendaDocInfo, actionUrl) {
+        document.getElementById('selesaiAgendaTitle').textContent = agendaTitle;
+        document.getElementById('selesaiAgendaDocInfo').textContent = agendaDocInfo;
+        document.getElementById('formSelesaiAgenda').action = actionUrl;
+        var modalElement = document.getElementById('modalSelesaiAgenda');
+        document.body.appendChild(modalElement);
+        var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+    }
+</script>
+{% endblock %}

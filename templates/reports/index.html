@@ -1,0 +1,371 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Traceability Laporan - BAZNAS{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<style>
+    table.dataTable > thead > tr > th { border-bottom: none !important; }
+    table.dataTable.no-footer { border-bottom: 1px solid var(--border-color) !important; }
+    div.dataTables_wrapper div.dataTables_info,
+    div.dataTables_wrapper div.dataTables_paginate { padding-top: 1rem !important; }
+    div.dataTables_wrapper .dataTables_length select,
+    div.dataTables_wrapper .dataTables_filter input,
+    div.dataTables_wrapper .dataTables_paginate .paginate_button {
+        background-color: var(--card-bg) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+    }
+    div.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: var(--primary) !important;
+        color: #fff !important;
+        border-color: var(--primary) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- KONTEN HALAMAN UTAMA -->
+<div class="row mb-4">
+    <div class="col-md-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1">Traceability Pengelolaan Arsip</h4>
+            <p class="text-secondary small">Pantau perjalanan dokumen dari awal hingga penyelesaian laporan akhir.</p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            {% if user.is_superadmin %}
+            <a href="{% url 'audit_logs:list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-clock-history me-1"></i> Audit Log
+            </a>
+            {% endif %}
+            
+            {% if drive_backup_enabled %}
+            <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#backupMonthlyModal">
+                <i class="bi bi-cloud-arrow-up me-2"></i> Backup Bulanan
+            </button>
+            {% endif %}
+
+            <form method="get" class="d-inline">
+                <input type="hidden" name="export" value="1">
+                {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                {% if pj %}<input type="hidden" name="pj" value="{{ pj }}">{% endif %}
+                {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+                {% if date_from %}<input type="hidden" name="date_from" value="{{ date_from }}">{% endif %}
+                {% if date_to %}<input type="hidden" name="date_to" value="{{ date_to }}">{% endif %}
+                {% if current_type %}<input type="hidden" name="type" value="{{ current_type }}">{% endif %}
+                <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm p-3 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label small fw-semibold text-secondary mb-1">Cari</label>
+            <input type="text" name="q" class="form-control form-control-sm" style="width: 160px;" placeholder="No. Dokumen / Judul" value="{{ q|default:'' }}">
+        </div>
+        <div class="col-auto">
+            <label class="form-label small fw-semibold text-secondary mb-1">Penanggung Jawab</label>
+            <select name="pj" class="form-select form-select-sm" style="min-width: 150px;">
+                <option value="">Semua</option>
+                {% for u in users %}
+                <option value="{{ u.id }}" {% if pj == u.id|stringformat:'s' %}selected{% endif %}>{{ u.employee.full_name|default:u.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label small fw-semibold text-secondary mb-1">Status Dokumen</label>
+            <select name="status" class="form-select form-select-sm" style="min-width: 130px;">
+                <option value="">Semua</option>
+                {% for code, label in status_choices %}
+                <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label small fw-semibold text-secondary mb-1">Dari Tgl</label>
+            <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+        </div>
+        <div class="col-auto">
+            <label class="form-label small fw-semibold text-secondary mb-1">Sampai Tgl</label>
+            <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+        </div>
+        <div class="col-auto d-flex gap-1">
+            <button type="submit" class="btn btn-primary btn-sm px-4 rounded-pill shadow-sm d-inline-flex align-items-center">
+                <i class="bi bi-funnel me-1"></i> Filter
+            </button>
+            <a href="{% url 'reports:index' %}" class="btn btn-light btn-sm px-3 rounded-pill border d-inline-flex align-items-center">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header border-bottom py-3" style="background-color: var(--surface-alt);">
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <span class="fw-semibold me-2 small" style="color: var(--text-primary);"><i class="bi bi-folder me-1"></i> Kategori:</span>
+            <a href="{% url 'reports:index' %}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if not current_type %}btn-primary shadow-sm{% else %}btn-light border{% endif %}">
+                <i class="bi bi-grid-3x3-gap me-1"></i> Semua
+            </a>
+            {% for code, label in archive_types %}
+            <a href="{% url 'reports:index' %}?type={{ code }}{% if q %}&q={{ q }}{% endif %}{% if pj %}&pj={{ pj }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if current_type == code %}btn-primary shadow-sm{% else %}btn-light border{% endif %}">
+                {{ label }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm p-4 mb-4">
+    <div class="table-responsive">
+        <table id="report-table" class="table table-hover align-middle small">
+            <thead class="text-uppercase" style="font-size: 0.75rem; background-color: var(--surface-alt);">
+                <tr>
+                    <th class="border-0">No. Dokumen</th>
+                    <th class="border-0">Nama Dokumen</th>
+                    <th class="border-0">Pengirim</th>
+                    <th class="border-0">No. Disposisi</th>
+                    <th class="border-0">Penanggung Jawab</th>
+                    <th class="border-0">Tgl Agenda</th>
+                    <th class="border-0">No. SPPD</th>
+                    <th class="border-0">No. Laporan</th>
+                    <th class="border-0">Status Dokumen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for arc in archives %}
+                {% with dispo=arc.latest_dispo surat_tugas_obj=arc.latest_st sppd_obj=arc.latest_sppd report_obj=arc.latest_report %}
+                <tr>
+                    <td class="fw-bold">
+                        <a href="{% url 'archives:detail' arc.pk %}" class="text-decoration-none text-primary">
+                            {{ arc.archive_number|default:"(DRAFT)" }}
+                        </a>
+                    </td>
+                    <td class="fw-bold" style="color: var(--text-primary);" title="{{ arc.title }}">{{ arc.title|truncatechars:30 }}</td>
+                    
+                    <!-- Data Sel Nama Pengirim Dokumen -->
+                    <td>
+                        {% if arc.sender %}
+                            <span title="{{ arc.sender }}">{{ arc.sender|truncatechars:25 }}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if dispo %}
+                            <a href="{% url 'dispositions:detail' dispo.pk %}" class="badge border text-decoration-none" style="background-color: var(--surface-alt); color: var(--text-primary);">
+                                {% if dispo.disposition_number %}{{ dispo.disposition_number }}{% else %}DISP-{{ dispo.id }}{% endif %}
+                            </a>
+                        {% else %}
+                            <span class="text-muted italic">-</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Kolom Penanggung Jawab Dinamis (Sync Realtime dengan Disposisi Waka IV) -->
+                    <td>
+                        {% if arc.current_assignees %}
+                            <span class="fw-bold text-dark d-block">{{ arc.current_assignee_names }}</span>
+                            {% if dispo and dispo.is_stage_waka %}
+                                <small class="text-primary d-block mt-1" style="font-size: 0.65rem;">
+                                    <i class="bi bi-arrow-return-right me-1"></i>Didisposisikan Waka IV
+                                </small>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Kolom Tgl Agenda (Realtime membaca Tanggal SPPD / ST / Agenda) -->
+                    <td>
+                        {% if arc.latest_agenda_date %}
+                            <span class="d-block fw-bold small text-primary"><i class="bi bi-calendar-event me-1"></i>{{ arc.latest_agenda_date|date:"d/m/Y" }}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Kolom No. SPPD (Membaca SPPD / Surat Tugas secara realtime) -->
+                    <td>
+                        {% if sppd_obj %}
+                            <span class="badge bg-warning text-dark small mb-1"><i class="bi bi-briefcase me-1"></i>{{ sppd_obj.sppd_number }}</span>
+                        {% elif surat_tugas_obj %}
+                            <span class="badge bg-info text-white small mb-1"><i class="bi bi-file-earmark-text me-1"></i>{{ surat_tugas_obj.nomor_surat }}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Kolom No. Laporan -->
+                    <td>
+                        {% if report_obj %}
+                            <a href="{% url 'reports:detail' report_obj.pk %}" class="badge bg-success text-white text-decoration-none">
+                                <i class="bi bi-file-earmark-check me-1"></i>{{ report_obj.report_number }}
+                            </a>
+                        {% elif dispo %}
+                            <a href="{% url 'reports:create' dispo.pk %}" class="btn btn-outline-primary btn-xs py-0 px-2 fw-bold" style="font-size: 0.6rem;">
+                                + Input Laporan
+                            </a>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Kolom Status Dokumen (Sync Realtime dengan activity_name & Detail Dokumen) -->
+                    <td class="text-nowrap">
+                        {% if arc.status == 'selesai' %}
+                            <span class="badge badge-approved rounded-pill px-3"><i class="bi bi-check-circle me-1"></i>SELESAI</span>
+                        {% elif arc.status == 'ditolak' %}
+                            <span class="badge bg-danger text-white rounded-pill px-3"><i class="bi bi-x-circle me-1"></i>DITOLAK</span>
+                        {% elif arc.status == 'baru' %}
+                            <span class="badge badge-pending rounded-pill px-3">PENDING</span>
+                        {% else %}
+                            <span class="badge bg-primary text-white rounded-pill px-3">
+                                {% if arc.activity_name %}{{ arc.activity_name|upper }}{% else %}{{ arc.get_status_display|upper }}{% endif %}
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endwith %}
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-5 text-secondary">Belum ada data dokumen yang diproses.</td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL BACKUP BULANAN -->
+{% if drive_backup_enabled %}
+<div class="modal fade" id="backupMonthlyModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="{% url 'reports:drive_backup_monthly' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-cloud-arrow-up text-success me-2"></i>Backup Bulanan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">Pilih periode bulan untuk backup data laporan ke Google Sheets.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Bulan <span class="text-danger">*</span></label>
+                            <select name="month" id="backup-month" class="form-select" required>
+                                <option value="">Pilih Bulan...</option>
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tahun <span class="text-danger">*</span></label>
+                            <select name="year" id="backup-year" class="form-select" required>
+                                <option value="">Pilih Tahun...</option>
+                                {% for y in backup_years %}
+                                <option value="{{ y }}" {% if y|stringformat:'s' == now_year|stringformat:'s' %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="backup-count-info" class="mt-3" style="display:none;">
+                        <div class="p-3 bg-info bg-opacity-10 rounded-3">
+                            <p class="small mb-0 fw-semibold text-info">
+                                <i class="bi bi-file-earmark-text me-1"></i>
+                                Jumlah dokumen yang akan dibackup: <span id="backup-doc-count" class="fw-bold">0</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if existing_backups %}
+                    <div class="mt-3 p-3 bg-warning bg-opacity-10 rounded-3">
+                        <p class="small mb-1 fw-semibold text-warning"><i class="bi bi-info-circle me-1"></i> Backup yang sudah ada:</p>
+                        {% for b in existing_backups %}
+                        <div class="small mb-1">
+                            {{ b.month_name }} {{ b.year }}
+                            {% if b.spreadsheet_url %}
+                            <a href="{{ b.spreadsheet_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none ms-1">
+                                <i class="bi bi-box-arrow-up-right"></i> Lihat
+                            </a>
+                            {% endif %}
+                            <span class="text-muted ms-2">(akan diganti jika backup ulang)</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm">
+                        <i class="bi bi-cloud-arrow-up me-1"></i> Backup Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function () {
+        if ($('#backupMonthlyModal').length) {
+            $('#backupMonthlyModal').appendTo('body');
+        }
+
+        if ($('#report-table tbody tr').length > 0 && !$('#report-table tbody tr td').hasClass('text-center')) {
+            $('#report-table').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' },
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Semua']],
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: [4, 8] }
+                ]
+            });
+        }
+
+        $('#backup-month, #backup-year').on('change', function() {
+            var month = $('#backup-month').val();
+            var year = $('#backup-year').val();
+            var $info = $('#backup-count-info');
+            var $count = $('#backup-doc-count');
+
+            if (month && year) {
+                $.getJSON('{% url "reports:backup_count_documents" %}', { month: month, year: year }, function(data) {
+                    if (data.error) {
+                        $info.hide();
+                        return;
+                    }
+                    $count.text(data.count);
+                    $info.show();
+                }).fail(function() {
+                    $info.hide();
+                });
+            } else {
+                $info.hide();
+            }
+        });
+    });
+</script>
+{% endblock %}

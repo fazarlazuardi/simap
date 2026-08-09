@@ -1,0 +1,756 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Dashboard Monitoring - SIMAP BAZNAS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Futuristic Cyber-Glass Theme Elements */
+    .dashboard-header-banner {
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        border-radius: 16px;
+        color: #FFFFFF;
+        padding: 24px 28px;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.35);
+    }
+
+    
+    .stat-card-futuristic {
+        background: var(--card-bg, #FFFFFF);
+        border: 1px solid var(--border-color, #E2E8F0);
+        border-radius: 14px;
+        padding: 18px 20px;
+        transition: all 0.25s ease-in-out;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+    .stat-card-futuristic:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+    
+    .stat-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+    
+    /* 1. Transparan Scrollbar pada Timeline Aktivitas & Proposal Tracker */
+    .activity-timeline::-webkit-scrollbar,
+    .overflow-auto::-webkit-scrollbar,
+    .table-responsive::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .activity-timeline::-webkit-scrollbar-track,
+    .overflow-auto::-webkit-scrollbar-track,
+    .table-responsive::-webkit-scrollbar-track {
+        background: transparent !important;
+    }
+    .activity-timeline::-webkit-scrollbar-thumb,
+    .overflow-auto::-webkit-scrollbar-thumb,
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.35) !important;
+        border-radius: 4px;
+    }
+    .activity-timeline::-webkit-scrollbar-thumb:hover,
+    .overflow-auto::-webkit-scrollbar-thumb:hover,
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: rgba(16, 185, 129, 0.6) !important;
+    }
+
+    /* Timeline Aktivitas Styling */
+    .activity-timeline {
+        position: relative;
+        padding-left: 20px;
+    }
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: var(--border-color, #E2E8F0);
+    }
+    .timeline-item-futuristic {
+        position: relative;
+        margin-bottom: 20px;
+        padding-left: 18px;
+    }
+    .timeline-item-futuristic::before {
+        content: '';
+        position: absolute;
+        left: -18px;
+        top: 4px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #10B981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+    .timeline-item-futuristic.blue::before { background: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+    .timeline-item-futuristic.purple::before { background: #8B5CF6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
+    .timeline-item-futuristic.orange::before { background: #F59E0B; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+
+    /* 3. Clickable Proposal Tracker Cards */
+    .tracker-hover-card {
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+    }
+    .tracker-hover-card:hover {
+        transform: translateY(-2px);
+        border-color: #10B981 !important;
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.15) !important;
+    }
+
+    /* Animated Flowing Line Tracker */
+    .pipeline-container {
+        position: relative;
+        padding: 10px 0;
+    }
+    .pipeline-line-bg {
+        position: absolute;
+        top: 14px;
+        left: 15px;
+        right: 15px;
+        height: 4px;
+        background: var(--border-color, #E2E8F0);
+        z-index: 1;
+        border-radius: 4px;
+    }
+    .pipeline-line-progress {
+        position: absolute;
+        top: 14px;
+        left: 15px;
+        height: 4px;
+        background: linear-gradient(90deg, #10B981, #3B82F6, #8B5CF6, #10B981);
+        background-size: 250% 100%;
+        z-index: 2;
+        border-radius: 4px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: flowGradient 3s linear infinite;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    }
+
+    /* Animation: Garis Maju Dari Tahap Masuk Saat Kursor Hover Ke Dokumen */
+    .tracker-hover-card:hover .pipeline-line-progress {
+        animation: progressDraw 0.85s cubic-bezier(0.25, 1, 0.5, 1) forwards, flowGradient 3s linear infinite;
+    }
+
+    @keyframes progressDraw {
+        0% {
+            width: 0% !important;
+            opacity: 0.5;
+        }
+        100% {
+            width: var(--target-progress, 100%) !important;
+            opacity: 1;
+        }
+    }
+
+    @keyframes flowGradient {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 100% 50%; }
+    }
+
+
+    .pipeline-steps-wrapper {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        z-index: 3;
+    }
+    .pipeline-step-node {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #94A3B8;
+        border: 2px solid #FFFFFF;
+        box-shadow: 0 0 0 2px #CBD5E1;
+        margin: 10px auto 4px auto;
+        transition: all 0.3s ease;
+    }
+    .pipeline-step-node.active {
+        background: #10B981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+        animation: pulseGreen 2s infinite;
+    }
+    .pipeline-step-node.current {
+        background: #3B82F6;
+        box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.45);
+        transform: scale(1.35);
+        animation: pulseBlue 1.5s infinite;
+    }
+
+    @keyframes pulseGreen {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+        70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    @keyframes pulseBlue {
+        0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); transform: scale(1.3); }
+        70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); transform: scale(1.4); }
+        100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); transform: scale(1.3); }
+    }
+
+    .pipeline-step-label {
+        font-size: 0.62rem;
+        font-weight: 600;
+        color: var(--text-secondary, #64748B);
+        text-align: center;
+        display: block;
+    }
+
+    
+    /* Agenda Item Line Indicator */
+    .agenda-card-item {
+        border-left: 4px solid #10B981;
+        background: var(--surface-alt, #F8FAFC);
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 10px;
+    }
+    .agenda-card-item.blue { border-left-color: #3B82F6; }
+    .agenda-card-item.orange { border-left-color: #F59E0B; }
+    .agenda-card-item.purple { border-left-color: #8B5CF6; }
+
+    /* Glass Action Cards */
+    .quick-action-card {
+        border-radius: 12px;
+        padding: 14px 16px;
+        background: var(--card-bg, #FFFFFF);
+        border: 1px solid var(--border-color, #E2E8F0);
+        transition: all 0.2s ease;
+    }
+    .quick-action-card:hover {
+        border-color: #10B981;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+    }
+
+    /* 7. Corporate Green Footer */
+    .dashboard-footer-banner {
+        background: linear-gradient(135deg, #046C4E 0%, #057A55 100%);
+        border-radius: 14px;
+        color: #FFFFFF;
+        padding: 16px 24px;
+        margin-top: 24px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 7. Corporate Green Header Banner -->
+<div class="dashboard-header-banner mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h4 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                Selamat Datang, {{ user.employee.full_name|default:user.username }} 👋
+            </h4>
+            <p class="mb-0 text-white-50 small">
+                Berikut adalah ringkasan aktivitas dan monitoring proses pada SIMAP BAZNAS Kabupaten Tangerang secara realtime.
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <span class="badge bg-white bg-opacity-20 text-white border border-white-50 px-3 py-2 rounded-pill small fw-semibold">
+                <i class="bi bi-calendar3 me-1"></i> {{ today|date:"l, d F Y" }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- 1. Top Stat Counters (6 Cards) -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{% url 'archives:list' %}?type=surat_masuk" class="text-decoration-none">
+            <div class="stat-card-futuristic">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="stat-icon-wrapper" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">
+                        <i class="bi bi-envelope-paper-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ surat_masuk_count|default:0 }}</h3>
+                <span class="text-secondary small fw-semibold">Surat Masuk</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{% url 'archives:list' %}?type=proposal" class="text-decoration-none">
+            <div class="stat-card-futuristic">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="stat-icon-wrapper" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">
+                        <i class="bi bi-folder-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ proposal_aktif_count|default:0 }}</h3>
+                <span class="text-secondary small fw-semibold">Proposal Aktif</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{% url 'agendas:list' %}" class="text-decoration-none">
+            <div class="stat-card-futuristic">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="stat-icon-wrapper" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">
+                        <i class="bi bi-calendar-event-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ today_agendas_count|default:0 }}</h3>
+                <span class="text-secondary small fw-semibold">Agenda Hari Ini</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{% url 'sppd_service:list' %}" class="text-decoration-none">
+            <div class="stat-card-futuristic">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="stat-icon-wrapper" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
+                        <i class="bi bi-car-front-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ sppd_berjalan_count|default:0 }}</h3>
+                <span class="text-secondary small fw-semibold">SPPD Berjalan</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{% url 'reports:index' %}" class="text-decoration-none">
+            <div class="stat-card-futuristic">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="stat-icon-wrapper" style="background: rgba(234, 179, 8, 0.15); color: #EAB308;">
+                        <i class="bi bi-file-earmark-diff-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ menunggu_laporan_count|default:0 }}</h3>
+                <span class="text-secondary small fw-semibold">Menunggu Laporan</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{% url 'archives:list' %}" class="text-decoration-none">
+            <div class="stat-card-futuristic">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="stat-icon-wrapper" style="background: rgba(16, 185, 129, 0.2); color: #059669;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ dokumen_selesai_count|default:0 }}</h3>
+                <span class="text-secondary small fw-semibold">Dokumen Selesai</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- 2. Main Middle Section Grid (3 Columns) -->
+<div class="row g-3 mb-4">
+    <!-- Col 1: Timeline Aktivitas Hari Ini (Scroll Transparan) -->
+    <div class="col-xl-3 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Timeline Aktivitas
+                </h6>
+                <a href="{% url 'audit_logs:list' %}" class="text-decoration-none small text-primary fw-semibold">Lihat Semua</a>
+            </div>
+
+            <div class="activity-timeline overflow-auto" style="max-height: 480px;">
+                {% for log in recent_activity_logs %}
+                <div class="timeline-item-futuristic {% cycle '' 'blue' 'purple' 'orange' %}">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="badge bg-light text-dark border small fw-bold" style="font-size: 0.65rem;">
+                            {{ log.created_at|date:"H:i" }} WIB
+                        </span>
+                        <span class="small text-muted" style="font-size: 0.65rem;">{{ log.user.username|default:"Sistem" }}</span>
+                    </div>
+                    <p class="mb-0 small fw-semibold text-dark" style="font-size: 0.8rem; line-height: 1.3;">
+                        {{ log.action }}
+                    </p>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted small">Belum ada log aktivitas hari ini.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Col 2: Proposal Tracker / Pipeline Realtime (3. Card Clickable perdokumen mengarah ke Detail Arsip) -->
+    <div class="col-xl-5 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-diagram-3-fill text-success me-2"></i>Proposal & Pipeline Tracker
+                </h6>
+                <a href="{% url 'archives:list' %}" class="text-decoration-none small text-primary fw-semibold">Lihat Detail</a>
+            </div>
+
+            <div class="overflow-auto" style="max-height: 480px;">
+                {% for item in tracker_items %}
+                <a href="{% url 'archives:detail' item.archive.pk %}" class="card border border-light-subtle rounded-3 p-3 mb-3 bg-light bg-opacity-50 text-decoration-none d-block tracker-hover-card">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            {% if item.is_bantuan %}
+                            <span class="badge bg-warning bg-opacity-20 text-warning-emphasis border border-warning-subtle fw-bold px-2 py-1 mb-1" style="font-size: 0.65rem;">
+                                <i class="bi bi-gift-fill me-1"></i>BANTUAN: {{ item.archive.archive_number|default:"DRAFT" }}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-1 mb-1" style="font-size: 0.65rem;">
+                                {{ item.archive.archive_number|default:"DRAFT" }}
+                            </span>
+                            {% endif %}
+                            <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;" title="{{ item.archive.title }}">
+                                {{ item.archive.title|truncatechars:35 }}
+                            </h6>
+                            <small class="text-secondary d-block" style="font-size: 0.7rem;">
+                                Pengirim: {{ item.archive.sender_receiver|truncatechars:25 }}
+                            </small>
+                        </div>
+                        <span class="badge {% if item.is_bantuan %}bg-warning text-dark{% else %}bg-success text-white{% endif %} rounded-pill px-3 py-1 small fw-bold shadow-sm" style="font-size: 0.68rem;">
+                            {% if item.is_bantuan %}<i class="bi bi-handbag-fill me-1"></i>{% endif %}{{ item.status_label }}
+                        </span>
+                    </div>
+
+                    <!-- Dynamic Pipeline Visualizer (Hover Garis Maju Dari Tahap Masuk) -->
+                    <div class="pipeline-container mt-2">
+                        <div class="pipeline-line-bg"></div>
+                        <div class="pipeline-line-progress" style="width: {{ item.progress_percent }}%; --target-progress: {{ item.progress_percent }}%;"></div>
+                        <div class="pipeline-steps-wrapper">
+                            {% for step_name in item.steps %}
+                            <div>
+                                <div class="pipeline-step-node {% if forloop.counter <= item.step_idx %}active{% endif %} {% if forloop.counter == item.step_idx %}current{% endif %}"></div>
+                                <span class="pipeline-step-label">{{ step_name }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </a>
+
+                {% empty %}
+                <div class="text-center py-5 text-muted small">Belum ada proposal aktif.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Col 3: Agenda Kerja (2. Max 10 Tertampil) & SPPD Berjalan -->
+    <div class="col-xl-4 col-lg-4">
+        <div class="d-flex flex-column gap-3 h-100">
+            <!-- 2. Agenda Kerja (Max 10 items) -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 flex-fill">
+                <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-calendar-check text-purple me-2"></i>Agenda Kerja
+                    </h6>
+                    <a href="{% url 'agendas:list' %}" class="text-decoration-none small text-primary fw-semibold">Lihat Kalender</a>
+                </div>
+
+                <div class="overflow-auto" style="max-height: 250px;">
+                    {% for agenda in today_agendas_list %}
+                    <div class="agenda-card-item {% cycle '' 'blue' 'orange' 'purple' %}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-primary small"><i class="bi bi-clock me-1"></i>{{ agenda.scheduled_at|date:"d M H:i" }} WIB</span>
+                            <span class="badge bg-light text-dark border small" style="font-size: 0.65rem;">{{ agenda.location|default:"BAZNAS" }}</span>
+                        </div>
+                        <p class="mb-0 fw-bold small text-dark">{{ agenda.title }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-3 text-muted small">Tidak ada agenda kerja.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- SPPD Berjalan Box -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 flex-fill">
+                <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-briefcase text-warning me-2"></i>SPPD Berjalan
+                    </h6>
+                    <a href="{% url 'sppd_service:list' %}" class="text-decoration-none small text-primary fw-semibold">Lihat Semua</a>
+                </div>
+
+                <div class="table-responsive overflow-auto" style="max-height: 180px;">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.72rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>No. SPPD</th>
+                                <th>Tujuan</th>
+                                <th>Berangkat</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sppd in sppd_list_recent %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ sppd.sppd_number|truncatechars:15 }}</td>
+                                <td title="{{ sppd.destination }}">{{ sppd.destination|truncatechars:18 }}</td>
+                                <td>{{ sppd.departure_date|date:"d M Y" }}</td>
+                                <td>
+                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1" style="font-size: 0.62rem;">Berjalan</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">Tidak ada SPPD berjalan.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Bottom Section: Charts (4. Legend Samping Kanan, 5. Bar Chart Bantuan, 6. Ukuran Manis) & Quick Action -->
+<div class="row g-3 mb-4">
+    <!-- Left Column: 3 Charts (4, 5, 6) -->
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-pie-chart-fill text-info me-2"></i>Grafik & Rekapitulasi Penanganan Dokumen</h6>
+            <div class="row align-items-center g-3">
+                <!-- Chart 1: Rekap Dokumen (Doughnut with Legend Right) -->
+                <div class="col-md-4 text-center border-end">
+                    <span class="fw-semibold small text-secondary mb-2 d-block">Rekap Dokumen (Bulan Ini)</span>
+                    <div style="height: 180px; position: relative;">
+                        <canvas id="chartDokumen"></canvas>
+                    </div>
+                </div>
+                <!-- Chart 2: Status Proposal (Doughnut with Legend Right) -->
+                <div class="col-md-4 text-center border-end">
+                    <span class="fw-semibold small text-secondary mb-2 d-block">Status Proposal Bantuan</span>
+                    <div style="height: 180px; position: relative;">
+                        <canvas id="chartProposal"></canvas>
+                    </div>
+                </div>
+                <!-- Chart 3: 5. Grafik Batang Rekap Penanganan Dokumen Bantuan -->
+                <div class="col-md-4 text-center">
+                    <span class="fw-semibold small text-secondary mb-2 d-block">Penanganan Dokumen Bantuan</span>
+                    <div style="height: 180px; position: relative;">
+                        <canvas id="chartBantuanBar"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Quick Action Bar & System Health (Col 4) -->
+    <div class="col-xl-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Aksi Cepat & Control Panel</h6>
+            
+            <div class="d-flex flex-column gap-2 mb-4">
+                <a href="{% url 'archives:upload' %}" class="quick-action-card text-decoration-none d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 p-2" style="background-color: rgba(16, 185, 129, 0.2); color: #10B981;">
+                            <i class="bi bi-cloud-arrow-up-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="fw-bold d-block small" style="color: var(--text-primary);">Unggah Arsip Baru</span>
+                            <span style="color: var(--text-secondary); font-size: 0.7rem;">Registrasi Surat / Proposal Bantuan</span>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="color: var(--text-secondary);"></i>
+                </a>
+
+                <a href="{% url 'dispositions:list' %}" class="quick-action-card text-decoration-none d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 p-2" style="background-color: rgba(245, 158, 11, 0.2); color: #F59E0B;">
+                            <i class="bi bi-send-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="fw-bold d-block small" style="color: var(--text-primary);">Kotak Disposisi Digital</span>
+                            <span style="color: var(--text-secondary); font-size: 0.7rem;">Proses / Teruskan Disposisi Pimpinan</span>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="color: var(--text-secondary);"></i>
+                </a>
+
+                {% if user.is_superadmin or user.is_pimpinan %}
+                <a href="{% url 'users:list' %}" class="quick-action-card text-decoration-none d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 p-2" style="background-color: rgba(59, 130, 246, 0.2); color: #3B82F6;">
+                            <i class="bi bi-people-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="fw-bold d-block small" style="color: var(--text-primary);">Kelola User & Role</span>
+                            <span style="color: var(--text-secondary); font-size: 0.7rem;">Manajemen Hak Akses Amil/Staf</span>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right" style="color: var(--text-secondary);"></i>
+                </a>
+                {% endif %}
+            </div>
+
+
+            <!-- System Health Widget -->
+            <div class="bg-light p-3 rounded-3 border">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-whatsapp fs-5 text-success"></i>
+                        <span class="fw-bold small text-dark">WA Gateway Status</span>
+                    </div>
+                    <span class="badge {% if wa_ready %}bg-success{% else %}bg-warning text-dark{% endif %} rounded-pill px-3">
+                        {% if wa_ready %}ONLINE / TERHUBUNG{% else %}STANDBY{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Detect Dark Mode for crisp text rendering
+        const getChartColors = () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                text: isDark ? '#F3F4F6' : '#1F2937',
+                grid: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)'
+            };
+        };
+
+        let colors = getChartColors();
+
+        // 1. Chart Dokumen (Doughnut with Animated Entry & Hover Offset)
+        const ctxDoc = document.getElementById('chartDokumen').getContext('2d');
+        const chartDoc = new Chart(ctxDoc, {
+            type: 'doughnut',
+            data: {
+                labels: ['Surat Masuk', 'Proposal', 'SPPD', 'Laporan', 'Lainnya'],
+                datasets: [{
+                    data: {{ chart_doc_counts|safe }},
+                    backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#64748B'],
+                    borderWidth: 2,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 1800,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    legend: { 
+                        position: 'right', 
+                        labels: { color: colors.text, boxWidth: 10, font: { size: 9.5, weight: '600' } } 
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+
+        // 2. Chart Status Proposal (Doughnut with Animated Entry & Hover Offset)
+        const ctxProp = document.getElementById('chartProposal').getContext('2d');
+        const chartProp = new Chart(ctxProp, {
+            type: 'doughnut',
+            data: {
+                labels: ['Diproses', 'Survei', 'Penyaluran', 'Laporan', 'Selesai'],
+                datasets: [{
+                    data: {{ chart_proposal_status|safe }},
+                    backgroundColor: ['#3B82F6', '#F59E0B', '#10B981', '#EAB308', '#059669'],
+                    borderWidth: 2,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    legend: { 
+                        position: 'right', 
+                        labels: { color: colors.text, boxWidth: 10, font: { size: 9.5, weight: '600' } } 
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+
+        // 3. Chart Bantuan (Futuristic Multi-Colored Bar Chart with Animated Entry)
+        const vibrantBarColors = [
+            '#10B981', // Neon Emerald
+            '#3B82F6', // Cyber Blue
+            '#F59E0B', // Sunset Orange
+            '#8B5CF6', // Royal Purple
+            '#06B6D4', // Electric Cyan
+            '#EC4899', // Hot Pink
+            '#EAB308'  // Gold
+        ];
+
+        const ctxBantuanBar = document.getElementById('chartBantuanBar').getContext('2d');
+        const chartBantuan = new Chart(ctxBantuanBar, {
+            type: 'bar',
+            data: {
+                labels: {{ bantuan_bar_labels|safe }},
+                datasets: [{
+                    label: 'Jumlah Penanganan',
+                    data: {{ bantuan_bar_series|safe }},
+                    backgroundColor: vibrantBarColors,
+                    borderColor: vibrantBarColors,
+                    borderWidth: 1.5,
+                    borderRadius: 7,
+                    hoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 2200,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { 
+                        ticks: { color: colors.text, font: { size: 8.5, weight: '600' } },
+                        grid: { color: colors.grid }
+                    },
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { color: colors.text, font: { size: 9, weight: '600' } },
+                        grid: { color: colors.grid }
+                    }
+                }
+            }
+        });
+
+
+        // Listen for Theme Toggle changes dynamically
+        const observer = new MutationObserver(() => {
+            const newColors = getChartColors();
+            [chartDoc, chartProp].forEach(chart => {
+                chart.options.plugins.legend.labels.color = newColors.text;
+                chart.update();
+            });
+            chartBantuan.options.scales.x.ticks.color = newColors.text;
+            chartBantuan.options.scales.x.grid.color = newColors.grid;
+            chartBantuan.options.scales.y.ticks.color = newColors.text;
+            chartBantuan.options.scales.y.grid.color = newColors.grid;
+            chartBantuan.update();
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    });
+</script>
+{% endblock %}

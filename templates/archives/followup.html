@@ -1,0 +1,56 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Tindak Lanjut Staff - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'archives:list' %}" class="text-decoration-none text-primary">Arsip</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'archives:detail' archive.pk %}" class="text-decoration-none text-primary">Detail</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Kirim Laporan</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold">Laporan Hasil Tindak Lanjut</h4>
+        <p class="text-secondary small">Unggah dokumen bukti dan berikan catatan hasil pelaksanaan arahan pimpinan.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm p-4">
+            <div class="mb-4 bg-light p-3 rounded-3 border">
+                <p class="mb-1 text-secondary small fw-bold uppercase">Instruksi Disposisi Terakhir:</p>
+                <p class="mb-0 fw-bold">"{{ archive.dispositions.last.note|default:'Laksanakan sesuai prosedur' }}"</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="result_note" class="form-label fw-bold">Catatan Hasil Tindak Lanjut <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="result_note" name="result_note" rows="5" required placeholder="Jelaskan tindakan yang telah dilakukan..."></textarea>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label fw-bold">Dokumen Bukti/Hasil (PDF) <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control custom-file-input" name="result_file" accept=".pdf" required>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-light px-4 fw-semibold">Batal</a>
+                    <button type="submit" class="btn btn-success px-5 shadow-sm">
+                        <i class="bi bi-check-circle-fill me-2"></i> Kirim Laporan & Selesaikan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    textarea { border-radius: 12px !important; border: 1px solid #E5E7EB !important; }
+    .custom-file-input { border-radius: 12px; height: 52px; padding-top: 13px; }
+</style>
+{% endblock %}

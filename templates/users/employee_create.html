@@ -1,0 +1,84 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Tambah Pegawai - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'users:employee_list' %}" class="text-decoration-none text-primary">Karyawan</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tambah Pegawai</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold">Input Data Pegawai Baru</h4>
+        <p class="text-secondary small">Masukkan informasi detail kepegawaian sesuai dengan dokumen identitas resmi.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-sm p-4">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <label for="nip" class="form-label fw-bold">NIP / NIK <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="nip" name="nip" required placeholder="Nomor Induk Pegawai" value="{{ form_data.nip|default:'' }}">
+                    </div>
+                    <div class="col-md-8 mb-4">
+                        <label for="full_name" class="form-label fw-bold">Nama Lengkap <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="full_name" name="full_name" required placeholder="Nama lengkap beserta gelar jika ada" value="{{ form_data.full_name|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="position" class="form-label fw-bold">Jabatan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="position" name="position" required placeholder="Contoh: Kepala Bagian SDM" value="{{ form_data.position|default:'' }}">
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="department" class="form-label fw-bold">Bidang / Bagian <span class="text-danger">*</span></label>
+                            <select class="form-select custom-input" id="department" name="department" required>
+                                <option value="" selected disabled>Pilih Bidang...</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.id }}" {% if form_data.department == dept.id|stringformat:'s' %}selected{% endif %}>{{ dept.name }}</option>
+                                {% endfor %}
+                            </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <label for="gender" class="form-label fw-bold">Jenis Kelamin</label>
+                            <select class="form-select custom-input" id="gender" name="gender">
+                                <option value="L" {% if form_data.gender == 'L' %}selected{% endif %}>Laki-laki</option>
+                                <option value="P" {% if form_data.gender == 'P' %}selected{% endif %}>Perempuan</option>
+                            </select>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="phone_number" class="form-label fw-bold">No. WhatsApp</label>
+                        <input type="text" class="form-control custom-input" id="phone_number" name="phone_number" placeholder="Contoh: 08123456789" value="{{ form_data.phone_number|default:'' }}">
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="email" class="form-label fw-bold">Email</label>
+                        <input type="email" class="form-control custom-input" id="email" name="email" placeholder="pegawai@baznas.go.id" value="{{ form_data.email|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                    <a href="{% url 'users:employee_list' %}" class="btn btn-light px-4 fw-semibold">Batal</a>
+                    <button type="submit" class="btn btn-primary px-5 shadow-sm">
+                        <i class="bi bi-save-fill me-2"></i> Simpan Data Pegawai
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-input { height: 52px; border-radius: 12px; border: 1px solid #E5E7EB; }
+</style>
+{% endblock %}

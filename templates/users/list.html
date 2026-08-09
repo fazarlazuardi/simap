@@ -1,0 +1,105 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Manajemen Pengguna - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1">Manajemen Pengguna</h4>
+            <p class="text-secondary small">Kelola hak akses dan akun pengguna sistem arsip BAZNAS.</p>
+        </div>
+        <a href="{% url 'users:create' %}" class="btn btn-primary px-4">
+            <i class="bi bi-person-plus me-2"></i> Tambah Pengguna
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr class="text-secondary small text-uppercase">
+                    <th class="border-0">Nama Pengguna</th>
+                    <th class="border-0">Email</th>
+                    <th class="border-0">Role</th>
+                    <th class="border-0">Status</th>
+                    <th class="border-0">Terdaftar Pada</th>
+                    <th class="border-0 text-end">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users_list %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="https://ui-avatars.com/api/?name={{ u.username }}&background=E8F5E9&color=0E9F6E" class="rounded-circle me-3" width="35">
+                            <div>
+                                <p class="mb-0 fw-bold">{{ u.username }}</p>
+                                <p class="mb-0 text-muted small">{{ u.get_full_name|default:"Nama belum diset" }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="small">{{ u.email }}</td>
+                    <td>
+                        <span class="badge bg-light text-dark rounded-pill px-3">{{ u.get_role_display }}</span>
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="badge badge-approved rounded-pill px-3">Aktif</span>
+                        {% else %}
+                            <span class="badge badge-rejected rounded-pill px-3">Non-aktif</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-secondary small">{{ u.date_joined|date:"d M Y" }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'users:edit' u.pk %}" class="btn btn-light btn-sm rounded-circle shadow-sm me-1" title="Edit">
+                            <i class="bi bi-pencil-square text-primary"></i>
+                        </a>
+                        
+                        {% if u.pk != user.pk and not u.is_superuser %}
+                        <button type="button" class="btn btn-light btn-sm rounded-circle shadow-sm" 
+                                onclick="confirmDelete('{{ u.pk }}', '{{ u.username }}')" title="Hapus">
+                            <i class="bi bi-trash text-danger"></i>
+                        </button>
+                        <form id="delete-form-{{ u.pk }}" action="{% url 'users:delete' u.pk %}" method="post" class="d-none">
+                            {% csrf_token %}
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-secondary">
+                        Belum ada data pengguna.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'includes/pagination.html' %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(userId, username) {
+        Swal.fire({
+            title: 'Hapus Pengguna?',
+            text: "Akun " + username + " akan dihapus permanen dari sistem!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            borderRadius: '15px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-form-' + userId).submit();
+            }
+        })
+    }
+</script>
+{% endblock %}

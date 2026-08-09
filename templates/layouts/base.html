@@ -1,0 +1,672 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BAZNAS - Sistem Arsip SDM{% endblock %}</title>
+    
+    <!-- Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary: #00583b;
+            --primary-dark: #046C4E;
+            --primary-light: #014129;
+            --sidebar-bg: #111827;
+            --sidebar-hover: #1F2937;
+            --sidebar-active: #014129;
+            --body-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --surface-alt: #F9FAFB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --navbar-bg: #FFFFFF;
+            --navbar-text: #111827;
+            --sidebar-text: rgba(255,255,255,0.86);
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 80px;
+        }
+
+        [data-theme="dark"] {
+            --body-bg: #0B0F19;
+            --card-bg: #151C2C;
+            --surface-alt: #1B2436;
+            --text-primary: #F3F4F6;
+            --text-secondary: #D1D5DB;
+            --border-color: #1F2937;
+            --navbar-bg: #151C2C;
+            --navbar-text: #F3F4F6;
+            --sidebar-text: rgba(255,255,255,0.86);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        .top-navbar {
+            background: linear-gradient(135deg, #003b2b 0%, #003b29 100%) !important;
+            color: #FFFFFF !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+        }
+
+        .top-navbar .text-muted,
+        .top-navbar i,
+        .top-navbar #toggleSidebar i,
+        .top-navbar p,
+        .top-navbar a {
+            color: #FFFFFF !important;
+        }
+
+        .main-global-footer {
+            background: linear-gradient(135deg, #003b2b 0%, #003b29 100%) !important;
+            color: #FFFFFF !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+
+        .content-area {
+            background-color: var(--body-bg);
+            color: var(--text-primary);
+            animation: pageFadeIn 0.28s ease both;
+        }
+
+        .card, .table, .form-control, .form-select, .dropdown-menu, .modal-content, .alert, .list-group-item, .btn, .badge, .breadcrumb {
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+        }
+
+        @keyframes pageFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary);
+        }
+
+        .table, .table th, .table td, .form-control, .form-select, .form-check-label, .dropdown-menu, .modal-content, .alert,
+        .input-group-text, .list-group-item, .accordion-item, .accordion-button, .offcanvas, .nav-pills, .pagination .page-link,
+        .modal-header, .modal-body, .modal-footer, .form-control:focus, .form-select:focus, .form-check-input,
+        .dropdown-item, .breadcrumb, .breadcrumb-item, .tooltip-inner {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .form-control, .form-select, .form-check-input, .input-group-text, textarea, select, input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="datetime-local"], input[type="number"], input[type="file"] {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .form-control::placeholder, .form-select::placeholder, textarea::placeholder {
+            color: var(--text-secondary) !important;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 0.2rem rgba(14, 159, 110, 0.15);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
+
+        .form-check-input:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 0.2rem rgba(14, 159, 110, 0.15);
+        }
+
+        .bg-light, .bg-white, .bg-body-tertiary {
+            background-color: var(--card-bg) !important;
+        }
+
+        .badge.bg-light, .badge.bg-white {
+            background-color: var(--surface-alt) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .list-group-item, .list-group-item-action {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        /* Dropdown & Select Box Contrast Control */
+        .dropdown-menu {
+            background-color: var(--card-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .dropdown-item {
+            color: var(--text-primary) !important;
+            background-color: transparent !important;
+        }
+
+        .dropdown-item:hover, .dropdown-item:focus, .dropdown-item.active, .dropdown-item:active {
+            background-color: var(--primary) !important;
+            color: #FFFFFF !important;
+        }
+
+        select, option, .form-select option {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] select,
+        [data-theme="dark"] option,
+        [data-theme="dark"] .form-select option {
+            background-color: #1E293B !important;
+            color: #F8FAFC !important;
+        }
+
+        [data-theme="light"] select,
+        [data-theme="light"] option,
+        [data-theme="light"] .form-select option {
+            background-color: #FFFFFF !important;
+            color: #111827 !important;
+        }
+
+
+        .modal-content, .modal-header, .modal-body, .modal-footer {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .alert {
+            background-color: var(--surface-alt) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .table {
+            --bs-table-bg: var(--card-bg) !important;
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .table > :not(caption) > * > * {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .table thead:not(.table-dark) th,
+        .table thead:not(.table-dark) td {
+            background-color: var(--surface-alt) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: var(--surface-alt) !important;
+        }
+
+        .table-hover > tbody > tr:hover > * {
+            background-color: var(--surface-alt) !important;
+        }
+
+        .table-bordered > :not(caption) > * {
+            border-width: 1px;
+        }
+
+        .btn-light {
+            background-color: var(--surface-alt) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .btn-outline-secondary {
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--surface-alt) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .dropdown-item:hover, .dropdown-item:focus {
+            background-color: var(--surface-alt) !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Dynamic Theme Text Contrast Control */
+        .text-dark {
+            color: var(--text-primary) !important;
+        }
+
+        .text-white, .btn-primary, .btn-success, .btn-danger, .btn-secondary, .btn-dark,
+        .badge-approved, .badge-rejected, .bg-primary, .bg-success, .bg-danger, .bg-dark,
+        .table-dark, .table-dark th, .table-dark td, .top-navbar, .main-global-footer {
+            color: #FFFFFF !important;
+        }
+
+        .text-warning, .btn-warning, .bg-warning {
+            color: #1E293B !important;
+        }
+
+        .text-muted, .text-secondary, .text-black-50 {
+            color: var(--text-secondary) !important;
+        }
+
+        .border, .border-top, .border-bottom, .border-start, .border-end {
+            border-color: var(--border-color) !important;
+        }
+
+        /* Protect Logo Images from Dark Mode Filter/Dimming */
+        img, img.logo, .card-header img, .top-navbar img, .navbar-brand img, .kop-container img {
+            filter: none !important;
+            opacity: 1 !important;
+        }
+
+
+
+        .nav-link {
+            color: var(--sidebar-text) !important;
+        }
+
+        /* Sidebar Style */
+        #sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            background: linear-gradient(180deg, #111827, #0F172A);
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        #sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        #sidebar.collapsed .sidebar-text, 
+        #sidebar.collapsed .sidebar-header h3,
+        #sidebar.collapsed .sidebar-header .app-name {
+            display: none;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar-header h3 {
+            color: var(--primary);
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .nav-link {
+            padding: 12px 25px;
+            color: rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            border-radius: 0;
+            margin-bottom: 4px;
+        }
+
+        .nav-link i {
+            font-size: 1.25rem;
+            margin-right: 15px;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+            background-color: var(--sidebar-hover);
+        }
+
+        .nav-link.active {
+            color: #fff;
+            background-color: var(--sidebar-active);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        #main-wrapper {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+        }
+
+        #main-wrapper.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        .top-navbar {
+            height: 70px;
+            background: var(--navbar-bg);
+            color: var(--navbar-text);
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        /* Card Design */
+        .card {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 18px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            border-radius: 12px;
+            height: 48px;
+            font-weight: 600;
+            padding-left: 20px;
+            padding-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Badge Style */
+        .badge-pending { background: #FEF3C7; color: #92400E; }
+        .badge-approved { background: #D1FAE5; color: #065F46; }
+        .badge-rejected { background: #FEE2E2; color: #991B1B; }
+
+        /* =========================================================
+           FIX IKON KALENDAR / TANGGAL SAAT DARK THEME
+           ========================================================= */
+        [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+        [data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+        [data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) brightness(2);
+            cursor: pointer;
+        }
+
+        /* =========================================================
+           FIX MUTLAK PAGINASI SAAT DARK THEME (NAVY)
+           ========================================================= */
+        [data-theme="dark"] .pagination .page-link {
+            background-color: #151C2C !important;
+            border-color: #1F2937 !important;
+            color: #F3F4F6 !important;
+        }
+
+        [data-theme="dark"] .pagination .page-link:hover {
+            background-color: #1B2436 !important;
+            color: #FFFFFF !important;
+            border-color: #374151 !important;
+        }
+
+        [data-theme="dark"] .pagination .page-item.active .page-link {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: #FFFFFF !important;
+        }
+
+        [data-theme="dark"] .pagination .page-item.disabled .page-link {
+            background-color: #0B0F19 !important;
+            border-color: #1F2937 !important;
+            color: #4B5563 !important;
+        }
+
+        /* =========================================================
+           FIX MUTLAK SELECT2 MULTIPLE & SINGLE DARK THEME
+           ========================================================= */
+        [data-theme="dark"] .select2-container--default .select2-selection--single,
+        [data-theme="dark"] .select2-container--default .select2-selection--multiple {
+            background-color: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #FFFFFF !important;
+        }
+
+        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #1B2436 !important;
+            border-color: #374151 !important;
+            color: #FFFFFF !important;
+        }
+
+        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice span,
+        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice__display {
+            color: #FFFFFF !important;
+        }
+
+        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #9CA3AF !important;
+        }
+        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+            color: #FFFFFF !important;
+        }
+
+        [data-theme="dark"] .select2-dropdown {
+            background-color: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] .select2-container--default .select2-search--dropdown .select2-search__field {
+            background-color: var(--card-bg) !important;
+            color: #FFFFFF !important;
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] .select2-container--default .select2-results__option {
+            color: #F3F4F6 !important;
+        }
+
+        [data-theme="dark"] .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--primary) !important;
+            color: #FFFFFF !important;
+        }
+
+        [data-theme="dark"] .select2-container--default .select2-results__option[aria-selected=true] {
+            background-color: var(--surface-alt) !important;
+            color: #F3F4F6 !important;
+        }
+        
+        @media (max-width: 991.98px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                height: 100vh;
+                z-index: 1050;
+                transition: left 0.3s ease;
+                background-color: var(--sidebar-bg);
+            }
+            #sidebar.active {
+                left: 0 !important;
+                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+            }
+            #main-wrapper {
+                margin-left: 0 !important;
+            }
+            .content-area {
+                padding: 16px 12px !important;
+            }
+            .top-navbar {
+                padding: 0 16px !important;
+            }
+            .table-responsive {
+                border-radius: 12px;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    {% include 'layouts/sidebar.html' %}
+
+    <!-- Main Wrapper -->
+    <div id="main-wrapper">
+        {% include 'layouts/navbar.html' %}
+
+        <!-- Content Area -->
+        <main class="content-area">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 d-none" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Global Green Corporate Footer -->
+        <footer class="main-global-footer">
+            <div class="container-fluid px-4 py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                        <span class="fw-bold me-2"><i class="bi bi-shield-check me-1"></i> SIMAP BAZNAS Kabupaten Tangerang</span>
+                        <span class="opacity-75 small d-none d-sm-inline">| Sistem Informasi Manajemen Arsip & Monitoring Proses</span>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-2 small me-2">
+                            <i class="bi bi-heart-fill me-1"></i> Amanah Dikelola, Umat Sejahtera
+                        </span>
+                        <span class="small opacity-75 d-block d-sm-inline mt-1 mt-sm-0">© 2026 BAZNAS Kab. Tangerang</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+
+        $(document).ready(function () {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+
+            if ($(window).width() > 991.98 && localStorage.getItem('sidebarCollapsed') === 'true') {
+                $('#sidebar').addClass('collapsed');
+                $('#main-wrapper').addClass('expanded');
+            }
+
+            $('#toggleSidebar').on('click', function () {
+                if ($(window).width() <= 991.98) {
+                    $('#sidebar').toggleClass('active');
+                    if ($('#sidebar-backdrop').length === 0) {
+                        $('body').append('<div id="sidebar-backdrop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1040;"></div>');
+                        $('#sidebar-backdrop').on('click', function() {
+                            $('#sidebar').removeClass('active');
+                            $(this).remove();
+                        });
+                    } else {
+                        $('#sidebar-backdrop').remove();
+                    }
+                } else {
+                    $('#sidebar').toggleClass('collapsed');
+                    $('#main-wrapper').toggleClass('expanded');
+                    var isCollapsed = $('#sidebar').hasClass('collapsed');
+                    localStorage.setItem('sidebarCollapsed', isCollapsed);
+                }
+            });
+
+
+            $('#themeToggleGlobal').on('click', function () {
+                const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                applyTheme(currentTheme);
+            });
+
+            function fixSelect2Colors() {
+                if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                    $('.select2-selection__choice, .select2-selection__choice__display, .select2-selection__rendered').css('color', '#FFFFFF');
+                }
+            }
+
+            $(document).on('select2:select select2:unselect change', function() {
+                setTimeout(fixSelect2Colors, 50);
+            });
+
+            fixSelect2Colors();
+
+            {% if messages %}
+                {% for message in messages %}
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: '{{ message.tags }}' === 'debug' ? 'info' : '{{ message.tags }}',
+                    title: '{{ message|escapejs }}',
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                });
+                {% endfor %}
+            {% endif %}
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

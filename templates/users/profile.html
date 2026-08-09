@@ -1,0 +1,174 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Profil Saya - BAZNAS{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    .custom-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.65);
+        z-index: 999999;
+        align-items: center;
+        justify-content: center;
+    }
+    .custom-modal-overlay.active {
+        display: flex !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h4 class="fw-bold mb-1" style="color: var(--text-primary);">Profil Pengguna</h4>
+        <p class="text-secondary small">Informasi detail akun dan kepegawaian Anda.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm p-4 text-center h-100">
+            <div class="mb-4 position-relative d-inline-block mx-auto cursor-pointer" onclick="bukaModalFotoProfil()">
+                <img src="{{ user_obj.avatar_url }}" class="rounded-circle shadow-sm border border-4 border-white" style="width: 128px; height: 128px; object-fit: cover;">
+                <button type="button" class="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0 shadow" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Ubah Foto Profil">
+                    <i class="bi bi-camera-fill fs-6"></i>
+                </button>
+            </div>
+            <h5 class="fw-bold mb-1" style="color: var(--text-primary);">{{ user_obj.get_full_name|default:user_obj.username }}</h5>
+            <p class="badge bg-primary rounded-pill px-3">{{ user_obj.get_role_display|default:"Member" }}</p>
+            <hr class="my-4 opacity-5">
+            <div class="d-grid">
+                <button type="button" class="btn btn-light rounded-3 fw-bold border" onclick="bukaModalFotoProfil()">
+                    <i class="bi bi-person-bounding-box me-2 text-primary"></i> Perbarui Foto & Akun
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 class="fw-bold mb-4 border-bottom pb-2" style="color: var(--text-primary);">Detail Informasi</h5>
+            
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Nama Pengguna</div>
+                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.username }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Email</div>
+                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.email|default:"-" }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Status Akun</div>
+                <div class="col-sm-8">
+                    {% if user_obj.is_active %}
+                    <span class="badge bg-success bg-opacity-20 text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">Aktif</span>
+                    {% else %}
+                    <span class="badge bg-danger bg-opacity-20 text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold">Non-aktif</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if user_obj.employee %}
+            <h5 class="fw-bold mt-4 mb-4 border-bottom pb-2" style="color: var(--text-primary);">Informasi Kepegawaian</h5>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">NIP / NIK</div>
+                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.employee.nip }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Jabatan</div>
+                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.employee.position }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Bidang</div>
+                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.employee.dept_relation.name|default:'-' }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pop Up Independen Upload Foto Profil & Akun -->
+<div id="customProfileModal" class="custom-modal-overlay">
+    <div class="modal-dialog modal-dialog-centered w-100 px-3" style="max-width: 500px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; background: var(--card-bg, #ffffff);">
+            <div class="modal-header border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="modal-title fw-bold" style="color: var(--text-primary);"><i class="bi bi-camera-fill me-2 text-primary"></i>Perbarui Foto Profil & Akun</h5>
+                <button type="button" class="btn-close" onclick="tutupModalFotoProfil()"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <!-- Foto Profil Upload Section -->
+                    <div class="mb-4 text-center">
+                        <div class="position-relative d-inline-block mb-2 cursor-pointer" onclick="pilihFileFoto()">
+                            <img id="avatarPreview" src="{{ user_obj.avatar_url }}" class="rounded-circle shadow border border-4 border-success" style="width: 110px; height: 110px; object-fit: cover;">
+                            <span class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-1 shadow" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-pencil-fill" style="font-size: 0.75rem;"></i>
+                            </span>
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="pilihFileFoto()">
+                                <i class="bi bi-image me-1"></i> Pilih Foto Profil Baru
+                            </button>
+                            <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="d-none" onchange="previewAvatar(this)">
+                            <small class="d-block text-muted mt-1" style="font-size: 0.75rem;">Format gambar: JPG, PNG, GIF (Maks 5MB)</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Nama Depan</label>
+                            <input type="text" name="first_name" class="form-control rounded-3" value="{{ user_obj.first_name }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Nama Belakang</label>
+                            <input type="text" name="last_name" class="form-control rounded-3" value="{{ user_obj.last_name }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Email</label>
+                        <input type="email" name="email" class="form-control rounded-3" value="{{ user_obj.email }}">
+                    </div>
+                    <hr class="my-3 opacity-10">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-danger">Password Baru</label>
+                        <input type="password" name="password" class="form-control rounded-3" placeholder="Kosongkan jika tidak ingin ganti password">
+                        <small class="text-muted italic" style="font-size: 0.7rem;">Isi hanya jika ingin mengubah password akun Anda.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" onclick="tutupModalFotoProfil()">Batal</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function bukaModalFotoProfil() {
+    document.getElementById('customProfileModal').classList.add('active');
+}
+function tutupModalFotoProfil() {
+    document.getElementById('customProfileModal').classList.remove('active');
+}
+function pilihFileFoto() {
+    document.getElementById('profile_picture').click();
+}
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('avatarPreview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}
+
+
+

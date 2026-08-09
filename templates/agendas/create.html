@@ -1,0 +1,372 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{% if reschedule or agenda %}Jadwal Ulang Agenda{% else %}Buat Agenda Baru{% endif %} - BAZNAS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .custom-input { height: 52px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-primary); }
+    textarea { border-radius: 12px !important; border: 1px solid var(--border-color) !important; background: var(--card-bg) !important; color: var(--text-primary) !important; }
+
+    .emp-grid { max-height: 220px; overflow-y: auto; }
+    .emp-grid::-webkit-scrollbar { width: 6px; }
+    .emp-grid::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+    .emp-card {
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: var(--surface-alt);
+        transition: all 0.15s ease;
+        cursor: pointer;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        user-select: none;
+    }
+    .emp-card:hover { border-color: var(--primary); background: rgba(14, 159, 110, 0.08); }
+    .emp-card.checked { border-color: var(--primary); background: rgba(14, 159, 110, 0.14); }
+    .emp-card input[type="checkbox"] { accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; }
+    .emp-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+    .emp-pos { font-size: 0.68rem; color: var(--text-secondary); }
+
+    .wa-section {
+        border: 1.5px dashed var(--primary);
+        border-radius: 16px;
+        background: rgba(14, 159, 110, 0.08);
+        padding: 20px;
+    }
+
+    .section-card {
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 20px;
+        background: var(--card-bg);
+    }
+
+    .filter-search {
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        font-size: 0.85rem;
+        padding: 0 12px;
+        width: 100%;
+        outline: none;
+        transition: border-color 0.2s;
+        background: var(--card-bg);
+        color: var(--text-primary);
+    }
+    .filter-search:focus { border-color: var(--primary); }
+
+    .btn-select-all {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'agendas:list' %}" class="text-decoration-none text-primary">Kalender Kerja</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{% if reschedule or agenda %}Jadwal Ulang{% else %}Tambah Agenda{% endif %}</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold">{% if reschedule or agenda %}Jadwalkan Ulang / Edit Agenda{% else %}Buat Agenda Kerja Baru{% endif %}</h4>
+        {% if reschedule %}
+        <div class="alert alert-warning border-warning d-flex align-items-center gap-2 rounded-3 py-2 px-3 mt-2" role="alert">
+            <i class="bi bi-arrow-repeat fs-5"></i>
+            <span class="small">Anda sedang memperbarui jadwal agenda <strong>{{ agenda.title }}</strong>. Data agenda yang sama akan diperbarui. Status akan disesuaikan menjadi <strong>Diundur</strong>.</span>
+        </div>
+        {% else %}
+        <p class="text-secondary small">Tambahkan jadwal kegiatan, pilih penanggung jawab, dan tentukan penerima notifikasi WhatsApp.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-11">
+        <div class="card border-0 shadow-sm p-4">
+            <form method="post" enctype="multipart/form-data" id="agendaForm">
+                {% csrf_token %}
+                
+                <!-- Judul & Waktu -->
+                <div class="mb-4">
+                    <label for="title" class="form-label fw-bold">Judul Kegiatan <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control custom-input" id="title" name="title" required placeholder="Contoh: Rapat Koordinasi SDM" value="{{ agenda.title|default:'' }}">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="scheduled_at" class="form-label fw-bold">Waktu Pelaksanaan <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control custom-input" id="scheduled_at" name="scheduled_at" required value="{{ agenda.scheduled_at|date:'Y-m-d\TH:i'|default:'' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="archive" class="form-label fw-bold">Kaitan Arsip (Opsional)</label>
+                        <select class="form-select custom-input" id="archive" name="archive">
+                            <option value="">Pilih Dokumen terkait...</option>
+                            {% for arc in archives %}
+                            <option value="{{ arc.id }}" {% if agenda and agenda.archive_id == arc.id %}selected{% endif %}>{{ arc.archive_number|default:'DRAFT' }} - {{ arc.title|truncatechars:40 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Keterangan -->
+                <div class="mb-4">
+                    <label for="description" class="form-label fw-bold">Keterangan / Detail</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="Tuliskan detail agenda di sini...">{{ agenda.description|default:'' }}</textarea>
+                </div>
+
+                <!-- Lampiran -->
+                <div class="mb-4">
+                    <label for="attachment" class="form-label fw-bold">Lampiran Berkas (Opsional)</label>
+                    <input type="file" class="form-control custom-input" id="attachment" name="attachment" accept=".pdf,.doc,.docx,.jpg,.png">
+                    {% if agenda.attachment %}
+                    <small class="text-muted mt-1 d-block">Berkas saat ini: <a href="{{ agenda.attachment.url }}" target="_blank">{{ agenda.attachment.name }}</a></small>
+                    {% endif %}
+                </div>
+
+                <!-- ===== SECTION: DITUGASKAN KEPADA ===== -->
+                <div class="section-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-people-fill me-2 text-primary"></i>Ditugaskan Kepada</h6>
+                            <small class="text-secondary">Pilih pegawai yang bertanggung jawab terhadap agenda ini.</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-success btn-select-all" onclick="selectAll('assigned_to')">
+                                <i class="bi bi-check-all me-1"></i>Pilih Semua
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-select-all" onclick="clearAll('assigned_to')">
+                                <i class="bi bi-x me-1"></i>Batal Semua
+                            </button>
+                        </div>
+                    </div>
+                    <input type="text" class="filter-search mb-3" id="filterAssigned" placeholder="🔍  Cari nama pegawai..." oninput="filterEmps(this, 'assignedGrid')">
+                    <div class="row g-2 emp-grid" id="assignedGrid">
+                        {% for emp in employees %}
+                        <div class="col-md-4 col-sm-6 emp-item" data-name="{{ emp.full_name|lower }}" data-pos="{{ emp.position|lower|default:'' }}">
+                            <label class="emp-card {% if emp.id in assigned_emp_ids %}checked{% endif %} w-100" for="emp_{{ emp.id }}">
+                                <input class="form-check-input m-0" type="checkbox" name="assigned_to" value="{{ emp.id }}" id="emp_{{ emp.id }}"
+                                    {% if emp.id in assigned_emp_ids %}checked{% endif %}
+                                    onchange="syncEmpCard(this)">
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="emp-name text-truncate">{{ emp.full_name }}</div>
+                                    <div class="emp-pos">{{ emp.position|default:'Pegawai' }}</div>
+                                </div>
+                            </label>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-4 text-muted">
+                            <i class="bi bi-people fs-4 d-block mb-2"></i>
+                            Belum ada data karyawan.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Fitur Agenda Rutin / Berulang -->
+                <div class="section-card mb-4">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="is_recurring" name="is_recurring" {% if agenda and agenda.is_recurring %}checked{% endif %} onchange="toggleRecurringOptions()" style="cursor: pointer;">
+                        <label class="form-check-label fw-bold text-dark" for="is_recurring" style="cursor: pointer;">
+                            <i class="bi bi-repeat me-1 text-primary"></i> Agenda Rutin / Berulang (Misal: Coffee Morning Setiap Senin)
+                        </label>
+                    </div>
+                    <div id="recurringOptions" class="mt-3 {% if not agenda or not agenda.is_recurring %}d-none{% endif %}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Frekuensi Pengulangan</label>
+                                <select name="recurrence_type" class="form-select custom-input">
+                                    <option value="weekly" {% if agenda and agenda.recurrence_type == 'weekly' %}selected{% endif %}>Setiap Minggu</option>
+                                    <option value="daily" {% if agenda and agenda.recurrence_type == 'daily' %}selected{% endif %}>Setiap Hari</option>
+                                    <option value="monthly" {% if agenda and agenda.recurrence_type == 'monthly' %}selected{% endif %}>Setiap Bulan</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Hari Pengulangan</label>
+                                <select name="recurrence_day" class="form-select custom-input">
+                                    <option value="0" {% if agenda and agenda.recurrence_day == 0 %}selected{% endif %}>Senin</option>
+                                    <option value="1" {% if agenda and agenda.recurrence_day == 1 %}selected{% endif %}>Selasa</option>
+                                    <option value="2" {% if agenda and agenda.recurrence_day == 2 %}selected{% endif %}>Rabu</option>
+                                    <option value="3" {% if agenda and agenda.recurrence_day == 3 %}selected{% endif %}>Kamis</option>
+                                    <option value="4" {% if agenda and agenda.recurrence_day == 4 %}selected{% endif %}>Jumat</option>
+                                    <option value="5" {% if agenda and agenda.recurrence_day == 5 %}selected{% endif %}>Sabtu</option>
+                                    <option value="6" {% if agenda and agenda.recurrence_day == 6 %}selected{% endif %}>Minggu</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Batas Akhir Berulang (Opsional)</label>
+                                <input type="date" name="recurrence_end_date" class="form-control custom-input" value="{{ agenda.recurrence_end_date|date:'Y-m-d'|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== SECTION: NOTIFIKASI WHATSAPP ===== -->
+                <div class="wa-section mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-0 text-success"><i class="bi bi-whatsapp me-2"></i>Penerima Notifikasi WhatsApp</h6>
+                            <small class="text-secondary">Pilih siapa yang akan menerima pesan WA. Kosongkan untuk melewati notifikasi.</small>
+                        </div>
+                        <div class="form-check form-switch mb-0 ms-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="send_wa" name="send_wa" checked style="width: 40px; height: 20px; cursor: pointer;">
+                            <label class="form-check-label fw-bold text-success small" for="send_wa">Kirim WA</label>
+                        </div>
+                    </div>
+
+                    <div id="waRecipientSection">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-success"><i class="bi bi-clock me-1"></i>Pengaturan Waktu Kirim Notifikasi WA</label>
+                            <select name="wa_notification_timing" class="form-select custom-input">
+                                <option value="instant" {% if not agenda or agenda.wa_notification_timing == 'instant' %}selected{% endif %}>⚡ Langsung Saat Agenda Terbit</option>
+                                <option value="h_minus_1" {% if agenda and agenda.wa_notification_timing == 'h_minus_1' %}selected{% endif %}>📅 H-1 Pelaksanaan (Pukul 08:00 WIB)</option>
+                                <option value="h_minus_1_hour" {% if agenda and agenda.wa_notification_timing == 'h_minus_1_hour' %}selected{% endif %}>⏰ Hari H (1 Jam Sebelum Acara)</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-secondary fw-semibold">Filter penerima (opsional — kosong = semua yang ditugaskan):</small>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-success btn-select-all" onclick="selectAll('wa_recipients')">
+                                    <i class="bi bi-check-all me-1"></i>Pilih Semua
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-select-all" onclick="clearAll('wa_recipients')">
+                                    <i class="bi bi-x me-1"></i>Batal Semua
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="text" class="filter-search mb-3" id="filterWA" placeholder="🔍  Cari nama pegawai untuk penerima WA..." oninput="filterEmps(this, 'waGrid')">
+                        <div class="row g-2 emp-grid" id="waGrid">
+                            {% for emp in employees %}
+                            <div class="col-md-4 col-sm-6 emp-item-wa" data-name="{{ emp.full_name|lower }}" data-pos="{{ emp.position|lower|default:'' }}">
+                                <label class="emp-card {% if emp.id in wa_recipient_ids or emp.id in assigned_emp_ids %}checked{% endif %} w-100" for="wa_{{ emp.id }}">
+                                    <input class="form-check-input m-0" type="checkbox" name="wa_recipients" value="{{ emp.id }}" id="wa_{{ emp.id }}"
+                                        {% if emp.id in wa_recipient_ids or emp.id in assigned_emp_ids %}checked{% endif %}
+                                        onchange="syncEmpCard(this)">
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="emp-name text-truncate">{{ emp.full_name }}</div>
+                                        <div class="emp-pos">{{ emp.position|default:'Pegawai' }}</div>
+                                    </div>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-2 text-secondary" id="waSelectedCount" style="font-size: 0.75rem;">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Jika tidak ada yang dipilih, notifikasi WA akan dikirim ke semua pegawai yang ditugaskan.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                    <a href="{% url 'agendas:list' %}" class="btn btn-light px-4 fw-semibold">Batal</a>
+                    <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold">
+                        <i class="bi bi-calendar-check me-2"></i>{% if reschedule or agenda %}Simpan Perubahan Agenda{% else %}Simpan Agenda{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleRecurringOptions() {
+        const isChecked = document.getElementById('is_recurring').checked;
+        const optionsDiv = document.getElementById('recurringOptions');
+        if (isChecked) {
+            optionsDiv.classList.remove('d-none');
+        } else {
+            optionsDiv.classList.add('d-none');
+        }
+    }
+
+    // Synchronize card styling when checkbox state changes
+    function syncEmpCard(checkbox) {
+        const card = checkbox.closest('.emp-card');
+        if (checkbox.checked) {
+            card.classList.add('checked');
+        } else {
+            card.classList.remove('checked');
+        }
+        updateWaCount();
+    }
+
+
+    // Select all checkboxes in a given name group
+    function selectAll(name) {
+        document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
+            cb.checked = true;
+            cb.closest('.emp-card').classList.add('checked');
+        });
+        updateWaCount();
+    }
+
+    // Clear all checkboxes in a given name group
+    function clearAll(name) {
+        document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
+            cb.checked = false;
+            cb.closest('.emp-card').classList.remove('checked');
+        });
+        updateWaCount();
+    }
+
+    // Filter employee cards in a grid by search input
+    function filterEmps(input, gridId) {
+        const query = input.value.toLowerCase().trim();
+        const grid = document.getElementById(gridId);
+        const selector = gridId === 'assignedGrid' ? '.emp-item' : '.emp-item-wa';
+        grid.querySelectorAll(selector).forEach(item => {
+            const name = item.dataset.name || '';
+            const pos = item.dataset.pos || '';
+            item.style.display = (name.includes(query) || pos.includes(query)) ? '' : 'none';
+        });
+    }
+
+    // Update count display for WA recipients
+    function updateWaCount() {
+        const checked = document.querySelectorAll('input[name="wa_recipients"]:checked').length;
+        const total = document.querySelectorAll('input[name="wa_recipients"]').length;
+        const el = document.getElementById('waSelectedCount');
+        if (el) {
+            if (checked === 0) {
+                el.innerHTML = '<i class="bi bi-info-circle me-1"></i>Jika tidak ada yang dipilih, notifikasi WA akan dikirim ke semua pegawai yang ditugaskan.';
+            } else if (checked === total) {
+                el.innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i><strong class="text-success">${checked} pegawai</strong> terpilih sebagai penerima WA (semua).`;
+            } else {
+                el.innerHTML = `<i class="bi bi-check-circle text-success me-1"></i><strong class="text-success">${checked} dari ${total} pegawai</strong> terpilih sebagai penerima WA.`;
+            }
+        }
+    }
+
+    // Toggle WA recipient section visibility and state
+    const sendWaSwitch = document.getElementById('send_wa');
+    if (sendWaSwitch) {
+        sendWaSwitch.addEventListener('change', function () {
+            const section = document.getElementById('waRecipientSection');
+            section.style.opacity = this.checked ? '1' : '0.4';
+            section.style.pointerEvents = this.checked ? 'auto' : 'none';
+        });
+    }
+
+    // Initial load configurations
+    document.addEventListener('DOMContentLoaded', function() {
+        updateWaCount();
+        if (sendWaSwitch && !sendWaSwitch.checked) {
+            const section = document.getElementById('waRecipientSection');
+            section.style.opacity = '0.4';
+            section.style.pointerEvents = 'none';
+        }
+    });
+</script>
+{% endblock %}

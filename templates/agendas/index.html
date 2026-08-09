@@ -1,0 +1,713 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Pengawasan Arsip - BAZNAS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* CSS Variables untuk Sinkronisasi Tema Menyeluruh (Dinamis) */
+    :root {
+        /* Default Dark Mode */
+        --bg-main: #0B0F19;
+        --bg-card: #151C2C;
+        --bg-inner: #1B2436;
+        --text-title: #FFFFFF;
+        --text-body: #E5E7EB;
+        --text-muted: #9CA3AF;
+        --border-color: #1F2937;
+        
+        --emerald-deep: #064E3B;
+        --emerald-primary: #0E9F6E;
+        --emerald-glow: #10B981;
+        --accent-gold: #FBBF24;
+    }
+
+    /* Light Mode Overrides */
+    [data-theme="light"] {
+        --bg-main: #F3F4F6;
+        --bg-card: #FFFFFF;
+        --bg-inner: #F9FAFB;
+        --text-title: #111827; /* Teks judul menjadi gelap */
+        --text-body: #374151;  /* Teks body menjadi abu-abu gelap */
+        --text-muted: #6B7280; /* Teks keterangan menjadi abu-abu */
+        --border-color: #E5E7EB;
+    }
+
+    /* Memaksa perubahan warna pada elemen HTML global & Layout Base */
+    body, html {
+        background-color: var(--bg-main) !important;
+        color: var(--text-body) !important;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* SINKRONISASI HEADER: Memaksa Header/Topbar luar agar mengikuti variabel warna tema */
+    header, .navbar, .topbar, .main-header, #page-header, .navbar-custom {
+        background-color: var(--bg-card) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        color: var(--text-title) !important;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+    
+    header a, .navbar a, .topbar a, .main-header a {
+        color: var(--text-title) !important;
+    }
+
+    /* Pewarnaan Teks Dinamis (Mencegah teks hilang di latar terang) */
+    .dynamic-title {
+        color: var(--text-title) !important;
+        transition: color 0.3s ease;
+    }
+
+    .dynamic-text {
+        color: var(--text-body) !important;
+        transition: color 0.3s ease;
+    }
+
+    .dynamic-muted {
+        color: var(--text-muted) !important;
+        transition: color 0.3s ease;
+    }
+
+    /* Cards */
+    .card {
+        background-color: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 20px !important;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease !important;
+    }
+
+    /* Hover Lift Clickable Cards */
+    .hover-lift-link {
+        text-decoration: none !important;
+        color: inherit !important;
+        display: block;
+    }
+
+    .hover-lift-link:hover .card {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px -5px rgba(14, 159, 110, 0.25) !important;
+        border-color: var(--emerald-primary) !important;
+    }
+
+    /* Welcome Banner Card (Tetap Hijau Khas BAZNAS agar Elegan di kedua Mode) */
+    .dashboard-banner {
+        background: linear-gradient(135deg, var(--emerald-deep) 0%, #083D2F 50%, #042F24 100%);
+        border-radius: 24px;
+        border: 1px solid rgba(14, 159, 110, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Icon Box Wrapper */
+    .icon-box-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+    }
+
+    .hover-lift-link:hover .icon-box-wrapper {
+        transform: scale(1.1);
+    }
+
+    /* Status Card Inner */
+    .status-card-inner {
+        background: var(--bg-inner);
+        border-radius: 12px;
+        padding: 14px 10px;
+        text-align: center;
+        border: 1px solid var(--border-color);
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .hover-lift-link:hover .status-card-inner {
+        border-color: var(--emerald-primary);
+        background-color: rgba(14, 159, 110, 0.05);
+    }
+
+    /* Stacked Progress Bar */
+    .progress-stacked-status {
+        height: 12px;
+        border-radius: 6px;
+        overflow: hidden;
+        background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Quick Access Button */
+    .quick-access-btn {
+        background: var(--bg-inner);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        transition: all 0.25s ease;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+    }
+
+    .quick-access-btn:hover {
+        transform: translateX(5px);
+        background-color: rgba(14, 159, 110, 0.1);
+        border-color: var(--emerald-primary);
+    }
+
+    /* Pulse Dot Indicator for WA */
+    .pulse-dot-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pulse-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .pulse-dot-green {
+        background-color: #10B981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-green-anim 1.6s infinite;
+    }
+
+    .pulse-dot-yellow {
+        background-color: #FBBF24;
+        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+        animation: pulse-yellow-anim 1.6s infinite;
+    }
+
+    .pulse-dot-red {
+        background-color: #EF4444;
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        animation: pulse-red-anim 1.6s infinite;
+    }
+
+    @keyframes pulse-green-anim {
+        0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    @keyframes pulse-yellow-anim {
+        0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.5); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(251, 191, 36, 0); }
+        100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+    }
+    @keyframes pulse-red-anim {
+        0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+        100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* Disposisi List Card Layout */
+    .dispo-item {
+        background-color: var(--bg-inner);
+        border: 1px solid var(--border-color);
+        transition: all 0.25s ease;
+    }
+
+    .dispo-item:hover {
+        border-color: var(--emerald-primary);
+        transform: translateY(-2px);
+    }
+
+    /* Custom Switch Theme Button */
+    .theme-toggle-btn {
+        background-color: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #FFFFFF;
+        border-radius: 12px;
+        padding: 8px 16px;
+        font-weight: 600;
+        transition: all 0.25s ease;
+    }
+
+    .theme-toggle-btn:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header & Judul Dashboard -->
+<div class="row mb-3 align-items-center">
+    <div class="col-md-8">
+        <h3 class="fw-bold dynamic-title mb-1">Dashboard Pengawasan Arsip</h3>
+        <p class="dynamic-muted small mb-0">Pantau ringkasan berkas masuk, keluar, dan penanggung jawab disposisi secara langsung.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-2 mt-md-0">
+        <button id="themeToggle" class="theme-toggle-btn">
+            <i class="bi bi-moon-stars-fill me-2" id="themeIcon"></i><span id="themeText">Dark Mode</span>
+        </button>
+    </div>
+</div>
+
+<!-- Banner Selamat Datang -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="dashboard-banner p-4 p-md-5 text-white d-flex flex-column flex-md-row justify-content-between align-items-md-center shadow-lg">
+            <div class="mb-3 mb-md-0 z-2">
+                <span class="badge text-white rounded-pill px-3 py-1.5 mb-3 fw-bold small text-uppercase" style="background-color: rgba(14,159,110,0.4); border: 1px solid var(--emerald-primary);">
+                    🟢 SISTEM DIGITALISASI ARSIP & DISPOSISI
+                </span>
+                <h1 class="fw-bold mb-2 text-white" style="font-size: 1.85rem;">Selamat Datang di E-Arsip BAZNAS</h1>
+                <p class="mb-3 text-white text-opacity-80" style="max-width: 650px;">
+                    Platform modern pengelolaan berkas, disposisi, surat masuk, dan surat keluar pada Badan Amil Zakat Nasional (BAZNAS) Kabupaten Tangerang. Dilengkapi asisten kecerdasan buatan (Gemini AI).
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'archives:list' %}" class="btn btn-warning fw-bold px-4 py-2 rounded-3 text-dark shadow-sm">
+                        <i class="bi bi-database me-1"></i> Lihat Database Arsip
+                    </a>
+                    <a href="/archives/developer-chat/" class="btn btn-outline-light fw-bold px-4 py-2 rounded-3">
+                        <i class="bi bi-chat-dots me-1"></i> Tanya E-Arsip AI
+                    </a>
+                </div>
+            </div>
+            <div class="text-md-end z-2">
+                <div class="bg-black bg-opacity-30 rounded-4 p-3 d-inline-block text-center border border-white border-opacity-10 backdrop-blur" style="min-width: 180px;">
+                    <span class="small d-block text-white text-opacity-70 mb-1 text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-clock-fill text-warning me-1"></i> Waktu Server
+                    </span>
+                    <h5 class="fw-bold mb-0 text-white" id="live-time">{{ today|date:"H:i:s" }}</h5>
+                    <span class="small text-white text-opacity-70" style="font-size: 0.78rem;">{{ today|date:"d M Y" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kartu Ringkasan Statistik -->
+<div class="row g-3 mb-4">
+    <!-- Total Arsip -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{% url 'archives:list' %}" class="hover-lift-link">
+            <div class="card border-0 shadow-sm h-100 p-2">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="dynamic-muted small d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Arsip</span>
+                        <h2 class="fw-bold mb-0 dynamic-title">{{ total_archives|default:0 }}</h2>
+                        <span class="dynamic-muted small" style="font-size: 0.7rem;">Berkas terdaftar</span>
+                    </div>
+                    <div class="icon-box-wrapper" style="background-color: rgba(16, 185, 129, 0.15);">
+                        <i class="bi bi-folder-fill fs-3 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Surat Masuk -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{% url 'archives:list' %}?category=surat-masuk" class="hover-lift-link">
+            <div class="card border-0 shadow-sm h-100 p-2">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="dynamic-muted small d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Surat Masuk</span>
+                        <h2 class="fw-bold mb-0 dynamic-title">4</h2>
+                        <span class="dynamic-muted small" style="font-size: 0.7rem;">Surat masuk resmi</span>
+                    </div>
+                    <div class="icon-box-wrapper" style="background-color: rgba(59, 130, 246, 0.15);">
+                        <i class="bi bi-envelope-open-fill fs-3 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Surat Keluar -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{% url 'archives:list' %}?category=surat-keluar" class="hover-lift-link">
+            <div class="card border-0 shadow-sm h-100 p-2">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="dynamic-muted small d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Surat Keluar</span>
+                        <h2 class="fw-bold mb-0 dynamic-title">1</h2>
+                        <span class="dynamic-muted small" style="font-size: 0.7rem;">Korespondensi keluar</span>
+                    </div>
+                    <div class="icon-box-wrapper" style="background-color: rgba(139, 92, 246, 0.15);">
+                        <i class="bi bi-send-fill fs-3 text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Proposal Bantuan -->
+    <div class="col-xl-3 col-md-6">
+        <a href="{% url 'archives:list' %}?category=proposal" class="hover-lift-link">
+            <div class="card border-0 shadow-sm h-100 p-2">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="dynamic-muted small d-block mb-1 text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Proposal Bantuan</span>
+                        <h2 class="fw-bold mb-0 dynamic-title">11</h2>
+                        <span class="dynamic-muted small" style="font-size: 0.7rem;">Permohonan asnaf</span>
+                    </div>
+                    <div class="icon-box-wrapper" style="background-color: rgba(245, 158, 11, 0.15);">
+                        <i class="bi bi-file-earmark-person-fill fs-3 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Middle Section: Distribusi Status & Agenda Kerja Terbaru -->
+<div class="row g-3 mb-4">
+    <!-- Distribusi Status Dokumen -->
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 class="fw-bold dynamic-title mb-0"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Distribusi Status Dokumen</h6>
+                <span class="dynamic-muted small">Arsip terkelola</span>
+            </div>
+            
+            <div class="row g-2 mb-4">
+                <div class="col">
+                    <a href="{% url 'archives:list' %}?status=baru" class="hover-lift-link">
+                        <div class="status-card-inner">
+                            <div class="small text-primary fw-semibold mb-1" style="font-size: 0.75rem;">Baru</div>
+                            <h4 class="fw-bold dynamic-title mb-1">6</h4>
+                            <div class="dynamic-muted" style="font-size: 0.65rem;">38% dari total</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="{% url 'archives:list' %}?status=terverifikasi" class="hover-lift-link">
+                        <div class="status-card-inner">
+                            <div class="small text-success fw-semibold mb-1" style="font-size: 0.75rem;">Terverifikasi</div>
+                            <h4 class="fw-bold dynamic-title mb-1">4</h4>
+                            <div class="dynamic-muted" style="font-size: 0.65rem;">25% dari total</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="{% url 'archives:list' %}?status=didisposisikan" class="hover-lift-link">
+                        <div class="status-card-inner">
+                            <div class="small text-warning fw-semibold mb-1" style="font-size: 0.75rem;">Didisposisikan</div>
+                            <h4 class="fw-bold dynamic-title mb-1">1</h4>
+                            <div class="dynamic-muted" style="font-size: 0.65rem;">6% dari total</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="{% url 'archives:list' %}?status=proses" class="hover-lift-link">
+                        <div class="status-card-inner">
+                            <div class="small text-info fw-semibold mb-1" style="font-size: 0.75rem;">Proses</div>
+                            <h4 class="fw-bold dynamic-title mb-1">1</h4>
+                            <div class="dynamic-muted" style="font-size: 0.65rem;">6% dari total</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="{% url 'archives:list' %}?status=selesai" class="hover-lift-link">
+                        <div class="status-card-inner">
+                            <div class="small text-emerald-glow fw-semibold mb-1" style="font-size: 0.75rem;">Selesai</div>
+                            <h4 class="fw-bold dynamic-title mb-1">4</h4>
+                            <div class="dynamic-muted" style="font-size: 0.65rem;">25% dari total</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stacked Progress Bar -->
+            <div class="progress-stacked-status d-flex mb-3">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: 38%;" aria-valuenow="38" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar bg-warning" role="progressbar" style="width: 6%;" aria-valuenow="6" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar bg-info" role="progressbar" style="width: 6%;" aria-valuenow="6" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar" role="progressbar" style="width: 25%; background-color: #10B981;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-3 small dynamic-muted">
+                <div><span class="badge bg-primary rounded-circle p-1 me-1"> </span> Baru (6)</div>
+                <div><span class="badge bg-success rounded-circle p-1 me-1"> </span> Terverifikasi (4)</div>
+                <div><span class="badge bg-warning rounded-circle p-1 me-1"> </span> Didisposisikan (1)</div>
+                <div><span class="badge bg-info rounded-circle p-1 me-1"> </span> Proses (SPPD) (1)</div>
+                <div><span class="badge rounded-circle p-1 me-1" style="background-color: #10B981;"> </span> Selesai (4)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agenda Kerja Terbaru (Hasil Ditukar dengan Prioritas Disposisi!) -->
+    <div class="col-xl-4">
+        <div class="card border-0 shadow-sm p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold dynamic-title mb-0"><i class="bi bi-calendar3 me-2 text-success"></i>Agenda Kerja</h6>
+                <a href="{% url 'agendas:list' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" style="font-size: 0.7rem;">Lihat Semua</a>
+            </div>
+            
+            <div class="d-flex flex-column gap-2 overflow-auto" style="max-height: 230px;">
+                {% for agenda in agendas_list %}
+                <div class="d-flex align-items-start gap-3 py-2 {% if not forloop.last %}border-bottom border-secondary border-opacity-10{% endif %}">
+                    <div class="icon-box-wrapper flex-shrink-0 mt-1" style="width: 36px; height: 36px; border-radius: 10px; background-color: rgba(59,130,246,0.15);">
+                        <i class="bi bi-calendar-event-fill text-primary" style="font-size: 0.9rem;"></i>
+                    </div>
+                    <div class="flex-grow-1 overflow-hidden">
+                        <div class="fw-semibold dynamic-title small text-truncate">{{ agenda.title }}</div>
+                        <div class="dynamic-muted" style="font-size: 0.7rem;">
+                            <i class="bi bi-clock me-1"></i>{{ agenda.scheduled_at|date:"d M Y, H:i" }}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4">
+                    <i class="bi bi-calendar-x fs-2 d-block dynamic-muted opacity-25 mb-2"></i>
+                    <p class="small dynamic-muted mb-0">Belum ada agenda kerja dekat ini.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Section: Aktivitas Disposisi & Sidebar Kanan -->
+<div class="row g-3">
+    <!-- Aktivitas Disposisi Terakhir -->
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold dynamic-title mb-0"><i class="bi bi-activity me-2 text-success"></i>Aktivitas Disposisi Terakhir</h6>
+                <a href="{% url 'dispositions:list' %}" class="btn btn-sm btn-link text-emerald-primary text-decoration-none p-0 fw-semibold">Selengkapnya</a>
+            </div>
+
+            <div class="d-flex flex-column gap-3">
+                <a href="{% url 'dispositions:list' %}" class="text-decoration-none">
+                    <div class="p-3 rounded-3 dispo-item">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-secondary bg-opacity-20 dynamic-title mb-1 small" style="font-size: 0.65rem;">DISP-014</span>
+                                <h6 class="fw-bold dynamic-title mb-1">Permohonan pembayaran UKT Semester 5</h6>
+                                <p class="small dynamic-muted mb-0" style="font-size: 0.7rem;">P.J - • Pengirim: <strong>caca</strong></p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary text-white mb-1 px-2 py-1" style="font-size: 0.65rem;">BIASA</span>
+                                <div class="dynamic-muted small" style="font-size: 0.65rem;">015/02 PROP/VII/2026</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="{% url 'dispositions:list' %}" class="text-decoration-none">
+                    <div class="p-3 rounded-3 dispo-item">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-secondary bg-opacity-20 dynamic-title mb-1 small" style="font-size: 0.65rem;">DISP-015 09/07/2026</span>
+                                <h6 class="fw-bold dynamic-title mb-1">Permohonan Data Perusahaan dan Data Asosiasi Perusahaan</h6>
+                                <p class="small dynamic-muted mb-0" style="font-size: 0.7rem;">P.J: <strong>Haris Syarif Mansyur, S.H, M.H</strong> • Pengirim: <strong>admin</strong></p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-warning text-dark mb-1 px-2 py-1" style="font-size: 0.65rem;">PENTING</span>
+                                <div class="dynamic-muted small" style="font-size: 0.65rem;">001/02 OUT/VII/2026</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kolom Kanan (Aksi Cepat, WhatsApp Gateway, & Prioritas Disposisi) -->
+    <div class="col-xl-4">
+        <!-- 1. Akses / Aksi Cepat (Super Admin memiliki Trace & Kelola User) -->
+        <div class="card border-0 shadow-sm mb-3 p-3">
+            <h6 class="fw-bold dynamic-title mb-3"><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Aksi Cepat</h6>
+            <div class="d-flex flex-column gap-2">
+                {% if user.is_sdm or user.is_superadmin %}
+                <a href="{% url 'archives:upload' %}" class="quick-access-btn">
+                    <div class="icon-box-wrapper me-3" style="background-color: rgba(0, 47, 31, 0.7);">
+                        <i class="bi bi-cloud-arrow-up-fill text-success"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold dynamic-title small">Unggah Arsip Baru</div>
+                        <div class="dynamic-muted small" style="font-size: 0.7rem;">Unggah surat & buat tanda terima</div>
+                    </div>
+                </a>
+                {% endif %}
+                
+                <a href="{% url 'dispositions:list' %}" class="quick-access-btn">
+                    <div class="icon-box-wrapper me-3" style="background-color: rgba(245, 158, 11, 0.15);">
+                        <i class="bi bi-send-fill text-warning"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold dynamic-title small">Kotak Disposisi</div>
+                        <div class="dynamic-muted small" style="font-size: 0.7rem;">Disposisi instruksi pimpinan</div>
+                    </div>
+                </a>
+
+                <!-- FITUR TRACE & KELOLA USER KHUSUS SUPER ADMIN -->
+                {% if user.is_superadmin %}
+                <a href="{% url 'reports:index' %}" class="quick-access-btn">
+                    <div class="icon-box-wrapper me-3" style="background-color: rgba(59, 130, 246, 0.15);">
+                        <i class="bi bi-geo-alt-fill text-primary"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold dynamic-title small">Pantau Alur (Trace)</div>
+                        <div class="dynamic-muted small" style="font-size: 0.7rem;">Lacak riwayat perjalanan berkas</div>
+                    </div>
+                </a>
+
+                <a href="{% url 'users:list' %}" class="quick-access-btn">
+                    <div class="icon-box-wrapper me-3" style="background-color: rgba(139, 92, 246, 0.15);">
+                        <i class="bi bi-people-fill text-purple" style="color: #8B5CF6;"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold dynamic-title small">Kelola User</div>
+                        <div class="dynamic-muted small" style="font-size: 0.7rem;">Atur hak akses & sdm sistem</div>
+                    </div>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 2. WhatsApp Gateway Panel -->
+        <div class="card border-0 shadow-sm mb-3 p-3 text-white" style="background: linear-gradient(135deg, #0b0e1d 0%, #01111d 100%);">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-box-wrapper bg-white bg-opacity-10">
+                        <i class="bi bi-whatsapp fs-4 text-success"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-white mb-0">WhatsApp Gateway</h6>
+                        <div class="pulse-dot-wrapper mt-1">
+                            <span id="wa-dot" class="pulse-dot {% if wa_status == 'connected' %}pulse-dot-green{% elif wa_status == 'not_configured' %}pulse-dot-yellow{% else %}pulse-dot-red{% endif %}"></span>
+                            <span id="wa-badge-text" class="small fw-semibold text-white text-opacity-80" style="font-size: 0.75rem;">
+                                {% if wa_status == 'connected' %}Terhubung{% elif wa_status == 'not_configured' %}Belum Dikonfigurasi{% else %}{{ wa_message|default:"Mengecek..." }}{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="small text-white text-opacity-70 mb-3" style="font-size: 0.75rem;">Notifikasi agenda dan disposisi pimpinan terkirim secara otomatis kepada penerima tugas melalui jaringan WhatsApp.</p>
+            <button class="btn btn-outline-light btn-sm w-100 rounded-3 fw-bold py-2 border-white border-opacity-10 bg-white bg-opacity-5" onclick="checkWaConnection()">
+                <i class="bi bi-arrow-repeat me-1"></i> Cek Koneksi Gateway
+            </button>
+        </div>
+
+        <!-- 3. Tingkat Prioritas Disposisi (Hasil ditukar ke posisi paling bawah!) -->
+        <div class="card border-0 shadow-sm p-3">
+            <h6 class="fw-bold dynamic-title mb-4"><i class="bi bi-info-circle me-2 text-warning"></i>Tingkat Prioritas Disposisi</h6>
+            
+            <a href="{% url 'dispositions:list' %}?priority=segera" class="text-decoration-none d-block mb-3">
+                <div class="d-flex justify-content-between dynamic-title small mb-1">
+                    <span>🔴 Segera</span>
+                    <span class="fw-bold">1 Dokumen (14%)</span>
+                </div>
+                <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.05);">
+                    <div class="progress-bar bg-danger" style="width: 14%;"></div>
+                </div>
+            </a>
+
+            <a href="{% url 'dispositions:list' %}?priority=penting" class="text-decoration-none d-block mb-3">
+                <div class="d-flex justify-content-between dynamic-title small mb-1">
+                    <span>🟡 Penting</span>
+                    <span class="fw-bold">1 Dokumen (14%)</span>
+                </div>
+                <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.05);">
+                    <div class="progress-bar bg-warning" style="width: 14%;"></div>
+                </div>
+            </a>
+
+            <a href="{% url 'dispositions:list' %}?priority=biasa" class="text-decoration-none d-block mb-4">
+                <div class="d-flex justify-content-between dynamic-title small mb-1">
+                    <span>🔵 Biasa</span>
+                    <span class="fw-bold">5 Dokumen (71%)</span>
+                </div>
+                <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.05);">
+                    <div class="progress-bar bg-primary" style="width: 71%;"></div>
+                </div>
+            </a>
+
+            <div class="p-3 rounded-3" style="background-color: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25);">
+                <div class="d-flex gap-2">
+                    <i class="bi bi-exclamation-triangle text-warning flex-shrink-0"></i>
+                    <p class="small mb-0 text-warning text-opacity-90">
+                        <strong>Info Disposisi:</strong> Pengurusan dokumen prioritas <strong>Segera</strong> harus diproses dalam waktu 1x24 jam sejak agenda terbit.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 1. Live Server Time Clock
+    function updateServerTime() {
+        const timeEl = document.getElementById('live-time');
+        if (!timeEl) return;
+        const now = new Date();
+        const timeStr = now.toTimeString().split(' ')[0];
+        timeEl.textContent = timeStr;
+    }
+    setInterval(updateServerTime, 1000);
+
+    // 2. WhatsApp Connection Checker
+    function checkWaConnection() {
+        var btn = document.querySelector('[onclick="checkWaConnection()"]');
+        var dot = document.getElementById('wa-dot');
+        var label = document.getElementById('wa-badge-text');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Mengecek...';
+        
+        fetch('{% url "users:wa_health" %}')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status === 'connected') {
+                    dot.className = 'pulse-dot pulse-dot-green';
+                    label.textContent = 'Terhubung';
+                } else if (data.status === 'not_configured') {
+                    dot.className = 'pulse-dot pulse-dot-yellow';
+                    label.textContent = 'Belum Dikonfigurasi';
+                } else {
+                    dot.className = 'pulse-dot pulse-dot-red';
+                    label.textContent = data.message || 'Offline';
+                }
+            })
+            .catch(function() {
+                dot.className = 'pulse-dot pulse-dot-red';
+                label.textContent = 'Error Gateway';
+            })
+            .finally(function() {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Cek Koneksi Gateway';
+            });
+    }
+
+    // 3. Sistem Dual Mode (Body, Content & All Navbar Components)
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateThemeUI(currentTheme);
+
+    themeToggleBtn.addEventListener('click', function() {
+        let theme = document.documentElement.getAttribute('data-theme');
+        let targetTheme = (theme === 'dark') ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', targetTheme);
+        localStorage.setItem('theme', targetTheme);
+        updateThemeUI(targetTheme);
+    });
+
+    function updateThemeUI(theme) {
+        if (theme === 'dark') {
+            themeIcon.className = 'bi bi-moon-stars-fill me-2';
+            themeText.textContent = 'Dark Mode';
+            themeToggleBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+            themeToggleBtn.style.color = '#FFFFFF';
+        } else {
+            themeIcon.className = 'bi bi-sun-fill me-2';
+            themeText.textContent = 'Light Mode';
+            themeToggleBtn.style.backgroundColor = '#0E9F6E';
+            themeToggleBtn.style.color = '#FFFFFF';
+        }
+    }
+</script>
+{% endblock %}

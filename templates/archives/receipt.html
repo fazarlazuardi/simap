@@ -1,0 +1,469 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tanda Terima Arsip - BAZNAS</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- html2pdf library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #0E9F6E;
+            --primary-dark: #046C4E;
+            --border-color: #D1D5DB;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #E5E7EB;
+            color: #111827;
+            padding: 20px 0;
+            margin: 0;
+        }
+
+        /* Navigasi / Top Bar */
+        .action-bar {
+            max-width: 210mm;
+            margin: 0 auto 15px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        /* Container Dokumen Presisi 1/2 A4 Landscape (210mm x 140mm) */
+        .receipt-card {
+            width: 210mm;
+            height: 140mm;
+            background: #ffffff;
+            margin: 0 auto;
+            padding: 14px 22px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            position: relative;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Kop Surat Resmi BAZNAS */
+        .kop-surat {
+            display: flex;
+            align-items: center;
+            border-bottom: 2.5px double #111827;
+            padding-bottom: 5px;
+            margin-bottom: 6px;
+        }
+
+        .kop-logo {
+            width: 48px;
+            height: auto;
+            margin-right: 12px;
+        }
+
+        .kop-text h2 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin: 0;
+            letter-spacing: 0.3px;
+            line-height: 1.1;
+        }
+
+        .kop-text h3 {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin: 1px 0;
+        }
+
+        .kop-text p {
+            font-size: 0.62rem;
+            color: #4B5563;
+            margin: 0;
+            line-height: 1.15;
+        }
+
+        /* Title Dokumen & Nomor */
+        .receipt-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            background-color: #F9FAFB;
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .receipt-title h4 {
+            font-weight: 800;
+            font-size: 0.82rem;
+            color: #111827;
+            margin: 0;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .receipt-title .receipt-subtitle {
+            font-size: 0.68rem;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        /* Tabel Rincian Data */
+        .info-table {
+            width: 100%;
+            margin-bottom: 4px;
+            border-collapse: collapse;
+        }
+
+        .info-table th, .info-table td {
+            padding: 3px 7px;
+            font-size: 0.68rem;
+            border: 1px solid #E5E7EB;
+            vertical-align: middle;
+        }
+
+        .info-table th {
+            color: #374151;
+            font-weight: 600;
+            background-color: #F9FAFB;
+        }
+
+        .info-table td {
+            color: #111827;
+            font-weight: 500;
+        }
+
+        /* Kelas agar teks nama tidak terpotong menjadi 2 baris */
+        .single-line-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Footer Tanda Tangan & QR Code */
+        .receipt-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 2px;
+            width: 100%;
+        }
+
+        .qr-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px dashed var(--primary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            background-color: rgba(14, 159, 110, 0.02);
+            flex-shrink: 0;
+        }
+
+        .qr-section img {
+            width: 42px;
+            height: 42px;
+        }
+
+        .qr-section span {
+            font-size: 0.52rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: 0.2px;
+        }
+
+        /* Perbaikan Bagian Tanda Tangan: Diperlebar kotaknya & jarak antar kotak renggang */
+        .signature-section {
+            display: flex;
+            gap: 45px;          
+            margin-right: 0;    
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 165px;       
+        }
+
+        .sig-box p {
+            font-size: 0.60rem;
+            color: #374151;
+            margin-bottom: 22px;
+            font-weight: 500;
+        }
+
+        .sig-box .sig-name {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: #111827;
+            text-decoration: underline;
+            margin-bottom: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; 
+        }
+
+        .sig-box .sig-title {
+            font-size: 0.55rem;
+            color: #6B7280;
+        }
+
+        /* Tombol Aksi */
+        .btn-custom-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.82rem;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-custom-primary:hover {
+            background-color: var(--primary-dark);
+            color: #ffffff;
+        }
+
+        .btn-custom-danger {
+            background-color: #DC2626;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.82rem;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-custom-danger:hover {
+            background-color: #B91C1C;
+            color: #ffffff;
+        }
+
+        .btn-custom-light {
+            background-color: #F3F4F6;
+            color: #374151;
+            font-weight: 600;
+            font-size: 0.82rem;
+            border: 1px solid #D1D5DB;
+            padding: 7px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+        /* Indikator Garis Potong Fisik Kertas A4 */
+        .cut-line {
+            width: 210mm;
+            margin: 12px auto 0 auto;
+            border-top: 1.5px dashed #9CA3AF;
+            text-align: center;
+            position: relative;
+        }
+
+        .cut-line span {
+            position: relative;
+            top: -9px;
+            background: #E5E7EB;
+            padding: 0 10px;
+            font-size: 0.62rem;
+            color: #6B7280;
+            font-weight: 600;
+        }
+
+        /* Aturan Khusus Pencetakan */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+
+            body {
+                background-color: #ffffff;
+                padding: 0;
+                margin: 0;
+            }
+
+            .action-bar, .cut-line {
+                display: none !important;
+            }
+
+            .receipt-card {
+                border: none;
+                box-shadow: none;
+                padding: 8mm 10mm 4mm 10mm;
+                width: 210mm;
+                height: 140mm;
+                box-sizing: border-box;
+                margin: 0;
+            }
+
+            .info-table th {
+                background-color: #F3F4F6 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .receipt-title {
+                background-color: #F9FAFB !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Bar Navigasi & Aksi -->
+    <div class="action-bar">
+        <a href="{% url 'archives:detail' archive.pk %}" class="btn-custom-light">
+            <i class="bi bi-arrow-left me-1"></i> Kembali ke Detail
+        </a>
+        <div class="d-flex gap-2">
+            <button onclick="downloadPDF();" class="btn-custom-danger">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF
+            </button>
+            <button onclick="window.print();" class="btn-custom-primary">
+                <i class="bi bi-printer me-1"></i> Cetak Tanda Terima
+            </button>
+        </div>
+    </div>
+
+    <!-- Area Dokumen -->
+    <div id="pdf-container">
+        <div class="receipt-card">
+            <div>
+                <!-- Kop Surat -->
+                <div class="kop-surat">
+                    <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS" class="kop-logo">
+                    <div class="kop-text">
+                        <h2>BADAN AMIL ZAKAT NASIONAL</h2>
+                        <h3>SISTEM INFORMASI ARSIP DIGITAL BAZNAS</h3>
+                        <p>Gedung Islamic Center, Jl. Islamic Center No.1, Ciakar, Kec. Panongan, Kabupaten Tangerang, Banten 15710</p>
+                        <p>Website: https://kabtangerang.baznas.go.id/ | Telp/WA: 0851-7424-4220</p>
+                    </div>
+                </div>
+
+                <!-- Judul & Nomor Agenda -->
+                <div class="receipt-title">
+                    <h4><i class="bi bi-file-earmark-check me-1 text-success"></i> TANDA TERIMA BERKAS DIGITAL</h4>
+                    <div class="receipt-subtitle">No. Agenda / Arsip: <strong class="text-primary">{{ archive.archive_number|default:"(DRAFT - BELUM DIVERIFIKASI)" }}</strong></div>
+                </div>
+
+                <!-- Tabel Ringkasan Arsip -->
+                <table class="info-table">
+                    <tbody>
+                        <tr>
+                            <th style="width: 18%;">Jenis Arsip</th>
+                            <td style="width: 32%;"><span class="fw-bold text-success">{{ archive.get_archive_type_display }}</span></td>
+                            <th style="width: 18%;">Tanggal Terima</th>
+                            <td style="width: 32%;">{{ archive.created_at|date:"d/m/Y H:i" }} WIB</td>
+                        </tr>
+                        <tr>
+                            <th>Pengirim / Penyerah</th>
+                            <td><span class="single-line-name">{{ archive.sender|default:archive.receiver|default:"-" }}</span></td>
+                            <th>Tanggal Surat</th>
+                            <td>{{ archive.letter_date|date:"d F Y"|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Perihal / Judul</th>
+                            <td colspan="3"><strong>{{ archive.title }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Kategori Bidang</th>
+                            <td>{{ archive.category.name }}</td>
+                            <th>Status Dokumen</th>
+                            <td>
+                                <span class="badge {% if archive.status == 'baru' %}bg-warning text-dark{% else %}bg-success{% endif %} text-uppercase px-2 py-1" style="font-size:0.58rem;">
+                                    {{ archive.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Petugas Penerima</th>
+                            <td colspan="3">
+                                <span class="single-line-name fw-semibold">{{ archive.uploaded_by.employee.full_name|default:archive.uploaded_by.username }}</span> 
+                                <span class="text-muted">( {{ archive.uploaded_by.employee.position|default:"Staff Administrasi SDM & Umum" }})</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer Tanda Tangan & QR Scan -->
+            <div class="receipt-footer">
+                <div class="qr-section">
+                    <div style="position: relative; display: inline-block; width: 55px; height: 55px;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ request.scheme }}://{{ request.get_host }}{% url 'archives:detail' archive.pk %}" 
+                             alt="QR Tracking Dokumen" 
+                             style="width: 55px; height: 55px; display: block;">
+                        <img src="{% static 'img/logo_baznas.png' %}" 
+                             style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; background: white; padding: 1.5px; border-radius: 3px; border: 1px solid #046C4E;" 
+                             alt="Logo BAZNAS">
+                    </div>
+                    <div>
+                        <span>PINDAI UNTUK<br>CEK PROSES & TRACKING</span>
+                    </div>
+                </div>
+
+
+                <div class="signature-section">
+                    <div class="sig-box">
+                        <p>Diserahkan Oleh,</p>
+                        <div class="sig-name" title="{{ archive.sender|default:archive.receiver|default:'Pengirim' }}">{{ archive.sender|default:archive.receiver|default:"Pengirim" }}</div>
+                        <div class="sig-title">Pihak Penyerah</div>
+                    </div>
+                    <div class="sig-box">
+                        <p>Diterima Oleh Petugas,</p>
+                        <div class="sig-name" title="{{ archive.uploaded_by.employee.full_name|default:archive.uploaded_by.username }}">{{ archive.uploaded_by.employee.full_name|default:archive.uploaded_by.username }}</div>
+                        <div class="sig-title">Staf Penerima Arsip</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Indikator Garis Gunting -->
+    <div class="cut-line">
+        <span><i class="bi bi-scissors me-1"></i> Batas Potong 1/2 Kertas A4</span>
+    </div>
+
+    <!-- Script Javascript untuk Unduh PDF -->
+    <script>
+        function downloadPDF() {
+            const element = document.getElementById('pdf-container');
+            const options = {
+                margin:       0,
+                filename:     'Tanda_Terima_{{ archive.archive_number|slugify|default:"draft" }}.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().from(element).set(options).save();
+        }
+    </script>
+
+</body>
+</html>

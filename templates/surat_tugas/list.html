@@ -1,0 +1,269 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Daftar Surat Tugas - BAZNAS Kab. Tangerang{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<style>
+    .nav-pills .nav-link { color: var(--text-secondary); border-radius: 10px; transition: 0.3s; }
+    .nav-pills .nav-link.active { background-color: var(--primary); color: white; }
+    .nav-pills .nav-link:hover:not(.active) { background-color: rgba(0, 0, 0, 0.05); }
+    table.dataTable thead > tr > th { border-bottom: none !important; }
+    table.dataTable.no-footer { border-bottom: 1px solid var(--border-color) !important; }
+    div.dataTables_wrapper div.dataTables_info,
+    div.dataTables_wrapper div.dataTables_paginate { padding-top: 1rem !important; }
+    div.dataTables_wrapper .pagination .page-item.active .page-link {
+        background-color: var(--primary, #0d8a52) !important;
+        border-color: var(--primary, #0d8a52) !important;
+        color: #ffffff !important;
+    }
+    div.dataTables_wrapper .pagination .page-link {
+        color: var(--text-primary, #0f172a);
+        background-color: var(--card-bg, #ffffff);
+        border-color: var(--border-color, #cbd5e1);
+        border-radius: 6px;
+        margin: 0 2px;
+    }
+
+    /* Badge Dual Mode High-Contrast Styling */
+    .badge-pengirim {
+        background-color: var(--surface-alt, #f1f5f9) !important;
+        color: var(--text-primary, #0f172a) !important;
+        border: 1px solid var(--border-color, #cbd5e1) !important;
+        font-weight: 600;
+    }
+    .badge-penerima {
+        background-color: rgba(13, 138, 82, 0.15) !important;
+        color: #10b981 !important;
+        border: 1px solid rgba(16, 185, 129, 0.3) !important;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Header & Action Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb m-0 bg-transparent p-0 small">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none" style="color: var(--primary);">Modul Utama</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" style="color: var(--text-secondary);">Surat Tugas</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold m-0" style="color: var(--text-primary);">
+                <i class="bi bi-file-earmark-text me-2 text-success"></i>Manajemen Surat Tugas Penugasan
+            </h4>
+        </div>
+        <div>
+            <a href="{% url 'surat_tugas:create' %}" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background-color: var(--primary);">
+                <i class="bi bi-plus-lg me-2"></i> Buat Surat Tugas Baru
+            </a>
+        </div>
+    </div>
+
+    <!-- TAB NAVIGASI UTAMA -->
+    <ul class="nav nav-pills mb-4 p-2 rounded-4 shadow-sm d-inline-flex gap-2" id="suratTugasTab" role="tablist" style="background-color: var(--card-bg) !important; border: 1px solid var(--border-color);">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4 py-2 fw-bold rounded-3 active" id="disposition-tab" data-bs-toggle="pill" data-bs-target="#tab-disposition" type="button" role="tab">
+                <i class="bi bi-file-earmark-check me-2"></i>1. Dokumen Siap Surat Tugas (Disposisi)
+                <span class="badge bg-success ms-2 rounded-circle">{{ dispositions_pending_st|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4 py-2 fw-bold rounded-3" id="history-tab" data-bs-toggle="pill" data-bs-target="#tab-history" type="button" role="tab">
+                <i class="bi bi-journal-text me-2"></i>2. Riwayat Surat Tugas Terbit
+                <span class="badge bg-primary ms-2 rounded-circle">{{ surat_list|length }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="suratTugasTabContent">
+        <!-- TAB 1: DOKUMEN SIAP SURAT TUGAS -->
+        <div class="tab-pane fade show active" id="tab-disposition" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
+                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
+                    <h6 class="fw-bold mb-0" style="color: var(--text-primary);">
+                        <i class="bi bi-file-earmark-arrow-right text-success me-2"></i>Daftar Dokumen Ber-Disposisi Siap Penugasan
+                    </h6>
+                </div>
+
+                <div class="card-body p-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tableDisposisiPendingST" style="width:100%;">
+                            <thead class="table-light text-uppercase" style="font-size: 0.75rem;">
+                                <tr>
+                                    <th class="ps-3 py-3">Tgl. Disposisi</th>
+                                    <th class="py-3">No. Dokumen / Arsip</th>
+                                    <th class="py-3">Perihal</th>
+                                    <th class="py-3">Alur Pengirim ➔ Penerima</th>
+                                    <th class="py-3">Arahan Pimpinan</th>
+                                    <th class="py-3 text-end pe-3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dispo in dispositions_pending_st %}
+                                <tr>
+                                    <td class="ps-3 small text-nowrap" style="color: var(--text-secondary);">{{ dispo.created_at|date:"d/m/Y, H:i" }}</td>
+                                    <td class="fw-bold text-primary">
+                                        {{ dispo.archive.archive_number|default:dispo.disposition_number }}
+                                    </td>
+                                    <td class="fw-semibold" style="color: var(--text-primary);">
+                                        {{ dispo.archive.title|default:dispo.note|truncatechars:40 }}
+                                    </td>
+                                    <td class="small">
+                                        <!-- BADGE PENGIRIM: JABATAN PENGIRIM DISPOSISI TERAKHIR -->
+                                        <span class="badge badge-pengirim px-2 py-1 rounded-pill">
+                                            <i class="bi bi-person-badge me-1"></i>{{ dispo.latest_sender_position }}
+                                        </span>
+                                        <i class="bi bi-arrow-right mx-1 text-muted"></i>
+                                        <!-- BADGE PENERIMA: JABATAN PENERIMA DISPOSISI TERAKHIR -->
+                                        <span class="badge badge-penerima px-2 py-1 rounded-pill">
+                                            <i class="bi bi-building me-1"></i>{{ dispo.latest_receiver_positions }}
+                                        </span>
+                                    </td>
+                                    <td class="small" style="color: var(--text-secondary);">{{ dispo.note|default:"-"|truncatechars:35 }}</td>
+                                    <td class="text-end pe-3">
+                                        {% if dispo.surat_tugas_list.count >= 2 %}
+                                            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2 fw-bold">
+                                                <i class="bi bi-journal-check me-1"></i> Riwayat Surat Tugas Terbit (2 ST)
+                                            </span>
+                                        {% else %}
+                                            <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm">
+                                                <i class="bi bi-plus-lg me-1"></i> Buat Surat Tugas
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: RIWAYAT SURAT TUGAS TERBIT -->
+        <div class="tab-pane fade" id="tab-history" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
+                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
+                    <h6 class="fw-bold mb-0" style="color: var(--text-primary);">
+                        <i class="bi bi-journal-check text-primary me-2"></i>Daftar Riwayat Surat Tugas Terbit
+                    </h6>
+                </div>
+
+                <div class="card-body p-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tableRiwayatSuratTugas" style="width:100%;">
+                            <thead class="table-light text-uppercase" style="font-size: 0.75rem;">
+                                <tr>
+                                    <th class="ps-3 py-3">Nomor Surat</th>
+                                    <th class="py-3">Tentang / Perihal</th>
+                                    <th class="py-3">Tanggal Pelaksanaan</th>
+                                    <th class="py-3">Lokasi Tujuan</th>
+                                    <th class="py-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for surat in surat_list %}
+                                <tr>
+                                    <td class="fw-bold text-primary">
+                                        {% if surat.nomor_surat %}
+                                            {{ surat.nomor_surat }}
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Draft</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold d-block" style="color: var(--text-primary);">{{ surat.tentang }}</span>
+                                        {% if surat.disposition %}
+                                        <span class="badge bg-info text-dark" style="font-size: 0.65rem;">Dari Disposisi #{{ surat.disposition.pk }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="d-block" style="color: var(--text-secondary);">{{ surat.hari_kegiatan }}, {{ surat.tanggal_mulai|date:"d M Y" }}</span>
+                                    </td>
+                                    <td style="color: var(--text-secondary);">{{ surat.lokasi_tujuan|default:"-" }}</td>
+                                    <td class="text-center">
+                                        <div class="d-inline-flex gap-1">
+                                            <!-- Tombol Lihat Detail -->
+                                            <a href="{% url 'surat_tugas:detail' surat.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-2 py-1" title="Lihat Detail">
+                                                <i class="bi bi-eye me-1"></i> Detail
+                                            </a>
+                                            <!-- Tombol Print -->
+                                            <a href="{% url 'surat_tugas:print' surat.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" title="Cetak Surat">
+                                                <i class="bi bi-printer me-1"></i> Print
+                                            </a>
+                                            <!-- Tombol Hapus -->
+                                            <form action="{% url 'surat_tugas:delete' surat.pk %}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Surat Tugas ini?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" title="Hapus Surat">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        if ($.fn.DataTable) {
+            // DataTables untuk Dokumen Siap Surat Tugas (Nomor Halaman 1, 2, 3...)
+            if ($('#tableDisposisiPendingST').length) {
+                $('#tableDisposisiPendingST').DataTable({
+                    language: {
+                        search: "Cari Disposisi:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ disposisi",
+                        paginate: { first: "Pertama", previous: "« Prev", next: "Next »", last: "Terakhir" },
+                        emptyTable: "Belum ada lembar disposisi dalam sistem."
+                    },
+                    pageLength: 10,
+                    pagingType: "full_numbers",
+                    ordering: true,
+                    order: [[0, "desc"]],
+                    destroy: true
+                });
+            }
+
+            // DataTables untuk Riwayat Surat Tugas Terbit (Nomor Halaman 1, 2, 3...)
+            if ($('#tableRiwayatSuratTugas').length) {
+                $('#tableRiwayatSuratTugas').DataTable({
+                    language: {
+                        search: "Cari Surat Tugas:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ surat tugas",
+                        paginate: { first: "Pertama", previous: "« Prev", next: "Next »", last: "Terakhir" },
+                        emptyTable: "Belum ada data Surat Tugas yang dibuat."
+                    },
+                    pageLength: 10,
+                    pagingType: "full_numbers",
+                    ordering: true,
+                    order: [[0, "desc"]],
+                    destroy: true
+                });
+            }
+
+            // Adjust table columns on tab switch
+            $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            });
+        }
+    });
+</script>
+{% endblock %}

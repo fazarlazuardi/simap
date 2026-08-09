@@ -1,0 +1,65 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Pengaturan Akun - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'users:profile' %}" class="text-decoration-none text-primary">Profil</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Pengaturan</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold">Pengaturan Keamanan & Akun</h4>
+        <p class="text-secondary small">Perbarui informasi pribadi dan kata sandi Anda secara berkala.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm p-4">
+            <form method="post">
+                {% csrf_token %}
+                
+                <h6 class="fw-bold mb-4 text-primary"><i class="bi bi-person me-2"></i> Informasi Dasar</h6>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="first_name" class="form-label fw-bold">Nama Depan</label>
+                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" value="{{ user_obj.first_name }}">
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="last_name" class="form-label fw-bold">Nama Belakang</label>
+                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" value="{{ user_obj.last_name }}">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="email" class="form-label fw-bold">Alamat Email</label>
+                    <input type="email" class="form-control custom-input" id="email" name="email" value="{{ user_obj.email }}">
+                </div>
+
+                <hr class="my-5 opacity-5">
+
+                <h6 class="fw-bold mb-4 text-danger"><i class="bi bi-shield-lock me-2"></i> Ganti Password</h6>
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-bold">Password Baru</label>
+                    <input type="password" class="form-control custom-input" id="password" name="password" placeholder="Kosongkan jika tidak ingin mengganti password">
+                    <small class="text-muted italic">Minimal 8 karakter untuk keamanan maksimal.</small>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                    <a href="{% url 'users:profile' %}" class="btn btn-light px-4 fw-semibold">Batal</a>
+                    <button type="submit" class="btn btn-primary px-5 shadow-sm">
+                        <i class="bi bi-check-circle me-2"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-input { height: 52px; border-radius: 12px; border: 1px solid #E5E7EB; }
+</style>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Diagnostic Google - BAZNAS{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h4 class="fw-bold mb-1">Diagnostic Koneksi Google</h4>
+        <p class="text-secondary small">Hasil pengecekan step-by-step koneksi ke Google Drive & Sheets API.</p>
+    </div>
+</div>
+<div class="card border-0 shadow-sm p-4">
+    <table class="table table-bordered align-middle">
+        <thead class="bg-light">
+            <tr><th style="width:200px">Komponen</th><th>Hasil</th></tr>
+        </thead>
+        <tbody>
+            {% for label, status in results %}
+            <tr>
+                <td class="fw-bold">{{ label }}</td>
+                <td>
+                    {% if status|slice:":2" == "OK" or status|slice:":7" == "Berhasil" %}
+                    <span class="text-success fw-semibold">{{ status }}</span>
+                    {% elif status|slice:":5" == "Gagal" %}
+                    <span class="text-danger fw-semibold">{{ status }}</span>
+                    {% else %}
+                    <span class="text-warning fw-semibold">{{ status }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'reports:index' %}" class="btn btn-secondary px-4 mt-3">Kembali</a>
+</div>
+{% endblock %}

@@ -1,0 +1,238 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ form_title }} - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'sppd_service:list' %}" class="text-decoration-none text-primary">SPPD</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ form_title }}</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold">{{ form_title }}</h4>
+        <p class="text-secondary small">
+            {% if surat_tugas %}
+                Isi formulir SPPD berdasarkan Surat Tugas nomor {{ surat_tugas.nomor_surat }}.
+            {% else %}
+                Isi formulir SPPD baru secara mandiri.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-sm p-4">
+            {% if surat_tugas %}
+            <div class="mb-4 bg-light p-3 rounded-3 border">
+                <p class="mb-1 text-secondary small fw-bold text-uppercase">Referensi Surat Tugas:</p>
+                <p class="mb-1 fw-bold text-primary">No: {{ surat_tugas.nomor_surat }}</p>
+                <p class="mb-0 text-muted small">Tentang: "{{ surat_tugas.tentang }}"</p>
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="sppd_number" class="form-label fw-bold">Nomor SPPD <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" name="sppd_number" required placeholder="Contoh: 001/SPPD/BAZNAS/2026" value="{{ sppd.sppd_number|default:default_sppd_number|default:'' }}">
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="destination" class="form-label fw-bold">Tempat Tujuan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" name="destination" required placeholder="Contoh: Kantor BAZNAS Pusat, Jakarta" value="{{ sppd.destination|default:default_destination|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="purpose" class="form-label fw-bold">Maksud / Tujuan Perjalanan Dinas <span class="text-danger">*</span></label>
+                    <textarea class="form-control custom-input" name="purpose" rows="2" required placeholder="Contoh: Menghadiri Undangan / Survei Peninjauan Lapangan / Penyaluran Bantuan Pelunasan Hutang Mustahik...">{{ sppd.purpose|default:default_purpose|default:'' }}</textarea>
+                    <div class="form-text text-muted small">Maksud perjalanan dinas ini akan dianalisis secara otomatis oleh sistem untuk menentukan tahapan log alur kerja BPMN dokumen.</div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="sppd_type" class="form-label fw-bold">Jenis / Tujuan SPPD <span class="text-danger">*</span></label>
+                        <select class="form-select custom-input" name="sppd_type" id="sppd_type">
+                            <option value="umum" {% if sppd.sppd_type == 'umum' or not sppd %}selected{% endif %}>🚗 Umum / Perjalanan Dinas Lainnya</option>
+                            <option value="survei" {% if sppd.sppd_type == 'survei' %}selected{% endif %}>🔍 Survei / Verifikasi Lapangan Mustahik</option>
+                            <option value="penyaluran" {% if sppd.sppd_type == 'penyaluran' %}selected{% endif %}>🤝 Penyaluran Bantuan / Pentasyarufan</option>
+                        </select>
+                        <div class="form-text text-muted small">Untuk dokumen bantuan, bisa dibuat SPPD Survei dulu lalu SPPD Penyaluran setelah survei selesai.</div>
+                    </div>
+
+                    <div class="col-md-4 mb-4">
+                        <label for="departure_date" class="form-label fw-bold">Tanggal Berangkat <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control custom-input" name="departure_date" required value="{{ sppd.departure_date|date:'Y-m-d'|default:default_departure|default:'' }}">
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="return_date" class="form-label fw-bold">Tanggal Kembali <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control custom-input" name="return_date" required value="{{ sppd.return_date|date:'Y-m-d'|default:default_return|default:default_departure|default:'' }}">
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="transportation" class="form-label fw-bold">Alat Angkut <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" name="transportation" required placeholder="Contoh: Kendaraan Dinas / Umum" value="{{ sppd.transportation|default:default_transportation|default:'Mobil Dinas / Umum' }}">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                        <label class="form-label fw-bold mb-0">PEGAWAI YANG DIPERINTAHKAN:</label>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-3 py-1 fw-bold rounded-pill" id="checked-count-badge">
+                            <i class="bi bi-people-fill me-1"></i> <span id="checked-count">0</span> Pegawai Terpilih
+                        </span>
+                    </div>
+
+                    <!-- Live Checked Employee Badges Container (Requirement 3) -->
+                    <div class="p-3 mb-3 rounded-3 border" style="background-color: var(--surface-alt, #F8FAFC);">
+                        <span class="d-block small text-secondary fw-bold text-uppercase mb-2">
+                            <i class="bi bi-check2-square text-success me-1"></i>Daftar Pegawai yang Di-ceklis:
+                        </span>
+                        <div id="checked-employee-badges" class="d-flex flex-wrap gap-2">
+                            <span class="text-muted small italic">Belum ada pegawai yang dipilih</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group input-group-sm mb-2 search-box-professional">
+                        <span class="input-group-text"><i class="bi bi-person-lines-fill"></i></span>
+                        <input type="text" class="form-control" placeholder="Cari pegawai..." data-search-target="assigned">
+                    </div>
+                    <div class="row g-2 overflow-auto" style="max-height: 200px;" id="assigned-employee-list">
+                        {% for emp in employees %}
+                        <div class="col-md-4 employee-item" data-search="{{ emp.full_name|lower }} {{ emp.position|lower }}">
+                            <div class="form-check p-2 rounded border small" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                                <input class="form-check-input ms-0 me-2 emp-checkbox" type="checkbox" name="assigned_employees" value="{{ emp.id }}" id="emp_{{ emp.id }}" data-emp-name="{{ emp.full_name }}" data-emp-pos="{{ emp.position }}"
+                                       {% if sppd and emp in sppd.assigned_employees.all %}checked{% elif not sppd and surat_tugas and emp in surat_tugas.pegawai_ditugaskan.all %}checked{% elif not sppd and dispo and emp in dispo.forwarded_to.all %}checked{% elif not sppd and default_assigned_emp_ids and emp.id in default_assigned_emp_ids %}checked{% endif %}>
+
+                                <label class="form-check-label fw-bold" for="emp_{{ emp.id }}" style="color: var(--text-primary);">
+                                    {{ emp.full_name }}
+                                    <small class="d-block fw-normal" style="color: var(--text-secondary);">{{ emp.position }}</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label fw-bold mb-3 border-bottom w-100 pb-2">PENGIKUT:</label>
+                    <div class="input-group input-group-sm mb-2 search-box-professional">
+                        <span class="input-group-text"><i class="bi bi-people-fill"></i></span>
+                        <input type="text" class="form-control" placeholder="Cari pengikut..." data-search-target="followers">
+                    </div>
+                    <div class="row g-2 overflow-auto" style="max-height: 200px;" id="follower-employee-list">
+                        {% for emp in employees %}
+                        <div class="col-md-4 employee-item" data-search="{{ emp.full_name|lower }} {{ emp.position|lower }}">
+                            <div class="form-check p-2 rounded border small" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" name="followers" value="{{ emp.id }}" id="follower_{{ emp.id }}"
+                                       {% if sppd and emp in sppd.followers.all %}checked{% endif %}>
+                                <label class="form-check-label fw-bold" for="follower_{{ emp.id }}" style="color: var(--text-primary);">
+                                    {{ emp.full_name }}
+                                    <small class="d-block fw-normal" style="color: var(--text-secondary);">{{ emp.position }}</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                    {% if sppd %}
+                    <a href="{% url 'sppd_service:detail' sppd.pk %}" class="btn btn-light px-4 fw-semibold">Batal</a>
+                    {% else %}
+                    <a href="{% url 'sppd_service:list' %}" class="btn btn-light px-4 fw-semibold">Batal</a>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold">
+                        <i class="bi bi-save me-2"></i> {{ submit_label }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-input { height: 52px; border-radius: 12px; border: 1px solid #E5E7EB; }
+    .search-box-professional .input-group-text {
+        background-color: var(--card-bg);
+        color: var(--text-secondary);
+        border-color: var(--border-color);
+    }
+    .search-box-professional .form-control {
+        border-left: 0;
+        height: 36px;
+        border-radius: 0 10px 10px 0;
+        background-color: var(--card-bg);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+    }
+    .search-box-professional .form-control:focus {
+        box-shadow: none;
+        border-color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateCheckedEmployeeBadges() {
+        var container = document.getElementById('checked-employee-badges');
+        var countEl = document.getElementById('checked-count');
+        if (!container) return;
+
+        var checkedCheckboxes = document.querySelectorAll('input[name="assigned_employees"]:checked');
+        if (countEl) countEl.textContent = checkedCheckboxes.length;
+
+        if (checkedCheckboxes.length === 0) {
+            container.innerHTML = '<span class="text-muted small italic"><i class="bi bi-exclamation-circle me-1"></i>Belum ada pegawai yang dipilih</span>';
+            return;
+        }
+
+        var html = '';
+        checkedCheckboxes.forEach(function(cb) {
+            var name = cb.getAttribute('data-emp-name') || (cb.nextElementSibling ? cb.nextElementSibling.innerText.split('\n')[0].trim() : 'Pegawai');
+            html += `<span class="badge bg-success text-white px-3 py-2 rounded-pill shadow-sm small fw-bold"><i class="bi bi-person-check-fill me-1"></i>${name}</span>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function syncExclusive(sourceGroup, targetGroup) {
+        document.querySelectorAll(`input[name="${sourceGroup}"]`).forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    var target = document.querySelector(`input[name="${targetGroup}"][value="${this.value}"]`);
+                    if (target) {
+                        target.checked = false;
+                    }
+                }
+                updateCheckedEmployeeBadges();
+            });
+        });
+    }
+
+    function bindSearch(inputSelector, listSelector) {
+        var input = document.querySelector(inputSelector);
+        var list = document.querySelector(listSelector);
+        if (!input || !list) return;
+
+        input.addEventListener('input', function() {
+            var query = this.value.toLowerCase().trim();
+            list.querySelectorAll('.employee-item').forEach(function(item) {
+                var text = (item.getAttribute('data-search') || '').toLowerCase();
+                item.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
+
+    bindSearch('input[data-search-target="assigned"]', '#assigned-employee-list');
+    bindSearch('input[data-search-target="followers"]', '#follower-employee-list');
+    syncExclusive('assigned_employees', 'followers');
+    syncExclusive('followers', 'assigned_employees');
+    updateCheckedEmployeeBadges();
+});
+</script>
+{% endblock %}

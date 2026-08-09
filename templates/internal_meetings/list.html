@@ -1,0 +1,617 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Rapat Internal - BAZNAS Kab. Tangerang{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<style>
+    .nav-pills .nav-link { color: var(--text-secondary); border-radius: 10px; transition: 0.3s; }
+    .nav-pills .nav-link.active { background-color: var(--primary); color: white; }
+    .nav-pills .nav-link:hover:not(.active) { background-color: rgba(0, 0, 0, 0.05); }
+    table.dataTable thead > tr > th { border-bottom: none !important; }
+    table.dataTable.no-footer { border-bottom: 1px solid var(--border-color) !important; }
+    div.dataTables_wrapper div.dataTables_info,
+    div.dataTables_wrapper div.dataTables_paginate { padding-top: 1rem !important; }
+    div.dataTables_wrapper .pagination .page-item.active .page-link {
+        background-color: var(--primary, #0d8a52) !important;
+        border-color: var(--primary, #0d8a52) !important;
+        color: #ffffff !important;
+    }
+    div.dataTables_wrapper .pagination .page-link {
+        color: var(--text-primary, #0f172a);
+        background-color: var(--card-bg, #ffffff);
+        border-color: var(--border-color, #cbd5e1);
+        border-radius: 6px;
+        margin: 0 2px;
+    }
+
+    .stat-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
+
+    .stat-card-interactive {
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid transparent !important;
+        position: relative;
+    }
+    .stat-card-interactive:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 22px rgba(0,0,0,0.12) !important;
+    }
+    .stat-card-interactive.active-card {
+        transform: translateY(-2px);
+        border-color: var(--active-card-color, #0d8a52) !important;
+        background-color: var(--active-card-bg, rgba(13, 138, 82, 0.05)) !important;
+        box-shadow: 0 6px 16px var(--active-card-shadow, rgba(13, 138, 82, 0.2)) !important;
+    }
+    .click-hint {
+        transition: transform 0.2s ease;
+    }
+    .stat-card-interactive:hover .click-hint {
+        transform: translateX(3px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Header & Action Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb m-0 bg-transparent p-0 small">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none" style="color: var(--primary);">Modul Utama</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" style="color: var(--text-secondary);">Rapat Internal</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold m-0" style="color: var(--text-primary);">
+                <i class="bi bi-journal-bookmark-fill me-2 text-success"></i>Manajemen Rapat Internal BAZNAS
+            </h4>
+        </div>
+        <div>
+            <a href="{% url 'internal_meetings:create' %}" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background-color: var(--primary);">
+                <i class="bi bi-plus-lg me-2"></i> Buat Agenda Rapat Baru
+            </a>
+        </div>
+    </div>
+
+    <!-- STATS SUMMARY CARDS (INTERACTIVE & FILTERABLE) -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Total Rapat Card -->
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 stat-card-interactive" id="statCardTotal" onclick="filterByStat('total')" title="Klik untuk menampilkan seluruh agenda & risalah rapat">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-card-icon bg-primary text-white shadow-sm">
+                        <i class="bi bi-calendar-event-fill"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <span class="text-secondary small d-block fw-semibold text-uppercase">Total Rapat</span>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h4 class="fw-bold mb-0 text-primary">{{ total_meetings }}</h4>
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1 small click-hint"><i class="bi bi-arrow-right-short"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Rapat Terjadwal Card -->
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 stat-card-interactive" id="statCardScheduled" onclick="filterByStat('scheduled')" title="Klik untuk memfilter Agenda Rapat Terjadwal & Berlangsung">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-card-icon bg-warning text-dark shadow-sm">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <span class="text-secondary small d-block fw-semibold text-uppercase">Rapat Terjadwal</span>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h4 class="fw-bold mb-0 text-warning">{{ upcoming_count }}</h4>
+                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1 small click-hint"><i class="bi bi-arrow-right-short"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Notulensi Terbit Card -->
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 stat-card-interactive" id="statCardCompleted" onclick="filterByStat('completed')" title="Klik untuk memfilter Riwayat Risalah & Notulensi Selesai">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-card-icon bg-success text-white shadow-sm">
+                        <i class="bi bi-file-earmark-check-fill"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <span class="text-secondary small d-block fw-semibold text-uppercase">Notulensi Terbit</span>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h4 class="fw-bold mb-0 text-success">{{ completed_count }}</h4>
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small click-hint"><i class="bi bi-arrow-right-short"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Rapat Bulan Ini Card -->
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 stat-card-interactive" id="statCardMonth" onclick="filterByStat('month')" title="Klik untuk memfilter Rapat Pelaksanaan Bulan Ini">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-card-icon bg-info text-white shadow-sm">
+                        <i class="bi bi-calendar-month-fill"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <span class="text-secondary small d-block fw-semibold text-uppercase">Bulan Ini</span>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h4 class="fw-bold mb-0 text-info">{{ this_month_count }}</h4>
+                            <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-2 py-1 small click-hint"><i class="bi bi-arrow-right-short"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BANNER INDIKATOR FILTER AKTIF (Dapat Di-reset) -->
+    <div id="statFilterBanner" class="alert alert-primary border-0 rounded-4 shadow-sm py-2 px-3 mb-4 d-none d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-funnel-fill fs-5 text-primary"></i>
+            <span class="fw-semibold small" id="statFilterText">Filter Aktif: Total Rapat</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold" onclick="resetStatFilter()">
+            <i class="bi bi-x-circle me-1"></i> Reset Filter
+        </button>
+    </div>
+
+    <!-- TAB NAVIGASI UTAMA -->
+    <ul class="nav nav-pills mb-4 p-2 rounded-4 shadow-sm d-inline-flex gap-2" id="meetingTab" role="tablist" style="background-color: var(--card-bg) !important; border: 1px solid var(--border-color);">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4 py-2 fw-bold rounded-3 active" id="scheduled-tab" data-bs-toggle="pill" data-bs-target="#tab-scheduled" type="button" role="tab">
+                <i class="bi bi-calendar-check me-2"></i>1. Agenda Rapat Terjadwal / Berlangsung
+                <span class="badge bg-warning text-dark ms-2 rounded-circle">{{ scheduled_meetings|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4 py-2 fw-bold rounded-3" id="completed-tab" data-bs-toggle="pill" data-bs-target="#tab-completed" type="button" role="tab">
+                <i class="bi bi-journal-check me-2"></i>2. Riwayat Notulensi Rapat Selesai
+                <span class="badge bg-success ms-2 rounded-circle">{{ completed_meetings|length }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="meetingTabContent">
+        <!-- TAB 1: AGENDA RAPAT TERJADWAL -->
+        <div class="tab-pane fade show active" id="tab-scheduled" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
+                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
+                    <h6 class="fw-bold mb-0" style="color: var(--text-primary);">
+                        <i class="bi bi-calendar-week text-warning me-2"></i>Daftar Agenda Rapat Internal Mendatang
+                    </h6>
+                </div>
+
+                <div class="card-body p-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tableScheduledMeetings" style="width:100%;">
+                            <thead class="table-light text-uppercase" style="font-size: 0.75rem;">
+                                <tr>
+                                    <th class="ps-3 py-3">Waktu Pelaksanaan</th>
+                                    <th class="py-3">No. Risalah / Agenda</th>
+                                    <th class="py-3">Judul / Agenda Rapat</th>
+                                    <th class="py-3">Jenis & Ruang</th>
+                                    <th class="py-3">Pimpinan Rapat</th>
+                                    <th class="py-3 text-center">Status</th>
+                                    <th class="py-3 text-end pe-3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for meeting in scheduled_meetings %}
+                                <tr>
+                                    <td class="ps-3 small text-nowrap" style="color: var(--text-secondary);">
+                                        <i class="bi bi-clock me-1 text-primary"></i>{{ meeting.scheduled_at|date:"d M Y, H:i" }} WIB
+                                    </td>
+                                    <td class="fw-bold text-primary">{{ meeting.meeting_number|default:"Draft" }}</td>
+                                    <td>
+                                        <a href="{% url 'internal_meetings:detail' meeting.pk %}" class="fw-semibold text-decoration-none" style="color: var(--text-primary);">
+                                            {{ meeting.title }}
+                                        </a>
+                                        <div class="small text-muted">{{ meeting.agenda_topics|truncatechars:45 }}</div>
+                                    </td>
+                                    <td class="small">
+                                        <span class="badge bg-light text-dark border me-1">{{ meeting.get_meeting_type_display }}</span>
+                                        <div class="text-secondary mt-1"><i class="bi bi-geo-alt me-1"></i>{{ meeting.location }}</div>
+                                    </td>
+                                    <td class="small fw-semibold" style="color: var(--text-primary);">
+                                        {{ meeting.leader_name_display }}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if meeting.status == 'berlangsung' %}
+                                            <span class="badge bg-primary rounded-pill px-3 py-2"><i class="bi bi-record-fill me-1 text-danger animate-pulse"></i> Berlangsung</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-clock me-1"></i> Terjadwal</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-inline-flex gap-1">
+                                            <a href="{% url 'internal_meetings:detail' meeting.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-2 py-1" title="Lihat Detail">
+                                                <i class="bi bi-eye"></i> Detail
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-sm" onclick="openNotulensiModal('{{ meeting.pk }}', '{{ meeting.title|escapejs }}')">
+                                                <i class="bi bi-pencil-square me-1"></i> Input Notulensi
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: RIWAYAT NOTULENSI RAPAT SELESAI -->
+        <div class="tab-pane fade" id="tab-completed" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
+                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
+                    <h6 class="fw-bold mb-0" style="color: var(--text-primary);">
+                        <i class="bi bi-journal-check text-success me-2"></i>Daftar Riwayat Notulensi Rapat Internal Selesai
+                    </h6>
+                </div>
+
+                <div class="card-body p-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tableCompletedMeetings" style="width:100%;">
+                            <thead class="table-light text-uppercase" style="font-size: 0.75rem;">
+                                <tr>
+                                    <th class="ps-3 py-3">No. Risalah</th>
+                                    <th class="py-3">Tgl. Rapat</th>
+                                    <th class="py-3">Judul Rapat</th>
+                                    <th class="py-3">Pimpinan & Notulis</th>
+                                    <th class="py-3">Kesimpulan & Keputusan</th>
+                                    <th class="py-3 text-center">Notulensi</th>
+                                    <th class="py-3 text-end pe-3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for meeting in completed_meetings %}
+                                <tr>
+                                    <td class="ps-3 fw-bold text-primary">{{ meeting.meeting_number }}</td>
+                                    <td class="small text-nowrap" style="color: var(--text-secondary);">{{ meeting.scheduled_at|date:"d/m/Y, H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'internal_meetings:detail' meeting.pk %}" class="fw-semibold text-decoration-none" style="color: var(--text-primary);">
+                                            {{ meeting.title }}
+                                        </a>
+                                    </td>
+                                    <td class="small">
+                                        <div><strong>Pimpinan:</strong> {{ meeting.leader_names_display }}</div>
+                                        <div class="text-secondary"><strong>Notulis:</strong> {{ meeting.notulis_name_display }}</div>
+                                    </td>
+                                    <td class="small" style="color: var(--text-secondary);">
+                                        {{ meeting.notulensi_decision|default:meeting.notulensi_summary|default:"-"|truncatechars:45 }}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Terbit</span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-inline-flex gap-1">
+                                            <button type="button" class="btn btn-sm btn-success rounded-pill px-2 py-1 fw-bold shadow-sm" onclick="viewNotulensiModal('{{ meeting.pk }}', '{{ meeting.meeting_number|escapejs }}', '{{ meeting.scheduled_at|date:"d M Y, H:i"|escapejs }}', '{{ meeting.leader_names_display|escapejs }}', '{{ meeting.notulis_name_display|escapejs }}', '{{ meeting.notulensi_summary|escapejs }}', '{{ meeting.notulensi_decision|escapejs }}', '{{ meeting.notulensi_action_items|escapejs }}')">
+                                                <i class="bi bi-journal-text me-1"></i> Baca Notulensi
+                                            </button>
+                                            <a href="{% url 'internal_meetings:detail' meeting.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-2 py-1" title="Lihat Detail">
+                                                <i class="bi bi-eye"></i> Detail
+                                            </a>
+                                            <a href="{% url 'internal_meetings:print' meeting.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" title="Cetak Notulensi">
+                                                <i class="bi bi-printer me-1"></i> Cetak
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Quick Notulensi -->
+<div class="modal fade" id="notulensiQuickModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold" id="notulensiQuickModalTitle">
+                    <i class="bi bi-pencil-square me-2"></i>Input Notulensi & Hasil Rapat Internal
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formNotulensiQuick" method="post" action="" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="alert alert-success d-flex align-items-center mb-3">
+                        <i class="bi bi-info-circle-fill fs-5 me-2"></i>
+                        <span id="quickMeetingName" class="fw-bold"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="id_notulis" class="form-label fw-bold text-dark">Notulis Rapat <span class="text-danger">*</span></label>
+                            <select name="notulis" class="form-select custom-input" required>
+                                <option value="" selected disabled>Pilih Notulis Pegawai...</option>
+                                {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.full_name }} ({{ emp.position|default:"Staff" }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_status" class="form-label fw-bold text-dark">Status Rapat</label>
+                            <select name="status" class="form-select custom-input">
+                                <option value="selesai" selected>Selesai (Notulensi Terbit)</option>
+                                <option value="berlangsung">Sedang Berlangsung</option>
+                                <option value="terjadwal">Terjadwal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notulensi_summary" class="form-label fw-bold text-dark">Ringkasan Pembahasan & Risalah Rapat <span class="text-danger">*</span></label>
+                        <textarea name="notulensi_summary" rows="4" class="form-control" placeholder="Tuliskan ringkasan hasil pembahasan rapat..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notulensi_decision" class="form-label fw-bold text-dark">Kesimpulan & Keputusan Rapat</label>
+                        <textarea name="notulensi_decision" rows="3" class="form-control" placeholder="Tuliskan kesimpulan dan poin keputusan yang disepakati..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notulensi_action_items" class="form-label fw-bold text-dark">Rencana Tindak Lanjut (Action Items)</label>
+                        <textarea name="notulensi_action_items" rows="3" class="form-control" placeholder="Tuliskan tindak lanjut beserta penanggung jawab bidang..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_notulensi_file" class="form-label fw-bold text-dark">Upload Dokumen / Foto Bukti Notulensi (Opsional)</label>
+                        <input type="file" name="notulensi_file" class="form-control custom-input">
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light rounded-bottom-4 py-3">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-send-fill me-1"></i> Simpan & Terbitkan Notulensi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal View Notulensi Pop-up -->
+<div class="modal fade" id="notulensiViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold" id="viewNotulensiTitle">
+                    <i class="bi bi-journal-text me-2"></i>Risalah & Notulensi Rapat Internal
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="p-3 mb-3 bg-light rounded-3 border">
+                    <div class="row g-2 small">
+                        <div class="col-sm-6"><strong>Nomor Risalah:</strong> <span id="viewNotulensiNumber" class="text-primary fw-bold"></span></div>
+                        <div class="col-sm-6"><strong>Waktu Rapat:</strong> <span id="viewNotulensiDate"></span></div>
+                        <div class="col-sm-6"><strong>Pimpinan Rapat:</strong> <span id="viewNotulensiLeader"></span></div>
+                        <div class="col-sm-6"><strong>Notulis:</strong> <span id="viewNotulensiNotulis"></span></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-chat-left-text me-1"></i> 1. Ringkasan Pembahasan & Risalah Rapat:</h6>
+                    <div id="viewNotulensiSummary" class="p-3 bg-light border rounded-3 text-dark" style="white-space: pre-line;"></div>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1"></i> 2. Kesimpulan & Keputusan Rapat:</h6>
+                    <div id="viewNotulensiDecision" class="p-3 border rounded-3 text-dark" style="background-color: rgba(13, 138, 82, 0.05); border-color: rgba(13, 138, 82, 0.2) !important; white-space: pre-line;"></div>
+                </div>
+
+                <div class="mb-3" id="viewActionItemsBox">
+                    <h6 class="fw-bold text-warning"><i class="bi bi-list-task me-1"></i> 3. Rencana Tindak Lanjut (Action Plan):</h6>
+                    <div id="viewNotulensiActionItems" class="p-3 bg-light border rounded-3 text-dark" style="white-space: pre-line;"></div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light rounded-bottom-4 py-3">
+                <a id="viewNotulensiPrintBtn" href="#" target="_blank" class="btn btn-outline-secondary rounded-pill px-3 fw-bold">
+                    <i class="bi bi-printer me-1"></i> Cetak PDF
+                </a>
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    function openNotulensiModal(id, title) {
+        document.getElementById('quickMeetingName').innerText = title;
+        document.getElementById('formNotulensiQuick').action = '/rapat-internal/' + id + '/notulensi/';
+        var modalEl = document.getElementById('notulensiQuickModal');
+        if (modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+
+    function viewNotulensiModal(id, number, dateStr, leaderStr, notulisStr, summaryStr, decisionStr, actionItemsStr) {
+        document.getElementById('viewNotulensiTitle').innerText = 'Risalah Notulensi: ' + number;
+        document.getElementById('viewNotulensiNumber').innerText = number;
+        document.getElementById('viewNotulensiDate').innerText = dateStr;
+        document.getElementById('viewNotulensiLeader').innerText = leaderStr;
+        document.getElementById('viewNotulensiNotulis').innerText = notulisStr;
+        document.getElementById('viewNotulensiSummary').innerText = summaryStr || '-';
+        document.getElementById('viewNotulensiDecision').innerText = decisionStr || '-';
+        document.getElementById('viewNotulensiActionItems').innerText = actionItemsStr || '-';
+        document.getElementById('viewNotulensiPrintBtn').href = '/rapat-internal/' + id + '/print/';
+
+        var modalEl = document.getElementById('notulensiViewModal');
+        if (modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+
+    $(document).ready(function() {
+        if ($.fn.DataTable) {
+            if ($('#tableScheduledMeetings').length) {
+                $('#tableScheduledMeetings').DataTable({
+                    language: {
+                        search: "Cari Rapat:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ rapat",
+                        paginate: { first: "Pertama", previous: "« Prev", next: "Next »", last: "Terakhir" },
+                        emptyTable: "Belum ada agenda rapat internal terjadwal."
+                    },
+                    pageLength: 10,
+                    ordering: true,
+                    order: [[0, "asc"]],
+                    destroy: true
+                });
+            }
+
+            if ($('#tableCompletedMeetings').length) {
+                $('#tableCompletedMeetings').DataTable({
+                    language: {
+                        search: "Cari Notulensi:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ notulensi",
+                        paginate: { first: "Pertama", previous: "« Prev", next: "Next »", last: "Terakhir" },
+                        emptyTable: "Belum ada riwayat notulensi rapat selesai."
+                    },
+                    pageLength: 10,
+                    ordering: true,
+                    order: [[1, "desc"]],
+                    destroy: true
+                });
+            }
+
+            $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            });
+        }
+    });
+
+    var currentMonthSearchStr = "{% now 'F Y' %}";
+
+    function filterByStat(type) {
+        document.querySelectorAll('.stat-card-interactive').forEach(function(card) {
+            card.classList.remove('active-card');
+            card.style.removeProperty('--active-card-color');
+            card.style.removeProperty('--active-card-bg');
+            card.style.removeProperty('--active-card-shadow');
+        });
+
+        var banner = document.getElementById('statFilterBanner');
+        var bannerText = document.getElementById('statFilterText');
+        var cardEl = null;
+
+        var dtScheduled = ($.fn.DataTable && $('#tableScheduledMeetings').length) ? $('#tableScheduledMeetings').DataTable() : null;
+        var dtCompleted = ($.fn.DataTable && $('#tableCompletedMeetings').length) ? $('#tableCompletedMeetings').DataTable() : null;
+
+        if (type === 'total') {
+            cardEl = document.getElementById('statCardTotal');
+            if (cardEl) {
+                cardEl.classList.add('active-card');
+                cardEl.style.setProperty('--active-card-color', '#0d6efd');
+                cardEl.style.setProperty('--active-card-bg', 'rgba(13, 110, 253, 0.06)');
+                cardEl.style.setProperty('--active-card-shadow', 'rgba(13, 110, 253, 0.2)');
+            }
+            if (dtScheduled) dtScheduled.search('').draw();
+            if (dtCompleted) dtCompleted.search('').draw();
+            
+            var tabBtn = document.getElementById('scheduled-tab');
+            if (tabBtn) bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+
+            if (banner) banner.classList.remove('d-none');
+            if (bannerText) bannerText.innerHTML = '<strong>Filter Aktif: Total Rapat</strong> (Menampilkan seluruh agenda & risalah rapat)';
+        }
+        else if (type === 'scheduled') {
+            cardEl = document.getElementById('statCardScheduled');
+            if (cardEl) {
+                cardEl.classList.add('active-card');
+                cardEl.style.setProperty('--active-card-color', '#ffc107');
+                cardEl.style.setProperty('--active-card-bg', 'rgba(255, 193, 7, 0.08)');
+                cardEl.style.setProperty('--active-card-shadow', 'rgba(255, 193, 7, 0.25)');
+            }
+            if (dtScheduled) dtScheduled.search('').draw();
+            
+            var tabBtn = document.getElementById('scheduled-tab');
+            if (tabBtn) bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+
+            if (banner) banner.classList.remove('d-none');
+            if (bannerText) bannerText.innerHTML = '<strong>Filter Aktif: Agenda Rapat Terjadwal / Berlangsung</strong>';
+        }
+        else if (type === 'completed') {
+            cardEl = document.getElementById('statCardCompleted');
+            if (cardEl) {
+                cardEl.classList.add('active-card');
+                cardEl.style.setProperty('--active-card-color', '#0d8a52');
+                cardEl.style.setProperty('--active-card-bg', 'rgba(13, 138, 82, 0.08)');
+                cardEl.style.setProperty('--active-card-shadow', 'rgba(13, 138, 82, 0.25)');
+            }
+            if (dtCompleted) dtCompleted.search('').draw();
+
+            var tabBtn = document.getElementById('completed-tab');
+            if (tabBtn) bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+
+            if (banner) banner.classList.remove('d-none');
+            if (bannerText) bannerText.innerHTML = '<strong>Filter Aktif: Notulensi & Risalah Rapat Selesai</strong>';
+        }
+        else if (type === 'month') {
+            cardEl = document.getElementById('statCardMonth');
+            if (cardEl) {
+                cardEl.classList.add('active-card');
+                cardEl.style.setProperty('--active-card-color', '#0dcaf0');
+                cardEl.style.setProperty('--active-card-bg', 'rgba(13, 202, 240, 0.08)');
+                cardEl.style.setProperty('--active-card-shadow', 'rgba(13, 202, 240, 0.25)');
+            }
+
+            var yearStr = new Date().getFullYear().toString();
+            if (dtScheduled) dtScheduled.search(yearStr).draw();
+            if (dtCompleted) dtCompleted.search(yearStr).draw();
+
+            if (banner) banner.classList.remove('d-none');
+            if (bannerText) bannerText.innerHTML = '<strong>Filter Aktif: Rapat Pelaksanaan Bulan Ini (' + currentMonthSearchStr + ')</strong>';
+        }
+
+        var targetSection = document.getElementById('meetingTab');
+        if (targetSection) {
+            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function resetStatFilter() {
+        document.querySelectorAll('.stat-card-interactive').forEach(function(card) {
+            card.classList.remove('active-card');
+        });
+        var banner = document.getElementById('statFilterBanner');
+        if (banner) banner.classList.add('d-none');
+
+        if ($.fn.DataTable) {
+            if ($('#tableScheduledMeetings').length) $('#tableScheduledMeetings').DataTable().search('').draw();
+            if ($('#tableCompletedMeetings').length) $('#tableCompletedMeetings').DataTable().search('').draw();
+        }
+    }
+</script>
+{% endblock %}

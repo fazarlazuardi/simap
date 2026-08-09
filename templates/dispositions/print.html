@@ -1,0 +1,384 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Lembar Disposisi - BAZNAS Kabupaten Tangerang</title>
+    <!-- Memuat Library jsPDF dan html2canvas untuk Download PDF murni -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 13px;
+            color: #000;
+            margin: 0;
+            padding: 10px;
+            background: #eee;
+        }
+        .sheet {
+            width: 210mm;
+            min-height: 297mm;
+            max-height: 297mm;
+            margin: 0 auto 20px auto;
+            border: 2px solid #000;
+            padding: 20mm 15mm;
+            box-sizing: border-box;
+            background: #fff;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        /* Kop Surat dengan Logo di Tengah & Garis Hitam */
+        .kop-container {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .logo {
+            max-height: 65px;
+            width: auto;
+            display: block;
+            margin: 0 auto 5px auto;
+        }
+        .title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 15px;
+            text-decoration: underline;
+            margin: 5px 0 15px 0;
+            letter-spacing: 0.5px;
+        }
+        .content-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .content-table td {
+            padding: 3px 4px;
+            vertical-align: top;
+        }
+        .border-all {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
+        }
+        .border-all td {
+            border: 1px solid #000;
+            vertical-align: top;
+            padding: 0;
+        }
+        .section-title {
+            font-weight: bold;
+            padding: 5px 8px;
+            border-bottom: 1px solid #000;
+            font-size: 12px;
+            background-color: #f8f8f8;
+        }
+        .checkbox-box {
+            display: inline-block;
+            width: 13px;
+            height: 13px;
+            border: 1px solid #000;
+            text-align: center;
+            line-height: 11px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .line-box {
+            padding: 8px;
+            min-height: 130px;
+        }
+        .line-row {
+            border-bottom: 1px solid #aaa;
+            height: 21px;
+            width: 100%;
+        }
+        
+        /* Tombol Aksi Styling */
+        .action-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .btn-print {
+            padding: 10px 20px;
+            font-weight: bold;
+            background: #0d8a52;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        .btn-download {
+            padding: 10px 20px;
+            font-weight: bold;
+            background: #c0392b;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .sheet {
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0;
+                width: 100%;
+                height: 100vh;
+                padding: 10mm 15mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Tombol Aksi -->
+    <div class="no-print action-container">
+        <button class="btn-print" onclick="window.print()">
+            🖨️ Cetak Lembar Ini
+        </button>
+        <button class="btn-download" onclick="downloadPDF()">
+            📥 Download PDF 
+        </button>
+    </div>
+
+    {% for dispo in dispositions %}
+    <div class="sheet" id="sheet-dispo-{{ forloop.counter }}">
+        
+        <!-- Kop Surat -->
+        <div class="kop-container">
+            <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS" class="logo">
+        </div>
+
+        <div class="title">LEMBAR DISPOSISI</div>
+
+        <!-- Informasi Surat / Arsip -->
+        <table class="content-table">
+            <tr>
+                <td width="16%" style="font-weight: bold;">Surat Dari</td>
+                <td width="2%">:</td>
+                <td width="38%">{{ dispo.archive.sender|default:"-" }}</td>
+                <td width="18%" style="font-weight: bold;">Diterima Tanggal</td>
+                <td width="2%">:</td>
+                <td width="24%">{{ dispo.created_at|date:"d M Y" }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Instansi/Perorangan</td>
+                <td>:</td>
+                <td>{{ dispo.archive.sender|default:"-" }}</td>
+                <td style="font-weight: bold;">Nomor Agenda</td>
+                <td>:</td>
+                <td>{{ dispo.disposition_number }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Tanggal Surat</td>
+                <td>:</td>
+                <td>{{ dispo.archive.letter_date|date:"d M Y"|default:"-" }}</td>
+                <td colspan="3"></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Nomor Surat</td>
+                <td>:</td>
+                <td>{{ dispo.archive.archive_number|default:"-" }}</td>
+                <td colspan="3"></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Perihal</td>
+                <td>:</td>
+                <td>{{ dispo.archive.title }}</td>
+                <td colspan="3"></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Alamat Lengkap</td>
+                <td>:</td>
+                <td colspan="4"><strong>{{ dispo.archive.address|default:"-" }}</strong></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Keterangan</td>
+                <td>:</td>
+                <td>{{ dispo.archive.location|default:dispo.archive.description|default:"-" }}</td>
+                <td colspan="3"></td>
+            </tr>
+        </table>
+
+        <!-- Grid Sifat & Diteruskan Kepada -->
+        <table class="border-all" style="margin-bottom: -1px;">
+            <tr>
+                <td width="45%">
+                    <div class="section-title">Sifat:</div>
+                    <div style="padding: 8px; font-size: 12px;">
+                        <div style="margin-bottom: 6px;"><span class="checkbox-box">{% if dispo.priority == 'sangat_segera' %}X{% else %}&nbsp;{% endif %}</span> Sangat Segera</div>
+                        <div style="margin-bottom: 6px;"><span class="checkbox-box">{% if dispo.priority == 'segera' %}X{% else %}&nbsp;{% endif %}</span> Segera</div>
+                        <div style="margin-bottom: 6px;"><span class="checkbox-box">{% if dispo.priority == 'biasa' or not dispo.priority %}X{% else %}&nbsp;{% endif %}</span> Biasa</div>
+                        <div style="margin-bottom: 6px;"><span class="checkbox-box">{% if dispo.priority == 'penting' or dispo.priority == 'mendesak' %}X{% else %}&nbsp;{% endif %}</span> Mendesak</div>
+                    </div>
+                </td>
+                <td width="55%">
+                    <div class="section-title">Diteruskan Kepada:</div>
+                    <div style="padding: 8px; font-size: 12px;">
+                        {% comment %}Penerima aktif berdasarkan tahap disposisi{% endcomment %}
+                        {% if dispo.is_stage_waka %}
+                            {% with active_recipients=dispo.waka_forwarded_to.all %}
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'ketua' %}X{% endif %}{% endfor %}&nbsp;</span> Ketua</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'waka_1' %}X{% endif %}{% endfor %}&nbsp;</span> Waka I</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'waka_2' %}X{% endif %}{% endfor %}&nbsp;</span> Waka II</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'waka_3' %}X{% endif %}{% endfor %}&nbsp;</span> Waka III</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'waka_4' %}X{% endif %}{% endfor %}&nbsp;</span> Waka IV</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'none' and 'kabid' in e.position|lower or e.leadership_type == 'none' and 'kepala bidang' in e.position|lower %}X{% endif %}{% endfor %}&nbsp;</span> Kabag / Kepala Bidang</div>
+                            <div style="margin-top: 8px; font-style: italic; font-size: 11.5px; border-top: 1px dashed #ccc; padding-top: 4px;">
+                                <strong>Penerima:</strong>
+                                {% for emp in active_recipients %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}
+                            </div>
+                            {% endwith %}
+                        {% else %}
+                            {% with active_recipients=dispo.forwarded_to.all %}
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'ketua' %}X{% endif %}{% endfor %}&nbsp;</span> Ketua</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'waka_1' %}X{% endif %}{% endfor %}&nbsp;</span> Waka I</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'waka_2' %}X{% endif %}{% endfor %}&nbsp;</span> Waka II</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'waka_3' %}X{% endif %}{% endfor %}&nbsp;</span> Waka III</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'waka_4' %}X{% endif %}{% endfor %}&nbsp;</span> Waka IV</div>
+                            <div style="margin-bottom: 4px;"><span class="checkbox-box">{% for e in active_recipients %}{% if e.leadership_type == 'none' and 'kabid' in e.position|lower or e.leadership_type == 'none' and 'kepala bidang' in e.position|lower %}X{% endif %}{% endfor %}&nbsp;</span> Kabag / Kepala Bidang</div>
+                            <div style="margin-top: 8px; font-style: italic; font-size: 11.5px; border-top: 1px dashed #ccc; padding-top: 4px;">
+                                <strong>Penerima:</strong>
+                                {% for emp in active_recipients %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}
+                            </div>
+                            {% endwith %}
+                        {% endif %}
+                    </div>
+
+                </td>
+            </tr>
+        </table>
+
+        <!-- SATU KOTAK ISI DISPOSISI / INSTRUKSI (Ketua + Waka IV dalam satu lembar) -->
+        <table class="border-all">
+            <tr>
+                <td>
+                    <div class="section-title">ISI DISPOSISI / INSTRUKSI:</div>
+                    <div class="line-box">
+                        <!-- Arahan Ketua -->
+                        <div style="font-size: 11.5px; font-weight: bold; color: #333; margin-bottom: 4px; border-bottom: 1px dashed #ccc; padding-bottom: 4px;">
+                            Arahan Ketua ({{ dispo.sender_label|default:dispo.display_sender_name }}):
+                        </div>
+                        <div style="font-size: 13px; margin-bottom: 10px; padding-left: 8px;">
+                            {% if dispo.note %}
+                                {% for line in dispo.note.splitlines %}
+                                    <div style="margin-bottom: 2px;">{{ forloop.counter }}. {{ line }}</div>
+                                {% endfor %}
+                            {% else %}
+                                <span style="color: #888;">—</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Arahan Waka IV (hanya tampil jika sudah tahap 2) -->
+                        {% if dispo.is_stage_waka %}
+                        <div style="font-size: 11.5px; font-weight: bold; color: #1a6ca8; margin-bottom: 4px; border-bottom: 1px dashed #aac; padding-bottom: 4px; margin-top: 6px;">
+                            Arahan Waka IV ({{ dispo.display_waka_name }}):
+                        </div>
+                        <div style="font-size: 13px; padding-left: 8px;">
+                            {% if dispo.waka_note %}
+                                {% for line in dispo.waka_note.splitlines %}
+                                    <div style="margin-bottom: 2px;">{{ forloop.counter }}. {{ line }}</div>
+                                {% endfor %}
+                            {% else %}
+                                <span style="color: #888;">—</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Garis kosong untuk catatan manual -->
+                        <div class="line-row" style="margin-top: 10px;"></div>
+                        <div class="line-row"></div>
+                        <div class="line-row"></div>
+                        <div class="line-row"></div>
+                        <div class="line-row"></div>
+                        <div class="line-row"></div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- TANDA TANGAN: Jika 2 tahap → hanya Waka IV. Jika 1 tahap → hanya Ketua. Keduanya pakai QR+logo BAZNAS -->
+        <table style="width: 100%; margin-top: 15px; font-size: 12px;">
+            <tr>
+                <td width="50%"></td>
+                <td width="50%" align="center">
+                    <div>Tangerang, {% now "d M Y" %}</div>
+                    {% if dispo.is_stage_waka %}
+                    <div style="font-weight: bold; margin-bottom: 3px;">Wakil Ketua IV,</div>
+                    {% else %}
+                    <div style="font-weight: bold; margin-bottom: 3px;">Ketua BAZNAS,</div>
+                    {% endif %}
+                    <div style="margin: 6px 0;">
+                        <div style="position: relative; display: inline-block; width: 60px; height: 60px;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ request.scheme }}://{{ request.get_host }}{% url 'dispositions:detail' dispo.pk %}"
+                                 alt="QR Code"
+                                 style="width: 60px; height: 60px; display: block;">
+                            <img src="{% static 'images/logo-baznas.png' %}"
+                                 onerror="this.style.display='none'"
+                                 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: white; padding: 1.5px; border-radius: 3px; border: 1px solid #046C4E;"
+                                 alt="Logo BAZNAS">
+                        </div>
+                    </div>
+                    <div style="text-decoration: underline; font-weight: bold; margin-top: 3px;">
+                        {% if dispo.is_stage_waka %}
+                            {{ dispo.display_waka_name }}
+                        {% else %}
+                            {{ dispo.sender_label|default:dispo.display_sender_name }}
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+    {% endfor %}
+
+
+    <!-- Script JavaScript Download PDF Murni -->
+    <script>
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const sheetElement = document.getElementById('sheet-dispo-1'); // Mengambil lembar disposisi pertama
+
+            // Mengubah elemen HTML lembar disposisi menjadi Canvas beresolusi tinggi agar border rapi
+            const canvas = await html2canvas(sheetElement, {
+                scale: 2, // Meningkatkan ketajaman teks dan garis border
+                useCORS: true,
+                logging: false
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            
+            // Inisialisasi dokumen PDF ukuran A4 (Portrait)
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = 210;  // Lebar A4 dalam mm
+            const pageHeight = 297; // Tinggi A4 dalam mm
+
+            // Menempelkan gambar kanvas secara presisi pas memenuhi 1 halaman penuh
+            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
+            
+            // Mengunduh file PDF secara otomatis ke komputer/perangkat
+            pdf.save('Lembar_Disposisi_{{ dispo.disposition_number|default:"BAZNAS" }}.pdf');
+        }
+    </script>
+</body>
+</html>

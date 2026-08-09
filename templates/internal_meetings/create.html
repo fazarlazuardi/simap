@@ -1,0 +1,308 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit Agenda Rapat{% else %}Buat Agenda Rapat Internal Baru{% endif %} - BAZNAS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .custom-input { height: 50px; border-radius: 12px; border: 1px solid #E5E7EB; }
+    .custom-input:focus { border-color: var(--primary); box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15); }
+    textarea { border-radius: 12px !important; border: 1px solid #E5E7EB !important; }
+    
+    .participant-checkbox-card {
+        border: 1px solid var(--border-color, #cbd5e1);
+        border-radius: 10px;
+        padding: 8px 12px;
+        transition: all 0.2s ease;
+        background-color: var(--card-bg, #ffffff);
+        cursor: pointer;
+    }
+    .participant-checkbox-card:hover {
+        border-color: var(--primary, #0d8a52);
+        background-color: rgba(13, 138, 82, 0.04);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Header Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb m-0 bg-transparent p-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'internal_meetings:list' %}" class="text-decoration-none" style="color: var(--primary);">Rapat Internal</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{% if is_edit %}Edit Agenda Rapat{% else %}Buat Agenda Baru{% endif %}</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold m-0" style="color: var(--text-primary);">
+                <i class="bi bi-calendar-plus-fill me-2 text-success"></i>{% if is_edit %}Edit Agenda Rapat Internal{% else %}Formulir Agenda Rapat Internal Baru{% endif %}
+            </h4>
+        </div>
+        <div>
+            <a href="{% url 'internal_meetings:list' %}" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+                <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN FORM CARD -->
+    <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
+        <div class="card-header bg-white py-3 px-4 rounded-top-4" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
+            <h6 class="fw-bold mb-0 text-primary">
+                <i class="bi bi-pencil-fill me-2"></i>Rincian Informasi Agenda & Peserta Rapat
+            </h6>
+        </div>
+
+        <div class="card-body p-4">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Baris 1: Judul & Jenis Rapat -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-8">
+                        <label for="{{ form.title.id_for_label }}" class="form-label fw-bold text-dark">Judul / Perihal Rapat <span class="text-danger">*</span></label>
+                        {{ form.title }}
+                        {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ form.meeting_type.id_for_label }}" class="form-label fw-bold text-dark">Jenis Rapat <span class="text-danger">*</span></label>
+                        {{ form.meeting_type }}
+                        {% if form.meeting_type.errors %}<div class="text-danger small mt-1">{{ form.meeting_type.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Baris 2: Waktu, Lokasi -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="{{ form.scheduled_at.id_for_label }}" class="form-label fw-bold text-dark">Waktu & Tanggal Pelaksanaan <span class="text-danger">*</span></label>
+                        {{ form.scheduled_at }}
+                        {% if form.scheduled_at.errors %}<div class="text-danger small mt-1">{{ form.scheduled_at.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.location.id_for_label }}" class="form-label fw-bold text-dark">Tempat / Ruang Rapat <span class="text-danger">*</span></label>
+                        {{ form.location }}
+                        {% if form.location.errors %}<div class="text-danger small mt-1">{{ form.location.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Baris 3: Pimpinan Rapat (Tunggal Form Field - Bisa Pilih Banyak) -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <label class="form-label fw-bold text-dark m-0">
+                            <i class="bi bi-person-badge-fill text-primary me-1"></i> Pimpinan Rapat <span class="text-danger">*</span>
+                        </label>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" id="btn_select_all_leaders">
+                                <i class="bi bi-check-all me-1"></i> Pilih Semua Pimpinan
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" id="btn_deselect_all_leaders">
+                                <i class="bi bi-x-circle me-1"></i> Batal Semua
+                            </button>
+                            <span class="badge bg-primary rounded-pill px-3" id="leader_count_badge">0 Pimpinan Di-ceklis</span>
+                        </div>
+                    </div>
+
+                    <!-- Filter Search Input Pimpinan -->
+                    <div class="mb-2">
+                        <input type="text" id="search_leader" class="form-control form-control-sm rounded-pill px-3" placeholder="🔍 Cari nama pimpinan rapat...">
+                    </div>
+
+                    <div class="p-3 rounded-3 border" style="max-height: 180px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
+                        <div class="row g-2" id="leader_checkbox_container">
+                            {% for checkbox in form.leaders %}
+                            <div class="col-md-4 col-sm-6 leader-card-item">
+                                <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1">
+                                    {{ checkbox.tag }}
+                                    <span class="small fw-semibold text-dark">{{ checkbox.choice_label }}</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Daftar pimpinan struktural BAZNAS Kabupaten Tangerang (Dapat memilih satu atau lebih dari satu pimpinan rapat).</small>
+                    {% if form.leaders.errors %}<div class="text-danger small mt-1">{{ form.leaders.errors }}</div>{% endif %}
+                </div>
+
+                <!-- Baris 4: Peserta Rapat Checkbox Grid dengan Fitur Filter & Pilih Semua -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <label class="form-label fw-bold text-dark m-0"><i class="bi bi-people-fill text-success me-1"></i> Peserta Rapat (Pegawai / Amil BAZNAS)</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" id="btn_select_all_participants">
+                                <i class="bi bi-check-all me-1"></i> Pilih Semua
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" id="btn_deselect_all_participants">
+                                <i class="bi bi-x-circle me-1"></i> Batal Semua
+                            </button>
+                            <span class="badge bg-success rounded-pill px-3" id="participant_count_badge">0 Peserta Di-ceklis</span>
+                        </div>
+                    </div>
+
+                    <!-- Filter Search Input Peserta -->
+                    <div class="mb-2">
+                        <input type="text" id="search_participant" class="form-control form-control-sm rounded-pill px-3" placeholder="🔍 Cari nama atau jabatan pegawai / amil...">
+                    </div>
+
+                    <!-- Container Indikator Nama Pegawai yang Diceklis -->
+                    <div id="selected_participants_container" class="p-3 mb-3 rounded-3 border bg-light d-none">
+                        <div class="small fw-bold text-success mb-2"><i class="bi bi-people-fill me-1"></i> Daftar Peserta Rapat Terpilih:</div>
+                        <div id="selected_participants_badges" class="d-flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <div class="p-3 rounded-3 border" style="max-height: 250px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
+                        <div class="row g-2" id="participant_checkbox_container">
+                            {% for checkbox in form.participants %}
+                            <div class="col-md-4 col-sm-6 participant-card-item">
+                                <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100">
+                                    {{ checkbox.tag }}
+                                    <span class="small fw-semibold text-dark">{{ checkbox.choice_label }}</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Baris 5: Agenda Pembahasan -->
+                <div class="mb-4">
+                    <label for="{{ form.agenda_topics.id_for_label }}" class="form-label fw-bold text-dark">Agenda & Poin Pembahasan <span class="text-danger">*</span></label>
+                    {{ form.agenda_topics }}
+                    {% if form.agenda_topics.errors %}<div class="text-danger small mt-1">{{ form.agenda_topics.errors }}</div>{% endif %}
+                </div>
+
+                <!-- Baris 6: File Lampiran -->
+                <div class="mb-4">
+                    <label for="{{ form.attachment.id_for_label }}" class="form-label fw-bold text-dark">Berkas Lampiran / Undangan (Opsional)</label>
+                    {{ form.attachment }}
+                    {% if form.attachment.errors %}<div class="text-danger small mt-1">{{ form.attachment.errors }}</div>{% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                    <a href="{% url 'internal_meetings:list' %}" class="btn btn-light rounded-pill px-4 fw-semibold border">Batal</a>
+                    <button type="submit" class="btn text-white rounded-pill px-5 fw-bold shadow-sm" style="background-color: var(--primary);">
+                        <i class="bi bi-check-circle-fill me-2"></i>{% if is_edit %}Simpan Perubahan{% else %}Terbitkan Agenda Rapat{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- 1. FILTER & BADGES FOR PIMPINAN ---
+        const leaderCheckboxes = document.querySelectorAll('input[name="leaders"]');
+        const leaderBadgeCounter = document.getElementById('leader_count_badge');
+        const searchLeader = document.getElementById('search_leader');
+        const btnSelectAllLeaders = document.getElementById('btn_select_all_leaders');
+        const btnDeselectAllLeaders = document.getElementById('btn_deselect_all_leaders');
+
+        function updateLeaderCount() {
+            let count = 0;
+            leaderCheckboxes.forEach(cb => { if (cb.checked) count++; });
+            if (leaderBadgeCounter) leaderBadgeCounter.innerText = `${count} Pimpinan Di-ceklis`;
+        }
+
+        if (searchLeader) {
+            searchLeader.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                document.querySelectorAll('.leader-card-item').forEach(item => {
+                    const text = item.innerText.toLowerCase();
+                    item.style.display = text.includes(query) ? 'block' : 'none';
+                });
+            });
+        }
+
+        if (btnSelectAllLeaders) {
+            btnSelectAllLeaders.addEventListener('click', function() {
+                document.querySelectorAll('.leader-card-item').forEach(item => {
+                    if (item.style.display !== 'none') {
+                        const cb = item.querySelector('input[type="checkbox"]');
+                        if (cb) cb.checked = true;
+                    }
+                });
+                updateLeaderCount();
+            });
+        }
+
+        if (btnDeselectAllLeaders) {
+            btnDeselectAllLeaders.addEventListener('click', function() {
+                leaderCheckboxes.forEach(cb => cb.checked = false);
+                updateLeaderCount();
+            });
+        }
+
+        leaderCheckboxes.forEach(cb => cb.addEventListener('change', updateLeaderCount));
+        updateLeaderCount();
+
+        // --- 2. FILTER, SELECT ALL, & BADGES FOR PESERTA ---
+        const participantCheckboxes = document.querySelectorAll('input[name="participants"]');
+        const badgeCounter = document.getElementById('participant_count_badge');
+        const badgesContainer = document.getElementById('selected_participants_badges');
+        const containerBox = document.getElementById('selected_participants_container');
+        const searchParticipant = document.getElementById('search_participant');
+        const btnSelectAll = document.getElementById('btn_select_all_participants');
+        const btnDeselectAll = document.getElementById('btn_deselect_all_participants');
+
+        function updateParticipantBadges() {
+            const selected = [];
+            participantCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    const labelText = cb.closest('label').querySelector('span').innerText;
+                    selected.push(labelText);
+                }
+            });
+
+            if (badgeCounter) badgeCounter.innerText = `${selected.length} Peserta Di-ceklis`;
+
+            if (selected.length > 0) {
+                if (containerBox) containerBox.classList.remove('d-none');
+                if (badgesContainer) {
+                    badgesContainer.innerHTML = selected.map(name => 
+                        `<span class="badge bg-success text-white px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.8rem;"><i class="bi bi-person-fill me-1"></i>${name}</span>`
+                    ).join('');
+                }
+            } else {
+                if (containerBox) containerBox.classList.add('d-none');
+                if (badgesContainer) badgesContainer.innerHTML = '';
+            }
+        }
+
+        if (searchParticipant) {
+            searchParticipant.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                document.querySelectorAll('.participant-card-item').forEach(item => {
+                    const text = item.innerText.toLowerCase();
+                    item.style.display = text.includes(query) ? 'block' : 'none';
+                });
+            });
+        }
+
+        if (btnSelectAll) {
+            btnSelectAll.addEventListener('click', function() {
+                document.querySelectorAll('.participant-card-item').forEach(item => {
+                    if (item.style.display !== 'none') {
+                        const cb = item.querySelector('input[type="checkbox"]');
+                        if (cb) cb.checked = true;
+                    }
+                });
+                updateParticipantBadges();
+            });
+        }
+
+        if (btnDeselectAll) {
+            btnDeselectAll.addEventListener('click', function() {
+                participantCheckboxes.forEach(cb => cb.checked = false);
+                updateParticipantBadges();
+            });
+        }
+
+        participantCheckboxes.forEach(cb => cb.addEventListener('change', updateParticipantBadges));
+        updateParticipantBadges();
+    });
+</script>
+{% endblock %}

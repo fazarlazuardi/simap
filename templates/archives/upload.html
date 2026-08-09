@@ -1,0 +1,296 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Unggah Arsip Baru - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb m-0 bg-transparent p-0">
+                <li class="breadcrumb-item"><a href="{% url 'archives:list' %}" class="text-decoration-none" style="color: var(--primary);">Arsip</a></li>
+                <li class="breadcrumb-item active" aria-current="page" style="color: var(--text-secondary);">Unggah Baru</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold mt-2" style="color: var(--text-primary);">Unggah Dokumen Arsip Baru</h4>
+        <p class="text-secondary small mb-0">Pastikan metadata dokumen diisi dengan benar untuk keperluan verifikasi dan penerbitan Tanda Terima Resmi.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Banner Informasi Workflow Bidang II & Tanda Terima -->
+        <div class="alert alert-primary alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px; background-color: #EBF5FF; color: #1E429F;">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
+                <div>
+                    <strong>Sistem Otomasi BAZNAS:</strong> Dokumen berjenis <strong>Proposal Permohonan</strong> akan otomatis dialokasikan ke <strong>Bidang II (Pendistribusian & Pendayagunaan)</strong>. Setelah diunggah, Anda dapat mencetak Tanda Terima Resmi.
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="card border-0 shadow-sm p-4 mb-5" style="border-radius: 16px;">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Baris 1: Tipe, Nomor Arsip, Tanggal Surat -->
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <label for="archive_type" class="form-label fw-bold">Jenis Dokumen <span class="text-danger">*</span></label>
+                        <select class="form-select custom-input" id="archive_type" name="archive_type" required>
+                            {% for code, name in archive_types %}
+                            <option value="{{ code }}" {% if code == selected_type %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="archive_number" class="form-label fw-bold">Nomor Arsip / Surat</label>
+                        <input type="text" class="form-control custom-input" id="archive_number" name="archive_number"
+                               placeholder="Kosongkan untuk isi nanti"
+                               value="{{ default_archive_number }}">
+                        <div id="archive_number_hint" class="form-text small">Biarkan kosong jika nomor akan diisi saat verifikasi Kabid 4.</div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="letter_date" class="form-label fw-bold">Tanggal Surat <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control custom-input" id="letter_date" name="letter_date" value="{% now 'Y-m-d' %}" required>
+                    </div>
+                    {% if letter_date_value %}
+                    <script>document.getElementById('letter_date').value = '{{ letter_date_value }}';</script>
+                    {% endif %}
+                </div>
+
+                <!-- Baris 2: Pengirim/Penerima, Alamat Lengkap & Tanggal Diterima -->
+                <div class="row">
+                    <div class="col-md-5 mb-4">
+                        <label for="sender_receiver" id="sender_receiver_label" class="form-label fw-bold">Pengirim / Asal Instansi / Mustahik <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="sender_receiver" name="sender_receiver" required placeholder="Contoh: Pemkab / BAZNAS RI / Nama Pemohon" value="{{ sender_receiver_value|default:'' }}">
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="address" class="form-label fw-bold"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Alamat Lengkap Pemohon / Mustahik</label>
+                        <input type="text" class="form-control custom-input" id="address" name="address" placeholder="Contoh: Ds. Jambe Rt 02/03 Kec. Jambe" value="{{ address_value|default:'' }}">
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <label for="received_date" class="form-label fw-bold">Tanggal Diterima / Dikirim</label>
+                        <input type="date" class="form-control custom-input" id="received_date" name="received_date" value="{% now 'Y-m-d' %}">
+                    </div>
+                </div>
+
+                <!-- Baris 3: Perihal / Judul Dokumen -->
+                <div class="mb-4">
+                    <label for="title" class="form-label fw-bold">Perihal / Judul Dokumen <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control custom-input" id="title" name="title" required placeholder="Contoh: Permohonan Bantuan Biaya Berobat" value="{{ title_value|default:'' }}">
+                </div>
+
+                <!-- Baris 4: Sifat Keamanan & Sifat Urgensi -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="security_level" class="form-label fw-bold">Sifat Keamanan</label>
+                        <select class="form-select custom-input" id="security_level" name="security_level">
+                            <option value="biasa" selected>Biasa</option>
+                            <option value="penting">Penting</option>
+                            <option value="rahasia">Rahasia</option>
+                            <option value="sangat_rahasia">Sangat Rahasia</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="urgency_level" class="form-label fw-bold">Sifat Urgensi / Tanggapan</label>
+                        <select class="form-select custom-input" id="urgency_level" name="urgency_level">
+                            <option value="biasa" selected>Biasa</option>
+                            <option value="segera">Segera</option>
+                            <option value="amat_segera">Amat Segera / Kilat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Baris 5: Kategori Bidang & File Berkas -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="category" class="form-label fw-bold">Kategori Bidang <span class="text-danger">*</span></label>
+                        <select class="form-select custom-input" id="category" name="category" required>
+                            <option value="" selected disabled>Pilih Kategori Dokumen...</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div id="category_hint" class="form-text text-success small d-none"><i class="bi bi-check-circle-fill me-1"></i> Dialokasikan otomatis berdasarkan perihal dokumen.</div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="file_path" class="form-label fw-bold">Berkas Digital (PDF/Gambar) <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control custom-input" id="file_path" name="file_path" required>
+                    </div>
+                </div>
+
+                <!-- Baris 6: Keterangan Tambahan / Sinopsis -->
+                <div class="mb-4">
+                    <label for="description" class="form-label fw-bold">Keterangan Ringkas / Sinopsis</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="Tambahkan rincian/catatan jika diperlukan..."></textarea>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                    <a href="{% url 'archives:list' %}" class="btn btn-light px-4 fw-semibold style-btn-cancel">Batal</a>
+                    <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold style-btn-submit">
+                        <i class="bi bi-cloud-upload me-2"></i> Unggah Dokumen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-input { 
+        height: 50px; 
+        border-radius: 12px; 
+        border: 1px solid #E5E7EB; 
+    }
+    .custom-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+    textarea { 
+        border-radius: 12px !important; 
+        border: 1px solid #E5E7EB !important; 
+    }
+    .style-btn-cancel {
+        border-radius: 12px;
+        height: 48px;
+        display: inline-flex;
+        align-items: center;
+    }
+    .style-btn-submit {
+        border-radius: 12px;
+        height: 48px;
+        display: inline-flex;
+        align-items: center;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const archiveTypeSelect = document.getElementById('archive_type');
+        const archiveNumInput = document.getElementById('archive_number');
+        const senderReceiverLabel = document.getElementById('sender_receiver_label');
+        const titleInput = document.getElementById('title');
+        const categorySelect = document.getElementById('category');
+        const categoryHint = document.getElementById('category_hint');
+
+        // Mengambil JSON mapping default penomoran dari Backend
+        let defaultsByType = {};
+        try {
+            defaultsByType = JSON.parse('{{ default_by_type_json|escapejs }}');
+        } catch (e) {
+            console.error("Gagal memuat default_by_type_json:", e);
+        }
+
+        // Mapping Rule Kata Kunci Cerdas untuk Auto-Select Kategori Presisi
+        const categoryKeywordRules = [
+            { keywords: ['rutilahu', 'bedah rumah', 'rumah roboh', 'perbaikan rumah', 'renovasi rumah'], match: 'rutilahu' },
+            { keywords: ['pengobatan', 'berobat', 'kesehatan', 'rumah sakit', 'pasien', 'operasi', 'alat bantu', 'kursi roda', 'medis'], match: 'kesehatan' },
+            { keywords: ['gharimin', 'gharim', 'hutang', 'hutanh', 'piutang', 'tunggakan sewa', 'tunggakan hidup', 'kontrakan'], match: 'gharimin' },
+            { keywords: ['beasiswa', 'spp', 'sekolah', 'ijazah', 'tunggakan sekolah', 'kuliah', 'pendidikan', 'siswa', 'mahasiswa', 'tunggakan pendidikan', 'tunggakan spp', 'biaya pendidikan'], match: 'pendidikan' },
+            { keywords: ['masjid', 'mesjid', 'musholla', 'mushola', 'majlis', 'majelis', 'peribadatan', 'pembangunan mesjid', 'pembangunan musholla', 'pembangunan peribadatan', 'karpet', 'sound system', 'kubah'], match: 'peribadatan' },
+            { keywords: ['meubelair', 'mebeulair', 'meubellair', 'pesantren', 'madrasah', 'ponpes', 'mebel', 'meja kursi', 'ruang kelas', 'sarpras'], match: 'meubelair' },
+            { keywords: ['umkm', 'modal usaha', 'gerobak', 'gerobak usaha', 'usaha', 'dagang', 'warung', 'modal kerja'], match: 'umkm' },
+            { keywords: ['musafir', 'bekal perjalanan', 'terlantar', 'ongkos pulang', 'ibnu sabil'], match: 'musafir' },
+            { keywords: ['mualaf', 'muallaf', 'masuk islam', 'pembinaan muallaf'], match: 'muallaf' },
+            { keywords: ['sembako', 'santunan', 'yatim', 'piatu', 'logistik', 'paket sembako', 'tanggap bencana'], match: 'sembako' },
+            { keywords: ['audiensi', 'tatap muka', 'bertemu pimpinan'], match: 'audiensi' },
+            { keywords: ['undangan', 'acara', 'peresmian', 'pelantikan', 'seminar', 'lokakarya'], match: 'undangan' },
+            { keywords: ['kerjasama', 'mou', 'mitra', 'vendor', 'penawaran'], match: 'kerjasama' },
+            { keywords: ['laz', 'upz', 'pengumpulan upz', 'rekap upz'], match: 'upz' },
+            { keywords: ['internal', 'sk', 'cuti', 'absensi', 'nota dinas'], match: 'internal' }
+        ];
+
+        function autoSelectCategoryFromTitle() {
+            const titleVal = titleInput.value.toLowerCase();
+            if (!titleVal) return;
+
+            // 1. Pencocokan berbasis Rule Kata Kunci ke opsi yang ada
+            for (const rule of categoryKeywordRules) {
+                const found = rule.keywords.some(kw => titleVal.includes(kw));
+                if (found) {
+                    for (let i = 0; i < categorySelect.options.length; i++) {
+                        const opt = categorySelect.options[i];
+                        if (!opt.value) continue;
+                        const optText = opt.text.toLowerCase();
+                        if (optText.includes(rule.match)) {
+                            categorySelect.selectedIndex = i;
+                            categoryHint.classList.remove('d-none');
+                            categoryHint.innerHTML = `<i class="bi bi-magic me-1"></i> Terpilih otomatis presisi: <strong>${opt.text}</strong>`;
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // 2. Pencocokan kata langsung ke nama kategori di database
+            for (let i = 0; i < categorySelect.options.length; i++) {
+                const opt = categorySelect.options[i];
+                if (!opt.value) continue;
+                const optText = opt.text.toLowerCase();
+                const words = optText.replace(/[^a-z0-9\s]/gi, ' ').split(/\s+/).filter(w => w.length >= 4);
+                if (words.some(w => titleVal.includes(w))) {
+                    categorySelect.selectedIndex = i;
+                    categoryHint.classList.remove('d-none');
+                    categoryHint.innerHTML = `<i class="bi bi-magic me-1"></i> Terpilih otomatis presisi: <strong>${opt.text}</strong>`;
+                    return;
+                }
+            }
+        }
+
+        function updateFormUI() {
+            const val = archiveTypeSelect.value;
+            
+            // Format nomor per jenis dokumen
+            const now = new Date();
+            const romanMonths = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+            const month = romanMonths[now.getMonth()];
+            const year = now.getFullYear();
+
+            const formatMap = {
+                'surat_masuk':      { code: 'IN',   label: 'Surat Masuk',       preview: `XXX/BZ-IN/${month}/${year}` },
+                'surat_keluar':     { code: 'OUT',  label: 'Surat Keluar',      preview: `XXX/BZ-OUT/${month}/${year}` },
+                'proposal':         { code: 'PROP', label: 'Proposal',          preview: `XXX/BZ-PROP/${month}/${year}` },
+                'dokumen_internal': { code: 'DOC',  label: 'Dokumen Internal',  preview: `XXX/BZ-DOC/${month}/${year}` },
+            };
+
+            const fmt = formatMap[val] || { preview: `XXX/BZ-IN/${month}/${year}` };
+
+            // Update placeholder menjadi format yang sesuai jenis
+            archiveNumInput.placeholder = fmt.preview;
+
+            // Update hint teks di bawah field nomor
+            const numHint = document.getElementById('archive_number_hint');
+            if (numHint) {
+                numHint.innerHTML = `<i class="bi bi-info-circle me-1"></i>Format: <strong>${fmt.preview}</strong> &mdash; Kosongkan jika nomor belum ada.`;
+            }
+
+            // Isi otomatis nomor surat sesuai jenis dokumen dari JSON backend
+            if (defaultsByType[val] !== undefined) {
+                archiveNumInput.value = defaultsByType[val];
+            }
+
+            // Alih Bahasa Label Sesuai Jenis Dokumen
+            if (val === 'surat_keluar' || val === 'sppd') {
+                senderReceiverLabel.innerHTML = 'Penerima / Tujuan Surat <span class="text-danger">*</span>';
+            } else {
+                senderReceiverLabel.innerHTML = 'Pengirim / Asal Instansi <span class="text-danger">*</span>';
+            }
+
+            autoSelectCategoryFromTitle();
+        }
+
+        // Event listener saat jenis dokumen diubah
+        archiveTypeSelect.addEventListener('change', updateFormUI);
+
+        // Auto Select Kategori Presisi saat mengetik Perihal / Judul Dokumen
+        titleInput.addEventListener('input', autoSelectCategoryFromTitle);
+
+        // Jalankan saat pertama kali dimuat jika belum diisi
+        if (!archiveNumInput.value) {
+            updateFormUI();
+        }
+    });
+</script>
+{% endblock %}

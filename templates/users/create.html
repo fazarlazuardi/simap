@@ -1,0 +1,71 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Tambah Pengguna - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'users:list' %}" class="text-decoration-none text-primary">User Management</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tambah Pengguna</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold">Tambah Pengguna Baru</h4>
+        <p class="text-secondary small">Buat akun pengguna baru untuk akses sistem BAZNAS.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm p-4">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="username" name="username" required placeholder="admin_sdm">
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="email" class="form-label">Alamat Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" name="email" required placeholder="name@example.com">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="first_name" class="form-label">Nama Depan</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Nama depan">
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="last_name" class="form-label">Nama Belakang</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Nama belakang">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="role" class="form-label">Role Akses <span class="text-danger">*</span></label>
+                        <select class="form-select" id="role" name="role" required style="height: 52px; border-radius: 12px;">
+                            <option value="" selected disabled>Pilih Role...</option>
+                            {% for code, name in roles %}
+                            <option value="{{ code }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="{% url 'users:list' %}" class="btn btn-light px-4 fw-semibold" style="height: 52px; border-radius: 12px; display: flex; align-items: center;">Batal</a>
+                    <button type="submit" class="btn btn-primary px-5">Simpan Pengguna</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

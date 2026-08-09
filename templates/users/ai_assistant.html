@@ -1,0 +1,30 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Asisten AI - BAZNAS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm p-4">
+            <h4 class="fw-bold mb-2">Asisten AI Gemini</h4>
+            <p class="text-secondary small mb-4">Kirim pertanyaan atau instruksi untuk mendapatkan bantuan dari Gemini.</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Pertanyaan / Instruksi</label>
+                    <textarea class="form-control" name="prompt" rows="6" placeholder="Contoh: Ringkas isi disposisi ini dalam bahasa singkat...">{{ prompt }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Kirim ke Gemini</button>
+            </form>
+
+            {% if response_text %}
+            <div class="mt-4 border rounded p-3 bg-light">
+                <div class="fw-semibold mb-2">Jawaban AI</div>
+                <div style="white-space: pre-wrap;">{{ response_text }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
