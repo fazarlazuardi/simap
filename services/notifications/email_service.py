@@ -79,7 +79,7 @@ class BackupEmailNotifier:
         from django.utils import timezone
 
         timestamp_str = timezone.now().strftime('%d/%m/%Y %H:%M WIB')
-        recipient = getattr(settings, 'BACKUP_EMAIL_RECIPIENT', 'simap.baznas@gmail.com')
+        recipient = getattr(settings, 'BACKUP_EMAIL_RECIPIENT', 'kabupatenbaznastangerang@gmail.com')
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'simap@baznas-kabtangerang.or.id')
 
         subject = f"[BACKUP SIMAP] Laporan Cadangan Google Drive & Sistem - {timestamp_str}"

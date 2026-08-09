@@ -107,7 +107,7 @@ class Command(BaseCommand):
         )
 
         if sent:
-            self.stdout.write(self.style.SUCCESS(f"[OK] Laporan email backup berhasil dikirim ke {getattr(settings, 'BACKUP_EMAIL_RECIPIENT', 'simap.baznas@gmail.com')}."))
+            self.stdout.write(self.style.SUCCESS(f"[OK] Laporan email backup berhasil dikirim ke {getattr(settings, 'BACKUP_EMAIL_RECIPIENT', 'kabupatenbaznastangerang@gmail.com')}."))
         else:
             self.stdout.write(self.style.WARNING("Info: Email backup terkirim atau tercatat di log (fail_silently)."))
 
