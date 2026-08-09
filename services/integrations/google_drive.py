@@ -40,8 +40,8 @@ class GoogleDriveService:
                 return setting.value
         except Exception:
             pass
-        val = getattr(settings, 'GOOGLE_DRIVE_FOLDER_ID', '')
-        return val if val and val != 'your_folder_id_here' and len(val) > 10 else None
+        val = getattr(settings, 'GOOGLE_DRIVE_FOLDER_ID', '10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm')
+        return val if val and val != 'your_folder_id_here' else '10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm'
 
     def _get_sheet_id_from_db(self):
         try:
