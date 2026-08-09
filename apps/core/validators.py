@@ -11,12 +11,12 @@ validate_file_extension = FileExtensionValidator(
     message="Format file tidak didukung. Format yang diizinkan: PDF, DOC, DOCX, JPG, JPEG, PNG."
 )
 
-# Maximum file size validator (Default: 10 MB = 10 * 1024 * 1024 bytes)
-MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+# Maximum file size validator (Default: 100 MB = 100 * 1024 * 1024 bytes)
+MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024
 
 def validate_file_size(file_obj):
     """
-    Validasi batas maksimum ukuran file upload (Max 10MB).
+    Validasi batas maksimum ukuran file upload (Max 100MB).
     """
     if file_obj and hasattr(file_obj, 'size'):
         if file_obj.size > MAX_FILE_SIZE_BYTES:
