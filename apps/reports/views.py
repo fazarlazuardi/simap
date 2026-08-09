@@ -746,7 +746,20 @@ def oauth_login(request):
         messages.error(request, "client_id tidak ditemukan di file JSON.")
         return redirect('reports:index')
 
-    redirect_uri = request.build_absolute_uri('/reports/oauth/callback/')
+    redirect_uris = cfg.get('redirect_uris', [])
+    default_redirect = request.build_absolute_uri('/reports/oauth/callback/')
+    redirect_uri = default_redirect
+    
+    if redirect_uris:
+        if default_redirect in redirect_uris:
+            redirect_uri = default_redirect
+        elif 'http://localhost/reports/oauth/callback/' in redirect_uris:
+            redirect_uri = 'http://localhost/reports/oauth/callback/'
+        elif 'http://localhost:8000/reports/oauth/callback/' in redirect_uris:
+            redirect_uri = 'http://localhost:8000/reports/oauth/callback/'
+        elif 'http://localhost' in redirect_uris and 'installed' in client_config:
+            redirect_uri = 'http://localhost'
+
     scopes = ['https://www.googleapis.com/auth/drive.file',
               'https://www.googleapis.com/auth/spreadsheets']
 
@@ -765,6 +778,7 @@ def oauth_login(request):
     )
     request.session['oauth_code_verifier'] = code_verifier
     request.session['oauth_state'] = state
+    request.session['oauth_redirect_uri'] = redirect_uri
     return redirect(auth_url)
 
 @login_required
@@ -791,7 +805,7 @@ def oauth_callback(request):
         messages.error(request, "client_id atau client_secret tidak ditemukan.")
         return redirect('reports:index')
 
-    redirect_uri = request.build_absolute_uri('/reports/oauth/callback/')
+    redirect_uri = request.session.get('oauth_redirect_uri') or request.build_absolute_uri('/reports/oauth/callback/')
     scopes = ['https://www.googleapis.com/auth/drive.file',
               'https://www.googleapis.com/auth/spreadsheets']
 
