@@ -670,12 +670,7 @@ def drive_backup_monthly(request):
 
         tgl_agenda = arc.latest_agenda_date.strftime('%d/%m/%Y') if arc.latest_agenda_date else '-'
 
-        dok_link = ''
-        if arc.file_path:
-            if arc.drive_file_id:
-                dok_link = f"https://drive.google.com/file/d/{arc.drive_file_id}/view"
-            else:
-                dok_link = request.build_absolute_uri(arc.file_path.url)
+        dok_link = request.build_absolute_uri(arc.file_path.url) if arc.file_path else ''
 
         arsip_link = request.build_absolute_uri(f"/archives/{arc.pk}/")
 
@@ -702,7 +697,7 @@ def drive_backup_monthly(request):
             tgl_agenda,
             sppd_number,
             report_number,
-            f'=HYPERLINK("{dok_link}", "Buka File Drive")' if dok_link else '-',
+            f'=HYPERLINK("{dok_link}", "Buka Berkas SIMAP")' if dok_link else '-',
             f'=HYPERLINK("{arsip_link}", "Lihat Detail Sistem")',
         ])
 

@@ -200,8 +200,7 @@ class GoogleDriveService:
 
     def create_monthly_backup(self, month, year, rows):
         """
-        Membuat spreadsheet Google Sheets baru untuk backup bulanan
-        yang dipanggil oleh reports.views.drive_backup_monthly.
+        Membuat spreadsheet Google Sheets rapi dengan Kop BAZNAS di folder 10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm.
         """
         try:
             creds = self._get_credentials()
@@ -212,32 +211,51 @@ class GoogleDriveService:
             drive = build('drive', 'v3', credentials=creds)
             sheets = build('sheets', 'v4', credentials=creds)
 
-            headers = [
-                'No. Dokumen', 'Nama Dokumen', 'Jenis Arsip', 'Kategori',
-                'Tanggal Surat', 'Pengirim/Penerima', 'Deskripsi/Sinopsis',
-                'Status Dokumen', 'No. Disposisi', 'Penanggung Jawab',
-                'Pengirim Disposisi', 'Prioritas', 'Status Disposisi',
-                'Catatan/Arahan', 'Tgl Pelaksanaan', 'Selesaikan', 'Diketahui',
-                'Laporkan', 'Koordinasikan', 'Tgl Agenda', 'No. SPPD',
-                'No. Laporan', 'Link File Drive', 'Link Detail System'
-            ]
-
-            values = [headers] + rows
+            target_folder = self.folder_id or '10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm'
             month_names = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
             month_str = month_names[month] if 1 <= month <= 12 else str(month)
-            title = f"Backup_Laporan_BAZNAS_{month_str}_{year}"
+            title = f"REKAP_SIMAP_BAZNAS_{month_str}_{year}"
 
-            spreadsheet_id = self.sheet_id
+            # 1. Cari apakah spreadsheet rekap di folder target sudah ada
+            spreadsheet_id = None
+            try:
+                q = f"name='{title}' and mimeType='application/vnd.google-apps.spreadsheet' and '{target_folder}' in parents and trashed=false"
+                res = drive.files().list(q=q, fields='files(id, name)').execute()
+                files = res.get('files', [])
+                if files:
+                    spreadsheet_id = files[0].get('id')
+            except Exception:
+                pass
+
+            # 2. Jika belum ada, buat spreadsheet baru di folder target 10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm
             if not spreadsheet_id:
                 file_metadata = {
                     'name': title,
                     'mimeType': 'application/vnd.google-apps.spreadsheet',
+                    'parents': [target_folder]
                 }
-                if self.folder_id:
-                    file_metadata['parents'] = [self.folder_id]
-
                 created_file = drive.files().create(body=file_metadata, fields='id').execute()
                 spreadsheet_id = created_file.get('id')
+
+            # 3. Formati Kop BAZNAS & Header Tabel
+            kop_header = [
+                ['BADAN AMIL ZAKAT NASIONAL (BAZNAS) KABUPATEN TANGERANG'],
+                [f'REKAPITULASI DOKUMEN ARSIP & MONITORING PROSES SYSTEM SIMAP - {month_str.upper()} {year}'],
+                ['Jl. H. Somawinata No. 1, Kadu Agung, Tigaraksa, Kabupaten Tangerang | Website: simap.baznas.or.id'],
+                ['']  # Separator
+            ]
+
+            headers = [
+                'No. Agenda/Reg', 'Judul / Perihal Dokumen', 'Jenis Arsip', 'Kategori',
+                'Tanggal Surat', 'Pengirim / Pemohon', 'Deskripsi / Sinopsis',
+                'Status Dokumen', 'No. Disposisi', 'Penanggung Jawab',
+                'Pengirim Disposisi', 'Prioritas', 'Status Disposisi',
+                'Catatan / Arahan', 'Tgl Pelaksanaan', 'Selesaikan', 'Diketahui',
+                'Laporkan', 'Koordinasikan', 'Tgl Agenda', 'No. SPPD',
+                'No. Laporan', 'Link File SIMAP', 'Link Detail System'
+            ]
+
+            values = kop_header + [headers] + rows
 
             body = {
                 'values': values
@@ -248,6 +266,92 @@ class GoogleDriveService:
                 valueInputOption='USER_ENTERED',
                 body=body
             ).execute()
+
+            # 4. Terapkan Formatting Kop & Header Tabel (Warna Hijau BAZNAS #00583b)
+            try:
+                sheet_metadata = sheets.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+                first_sheet_id = sheet_metadata['sheets'][0]['properties']['sheetId']
+
+                requests = [
+                    # Merge Kop Row 1 (A1:X1)
+                    {
+                        'mergeCells': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 0, 'endRowIndex': 1,
+                                'startColumnIndex': 0, 'endColumnIndex': 24
+                            },
+                            'mergeType': 'MERGE_ALL'
+                        }
+                    },
+                    # Merge Kop Row 2 (A2:X2)
+                    {
+                        'mergeCells': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 1, 'endRowIndex': 2,
+                                'startColumnIndex': 0, 'endColumnIndex': 24
+                            },
+                            'mergeType': 'MERGE_ALL'
+                        }
+                    },
+                    # Merge Kop Row 3 (A3:X3)
+                    {
+                        'mergeCells': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 2, 'endRowIndex': 3,
+                                'startColumnIndex': 0, 'endColumnIndex': 24
+                            },
+                            'mergeType': 'MERGE_ALL'
+                        }
+                    },
+                    # Style Kop Headers (Hijau BAZNAS #00583b, Teks Putih, Centered)
+                    {
+                        'repeatCell': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 0, 'endRowIndex': 3,
+                                'startColumnIndex': 0, 'endColumnIndex': 24
+                            },
+                            'cell': {
+                                'userEnteredFormat': {
+                                    'backgroundColor': {'red': 0.0, 'green': 0.345, 'blue': 0.231},
+                                    'textFormat': {'bold': True, 'foregroundColor': {'red': 1.0, 'green': 1.0, 'blue': 1.0}},
+                                    'horizontalAlignment': 'CENTER',
+                                    'verticalAlignment': 'MIDDLE'
+                                }
+                            },
+                            'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
+                        }
+                    },
+                    # Style Tabel Headers Row 5 (Hijau Pekat #004129, Teks Putih, Bold, Centered)
+                    {
+                        'repeatCell': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 4, 'endRowIndex': 5,
+                                'startColumnIndex': 0, 'endColumnIndex': 24
+                            },
+                            'cell': {
+                                'userEnteredFormat': {
+                                    'backgroundColor': {'red': 0.004, 'green': 0.255, 'blue': 0.161},
+                                    'textFormat': {'bold': True, 'fontSize': 10, 'foregroundColor': {'red': 1.0, 'green': 1.0, 'blue': 1.0}},
+                                    'horizontalAlignment': 'CENTER',
+                                    'verticalAlignment': 'MIDDLE'
+                                }
+                            },
+                            'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
+                        }
+                    }
+                ]
+
+                sheets.spreadsheets().batchUpdate(
+                    spreadsheetId=spreadsheet_id,
+                    body={'requests': requests}
+                ).execute()
+            except Exception as format_err:
+                logger.warning(f"Formatting Google Sheets: {format_err}")
 
             spreadsheet_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit"
             self._save_token_after_request(creds)
