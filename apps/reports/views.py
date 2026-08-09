@@ -748,17 +748,12 @@ def oauth_login(request):
 
     redirect_uris = cfg.get('redirect_uris', [])
     default_redirect = request.build_absolute_uri('/reports/oauth/callback/')
-    redirect_uri = default_redirect
     
-    if redirect_uris:
-        if default_redirect in redirect_uris:
-            redirect_uri = default_redirect
-        elif 'http://localhost/reports/oauth/callback/' in redirect_uris:
-            redirect_uri = 'http://localhost/reports/oauth/callback/'
-        elif 'http://localhost:8000/reports/oauth/callback/' in redirect_uris:
-            redirect_uri = 'http://localhost:8000/reports/oauth/callback/'
-        elif 'http://localhost' in redirect_uris and 'installed' in client_config:
-            redirect_uri = 'http://localhost'
+    # Untuk Desktop Client ID (installed), Google mengharuskan domain localhost bukan IP 127.0.0.1
+    if 'installed' in client_config or any('localhost' in u for u in redirect_uris):
+        redirect_uri = 'http://localhost:8000/reports/oauth/callback/'
+    else:
+        redirect_uri = default_redirect
 
     scopes = ['https://www.googleapis.com/auth/drive.file',
               'https://www.googleapis.com/auth/spreadsheets']
