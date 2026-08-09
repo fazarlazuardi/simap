@@ -67,16 +67,29 @@ class GoogleDriveService:
         
         creds_path = self.creds_path
         if creds_path and os.path.exists(creds_path):
+            scopes = [
+                'https://www.googleapis.com/auth/drive.file',
+                'https://www.googleapis.com/auth/drive',
+                'https://www.googleapis.com/auth/spreadsheets'
+            ]
             try:
-                from google.oauth2.service_account import Credentials
-                scopes = [
-                    'https://www.googleapis.com/auth/drive.file',
-                    'https://www.googleapis.com/auth/drive',
-                    'https://www.googleapis.com/auth/spreadsheets'
-                ]
-                return Credentials.from_service_account_file(creds_path, scopes=scopes)
+                import json
+                with open(creds_path, 'r', encoding='utf-8') as f:
+                    content = json.load(f)
+
+                if 'type' in content and content['type'] == 'service_account':
+                    from google.oauth2.service_account import Credentials
+                    return Credentials.from_service_account_file(creds_path, scopes=scopes)
+                elif 'installed' in content or 'web' in content:
+                    logger.info(f"File kredensial OAuth2 Client Secret terdeteksi pada {creds_path}")
+                    token_file = os.path.join(os.path.dirname(creds_path), 'token.json')
+                    if os.path.exists(token_file):
+                        from google.oauth2.credentials import Credentials as OAuthCredentials
+                        return OAuthCredentials.from_authorized_user_file(token_file, scopes)
+                    else:
+                        logger.info("Informasi OAuth2 Client Secret berhasil dimuat dari credentials.json.")
             except Exception as e:
-                logger.error(f"Gagal memuat kredensial Service Account dari file {creds_path}: {e}")
+                logger.error(f"Gagal memuat kredensial dari file {creds_path}: {e}")
 
         return None
 

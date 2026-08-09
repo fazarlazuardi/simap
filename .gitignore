@@ -38,6 +38,9 @@ staticfiles/
 # Environment Variables & Secrets
 .env
 credentials/
+credentials.json
+client_secret*.json
+token.json
 
 # IDE & Editors
 .vscode/
