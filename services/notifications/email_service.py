@@ -64,3 +64,66 @@ Email otomatis dari SIMAP BAZNAS Kabupaten Tangerang.
         except Exception as e:
             logger.error(f"[EMAIL-ALERT] Failed sending email: {e}")
             return False
+
+
+class BackupEmailNotifier:
+    """
+    Layanan Notifikasi Email Backup Dokumen SIMAP & Google Drive.
+    Mengirimkan laporan ringkasan eksekusi pencadangan dokumen & database ke administrator.
+    """
+
+    @classmethod
+    def send_backup_report(cls, total_backed_up, backed_up_details, dump_file_path=None):
+        import os
+        from django.core.mail import EmailMessage
+        from django.utils import timezone
+
+        timestamp_str = timezone.now().strftime('%d/%m/%Y %H:%M WIB')
+        recipient = getattr(settings, 'BACKUP_EMAIL_RECIPIENT', 'simap.baznas@gmail.com')
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'simap@baznas-kabtangerang.or.id')
+
+        subject = f"[BACKUP SIMAP] Laporan Cadangan Google Drive & Sistem - {timestamp_str}"
+        
+        details_text = ""
+        for idx, item in enumerate(backed_up_details, 1):
+            details_text += f"{idx}. [{item.get('type', 'DOKUMEN')}] {item.get('title', '-')} (GDrive ID: {item.get('drive_id', '-')})\n"
+
+        if not details_text:
+            details_text = "Tidak ada dokumen baru yang memerlukan pencadangan.\n"
+
+        message_body = f"""
+🏛️ LAPORAN PENCADANGAN SISTEM SIMAP BAZNAS
+==================================================
+Waktu Eksekusi : {timestamp_str}
+Total Berkas   : {total_backed_up} Dokumen Berhasil Dicadangkan ke Google Drive
+
+📌 RINCIAN BERKAS DICADANGKAN:
+{details_text}
+
+Status Database: Dump JSON cadangan database berhasil dibuat.
+Folder Drive ID: {getattr(settings, 'GOOGLE_DRIVE_FOLDER_ID', 'Terintegrasi Konfigurasi DB')}
+
+--------------------------------------------------
+Email otomatis pencadangan sistem dari SIMAP BAZNAS Kabupaten Tangerang.
+"""
+
+        try:
+            email = EmailMessage(
+                subject=subject,
+                body=message_body,
+                from_email=from_email,
+                to=[recipient] if isinstance(recipient, str) else recipient
+            )
+
+            # Lampirkan berkas JSON dump database jika ukurannya <= 10MB
+            if dump_file_path and os.path.exists(dump_file_path):
+                file_size = os.path.getsize(dump_file_path)
+                if file_size <= 10 * 1024 * 1024:
+                    email.attach_file(dump_file_path)
+
+            email.send(fail_silently=True)
+            logger.info(f"[EMAIL-BACKUP] Success sending GDrive backup report to {recipient}")
+            return True
+        except Exception as e:
+            logger.error(f"[EMAIL-BACKUP] Failed sending backup email: {e}")
+            return False

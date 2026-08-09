@@ -45,11 +45,16 @@
             <h4 class="fw-bold mb-1" style="color: var(--text-primary);">Manajemen Arsip SDM</h4>
             <p class="text-secondary small mb-0">Daftar dokumen masuk, proposal, surat permohonan bantuan, laporan, dan surat keluar yang tersimpan dalam sistem.</p>
         </div>
-        {% if user.is_sdm or user.is_superuser or user.is_superadmin %}
-        <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="btn btn-primary px-4 fw-bold shadow-sm rounded-3">
-            <i class="bi bi-plus-lg me-2"></i> Unggah Arsip
-        </a>
-        {% endif %}
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'archives:backup_gdrive_email' %}" class="btn btn-outline-success px-3 py-2 fw-bold shadow-sm rounded-3 d-flex align-items-center" title="Cadangkan seluruh dokumen ke Google Drive & kirim laporan email">
+                <i class="bi bi-cloud-arrow-up-fill me-2 fs-5"></i> Backup GDrive & Email
+            </a>
+            {% if user.is_sdm or user.is_superuser or user.is_superadmin %}
+            <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-3 d-flex align-items-center">
+                <i class="bi bi-plus-lg me-2 fs-5"></i> Unggah Arsip
+            </a>
+            {% endif %}
+        </div>
     </div>
 </div>
 

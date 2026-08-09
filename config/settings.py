@@ -140,3 +140,16 @@ GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=False)
 CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=False)
+
+# ------------------------------------------------------------------
+# EMAIL CONFIGURATION & GOOGLE DRIVE BACKUP INTEGRATION
+# ------------------------------------------------------------------
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='simap@baznas-kabtangerang.or.id')
+BACKUP_EMAIL_RECIPIENT = env('BACKUP_EMAIL_RECIPIENT', default='simap.baznas@gmail.com')
+

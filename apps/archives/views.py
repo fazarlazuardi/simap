@@ -420,3 +420,17 @@ def reset_all_documents(request):
 
     messages.success(request, f"Pembersihan sukses: {n_arc} Proposal/Surat, {n_dispo} Disposisi, {n_sppd} SPPD, {n_st} Surat Tugas berhasil dihapus! Data pegawai 100% tetap aman.")
     return redirect('archives:list')
+
+
+@login_required
+def trigger_backup_gdrive_email(request):
+    """
+    Trigger 1-click backup dokumen SIMAP ke Google Drive dan pengiriman laporan email.
+    """
+    from django.core.management import call_command
+    try:
+        call_command('backup_gdrive_email')
+        messages.success(request, "Pencadangan dokumen SIMAP ke Google Drive & laporan email berhasil diproses.")
+    except Exception as err:
+        messages.error(request, f"Gagal memproses pencadangan: {err}")
+    return redirect(request.META.get('HTTP_REFERER') or 'archives:list')
