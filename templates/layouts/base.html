@@ -161,7 +161,7 @@
         .dropdown-menu {
             background-color: var(--card-bg) !important;
             border: 1px solid var(--border-color) !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
         }
 
         .dropdown-item {
@@ -169,9 +169,27 @@
             background-color: transparent !important;
         }
 
-        .dropdown-item:hover, .dropdown-item:focus, .dropdown-item.active, .dropdown-item:active {
-            background-color: var(--primary) !important;
-            color: #FFFFFF !important;
+        .dropdown-item *, .dropdown-item i {
+            color: var(--text-primary) !important;
+        }
+
+        .dropdown-item:hover, .dropdown-item:focus {
+            background-color: var(--surface-alt) !important;
+            color: var(--primary) !important;
+        }
+
+        .dropdown-item:hover *, .dropdown-item:hover i,
+        .dropdown-item:focus *, .dropdown-item:focus i {
+            color: var(--primary) !important;
+        }
+
+        .dropdown-item.text-danger, .dropdown-item.text-danger i {
+            color: #dc3545 !important;
+        }
+
+        .dropdown-item.text-danger:hover, .dropdown-item.text-danger:hover i {
+            background-color: rgba(220, 53, 69, 0.1) !important;
+            color: #dc3545 !important;
         }
 
         select, option, .form-select option {
@@ -419,10 +437,57 @@
             transform: translateY(-1px);
         }
 
-        /* Badge Style */
-        .badge-pending { background: #FEF3C7; color: #92400E; }
-        .badge-approved { background: #D1FAE5; color: #065F46; }
-        .badge-rejected { background: #FEE2E2; color: #991B1B; }
+        /* Badge Style - High Contrast Dual Theme */
+        .badge {
+            font-weight: 600 !important;
+            letter-spacing: 0.2px;
+        }
+
+        .bg-success, .badge-success, .badge-selesai, .badge-approved {
+            background-color: #0d8a52 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #09683e !important;
+        }
+
+        .bg-warning, .badge-warning, .badge-pending {
+            background-color: #f59e0b !important;
+            color: #0f172a !important;
+            border: 1px solid #d97706 !important;
+        }
+
+        .bg-primary, .badge-primary {
+            background-color: #0d6efd !important;
+            color: #FFFFFF !important;
+        }
+
+        .bg-danger, .badge-danger, .badge-rejected {
+            background-color: #dc3545 !important;
+            color: #FFFFFF !important;
+        }
+
+        .bg-info, .badge-info {
+            background-color: #0dcaf0 !important;
+            color: #0f172a !important;
+        }
+
+        .bg-secondary, .badge-secondary {
+            background-color: #6c757d !important;
+            color: #FFFFFF !important;
+        }
+
+        .badge.bg-success.bg-opacity-10,
+        .badge.bg-success.bg-opacity-20 {
+            background-color: rgba(13, 138, 82, 0.15) !important;
+            color: var(--primary) !important;
+            border: 1px solid rgba(13, 138, 82, 0.3) !important;
+        }
+
+        [data-theme="dark"] .badge.bg-success.bg-opacity-10,
+        [data-theme="dark"] .badge.bg-success.bg-opacity-20 {
+            background-color: rgba(13, 138, 82, 0.25) !important;
+            color: #34d399 !important;
+            border: 1px solid rgba(52, 211, 153, 0.3) !important;
+        }
 
         /* =========================================================
            FIX IKON KALENDAR / TANGGAL SAAT DARK THEME
