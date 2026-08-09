@@ -516,6 +516,96 @@
             background-color: var(--surface-alt) !important;
             color: #F3F4F6 !important;
         }
+
+        /* =========================================================
+           DATATABLES & FULLCALENDAR & SWEETALERT DUAL MODE OVERRIDES
+           ========================================================= */
+        .dataTables_wrapper,
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate,
+        .dataTables_wrapper .dataTables_length label,
+        .dataTables_wrapper .dataTables_filter label {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] div.dataTables_wrapper div.dataTables_filter input,
+        [data-theme="dark"] div.dataTables_wrapper div.dataTables_length select {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] table.dataTable thead th,
+        [data-theme="dark"] table.dataTable thead td,
+        [data-theme="dark"] .table-light,
+        [data-theme="dark"] .table-light th,
+        [data-theme="dark"] .table-light td {
+            background-color: var(--surface-alt) !important;
+            color: var(--text-primary) !important;
+            border-bottom-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] table.dataTable tbody tr {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] table.dataTable tbody tr:hover {
+            background-color: var(--surface-alt) !important;
+        }
+
+        [data-theme="dark"] .swal2-popup {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+        }
+        [data-theme="dark"] .swal2-title,
+        [data-theme="dark"] .swal2-html-container {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .fc {
+            --fc-page-bg-color: var(--card-bg);
+            --fc-neutral-bg-color: var(--surface-alt);
+            --fc-list-day-cbg: var(--surface-alt);
+            --fc-border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        [data-theme="dark"] .fc-theme-standard td,
+        [data-theme="dark"] .fc-theme-standard th,
+        [data-theme="dark"] .fc-theme-standard .fc-scrollgrid {
+            border-color: var(--border-color) !important;
+        }
+        [data-theme="dark"] .fc .fc-toolbar-title,
+        [data-theme="dark"] .fc .fc-col-header-cell-cushion,
+        [data-theme="dark"] .fc .fc-daygrid-day-number {
+            color: var(--text-primary) !important;
+        }
+        [data-theme="dark"] .fc .fc-button-primary {
+            background-color: var(--surface-alt) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+        [data-theme="dark"] .fc .fc-button-primary:hover {
+            background-color: var(--primary) !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Nav & Tab Contrast Control */
+        .nav-tabs .nav-link:not(.active), .nav-pills .nav-link:not(.active) {
+            color: var(--text-secondary) !important;
+        }
+        .nav-tabs .nav-link:hover, .nav-pills .nav-link:hover {
+            color: var(--text-primary) !important;
+        }
+
+        /* Card Header Contrast Control */
+        .card-header:not(.bg-primary):not(.bg-success):not(.bg-danger):not(.bg-warning):not(.bg-dark) {
+            background-color: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+            border-bottom: 1px solid var(--border-color) !important;
+        }
         
         @media (max-width: 991.98px) {
             #sidebar {
@@ -603,6 +693,14 @@
         function applyTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
+            var icon = document.getElementById('themeIconGlobal');
+            if (icon) {
+                if (theme === 'dark') {
+                    icon.className = 'bi bi-sun-fill text-warning';
+                } else {
+                    icon.className = 'bi bi-moon-stars-fill text-primary';
+                }
+            }
         }
 
         $(document).ready(function () {
