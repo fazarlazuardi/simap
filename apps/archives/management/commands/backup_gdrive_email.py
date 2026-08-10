@@ -31,84 +31,11 @@ class Command(BaseCommand):
                 'dispositions', 'agendas'
             ).order_by('-created_at')[:100]
 
-            rows = []
-            for idx, arc in enumerate(all_archives, start=1):
-                dispo = arc.latest_dispo
-                tgl_letter = arc.letter_date.strftime('%d/%m/%Y') if arc.letter_date else arc.created_at.strftime('%d/%m/%Y')
-                sender_receiver = arc.sender or arc.receiver or '-'
-                description = arc.description or '-'
-                status_dok = arc.activity_name
-                jenis_arsip = arc.get_archive_type_display()
-                kategori = arc.category.name if arc.category else '-'
-
-                if dispo:
-                    dispo_number = dispo.disposition_number or f'DISP-{dispo.id}'
-                    pj_list = arc.current_assignee_names
-                    sender_name = dispo.sender.username if dispo.sender else '-'
-                    prioritas = dispo.get_priority_display()
-                    status_dispo = dispo.get_status_display()
-                    catatan = (dispo.waka_note if dispo.is_stage_waka and dispo.waka_note else dispo.note) or '-'
-                    tgl_pelaksanaan = dispo.implementation_date.strftime('%d/%m/%Y') if dispo.implementation_date else '-'
-                    inst_selesaikan = 'Ya' if (dispo.waka_inst_selesaikan if dispo.is_stage_waka else dispo.inst_selesaikan) else 'Tidak'
-                    inst_diketahui = 'Ya' if (dispo.waka_inst_untuk_diketahui if dispo.is_stage_waka else dispo.inst_untuk_diketahui) else 'Tidak'
-                    inst_laporkan = 'Ya' if (dispo.waka_inst_laporkan_hasilnya if dispo.is_stage_waka else dispo.inst_laporkan_hasilnya) else 'Tidak'
-                    inst_koordinasikan = 'Ya' if (dispo.waka_inst_koordinasikan if dispo.is_stage_waka else dispo.inst_koordinasikan) else 'Tidak'
-                else:
-                    dispo_number = '-'
-                    pj_list = '-'
-                    sender_name = '-'
-                    prioritas = '-'
-                    status_dispo = '-'
-                    catatan = '-'
-                    tgl_pelaksanaan = '-'
-                    inst_selesaikan = '-'
-                    inst_diketahui = '-'
-                    inst_laporkan = '-'
-                    inst_koordinasikan = '-'
-
-                sppd_obj = arc.latest_sppd
-                st_obj = arc.latest_st
-                sppd_number = sppd_obj.sppd_number if sppd_obj else (st_obj.nomor_surat if st_obj else '-')
-
-                report_obj = arc.latest_report
-                report_number = report_obj.report_number if report_obj else '-'
-
-                tgl_agenda = arc.latest_agenda_date.strftime('%d/%m/%Y') if arc.latest_agenda_date else '-'
-
-                dok_link = f"http://localhost:8000{arc.file_path.url}" if arc.file_path else ''
-                arsip_link = f"http://localhost:8000/archives/{arc.pk}/"
-
-                rows.append([
-                    idx,
-                    arc.archive_number or 'DRAFT',
-                    arc.title,
-                    jenis_arsip,
-                    kategori,
-                    tgl_letter,
-                    sender_receiver,
-                    description,
-                    status_dok,
-                    dispo_number,
-                    pj_list,
-                    sender_name,
-                    prioritas,
-                    status_dispo,
-                    catatan,
-                    tgl_pelaksanaan,
-                    inst_selesaikan,
-                    inst_diketahui,
-                    inst_laporkan,
-                    inst_koordinasikan,
-                    tgl_agenda,
-                    sppd_number,
-                    report_number,
-                    f'=HYPERLINK("{dok_link}", "Buka Berkas SIMAP")' if dok_link else '-',
-                    f'=HYPERLINK("{arsip_link}", "Lihat Detail Sistem")',
-                ])
-
-            sp_id, sp_url, err = gdrive.create_monthly_backup(now.month, now.year, rows)
+            archive_list = list(all_archives)
+            sp_id, sp_url, err = gdrive.create_monthly_backup(now.month, now.year, archive_list)
+            
             if sp_id:
-                total_backed_up = len(rows)
+                total_backed_up = len(archive_list)
                 backed_up_details.append({
                     'type': 'REKAP_GSHEET',
                     'title': f'Rekapitulasi Dokumen {now.strftime("%B %Y")}',

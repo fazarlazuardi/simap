@@ -9,6 +9,156 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+def format_archive_row(index, archive):
+    """
+    Helper function untuk menguraikan data dari object Archive / Disposition
+    menjadi 1 baris array yang berisi TEPAT 23 item data sesuai format SIMAP BAZNAS.
+    """
+    if isinstance(archive, list):
+        if len(archive) == 23:
+            # Pastikan item index 3 (Perihal) BUKAN ceklis '✓' atau '-'
+            if archive[3] not in ['✓', '-', 'V', 'v']:
+                archive[0] = index
+                return archive
+
+    disposition = getattr(archive, 'disposition', None) or getattr(archive, 'disposisi', None) or getattr(archive, 'latest_dispo', None)
+
+    reg_number = getattr(archive, 'archive_number', None) or (f"REG-{archive.pk:04d}" if hasattr(archive, 'pk') else '-')
+    sender = getattr(archive, 'sender', None) or getattr(archive, 'receiver', None) or getattr(archive, 'agency_origin', '-')
+    subject = getattr(archive, 'title', None) or getattr(archive, 'subject', '-')
+    
+    received_date = getattr(archive, 'received_date', None) or getattr(archive, 'letter_date', None) or getattr(archive, 'created_at', None)
+    if received_date and hasattr(received_date, 'strftime'):
+        received_date_str = received_date.strftime('%d/%m/%Y')
+    else:
+        received_date_str = str(received_date) if received_date else '-'
+
+    doc_type = archive.get_archive_type_display() if hasattr(archive, 'get_archive_type_display') else getattr(archive, 'archive_type', '-')
+    
+    category = '-'
+    if hasattr(archive, 'category') and archive.category:
+        category = archive.category.name if hasattr(archive.category, 'name') else str(archive.category)
+    
+    pj_list = '-'
+    if hasattr(archive, 'current_assignee_names') and archive.current_assignee_names:
+        pj_list = archive.current_assignee_names
+    elif disposition:
+        pj_list = getattr(disposition, 'person_in_charge', None) or getattr(disposition, 'pic', '-')
+
+    # Status Ceklis 8 Tahapan Disposisi Vertikal (100% EMPIRIS BERDASARKAN RECORD SPPD, ST, & AUDIT LOG)
+    st = getattr(archive, 'status', '')
+    has_dispo = disposition is not None
+    reg_no = getattr(archive, 'archive_number', '') or (f"REG-{archive.pk}" if hasattr(archive, 'pk') else '')
+
+    dispos_list = list(archive.dispositions.all()) if hasattr(archive, 'dispositions') else []
+    
+    # Kumpulkan SPPD & Surat Tugas terkait dokumen ini
+    sppd_purposes = []
+    st_count = 0
+    try:
+        from django.db.models import Q
+        from sppd_service.models import SPPD
+        from surat_tugas.models import SuratTugas
+        sts = list(SuratTugas.objects.filter(disposition__archive=archive))
+        st_count = len(sts)
+        sppds = list(SPPD.objects.filter(Q(disposition__archive=archive) | Q(surat_tugas__disposition__archive=archive)).distinct())
+        sppd_purposes = [sp.purpose.lower() for sp in sppds if sp.purpose]
+    except Exception:
+        pass
+
+    log_actions = []
+    if reg_no:
+        try:
+            from audit_logs.models import AuditLog
+            logs = AuditLog.objects.filter(action__icontains=reg_no)
+            log_actions = [l.action.lower() for l in logs]
+        except Exception:
+            pass
+
+    # 1. Verifikasi Kabid IV
+    v_kabid = "✓" if (st in ['verifikasi_kabid', 'disposisi_pimpinan', 'terverifikasi', 'didisposisikan', 'proses', 'sudah_ditugaskan', 'menghadiri_undangan', 'dalam_survei', 'telah_disalurkan', 'selesai'] 
+                     or any('verifikasi' in a or 'kabid' in a for a in log_actions)) else "-"
+
+    # 2. Disposisi Ketua
+    v_ketua = "✓" if (st in ['disposisi_pimpinan', 'terverifikasi', 'didisposisikan', 'proses', 'sudah_ditugaskan', 'menghadiri_undangan', 'dalam_survei', 'telah_disalurkan', 'selesai'] 
+                     or len(dispos_list) > 0 or any('disposisi' in a for a in log_actions)) else "-"
+
+    # 3. Disposisi Waka IV
+    v_waka4 = "✓" if (st in ['terverifikasi', 'didisposisikan', 'proses', 'sudah_ditugaskan', 'menghadiri_undangan', 'dalam_survei', 'telah_disalurkan', 'selesai'] 
+                     or any(getattr(d, 'waka_note', None) for d in dispos_list) or any('waka' in a for a in log_actions)) else "-"
+
+    # 4. Proses Bidang/Unit
+    v_unit = "✓" if (st in ['proses', 'sudah_ditugaskan', 'menghadiri_undangan', 'dalam_survei', 'telah_disalurkan', 'selesai'] 
+                    or st_count > 0 or len(sppd_purposes) > 0 or any('proses' in a or 'tugas' in a for a in log_actions)) else "-"
+
+    # 5. Survei: MURNI HANYA JIKA MEMILIKI SPPD/ST SURVEI, STATUS DALAM SURVEI, ATAU LOG SURVEI RIIL
+    has_survei_sppd = any('survei' in p or 'mustahik' in p or 'lapangan' in p for p in sppd_purposes)
+    has_survei_log = any('survei' in a or 'verifikasi lapangan' in a for a in log_actions)
+    v_survey = "✓" if (st == 'dalam_survei' or has_survei_sppd or has_survei_log) else "-"
+
+    # 6. Penyaluran: MURNI HANYA JIKA MEMILIKI SPPD/ST PENYALURAN, STATUS TELAH DISALURKAN, ATAU LOG PENYALURAN RIIL
+    has_dist_sppd = any('penyaluran' in p or 'pentasyarufan' in p or 'disalurkan' in p for p in sppd_purposes)
+    has_dist_log = any('penyaluran' in a or 'pentasyarufan' in a or 'disalurkan' in a for a in log_actions)
+    v_dist = "✓" if (st == 'telah_disalurkan' or has_dist_sppd or has_dist_log) else "-"
+
+    # 7. Laporan: MURNI HANYA JIKA MEMILIKI BERKAS LAPORAN HASIL (LHP / REPORT) ATAU LOG LAPORAN
+    v_report = "✓" if (getattr(archive, 'latest_report', None) is not None or any('laporan' in a or 'lhp' in a for a in log_actions)) else "-"
+
+    # 8. Selesai: Ceklis ✓ jika status akhir dokumen selesai
+    v_done = "✓" if st == 'selesai' else "-"
+
+    progress = getattr(archive, 'activity_name', None) or (archive.get_status_display() if hasattr(archive, 'get_status_display') else 'Sedang Diproses')
+    
+    st_obj = getattr(archive, 'latest_st', None)
+    task_letter = st_obj.nomor_surat if st_obj else '-'
+
+    sppd_obj = getattr(archive, 'latest_sppd', None)
+    sppd_no = sppd_obj.sppd_number if sppd_obj else '-'
+    
+    agenda_date_str = '-'
+    if hasattr(archive, 'latest_agenda_date') and archive.latest_agenda_date:
+        agenda_date_str = archive.latest_agenda_date.strftime('%d/%m/%Y')
+
+    report_obj = getattr(archive, 'latest_report', None)
+    report_no = report_obj.report_number if report_obj else '-'
+
+    pk_val = getattr(archive, 'pk', 1)
+    file_path = getattr(archive, 'file_path', None)
+    if file_path and hasattr(file_path, 'url'):
+        dok_link = f'=HYPERLINK("http://localhost:8000{file_path.url}", "Buka Berkas SIMAP")'
+    else:
+        dok_link = '-'
+
+    detail_link = f'=HYPERLINK("http://localhost:8000/archives/{pk_val}/", "Lihat Detail Sistem")'
+
+    # Return Array TEPAT 23 Item Sesuai Format User
+    return [
+        index,              # 1. No
+        reg_number,         # 2. No. Reg. Dokumen
+        sender,             # 3. Pengirim / Asal Instansi
+        subject,            # 4. Perihal
+        received_date_str,  # 5. Tanggal Diterima
+        doc_type,           # 6. Jenis Dokumen
+        category,           # 7. Kategori Arsip
+        pj_list,            # 8. Penanggung Jawab
+        v_kabid,            # 9. Verifikasi Kabid 4
+        v_ketua,            # 10. Disposisi Ketua
+        v_waka4,            # 11. Disposisi Waka 4
+        v_unit,             # 12. Proses Bidang
+        v_survey,           # 13. Survei Lapangan
+        v_dist,             # 14. Penyaluran
+        v_report,           # 15. Laporan Hasil
+        v_done,             # 16. Selesai & Terekap
+        progress,           # 17. Progres
+        task_letter,        # 18. No. Surat Tugas
+        sppd_no,            # 19. No. SPPD
+        agenda_date_str,    # 20. Tanggal Agenda
+        report_no,          # 21. No. Laporan
+        dok_link,           # 22. Link Dokumen
+        detail_link         # 23. Link Detail
+    ]
+
+
 class GoogleDriveService:
     """
     SIMAP Google Drive & Google Sheets Backup Integration Service
@@ -18,116 +168,135 @@ class GoogleDriveService:
         self.creds_path = self._get_creds_path_from_db()
         self.folder_id = self._get_folder_id_from_db()
         self.sheet_id = self._get_sheet_id_from_db()
-        self._service = None
-        self._sheets_service = None
         self._oauth_token = None
+        self._drive_service = None
+        self._sheets_service = None
 
     def _get_creds_path_from_db(self):
         try:
             from users.models import SystemSetting
-            setting = SystemSetting.objects.filter(key='GOOGLE_DRIVE_CREDENTIALS').first()
-            if setting and setting.value:
+            setting = SystemSetting.objects.filter(key='GOOGLE_CREDENTIALS_JSON').first()
+            if setting and setting.value and os.path.exists(setting.value):
                 return setting.value
         except Exception:
             pass
-        return getattr(settings, 'GOOGLE_DRIVE_CREDENTIALS', None)
+        default_path = os.path.join(settings.BASE_DIR, 'credentials.json')
+        return default_path
 
     def _get_folder_id_from_db(self):
         try:
             from users.models import SystemSetting
-            setting = SystemSetting.objects.filter(key='GOOGLE_DRIVE_ID').first()
-            if setting and setting.value and setting.value != 'your_folder_id_here':
+            setting = SystemSetting.objects.filter(key='GOOGLE_DRIVE_FOLDER_ID').first()
+            if setting and setting.value:
                 return setting.value
         except Exception:
             pass
-        val = getattr(settings, 'GOOGLE_DRIVE_FOLDER_ID', '10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm')
-        return val if val and val != 'your_folder_id_here' else '10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm'
+        return getattr(settings, 'GOOGLE_DRIVE_FOLDER_ID', '10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm')
 
     def _get_sheet_id_from_db(self):
         try:
             from users.models import SystemSetting
             setting = SystemSetting.objects.filter(key='GOOGLE_SHEET_ID').first()
-            if setting and setting.value and setting.value != 'your_spreadsheet_id_here':
-                return setting.value
+            if setting is not None:
+                return setting.value if setting.value else None
         except Exception:
             pass
-        return getattr(settings, 'GOOGLE_SHEET_ID', '1WX3-UvF4okkXKRuui9oiTzF6TZFgsdtSyoQR89QyiTc')
+        val = getattr(settings, 'GOOGLE_SHEET_ID', None)
+        return val if val else None
 
     def _get_oauth_token(self):
         if self._oauth_token:
             return self._oauth_token
+
         try:
             from reports.models import GoogleOAuthToken
-            token = GoogleOAuthToken.objects.first()
-            if token and token.refresh_token:
-                token.refresh_if_expired()
-                self._oauth_token = token
-                return token
-        except Exception:
-            pass
-        return None
-
-    def _get_credentials(self):
-        token = self._get_oauth_token()
-        if token:
-            try:
-                creds = token.get_credentials()
+            token_obj = GoogleOAuthToken.objects.order_by('-updated_at').first()
+            if token_obj and token_obj.refresh_token:
+                creds = token_obj.get_credentials()
                 if creds:
+                    self._oauth_token = creds
                     return creds
-            except Exception as e:
-                logger.error(f"Gagal memuat kredensial dari token DB: {e}")
-        
-        creds_path = self.creds_path
-        if creds_path and os.path.exists(creds_path):
-            scopes = [
-                'https://www.googleapis.com/auth/drive.file',
-                'https://www.googleapis.com/auth/drive',
-                'https://www.googleapis.com/auth/spreadsheets'
-            ]
-            try:
-                import json
-                with open(creds_path, 'r', encoding='utf-8') as f:
-                    content = json.load(f)
-
-                if 'type' in content and content['type'] == 'service_account':
-                    from google.oauth2.service_account import Credentials
-                    return Credentials.from_service_account_file(creds_path, scopes=scopes)
-                elif 'installed' in content or 'web' in content:
-                    logger.info(f"File kredensial OAuth2 Client Secret terdeteksi pada {creds_path}")
-                    token_file = os.path.join(os.path.dirname(creds_path), 'token.json')
-                    if os.path.exists(token_file):
-                        from google.oauth2.credentials import Credentials as OAuthCredentials
-                        return OAuthCredentials.from_authorized_user_file(token_file, scopes)
-                    else:
-                        logger.info("Informasi OAuth2 Client Secret berhasil dimuat dari credentials.json.")
-            except Exception as e:
-                logger.error(f"Gagal memuat kredensial dari file {creds_path}: {e}")
+        except Exception as e:
+            logger.warning(f"Tidak dapat memuat OAuth token dari DB: {e}")
 
         return None
 
     def _save_token_after_request(self, creds):
-        """Menyimpan pembaruan token akses ke database setelah API call."""
+        if not creds:
+            return
         try:
-            if hasattr(creds, 'token') and creds.token:
-                from reports.models import GoogleOAuthToken
-                token = GoogleOAuthToken.objects.first()
-                if token:
-                    token.access_token = creds.token
-                    if hasattr(creds, 'expiry') and creds.expiry:
-                        token.token_expiry = creds.expiry
-                    token.save()
+            from reports.models import GoogleOAuthToken
+            token_obj = GoogleOAuthToken.objects.order_by('-updated_at').first()
+            if token_obj and getattr(creds, 'token', None) and creds.token != token_obj.access_token:
+                token_obj.access_token = creds.token
+                if hasattr(creds, 'expiry') and creds.expiry:
+                    token_obj.token_expiry = creds.expiry
+                token_obj.save()
         except Exception as e:
-            logger.error(f"Gagal memperbarui token OAuth di database: {e}")
+            logger.warning(f"Gagal memperbarui token ke DB: {e}")
+
+    def _get_credentials(self):
+        creds = self._get_oauth_token()
+        if creds and creds.valid:
+            return creds
+
+        if creds and creds.expired and creds.refresh_token:
+            try:
+                from google.auth.transport.requests import Request
+                creds.refresh(Request())
+                self._save_token_after_request(creds)
+                return creds
+            except Exception as e:
+                logger.error(f"Gagal me-refresh token OAuth Google: {e}")
+
+        creds_file = self.creds_path
+        if not os.path.exists(creds_file):
+            logger.error(f"File kredensial Google OAuth tidak ditemukan di: {creds_file}")
+            return None
+
+        try:
+            from google.oauth2.credentials import Credentials
+            from google_auth_oauthlib.flow import InstalledAppFlow
+
+            SCOPES = [
+                'https://www.googleapis.com/auth/drive.file',
+                'https://www.googleapis.com/auth/spreadsheets'
+            ]
+            flow = InstalledAppFlow.from_client_secrets_file(creds_file, SCOPES)
+            creds = flow.run_local_server(port=0)
+
+            try:
+                from users.models import GoogleOAuthToken
+                GoogleOAuthToken.objects.update_or_create(
+                    client_id=creds.client_id or '',
+                    defaults={
+                        'access_token': creds.token,
+                        'refresh_token': creds.refresh_token or '',
+                        'token_uri': creds.token_uri or 'https://oauth2.googleapis.com/token',
+                        'client_secret': creds.client_secret or '',
+                        'scopes': ' '.join(SCOPES),
+                        'token_expiry': creds.expiry or (timezone.now() + timezone.timedelta(hours=1)),
+                        'is_active': True,
+                    }
+                )
+            except Exception as ex:
+                logger.warning(f"Gagal menyimpan token baru ke DB: {ex}")
+
+            self._oauth_token = creds
+            return creds
+        except Exception as e:
+            logger.error(f"Gagal mengautentikasi Google Drive API: {e}")
+            return None
 
     def get_service(self):
-        if self._service:
-            return self._service
+        if self._drive_service:
+            return self._drive_service
         try:
             from googleapiclient.discovery import build
             creds = self._get_credentials()
             if creds:
-                self._service = build('drive', 'v3', credentials=creds)
-                return self._service
+                self._drive_service = build('drive', 'v3', credentials=creds)
+                return self._drive_service
         except Exception as e:
             logger.error(f"Gagal membuat layanan Google Drive API: {e}")
         return None
@@ -139,128 +308,74 @@ class GoogleDriveService:
             from googleapiclient.discovery import build
             creds = self._get_credentials()
             if creds:
-                # Diselaraskan ke 'v4' (bukan '4')
                 self._sheets_service = build('sheets', 'v4', credentials=creds)
                 return self._sheets_service
         except Exception as e:
             logger.error(f"Gagal membuat layanan Google Sheets API: {e}")
         return None
 
-    def upload_file(self, file_path, custom_filename=None, folder_id=None):
-        service = self.get_service()
-        if not service:
-            logger.warning("Layanan Google Drive API belum siap/terkonfigurasi.")
-            return None
-
-        if not os.path.exists(file_path):
-            logger.error(f"File tidak ditemukan: {file_path}")
-            return None
-
-        target_folder = folder_id or self.folder_id
-        filename = custom_filename or os.path.basename(file_path)
-        mime_type, _ = mimetypes.guess_type(file_path)
-        if not mime_type:
-            mime_type = 'application/octet-stream'
-
+    def _get_or_upload_logo_url(self, drive_service, folder_id):
         try:
-            from googleapiclient.http import MediaFileUpload
-            file_metadata = {'name': filename}
-            if target_folder:
-                file_metadata['parents'] = [target_folder]
-
-            media = MediaFileUpload(file_path, mimetype=mime_type, resumable=True)
-            uploaded_file = service.files().create(
-                body=file_metadata,
-                media_body=media,
-                fields='id, webViewLink, webContentLink'
-            ).execute()
-
-            logger.info(f"File {filename} berhasil diunggah ke Google Drive ID: {uploaded_file.get('id')}")
-            return uploaded_file
-        except Exception as e:
-            logger.error(f"Gagal mengunggah file ke Google Drive: {e}")
-            return None
-
-    def upload_archive(self, archive):
-        # Diselaraskan dengan model Archive (file_path bukan file_attachment)
-        if not archive.file_path:
-            return None
-        file_path = archive.file_path.path
-        if not os.path.exists(file_path):
-            return None
-        
-        ext = os.path.splitext(file_path)[1]
-        custom_name = f"{archive.archive_number or archive.pk}_{archive.archive_type}{ext}"
-        res = self.upload_file(file_path, custom_filename=custom_name)
-        if res and res.get('id'):
-            archive.drive_file_id = res.get('id')
-            archive.drive_backed_up = True
-            archive.save(update_fields=['drive_file_id', 'drive_backed_up'])
-        return res
-
-    def _get_or_upload_logo_url(self, drive, target_folder):
-        try:
-            q = f"name='BAZNAS_LOGO_KOP.png' and '{target_folder}' in parents and trashed=false"
-            res = drive.files().list(q=q, fields='files(id, name)').execute()
-            files = res.get('files', [])
-            if files:
-                logo_id = files[0].get('id')
-                return f"https://drive.google.com/uc?export=view&id={logo_id}"
-
             logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_baznas.png')
             if not os.path.exists(logo_path):
-                logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo.png')
+                return None
 
-            if os.path.exists(logo_path):
+            query = f"name = 'logo_baznas.png' and '{folder_id}' in parents and trashed = false"
+            results = drive_service.files().list(q=query, fields="files(id, webViewLink, webContentLink)").execute()
+            files = results.get('files', [])
+
+            if files:
+                file_id = files[0]['id']
+            else:
                 from googleapiclient.http import MediaFileUpload
-                file_metadata = {'name': 'BAZNAS_LOGO_KOP.png', 'parents': [target_folder]}
-                media = MediaFileUpload(logo_path, mimetype='image/png')
-                created = drive.files().create(body=file_metadata, media_body=media, fields='id').execute()
-                logo_id = created.get('id')
+                file_metadata = {
+                    'name': 'logo_baznas.png',
+                    'parents': [folder_id]
+                }
+                media = MediaFileUpload(logo_path, mimetype='image/png', resumable=True)
+                uploaded_file = drive_service.files().create(
+                    body=file_metadata, media_body=media, fields='id'
+                ).execute()
+                file_id = uploaded_file.get('id')
 
-                try:
-                    drive.permissions().create(
-                        fileId=logo_id,
-                        body={'type': 'anyone', 'role': 'reader'}
-                    ).execute()
-                except Exception:
-                    pass
+                drive_service.permissions().create(
+                    fileId=file_id,
+                    body={'type': 'anyone', 'role': 'reader'}
+                ).execute()
 
-                return f"https://drive.google.com/uc?export=view&id={logo_id}"
+            return f"https://drive.google.com/uc?export=download&id={file_id}"
         except Exception as e:
-            logger.warning(f"Gagal menyiapkan URL logo untuk Google Sheets: {e}")
-        return None
+            logger.warning(f"Gagal mengunggah logo BAZNAS ke Drive untuk formula IMAGE: {e}")
+            return None
 
     def create_monthly_backup(self, month, year, rows):
         """
-        Membuat spreadsheet Google Sheets rapi dengan Kop BAZNAS, Logo Resmi, dan Auto-Fit Column di folder 10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm.
+        Membuat spreadsheet Google Sheets rapi dengan Kop BAZNAS, Logo Resmi, dan Auto-Fit Column di folder target.
+        Diselaraskan persis dengan format SIMAP (23 Kolom dengan 8 Header Tahapan Vertikal di Samping Penanggung Jawab).
         """
         try:
             creds = self._get_credentials()
-            if not creds:
-                return None, None, "Credentials/Token OAuth Google Drive tidak ditemukan."
+            drive = self.get_service()
+            sheets = self.get_sheets_service()
 
-            from googleapiclient.discovery import build
-            drive = build('drive', 'v3', credentials=creds)
-            sheets = build('sheets', 'v4', credentials=creds)
+            if not drive or not sheets:
+                return None, None, "Gagal mendapatkan akses ke Google Services."
 
-            target_folder = self.folder_id or '10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm'
+            target_folder = self.folder_id
             month_names = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-            month_str = month_names[month] if 1 <= month <= 12 else str(month)
-            title = f"REKAP_SIMAP_BAZNAS_{month_str}_{year}"
+            month_str = month_names[int(month)] if 1 <= int(month) <= 12 else str(month)
+            title = f"SIMAP_REKAP_DOKUMEN_BAZNAS_{month_str.upper()}_{year}"
 
-            # 1. Cari apakah spreadsheet rekap di folder target sudah ada
-            spreadsheet_id = None
-            try:
-                q = f"name='{title}' and mimeType='application/vnd.google-apps.spreadsheet' and '{target_folder}' in parents and trashed=false"
-                res = drive.files().list(q=q, fields='files(id, name)').execute()
-                files = res.get('files', [])
+            spreadsheet_id = self.sheet_id
+
+            if not spreadsheet_id:
+                query = f"name = '{title}' and '{target_folder}' in parents and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false"
+                results = drive.files().list(q=query, fields="files(id, webViewLink)").execute()
+                files = results.get('files', [])
+
                 if files:
-                    spreadsheet_id = files[0].get('id')
-            except Exception:
-                pass
+                    spreadsheet_id = files[0]['id']
 
-            # 2. Jika belum ada, buat spreadsheet baru di folder target 10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm
             if not spreadsheet_id:
                 file_metadata = {
                     'name': title,
@@ -270,32 +385,39 @@ class GoogleDriveService:
                 created_file = drive.files().create(body=file_metadata, fields='id').execute()
                 spreadsheet_id = created_file.get('id')
 
-            # 3. Logo & Kop BAZNAS Header
             logo_url = self._get_or_upload_logo_url(drive, target_folder)
             logo_formula = f'=IMAGE("{logo_url}")' if logo_url else 'BAZNAS'
 
             kop_header = [
                 [logo_formula, '', 'BADAN AMIL ZAKAT NASIONAL (BAZNAS) KABUPATEN TANGERANG'],
                 ['', '', f'REKAPITULASI DOKUMEN ARSIP & MONITORING PROSES DISPOSISI SYSTEM SIMAP - {month_str.upper()} {year}'],
-                ['', '', 'Jl. H. Somawinata No. 1, Kadu Agung, Tigaraksa, Kabupaten Tangerang | Email: kabupatenbaznastangerang@gmail.com'],
+                ['', '', 'Gedung Islamic Center Kabupaten Tangerang, Jl. Islamic Center No.1, Citra Raya, Ciakar, Kecamatan Panongan, Kabupaten Tangerang, Banten'],
                 ['']  # Separator
             ]
 
-            headers = [
-                'NO.', 'NO. AGENDA/REG', 'JUDUL / PERIHAL DOKUMEN', 'JENIS ARSIP', 'KATEGORI',
-                'TANGGAL SURAT', 'PENGIRIM / PEMOHON', 'DESKRIPSI / SINOPSIS',
-                'STATUS DOKUMEN', 'NO. DISPOSISI', 'PENANGGUNG JAWAB',
-                'PENGIRIM DISPOSISI', 'PRIORITAS', 'STATUS DISPOSISI',
-                'CATATAN / ARAHAN', 'TGL PELAKSANAAN', 'SELESAIKAN', 'DIKETAHUI',
-                'LAPORKAN', 'KOORDINASIKAN', 'TGL AGENDA', 'NO. SPPD',
-                'NO. LAPORAN', 'LINK BERKAS SIMAP', 'LINK DETAIL SISTEM'
+            # Baris 5: Header Utama (23 Kolom, I5:P5 untuk 8 Tahapan Progres Dokumen)
+            header_row1 = [
+                'No', 'No. Reg. Dokumen', 'Pengirim / Asal Instansi', 'Perihal', 'Tanggal Diterima',
+                'Jenis Dokumen', 'Kategori Arsip', 'Penanggung Jawab',
+                'Progres Dokumen', '', '', '', '', '', '', '',
+                'Progres', 'No. Surat Tugas', 'No. SPPD', 'Tanggal Agenda', 'No. Laporan', 'Link Dokumen', 'Link Detail'
             ]
 
-            values = kop_header + [headers] + rows
+            # Baris 6: Sub-Header 8 Kolom Vertikal Tahapan Progres Dokumen (I6:P6)
+            header_row2 = [
+                '', '', '', '', '', '', '', '',
+                'Verifikasi Kabid IV', 'Disposisi Ketua', 'Disposisi Waka IV', 'Proses Bidang/Unit',
+                'Survei', 'Penyaluran', 'Laporan', 'Selesai',
+                '', '', '', '', '', '', ''
+            ]
 
-            body = {
-                'values': values
-            }
+            processed_rows = []
+            for i, row in enumerate(rows, start=1):
+                processed_rows.append(format_archive_row(i, row))
+
+            values = kop_header + [header_row1, header_row2] + processed_rows
+
+            body = {'values': values}
             sheets.spreadsheets().values().update(
                 spreadsheetId=spreadsheet_id,
                 range='A1',
@@ -303,23 +425,58 @@ class GoogleDriveService:
                 body=body
             ).execute()
 
-            # 4. Formatting Kop BAZNAS, Logo, Full Borders & Auto-Fit Width
+            # Formatting Kop, Logo, Vertical Headers & Borders
             try:
                 sheet_metadata = sheets.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
-                first_sheet_id = sheet_metadata['sheets'][0]['properties']['sheetId']
+                first_sheet = sheet_metadata['sheets'][0]
+                first_sheet_id = first_sheet['properties']['sheetId']
 
-                requests = [
-                    # Unmerge cell lama di area Kop A1:Y5
-                    {
-                        'unmergeCells': {
+                unmerge_requests = [{'unmergeCells': {'range': m}} for m in first_sheet.get('merges', [])]
+                if unmerge_requests:
+                    try:
+                        sheets.spreadsheets().batchUpdate(
+                            spreadsheetId=spreadsheet_id,
+                            body={'requests': unmerge_requests}
+                        ).execute()
+                    except Exception:
+                        pass
+
+                # Pemetaan Warna Khusus 8 Kolom Vertikal (I6:P6 / Index Col 8-15)
+                col_colors = [
+                    {'bg': {'red': 0.122, 'green': 0.306, 'blue': 0.471}, 'fg': {'red': 1.0, 'green': 1.0, 'blue': 1.0}}, # 1. Biru Tua
+                    {'bg': {'red': 0.706, 'green': 0.776, 'blue': 0.906}, 'fg': {'red': 0.0, 'green': 0.0, 'blue': 0.0}}, # 2. Biru Muda
+                    {'bg': {'red': 0.706, 'green': 0.776, 'blue': 0.906}, 'fg': {'red': 0.0, 'green': 0.0, 'blue': 0.0}}, # 3. Biru Muda
+                    {'bg': {'red': 0.957, 'green': 0.694, 'blue': 0.514}, 'fg': {'red': 0.0, 'green': 0.0, 'blue': 0.0}}, # 4. Oranye
+                    {'bg': {'red': 1.0, 'green': 0.85, 'blue': 0.4}, 'fg': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},      # 5. Kuning
+                    {'bg': {'red': 1.0, 'green': 0.85, 'blue': 0.4}, 'fg': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},      # 6. Kuning
+                    {'bg': {'red': 0.663, 'green': 0.816, 'blue': 0.557}, 'fg': {'red': 0.0, 'green': 0.0, 'blue': 0.0}}, # 7. Hijau
+                    {'bg': {'red': 0.663, 'green': 0.816, 'blue': 0.557}, 'fg': {'red': 0.0, 'green': 0.0, 'blue': 0.0}}  # 8. Hijau
+                ]
+
+                stage_col_styles = []
+                for c_idx, color_def in enumerate(col_colors, start=8):
+                    stage_col_styles.append({
+                        'repeatCell': {
                             'range': {
                                 'sheetId': first_sheet_id,
-                                'startRowIndex': 0, 'endRowIndex': 5,
-                                'startColumnIndex': 0, 'endColumnIndex': 25
-                            }
+                                'startRowIndex': 5, 'endRowIndex': 6,
+                                'startColumnIndex': c_idx, 'endColumnIndex': c_idx + 1
+                            },
+                            'cell': {
+                                'userEnteredFormat': {
+                                    'backgroundColor': color_def['bg'],
+                                    'textFormat': {'bold': True, 'fontSize': 10, 'foregroundColor': color_def['fg']},
+                                    'textRotation': {'angle': 90},
+                                    'horizontalAlignment': 'CENTER',
+                                    'verticalAlignment': 'MIDDLE'
+                                }
+                            },
+                            'fields': 'userEnteredFormat(backgroundColor,textFormat,textRotation,horizontalAlignment,verticalAlignment)'
                         }
-                    },
-                    # Merge Logo Container A1:B3
+                    })
+
+                requests = [
+                    # Merge Logo A1:B3
                     {
                         'mergeCells': {
                             'range': {
@@ -330,59 +487,57 @@ class GoogleDriveService:
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Merge Kop Title Row 1 (C1:Y1)
+                    # Merge Kop Title C1:W1, C2:W2, C3:W3
                     {
                         'mergeCells': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 0, 'endRowIndex': 1,
-                                'startColumnIndex': 2, 'endColumnIndex': 25
+                                'startColumnIndex': 2, 'endColumnIndex': 23
                             },
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Merge Kop Title Row 2 (C2:Y2)
                     {
                         'mergeCells': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 1, 'endRowIndex': 2,
-                                'startColumnIndex': 2, 'endColumnIndex': 25
+                                'startColumnIndex': 2, 'endColumnIndex': 23
                             },
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Merge Kop Title Row 3 (C3:Y3)
                     {
                         'mergeCells': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 2, 'endRowIndex': 3,
-                                'startColumnIndex': 2, 'endColumnIndex': 25
+                                'startColumnIndex': 2, 'endColumnIndex': 23
                             },
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Style Kop Headers C1:Y3 (Hijau BAZNAS #00583b, Teks Putih Bold, Centered)
+                    # Style Kop Headers C1:W3 (Hijau BAZNAS #006633, Teks Putih Bold, Rata Kiri, Middle)
                     {
                         'repeatCell': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 0, 'endRowIndex': 3,
-                                'startColumnIndex': 2, 'endColumnIndex': 25
+                                'startColumnIndex': 2, 'endColumnIndex': 23
                             },
                             'cell': {
                                 'userEnteredFormat': {
-                                    'backgroundColor': {'red': 0.0, 'green': 0.345, 'blue': 0.231},
+                                    'backgroundColor': {'red': 0.0, 'green': 0.4, 'blue': 0.2},
                                     'textFormat': {'bold': True, 'foregroundColor': {'red': 1.0, 'green': 1.0, 'blue': 1.0}},
-                                    'horizontalAlignment': 'CENTER',
+                                    'horizontalAlignment': 'LEFT',
                                     'verticalAlignment': 'MIDDLE'
                                 }
                             },
                             'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
                         }
                     },
-                    # Style Logo Cell A1:B3 (Background Putih, Centered & Middle)
+                    # Style Logo Cell A1:B3 (Latar Putih)
                     {
                         'repeatCell': {
                             'range': {
@@ -400,18 +555,77 @@ class GoogleDriveService:
                             'fields': 'userEnteredFormat(backgroundColor,horizontalAlignment,verticalAlignment)'
                         }
                     },
-                    # Style Header Tabel Row 5 (Hijau Pekat #004129, Teks Putih, Bold, Centered)
+                    # Border sekeliling Kop (A1:W3)
+                    {
+                        'updateBorders': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 0, 'endRowIndex': 3,
+                                'startColumnIndex': 0, 'endColumnIndex': 23
+                            },
+                            'top': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.3, 'blue': 0.1}},
+                            'bottom': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.3, 'blue': 0.1}},
+                            'left': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.3, 'blue': 0.1}},
+                            'right': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.3, 'blue': 0.1}}
+                        }
+                    },
+                    # Merge Vertikal 2 Baris untuk Kolom Utama Non-Progres (A5:H6 & Q5:W6)
+                    *[
+                        {
+                            'mergeCells': {
+                                'range': {
+                                    'sheetId': first_sheet_id,
+                                    'startRowIndex': 4, 'endRowIndex': 6,
+                                    'startColumnIndex': c, 'endColumnIndex': c + 1
+                                },
+                                'mergeType': 'MERGE_ALL'
+                            }
+                        } for c in list(range(0, 8)) + list(range(16, 23))
+                    ],
+                    # Style Header Utama Non-Progres (A5:H6 & Q5:W6) - Background Kuning #FFD966, Teks Hitam Bold
+                    *[
+                        {
+                            'repeatCell': {
+                                'range': {
+                                    'sheetId': first_sheet_id,
+                                    'startRowIndex': 4, 'endRowIndex': 6,
+                                    'startColumnIndex': c, 'endColumnIndex': c + 1
+                                },
+                                'cell': {
+                                    'userEnteredFormat': {
+                                        'backgroundColor': {'red': 1.0, 'green': 0.85, 'blue': 0.4},
+                                        'textFormat': {'bold': True, 'fontSize': 10, 'foregroundColor': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},
+                                        'horizontalAlignment': 'CENTER',
+                                        'verticalAlignment': 'MIDDLE'
+                                    }
+                                },
+                                'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
+                            }
+                        } for c in list(range(0, 8)) + list(range(16, 23))
+                    ],
+                    # Merge Horizontal untuk Header "Progres Dokumen" (I5:P5)
+                    {
+                        'mergeCells': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 4, 'endRowIndex': 5,
+                                'startColumnIndex': 8, 'endColumnIndex': 16
+                            },
+                            'mergeType': 'MERGE_ALL'
+                        }
+                    },
+                    # Style Header "Progres Dokumen" (I5:P5) - Background Abu-abu Terang #EFEFEF, Teks Hitam Bold
                     {
                         'repeatCell': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 4, 'endRowIndex': 5,
-                                'startColumnIndex': 0, 'endColumnIndex': 25
+                                'startColumnIndex': 8, 'endColumnIndex': 16
                             },
                             'cell': {
                                 'userEnteredFormat': {
-                                    'backgroundColor': {'red': 0.004, 'green': 0.255, 'blue': 0.161},
-                                    'textFormat': {'bold': True, 'fontSize': 10, 'foregroundColor': {'red': 1.0, 'green': 1.0, 'blue': 1.0}},
+                                    'backgroundColor': {'red': 0.938, 'green': 0.938, 'blue': 0.938},
+                                    'textFormat': {'bold': True, 'fontSize': 11, 'foregroundColor': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},
                                     'horizontalAlignment': 'CENTER',
                                     'verticalAlignment': 'MIDDLE'
                                 }
@@ -419,41 +633,133 @@ class GoogleDriveService:
                             'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
                         }
                     },
-                    # Garis Bingkai Tabel Utuh Seluruh Data (Full Thin Solid Borders)
+                    # Bingkai Biru Tebal di Sekeliling "Progres Dokumen" (I5:P5)
                     {
                         'updateBorders': {
                             'range': {
                                 'sheetId': first_sheet_id,
-                                'startRowIndex': 4, 'endRowIndex': max(5, 5 + len(rows)),
-                                'startColumnIndex': 0, 'endColumnIndex': 25
+                                'startRowIndex': 4, 'endRowIndex': 5,
+                                'startColumnIndex': 8, 'endColumnIndex': 16
                             },
-                            'top': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.5, 'green': 0.5, 'blue': 0.5}},
-                            'bottom': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.5, 'green': 0.5, 'blue': 0.5}},
-                            'left': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.5, 'green': 0.5, 'blue': 0.5}},
-                            'right': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.5, 'green': 0.5, 'blue': 0.5}},
-                            'innerHorizontal': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.8, 'green': 0.8, 'blue': 0.8}},
-                            'innerVertical': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.8, 'green': 0.8, 'blue': 0.8}}
+                            'top': {'style': 'SOLID_MEDIUM', 'width': 2, 'color': {'red': 0.122, 'green': 0.306, 'blue': 0.471}},
+                            'bottom': {'style': 'SOLID_MEDIUM', 'width': 2, 'color': {'red': 0.122, 'green': 0.306, 'blue': 0.471}},
+                            'left': {'style': 'SOLID_MEDIUM', 'width': 2, 'color': {'red': 0.122, 'green': 0.306, 'blue': 0.471}},
+                            'right': {'style': 'SOLID_MEDIUM', 'width': 2, 'color': {'red': 0.122, 'green': 0.306, 'blue': 0.471}}
                         }
                     },
-                    # AUTO FIT (AUTORESIZE) SELURUH KOLOM KONTEN TABEL (Kolom A-Y)
+                    # Style 8 Sub-Header Vertikal Warna-Warni
+                    *stage_col_styles,
+                    # Atur Tinggi Baris Header 6 (Pixel Size 120 agar teks vertikal muat rapi)
                     {
-                        'autoResizeDimensions': {
-                            'dimensions': {
+                        'updateDimensionProperties': {
+                            'range': {
                                 'sheetId': first_sheet_id,
-                                'dimension': 'COLUMNS',
-                                'startIndex': 0,
-                                'endIndex': 25
-                            }
+                                'dimension': 'ROWS',
+                                'startIndex': 5,
+                                'endIndex': 6
+                            },
+                            'properties': {'pixelSize': 120},
+                            'fields': 'pixelSize'
                         }
-                    }
+                    },
+                    # AUTO WRAP & Middle Alignment untuk Sel Data (Baris 7 dst)
+                    {
+                        'repeatCell': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 6, 'endRowIndex': max(7, 6 + len(processed_rows)),
+                                'startColumnIndex': 0, 'endColumnIndex': 23
+                            },
+                            'cell': {
+                                'userEnteredFormat': {
+                                    'wrapStrategy': 'WRAP',
+                                    'verticalAlignment': 'MIDDLE'
+                                }
+                            },
+                            'fields': 'userEnteredFormat(wrapStrategy,verticalAlignment)'
+                        }
+                    },
+                    # Center Alignment khusus untuk Kolom Ceklis Tahapan (I-P / Col 8-15)
+                    {
+                        'repeatCell': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 6, 'endRowIndex': max(7, 6 + len(processed_rows)),
+                                'startColumnIndex': 8, 'endColumnIndex': 16
+                            },
+                            'cell': {
+                                'userEnteredFormat': {
+                                    'horizontalAlignment': 'CENTER',
+                                    'verticalAlignment': 'MIDDLE'
+                                }
+                            },
+                            'fields': 'userEnteredFormat(horizontalAlignment,verticalAlignment)'
+                        }
+                    },
+                    # Full All Borders (Hitam Tegas & Jelas) untuk seluruh tabel (Baris 5 sd Selesai)
+                    {
+                        'updateBorders': {
+                            'range': {
+                                'sheetId': first_sheet_id,
+                                'startRowIndex': 4, 'endRowIndex': max(6, 6 + len(processed_rows)),
+                                'startColumnIndex': 0, 'endColumnIndex': 23
+                            },
+                            'top': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},
+                            'bottom': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},
+                            'left': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},
+                            'right': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},
+                            'innerHorizontal': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},
+                            'innerVertical': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.0, 'blue': 0.0}}
+                        }
+                    },
+                    # Atur Ukuran Lebar Kolom Cerdas & Pas (Smart Pixel Widths) A s.d W
+                    *[
+                        {
+                            'updateDimensionProperties': {
+                                'range': {
+                                    'sheetId': first_sheet_id,
+                                    'dimension': 'COLUMNS',
+                                    'startIndex': c_idx,
+                                    'endIndex': c_idx + 1
+                                },
+                                'properties': {'pixelSize': width},
+                                'fields': 'pixelSize'
+                            }
+                        } for c_idx, width in enumerate([
+                            45,   # 1. No (A)
+                            180,  # 2. No. Reg. Dokumen (B)
+                            160,  # 3. Pengirim / Asal Instansi (C) - SMART & PAS!
+                            250,  # 4. Perihal (D)
+                            110,  # 5. Tanggal Diterima (E)
+                            110,  # 6. Jenis Dokumen (F)
+                            130,  # 7. Kategori Arsip (G)
+                            160,  # 8. Penanggung Jawab (H)
+                            45,   # 9. Verifikasi Kabid IV (I)
+                            45,   # 10. Disposisi Ketua (J)
+                            45,   # 11. Disposisi Waka IV (K)
+                            45,   # 12. Proses Bidang/Unit (L)
+                            45,   # 13. Survei (M)
+                            45,   # 14. Penyaluran (N)
+                            45,   # 15. Laporan (O)
+                            45,   # 16. Selesai (P)
+                            160,  # 17. Progres (Q)
+                            160,  # 18. No. Surat Tugas (R)
+                            160,  # 19. No. SPPD (S)
+                            110,  # 20. Tanggal Agenda (T)
+                            160,  # 21. No. Laporan (U)
+                            140,  # 22. Link Dokumen (V)
+                            130   # 23. Link Detail (W)
+                        ])
+                    ]
                 ]
 
                 sheets.spreadsheets().batchUpdate(
                     spreadsheetId=spreadsheet_id,
                     body={'requests': requests}
                 ).execute()
-            except Exception as format_err:
-                logger.warning(f"Formatting Google Sheets: {format_err}")
+
+            except Exception as ex_fmt:
+                logger.warning(f"Gagal menerapkan formatting Google Sheets: {ex_fmt}")
 
             spreadsheet_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit"
             self._save_token_after_request(creds)

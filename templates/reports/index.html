@@ -287,7 +287,7 @@
                     
                     <div id="backup-count-info" class="mt-3" style="display:none;">
                         <div class="p-3 bg-info bg-opacity-10 rounded-3">
-                            <p class="small mb-0 fw-semibold text-info">
+                            <p class="small mb-0 fw-semibold" style="color: #055160;">
                                 <i class="bi bi-file-earmark-text me-1"></i>
                                 Jumlah dokumen yang akan dibackup: <span id="backup-doc-count" class="fw-bold">0</span>
                             </p>
@@ -296,9 +296,9 @@
 
                     {% if existing_backups %}
                     <div class="mt-3 p-3 bg-warning bg-opacity-10 rounded-3">
-                        <p class="small mb-1 fw-semibold text-warning"><i class="bi bi-info-circle me-1"></i> Backup yang sudah ada:</p>
+                        <p class="small mb-1 fw-semibold text-dark"><i class="bi bi-info-circle me-1 text-warning"></i> Backup yang sudah ada:</p>
                         {% for b in existing_backups %}
-                        <div class="small mb-1">
+                        <div class="small mb-1 text-dark">
                             {{ b.month_name }} {{ b.year }}
                             {% if b.spreadsheet_url %}
                             <a href="{{ b.spreadsheet_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none ms-1">
@@ -345,7 +345,7 @@
             });
         }
 
-        $('#backup-month, #backup-year').on('change', function() {
+        function checkBackupCount() {
             var month = $('#backup-month').val();
             var year = $('#backup-year').val();
             var $info = $('#backup-count-info');
@@ -365,6 +365,14 @@
             } else {
                 $info.hide();
             }
+        }
+
+        $('#backupMonthlyModal').on('shown.bs.modal show.bs.modal', function() {
+            checkBackupCount();
+        });
+
+        $('#backup-month, #backup-year').on('change', function() {
+            checkBackupCount();
         });
     });
 </script>

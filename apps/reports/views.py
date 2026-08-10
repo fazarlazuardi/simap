@@ -621,89 +621,10 @@ def drive_backup_monthly(request):
         messages.warning(request, f"Tidak ada data laporan untuk bulan {month}/{year}.")
         return redirect('reports:index')
 
-    rows = []
-    for arc in archives:
-        dispo = arc.latest_dispo
-
-        tgl_letter = arc.letter_date.strftime('%d/%m/%Y') if arc.letter_date else arc.created_at.strftime('%d/%m/%Y')
-        sender_receiver = arc.sender or arc.receiver or '-'
-        description = arc.description or '-'
-        status_dok = arc.activity_name
-        jenis_arsip = arc.get_archive_type_display()
-        kategori = arc.category.name if arc.category else '-'
-        uploaded_by = arc.uploaded_by.username if arc.uploaded_by else '-'
-
-        if dispo:
-            dispo_number = dispo.disposition_number or f'DISP-{dispo.id}'
-            
-            # PENANGGUNG JAWAB DINAMIS UNTUK BACKUP MONTHLY
-            pj_list = arc.current_assignee_names
-            
-            sender_name = dispo.sender.username if dispo.sender else '-'
-            prioritas = dispo.get_priority_display()
-            status_dispo = dispo.get_status_display()
-            catatan = (dispo.waka_note if dispo.is_stage_waka and dispo.waka_note else dispo.note) or '-'
-            tgl_pelaksanaan = dispo.implementation_date.strftime('%d/%m/%Y') if dispo.implementation_date else '-'
-            inst_selesaikan = 'Ya' if (dispo.waka_inst_selesaikan if dispo.is_stage_waka else dispo.inst_selesaikan) else 'Tidak'
-            inst_diketahui = 'Ya' if (dispo.waka_inst_untuk_diketahui if dispo.is_stage_waka else dispo.inst_untuk_diketahui) else 'Tidak'
-            inst_laporkan = 'Ya' if (dispo.waka_inst_laporkan_hasilnya if dispo.is_stage_waka else dispo.inst_laporkan_hasilnya) else 'Tidak'
-            inst_koordinasikan = 'Ya' if (dispo.waka_inst_koordinasikan if dispo.is_stage_waka else dispo.inst_koordinasikan) else 'Tidak'
-        else:
-            dispo_number = '-'
-            pj_list = '-'
-            sender_name = '-'
-            prioritas = '-'
-            status_dispo = '-'
-            catatan = '-'
-            tgl_pelaksanaan = '-'
-            inst_selesaikan = '-'
-            inst_diketahui = '-'
-            inst_laporkan = '-'
-            inst_koordinasikan = '-'
-
-        sppd_obj = arc.latest_sppd
-        st_obj = arc.latest_st
-        sppd_number = sppd_obj.sppd_number if sppd_obj else (st_obj.nomor_surat if st_obj else '-')
-
-        report_obj = arc.latest_report
-        report_number = report_obj.report_number if report_obj else '-'
-
-        tgl_agenda = arc.latest_agenda_date.strftime('%d/%m/%Y') if arc.latest_agenda_date else '-'
-
-        dok_link = request.build_absolute_uri(arc.file_path.url) if arc.file_path else ''
-
-        arsip_link = request.build_absolute_uri(f"/archives/{arc.pk}/")
-
-        rows.append([
-            arc.archive_number or 'DRAFT',
-            arc.title,
-            jenis_arsip,
-            kategori,
-            tgl_letter,
-            sender_receiver,
-            description,
-            status_dok,
-            dispo_number,
-            pj_list,
-            sender_name,
-            prioritas,
-            status_dispo,
-            catatan,
-            tgl_pelaksanaan,
-            inst_selesaikan,
-            inst_diketahui,
-            inst_laporkan,
-            inst_koordinasikan,
-            tgl_agenda,
-            sppd_number,
-            report_number,
-            f'=HYPERLINK("{dok_link}", "Buka Berkas SIMAP")' if dok_link else '-',
-            f'=HYPERLINK("{arsip_link}", "Lihat Detail Sistem")',
-        ])
-
     from services.integrations.google_drive import GoogleDriveService
     drive_service = GoogleDriveService()
-    spreadsheet_id, spreadsheet_url, error_msg = drive_service.create_monthly_backup(month, year, rows)
+    archive_list = list(archives)
+    spreadsheet_id, spreadsheet_url, error_msg = drive_service.create_monthly_backup(month, year, archive_list)
 
     if spreadsheet_id:
         MonthlyBackup.objects.update_or_create(
@@ -715,10 +636,10 @@ def drive_backup_monthly(request):
         )
         AuditService.log_action(
             request.user,
-            f"Backup bulanan {month}/{year} ke Google Sheets ({len(rows)} dokumen)",
+            f"Backup bulanan {month}/{year} ke Google Sheets ({len(archive_list)} dokumen)",
             request
         )
-        messages.success(request, f"Backup bulan {month}/{year} berhasil. {len(rows)} dokumen disimpan.")
+        messages.success(request, f"Backup bulan {month}/{year} berhasil. {len(archive_list)} dokumen disimpan.")
     else:
         messages.error(request, f"Gagal backup ke Google Sheets. {error_msg or 'Periksa konfigurasi Drive.'}")
     return redirect('reports:index')
