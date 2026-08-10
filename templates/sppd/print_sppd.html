@@ -1,383 +1,277 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Surat Perintah Perjalanan Dinas - BAZNAS Kabupaten Tangerang</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cetak Notulensi Otomatis BAZNAS</title>
+
+  <!-- Library jsPDF & jsPDF-AutoTable -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <!-- Library QR Code Generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
-    /* Gaya untuk cetak (Print) */
-    @media print {
-      .no-print { display: none !important; }
-      @page { 
-        size: letter portrait;
-        margin: 5mm 10mm; /* Margin diperkecil agar area cetak lebih luas */
-      }
-      body { padding: 0; margin: 0; background: #fff; }
-      .container {
-        page-break-after: always;
-        page-break-inside: avoid;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-height: auto !important; /* Dihapus agar tidak memicu halaman 2 */
-        margin: 0 !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-      }
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: "Times New Roman", Times, serif; 
-      font-size: 11.5px; /* Sedikit dikecilkan untuk mengamankan 1 lembar */
-      line-height: 1.3;
-      color: #000;
-      background: #f1f5f9; 
-    }
-
-    /* Simulasi Kertas Letter di Layar */
-    .container {
-      width: 215.9mm; 
-      min-height: 279.4mm; 
-      margin: 20px auto;
-      padding: 8mm 12mm; /* Padding disesuaikan */
-      background: #fff;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      position: relative;
-    }
-
-    /* MASTER TABLE STYLING */
-    table.master-table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      border: 1.5px solid #000;
-    }
-
-    table.master-table td, table.master-table th {
-      border: 1px solid #000;
-      padding: 4px 6px; /* Diperpadat agar tidak memakan banyak ruang vertikal */
-      vertical-align: top;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-    }
-
-    /* Pengaturan Khusus Kop Surat (Header) */
-    .header-cell {
-      border: none !important;
-      border-bottom: 1.5px solid #000 !important;
-      padding: 0 !important; 
-    }
-    
-    .inner-header-table {
-      width: 100%;
-      border-collapse: collapse;
-      border: none;
-    }
-    
-    .inner-header-table td {
-      border: none;
-      vertical-align: middle;
-      padding: 6px 10px; /* Diperpadat */
-    }
-
-    /* NESTED PENGIKUT TABLE */
-    .nested-pengikut {
-      width: 100%;
-      border-collapse: collapse;
+      font-family: Arial, sans-serif;
+      background-color: #0f172a;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
       margin: 0;
     }
-
-    .nested-pengikut th, .nested-pengikut td {
-      border: 1px solid #000;
-      padding: 3px 5px;
-      font-size: 11px;
+    .card {
+      background-color: #1e293b;
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      max-width: 500px;
+    }
+    .btn-download {
+      background-color: #046C4E;
+      color: #ffffff;
+      border: none;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.2s;
+    }
+    .btn-download:hover {
+      background-color: #03543d;
+    }
+    #qrcode-hidden {
+      display: none;
     }
   </style>
 </head>
-
 <body>
 
-{% for sppd in sppds %}
-  <div class="container{% if not forloop.last %} page-break{% endif %}">
-
-    <table class="master-table">
-      <colgroup>
-        <col style="width: 4%;">
-        <col style="width: 36%;">
-        <col style="width: 3%;">
-        <col style="width: 57%;">
-      </colgroup>
-
-      <!-- 1. KOP HEADER SPPD (Dengan Garis Pembatas Vertikal) -->
-      <tr>
-        <td colspan="4" class="header-cell">
-          <table class="inner-header-table">
-            <tr>
-              <td style="width: 18%; text-align: center; border-right: 1.5px solid #000 !important;">
-                <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS" style="max-width: 85px; height: auto;">
-              </td>
-              <td style="width: 82%; text-align: center;">
-                <div style="font-size: 14px; font-weight: bold;">
-                  SURAT PERINTAH PERJALANAN DINAS
-                </div>
-                <div style="font-size: 14px; font-weight: bold; margin-top: 4px;">
-                  BAZNAS KABUPATEN TANGERANG
-                </div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-
-      <!-- 2. NOMOR ROWS -->
-      <tr>
-        <td></td>
-        <td>Nomor Surat Perintah Perjalanan Dinas</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.sppd_number }}</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td>Nomor Surat Perintah/Tugas</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.surat_tugas.nomor_surat|default:"-" }}</td>
-      </tr>
-
-      <!-- 3. ITEM 1 -->
-      {% with employees=sppd.assigned_employees.all %}
-      <tr>
-        <td style="text-align: center;">1</td>
-        <td>Pejabat yang memberi perintah</td>
-        <td style="text-align: center;">:</td>
-        <td>PIMPINAN BAZNAS KABUPATEN TANGERANG</td>
-      </tr>
-
-      <!-- 4. ITEM 2 -->
-      <tr>
-        <td rowspan="2" style="text-align: center; vertical-align: top;">2</td>
-        <td>Nama amil yang diperintahkan</td>
-        <td style="text-align: center;">:</td>
-        <td>
-          {% for emp in employees %}
-            {{ emp.full_name }}{% if not forloop.last %}<br>{% endif %}
-          {% empty %}
-            -
-          {% endfor %}
-        </td>
-      </tr>
-      <tr>
-        <td>Jabatan</td>
-        <td style="text-align: center;">:</td>
-        <td>
-          {% for emp in employees %}
-            {{ emp.position|default:"-" }}{% if not forloop.last %}<br>{% endif %}
-          {% empty %}
-            -
-          {% endfor %}
-        </td>
-      </tr>
-      {% endwith %}
-
-      <!-- 5. ITEM 3 -->
-      <tr>
-        <td style="text-align: center;">3</td>
-        <td>Maksud perjalanan dinas</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.purpose|default:sppd.surat_tugas.tentang }}</td>
-      </tr>
-
-      <!-- 6. ITEM 4 -->
-      <tr>
-        <td style="text-align: center;">4</td>
-        <td>Alat angkutan yang digunakan</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.transportation|default:"Mobil" }}</td>
-      </tr>
-
-      <!-- 7. ITEM 5 -->
-      <tr>
-        <td rowspan="2" style="text-align: center; vertical-align: top;">5</td>
-        <td>a. Tempat Berangkat</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.departure_place|default:"KANTOR Jl. Islamic Center No. 01 Citra Raya" }}</td>
-      </tr>
-      <tr>
-        <td>b. Tempat Tujuan</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.destination }}</td>
-      </tr>
-
-      <!-- 8. ITEM 6 -->
-      <tr>
-        <td rowspan="3" style="text-align: center; vertical-align: top;">6</td>
-        <td>a. Lamanya perjalanan dinas</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.duration_days|default:1 }} Hari</td>
-      </tr>
-      <tr>
-        <td>b. Tanggal berangkat</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.departure_date|date:"d F Y"|default:"-" }}</td>
-      </tr>
-      <tr>
-        <td>c. Tanggal kembali</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.return_date|date:"d F Y"|default:"-" }}</td>
-      </tr>
-
-      <!-- 9. ITEM 7 (PENGIKUT) -->
-      <tr>
-        <td style="text-align: center; vertical-align: top;">7</td>
-        <td colspan="3" style="padding: 0;">
-          <table class="nested-pengikut" style="border-style: hidden;">
-            <tr>
-              <td colspan="3" style="border-bottom: 1px solid #000; padding: 4px 6px;">Pengikut</td>
-            </tr>
-            <tr>
-              <th style="width: 8%; text-align: center; border-right: 1px solid #000; border-bottom: 1px solid #000;">No</th>
-              <th style="width: 44%; text-align: left; border-right: 1px solid #000; border-bottom: 1px solid #000;">Nama</th>
-              <th style="width: 48%; text-align: left; border-bottom: 1px solid #000;">Jabatan</th>
-            </tr>
-            {% for f in sppd.followers.all %}
-              <tr>
-                <td style="text-align: center; border-right: 1px solid #000; border-bottom: 1px solid #000;">{{ forloop.counter }}</td>
-                <td style="border-right: 1px solid #000; border-bottom: 1px solid #000;">{{ f.full_name }}</td>
-                <td style="border-bottom: 1px solid #000;">{{ f.position|default:"-" }}</td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td style="text-align: center; border-right: 1px solid #000; border-bottom: 1px solid #000;">1</td>
-                <td style="border-right: 1px solid #000; border-bottom: 1px solid #000;">&nbsp;</td>
-                <td style="border-bottom: 1px solid #000;">&nbsp;</td>
-              </tr>
-              <tr>
-                <td style="text-align: center; border-right: 1px solid #000; border-bottom: 1px solid #000;">2</td>
-                <td style="border-right: 1px solid #000; border-bottom: 1px solid #000;">&nbsp;</td>
-                <td style="border-bottom: 1px solid #000;">&nbsp;</td>
-              </tr>
-              <tr>
-                <td style="text-align: center; border-right: 1px solid #000;">3</td>
-                <td style="border-right: 1px solid #000;">&nbsp;</td>
-                <td>&nbsp;</td>
-              </tr>
-            {% endfor %}
-          </table>
-        </td>
-      </tr>
-
-      <!-- 10. ITEM 8 -->
-      <tr>
-        <td style="text-align: center;">8</td>
-        <td>Pembebanan anggaran</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.budget_source|default:"BAZNAS Kabupaten Tangerang" }}</td>
-      </tr>
-
-      <!-- 11. ITEM 9 -->
-      <tr>
-        <td style="text-align: center;">9</td>
-        <td>Keterangan</td>
-        <td style="text-align: center;">:</td>
-        <td>{{ sppd.notes|default:"" }}</td>
-      </tr>
-
-      <!-- 12. TANDA TANGAN KETUA -->
-      <tr>
-        <td colspan="2" style="border-right: none;"></td>
-        <td colspan="2" style="border-left: none; padding-top: 16px; padding-bottom: 16px; text-align: left; padding-left: 15px;">
-          Dikeluarkan di : Baznas Kabupaten Tangerang<br>
-          Ketua BAZNAS Kabupaten Tangerang<br><br><br><br>
-          <b>
-            {% if sppd.signed_by_ketua and sppd.signed_by_ketua.full_name %}
-              {{ sppd.signed_by_ketua.full_name }}
-            {% elif ketua_baznas and ketua_baznas.full_name %}
-              {{ ketua_baznas.full_name }}
-            {% else %}
-              Drs. H. Achmad Nawawi, M.Si
-            {% endif %}
-          </b>
-        </td>
-      </tr>
-
-      <!-- 13. BOTTOM BOX (TIBA DI / BERANGKAT DARI) -->
-      <tr>
-        <td colspan="2" style="width: 50%; vertical-align: top; padding: 8px; height: 115px;">
-          <table style="width: 100%; border: none;">
-            <tr><td style="border: none; width: 35%; padding: 1px 0;">Tiba di</td><td style="border: none; width: 5%; padding: 1px 0;">:</td><td style="border: none; padding: 1px 0;">.....................................</td></tr>
-            <tr><td style="border: none; padding: 1px 0;">Pada tanggal</td><td style="border: none; padding: 1px 0;">:</td><td style="border: none; padding: 1px 0;">.....................................</td></tr>
-            <tr><td colspan="3" style="border: none; padding-top: 6px;">Mengetahui :</td></tr>
-            <tr><td colspan="3" style="border: none; height: 35px;"></td></tr>
-            <tr><td style="border: none; padding: 1px 0;">Nama</td><td style="border: none; padding: 1px 0;">:</td><td style="border: none; padding: 1px 0;">.....................................</td></tr>
-            <tr><td style="border: none; padding: 1px 0;">Jabatan</td><td style="border: none; padding: 1px 0;">:</td><td style="border: none; padding: 1px 0;">.....................................</td></tr>
-          </table>
-        </td>
-        <td colspan="2" style="width: 50%; vertical-align: top; padding: 8px; height: 115px;">
-          <table style="width: 100%; border: none;">
-            <tr><td style="border: none; width: 35%; padding: 1px 0;">Berangkat dari</td><td style="border: none; width: 5%; padding: 1px 0;">:</td><td style="border: none; padding: 1px 0;">.....................................</td></tr>
-            <tr><td style="border: none; padding: 1px 0;">Pada tanggal</td><td style="border: none; padding: 1px 0;">:</td><td style="border: none; padding: 1px 0;">.....................................</td></tr>
-            <tr><td colspan="3" style="border: none; padding-top: 6px;">Mengetahui :</td></tr>
-            <tr><td colspan="3" style="border: none; height: 35px;"></td></tr>
-            <tr><td style="border: none; padding: 1px 0;">Nama</td><td style="border: none; padding: 1px 0;">:</td><td style="border: none; padding: 1px 0;">.....................................</td></tr>
-            <tr><td style="border: none; padding: 1px 0;">Jabatan</td><td style="border: none; padding: 1px 0;">:</td><td style="border: none; padding: 1px 0;">.....................................</td></tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-
+  <div class="card">
+    <h2>Sistem Cetak Otomatis Presisi</h2>
+    <p style="color: #94a3b8; margin-top: 10px;">
+      Engine otomatis mengatur tata letak, pemecahan halaman (page break), dan tinggi tabel secara dinamis.
+    </p>
+    <button onclick="generateAutomaticPDF()" class="btn-download" id="btnCetak">
+      📥 Unduh PDF Otomatis & Rapi
+    </button>
   </div>
-{% empty %}
-  <div class="container" style="text-align: center; margin-top: 50px; min-height: auto;">
-    <h3>Tidak ada data SPPD untuk dicetak.</h3>
-  </div>
-{% endfor %}
 
-<!-- ACTION BUTTONS -->
-<div class="no-print" style="max-width: 215.9mm; margin: 20px auto; text-align: center; display: flex; justify-content: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-  <button onclick="window.print()" style="padding: 10px 24px; font-weight: bold; background: #046C4E; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-    🖨️ Cetak Dokumen (Print)
-  </button>
-  <button onclick="downloadPDF()" style="padding: 10px 24px; font-weight: bold; background: #0284C7; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-    📥 Download File PDF (html2canvas)
-  </button>
-</div>
+  <div id="qrcode-hidden"></div>
 
-<script>
-    async function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const elements = document.querySelectorAll('.container');
-        if (!elements.length) return;
+  <script>
+    let qrDataURL = "";
+    document.addEventListener("DOMContentLoaded", function() {
+      const qrDiv = document.getElementById("qrcode-hidden");
+      const qr = new QRCode(qrDiv, {
+        text: "VERIFIKASI DIGITAL BAZNAS KAB. TANGERANG\nNomor: 020/BZ-RPT/VIII/2026\nNotulis: Fajar Lazuardi, S.Kom.",
+        width: 200,
+        height: 200,
+        correctLevel: QRCode.CorrectLevel.H
+      });
 
-        // Kertas Letter (215.9mm x 279.4mm)
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'letter'
-        });
-
-        for (let i = 0; i < elements.length; i++) {
-            const canvas = await html2canvas(elements[i], {
-                scale: 3, 
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff'
-            });
-            
-            const imgData = canvas.toDataURL('image/jpeg', 1.0);
-            if (i > 0) pdf.addPage('letter', 'portrait');
-            
-            pdf.addImage(imgData, 'JPEG', 0, 0, 215.9, 279.4);
+      setTimeout(() => {
+        const qrCanvas = qrDiv.querySelector("canvas");
+        if (qrCanvas) {
+          qrDataURL = qrCanvas.toDataURL("image/png");
         }
-        pdf.save('SPPD_BAZNAS.pdf');
-    }
-</script>
+      }, 300);
+    });
 
+    function generateAutomaticPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = { left: 15, right: 15 };
+
+      // Data dinamis yang bisa diubah/diambil dari database secara otomatis
+      const dataNotulensi = {
+        nomor: "020/BZ-RPT/VIII/2026",
+        agenda: "Evaluasi Program Pelayanan Digital & Tata Kelola Intern BAZNAS Kabupaten Tangerang",
+        pimpinan: "1. Drs. H. Achmad Nawawi, M.Si (Ketua)\n2. Haris Syarif Mansyur, S.H, M.H (Wakil Ketua I)\n3. H. Supriyadinata, M.Si (Wakil Ketua III)",
+        waktu: "Senin, 10 Agustus 2026 — 10:00 WIB",
+        tempat: "Ruang Rapat Utama BAZNAS Kab. Tangerang",
+        ringkasan: "Topik Utama Evaluasi Pelayanan Digital, Kepercayaan Muzakki, dan Kesolidan Tim BAZNAS.\n\n" +
+                   "• Penguatan sistem arsip internal agar pencatatan dokumen rapat terintegrasi secara digital.\n" +
+                   "• Peningkatan kualitas respons layanan muzakki serta peningkatan transparansi penyaluran zakat.\n" +
+                   "• Perlunya penataan alur kerja antar unit pelaksana teknis agar tercipta efisiensi kerja.",
+        kesimpulan: "1. Digitalisasi Pelayanan & Arsip Adalah Kebutuhan Mendesak.\n" +
+                    "2. Kepercayaan Muzakki Adalah Aset Utama BAZNAS Kabupaten Tangerang.\n" +
+                    "3. Kesolidan Tim dan Transparansi Menjadi Kunci Keberlanjutan Program.",
+        tindakLanjut: "1. Audit & Optimasi Sistem Arsip Digital BAZNAS.\n" +
+                     "2. Penyusunan SOP Pelayanan Transparan bagi Muzakki & Mustahik.\n" +
+                     "3. Consolidating Internal Unit Pelaksana Teknis secara berkala."
+      };
+
+      // 1. KOP SURAT OTOMATIS (Akan dirender ulang di setiap halaman baru)
+      const renderKopSurat = () => {
+        doc.setFont("times", "bold");
+        doc.setFontSize(12);
+        doc.text("BADAN AMIL ZAKAT NASIONAL", pageWidth / 2, 16, { align: "center" });
+        doc.setFontSize(13);
+        doc.text("BAZNAS KABUPATEN TANGERANG", pageWidth / 2, 22, { align: "center" });
+
+        doc.setFont("times", "normal");
+        doc.setFontSize(8.5);
+        doc.text("Gedung Islamic Center, Jl. Islamic Center No. 01 Citra Raya, Panongan - Tangerang", pageWidth / 2, 27, { align: "center" });
+
+        doc.setLineWidth(0.8);
+        doc.line(15, 31, pageWidth - 15, 31);
+        doc.setLineWidth(0.2);
+        doc.line(15, 32, pageWidth - 15, 32);
+      };
+
+      // 2. FUNGSI TANDA TANGAN OTOMATIS (Mengecek sisa ruang halaman)
+      const cekDanRenderTandaTangan = () => {
+        const tinggiDibutuhkan = 45; // Estimasi tinggi area tanda tangan dalam mm
+        const sisaRuang = pageHeight - doc.lastAutoTable.finalY;
+
+        // Jika sisa ruang di halaman tidak cukup untuk tanda tangan, otomatis buat halaman baru
+        if (sisaRuang < tinggiDibutuhkan) {
+          doc.addPage();
+          renderKopSurat();
+          doc.lastAutoTable = { finalY: 35 }; // Reset posisi Y setelah header di halaman baru
+        }
+
+        let startY = doc.lastAutoTable.finalY + 10;
+        const posX = 140;
+
+        doc.setFont("times", "normal");
+        doc.setFontSize(10);
+        doc.text("Tangerang, 10 Agustus 2026", posX + 25, startY, { align: "center" });
+        doc.text("Notulis Rapat,", posX + 25, startY + 5, { align: "center" });
+
+        if (qrDataURL) {
+          doc.addImage(qrDataURL, "PNG", posX + 12, startY + 7, 26, 26);
+        }
+
+        doc.setFont("times", "bold");
+        doc.text("Fajar Lazuardi, S.Kom.", posX + 25, startY + 38, { align: "center" });
+        
+        doc.setLineWidth(0.3);
+        doc.line(posX + 5, startY + 39, posX + 45, startY + 39);
+
+        doc.setFont("times", "italic");
+        doc.setFontSize(7.5);
+        doc.text("Dokumen Ditandatangani Secara Digital", posX + 25, startY + 43, { align: "center" });
+      };
+
+      // --- EKsekusi Halaman 1: Notulensi Utama ---
+      renderKopSurat();
+
+      // Tabel Metadata Otomatis
+      doc.autoTable({
+        startY: 38,
+        margin: margin,
+        theme: 'plain',
+        styles: { font: 'times', fontSize: 10, cellPadding: 2, textColor: [0, 0, 0] },
+        body: [
+          ['Dokumen / Perihal', ':', 'NOTULENSI & RISALAH RAPAT INTERNAL'],
+          ['Nomor Notulensi', ':', dataNotulensi.nomor],
+          ['Agenda Rapat', ':', dataNotulensi.agenda],
+          ['Pimpinan Rapat', ':', dataNotulensi.pimpinan],
+          ['Hari, Tanggal & Jam', ':', dataNotulensi.waktu],
+          ['Tempat / Ruang', ':', dataNotulensi.tempat]
+        ],
+        columnStyles: {
+          0: { cellWidth: 45, fontStyle: 'bold' },
+          1: { cellWidth: 5, halign: 'center' },
+          2: { cellWidth: 'auto' }
+        }
+      });
+
+      // Array Konten Otomatis (Otomatis menyesuaikan tinggi teks dan terpecah jika melewati batas halaman)
+      const blokKonten = [
+        { title: '1. RINGKASAN PEMBAHASAN & RISALAH RAPAT', content: dataNotulensi.ringkasan },
+        { title: '2. KESIMPULAN & KEPUTUSAN RAPAT', content: dataNotulensi.kesimpulan },
+        { title: '3. RENCANA TINDAK LANJUT (ACTION PLAN)', content: dataNotulensi.tindakLanjut }
+      ];
+
+      blokKonten.forEach((item) => {
+        doc.autoTable({
+          startY: doc.lastAutoTable.finalY + 4,
+          margin: margin,
+          theme: 'grid',
+          head: [[item.title]],
+          body: [[item.content]],
+          headStyles: { font: 'times', fontStyle: 'bold', fillColor: [241, 245, 249], textColor: [0, 0, 0], fontSize: 10 },
+          styles: { font: 'times', fontSize: 10, cellPadding: 3, textColor: [0, 0, 0], halign: 'justify' },
+          // Fitur otomatis bawaan plugin untuk memecah sel panjang antar halaman dengan aman
+          rowPageBreak: 'auto', 
+          bodyStyles: { valign: 'top' }
+        });
+      });
+
+      // Panggil Tanda Tangan Halaman 1 secara otomatis (pindah halaman jika tidak muat)
+      cekDanRenderTandaTangan();
+
+
+      // --- EKsekusi Halaman 2: Daftar Presensi Otomatis ---
+      doc.addPage();
+      renderKopSurat();
+
+      doc.autoTable({
+        startY: 38,
+        margin: margin,
+        theme: 'plain',
+        styles: { font: 'times', fontSize: 10, cellPadding: 2, textColor: [0, 0, 0] },
+        body: [
+          ['Dokumen', ':', 'DAFTAR KEHADIRAN / PRESENSI PESERTA RAPAT'],
+          ['Agenda', ':', dataNotulensi.agenda]
+        ],
+        columnStyles: {
+          0: { cellWidth: 45, fontStyle: 'bold' },
+          1: { cellWidth: 5, halign: 'center' },
+          2: { cellWidth: 'auto' }
+        }
+      });
+
+      // Contoh Data Peserta (Otomatis bertambah panjang ke bawah jika datanya banyak)
+      const daftarPeserta = [
+        ['1', 'Drs. H. Achmad Nawawi, M.Si', 'Ketua BAZNAS', '[ HADIR ]'],
+        ['2', 'Haris Syarif Mansyur, S.H, M.H', 'Wakil Ketua I', '[ HADIR ]'],
+        ['3', 'H. Supriyadinata, M.Si', 'Wakil Ketua III', '[ HADIR ]'],
+        ['4', 'Abdul Qodir, S.T, M.Si', 'Staff Pelaksana', '[ HADIR ]'],
+        ['5', 'Ahmad Nawawi, S.Pd', 'Kabid II', '[ HADIR ]'],
+        ['6', 'Fajar Lazuardi, S.Kom.', 'Staf Pelaksana IT', '[ HADIR ]']
+      ];
+
+      doc.autoTable({
+        startY: doc.lastAutoTable.finalY + 4,
+        margin: margin,
+        head: [['No', 'Nama Pegawai / Amil', 'Jabatan / Unit Kerja', 'Status']],
+        body: daftarPeserta,
+        theme: 'grid',
+        headStyles: { font: 'times', fontStyle: 'bold', fillColor: [241, 245, 249], textColor: [0, 0, 0], halign: 'center' },
+        styles: { font: 'times', fontSize: 9.5, cellPadding: 2.5, textColor: [0, 0, 0] },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 12 },
+          1: { fontStyle: 'bold', cellWidth: 75 },
+          2: { cellWidth: 60 },
+          3: { halign: 'center', cellWidth: 33 }
+        },
+        // Jika tabel presensi sangat panjang, header tabel akan otomatis tercetak di halaman berikutnya
+        showHead: 'everyPage' 
+      });
+
+      // Panggil Tanda Tangan untuk Halaman Presensi secara otomatis
+      cekDanRenderTandaTangan();
+
+      // Download file PDF secara otomatis
+      doc.save("Notulensi_BAZNAS_Kab_Tangerang.pdf");
+    }
+  </script>
 </body>
 </html>

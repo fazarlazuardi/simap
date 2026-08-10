@@ -1,440 +1,807 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notulensi Rapat - {{ meeting.meeting_number|default:meeting.title }}</title>
+    
+    <!-- Library QRCode JS, html2canvas & jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
+        /* ==========================================
+           1. SETUP HALAMAN & PRINT (STANDAR MS WORD A4)
+           ========================================== */
         @page {
-            size: letter portrait;
-            margin: 10mm;
+            size: A4 portrait;
+            margin: 10mm 12mm 10mm 12mm;
+            @bottom-right {
+                content: "Halaman " counter(page) " dari " counter(pages);
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 8pt;
+                color: #000;
+            }
+            @bottom-left {
+                content: "Dokumen Resmi BAZNAS Kabupaten Tangerang";
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 8pt;
+                font-style: italic;
+                color: #000;
+            }
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Times New Roman', Times, serif;
-            font-size: 10.5pt;
+            font-size: 10pt;
             line-height: 1.35;
-            color: #000;
-            background: #fff;
+            color: #000000;
+            background: #334155;
             margin: 0;
-            padding: 0;
+            padding: 20px 0;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        .page-container {
-            width: 100%;
-            max-width: 215.9mm;
+        #notulensi-container {
+            width: 210mm;
             margin: 0 auto;
+        }
+
+        .page-sheet {
+            width: 210mm;
+            min-height: 297mm;
+            background: #ffffff;
+            margin: 0 auto 20px auto;
+            padding: 12mm 15mm 12mm 15mm;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            position: relative;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        /* HEADER KOP BAZNAS */
-        .kop-table {
-            width: 100%;
-            border-collapse: collapse;
-            border-bottom: 2.5px double #000;
+        .sheet-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sheet-footer {
+            margin-top: auto;
+            padding-top: 10px;
+        }
+
+        /* ==========================================
+           2. KOP SURAT FORMAL BERKOTAK (TABEL BAZNAS)
+           ========================================== */
+        .kop-box-container {
+            border: 2px solid #000000;
+            padding: 8px 10px;
             margin-bottom: 10px;
-            padding-bottom: 4px;
-            page-break-inside: avoid;
-            break-inside: avoid;
+            width: 100%;
         }
 
-        .kop-logo {
-            width: 70px;
-            text-align: center;
-            vertical-align: middle;
+        .kop-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            table-layout: fixed;
         }
 
-        .kop-logo img {
-            max-width: 65px;
-            max-height: 65px;
+        .kop-table td {
+            border: none !important;
+            padding: 0 !important;
+            vertical-align: middle !important;
         }
 
-        .kop-text {
-            text-align: center;
-            vertical-align: middle;
+        .kop-logo-td {
+            width: 80px !important;
+            text-align: center !important;
         }
 
-        .kop-text h3 {
+        .kop-logo-td img {
+            width: 68px;
+            height: auto;
+            max-height: 68px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .kop-text-td {
+            text-align: center !important;
+            color: #000000;
+            padding-right: 80px !important;
+        }
+
+        .kop-text-td .instansi-luar {
             margin: 0;
-            font-size: 13pt;
+            font-size: 11.5pt;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: #000000;
         }
 
-        .kop-text h2 {
-            margin: 2px 0;
-            font-size: 14pt;
+        .kop-text-td .instansi-daerah {
+            margin: 1px 0 2px 0;
+            font-size: 13.5pt;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            color: #000000;
         }
 
-        .kop-text p {
+        .kop-text-td .alamat {
             margin: 0;
             font-size: 8pt;
+            line-height: 1.2;
+            color: #000000;
+        }
+
+        .kop-text-td .kontak {
+            margin: 1px 0 0 0;
+            font-size: 8pt;
             font-style: italic;
+            color: #000000;
         }
 
-        /* JUDUL NOTULENSI */
-        .title-box {
+        /* ==========================================
+           3. JUDUL DOKUMEN & FORMAT TABEL FORMAL
+           ========================================== */
+        .document-title {
             text-align: center;
-            margin-bottom: 12px;
-            page-break-inside: avoid;
-            break-inside: avoid;
+            margin-bottom: 10px;
         }
 
-        .title-box h4 {
+        .document-title h4 {
             margin: 0;
-            font-size: 12pt;
+            font-size: 11pt;
             font-weight: bold;
             text-transform: uppercase;
             text-decoration: underline;
+            text-underline-offset: 4px;
+            letter-spacing: 0.5px;
+            color: #000000;
         }
 
-        .title-box p {
-            margin: 3px 0 0 0;
-            font-size: 10pt;
+        .document-title p {
+            margin: 4px 0 0 0;
+            font-size: 9.5pt;
             font-weight: bold;
+            color: #000000;
         }
 
-        /* MASTER TABLE SETUP (MULTI-PAGE SAFETY) */
-        .master-table {
+        /* TABEL FORMAL (FIXED COLUMN) */
+        .gov-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
             margin-bottom: 10px;
-            font-size: 10pt;
-            page-break-inside: auto;
-            break-inside: auto;
+            font-size: 9.5pt;
+            color: #000000;
         }
 
-        .master-table thead {
-            display: table-header-group;
-        }
-
-        .master-table tbody {
-            display: table-row-group;
-        }
-
-        .master-table tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-
-        .master-table th, .master-table td {
-            border: 1px solid #000;
-            padding: 5px 8px;
+        .gov-table th,
+        .gov-table td {
+            border: 1px solid #000000;
+            padding: 4px 6px;
             vertical-align: top;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            color: #000000;
         }
 
-        .master-table th {
-            background-color: #f2f2f2 !important;
+        .gov-table th {
+            background-color: #ffffff !important;
             font-weight: bold;
             text-align: center;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            text-transform: uppercase;
+            font-size: 9pt;
+            letter-spacing: 0.3px;
         }
 
-        .section-header {
-            background-color: #e6e6e6 !important;
+        .lbl-col {
+            background-color: #ffffff !important;
             font-weight: bold;
-            padding: 5px 8px;
-            border: 1px solid #000;
-            margin-top: 10px;
-            margin-bottom: 4px;
-            font-size: 10.5pt;
-            page-break-inside: avoid;
-            break-inside: avoid;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            color: #000000;
         }
 
-        .content-box {
-            border: 1px solid #000;
+        /* SECTION GROUP & BOX */
+        .section-group {
+            margin-bottom: 10px;
+        }
+
+        .section-bar {
+            background-color: #ffffff !important;
+            border: 1px solid #000000;
+            font-weight: bold;
+            font-size: 9.5pt;
+            padding: 4px 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #000000;
+        }
+
+        .section-box {
+            border: 1px solid #000000;
+            border-top: none;
             padding: 8px 10px;
-            min-height: 45px;
-            margin-bottom: 10px;
-            font-size: 10pt;
-            white-space: pre-line;
-            page-break-inside: auto;
-            break-inside: auto;
+            min-height: 50px;
+            font-size: 9.5pt;
+            text-align: justify;
+            line-height: 1.35;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #000000;
         }
 
-        /* TANDA TANGAN */
-        .ttd-table {
+        .section-box ul,
+        .section-box ol {
+            margin: 2px 0;
+            padding-left: 18px;
+        }
+
+        .section-box li {
+            margin-bottom: 2px;
+        }
+
+        /* ==========================================
+           4. BLOK TANDA TANGAN & BARCODE ULTRA-HD PROPORSIONAL
+           ========================================== */
+        .ttd-container {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 18px;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
         }
 
-        .ttd-table td {
-            width: 50%;
-            text-align: center;
+        .ttd-container td {
+            border: none !important;
             vertical-align: top;
-            font-size: 10pt;
+            font-size: 9.5pt;
+            color: #000000;
         }
 
-        .page-break {
-            page-break-before: always;
-            break-before: page;
+        .ttd-box {
+            width: 210px;
+            margin: 0 0 0 auto;
+            text-align: center;
+            line-height: 1.25;
+            color: #000000;
         }
 
+        .qr-frame {
+            position: relative;
+            width: 88px;
+            height: 88px;
+            margin: 4px auto;
+            padding: 2px;
+            border: 1.5px solid #000000;
+            border-radius: 3px;
+            background: #ffffff;
+        }
+
+        .qr-frame canvas,
+        .qr-frame img:not(.center-logo) {
+            width: 82px !important;
+            height: 82px !important;
+            display: block;
+            margin: 0 auto;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .qr-frame img.center-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 42px !important;
+            height: 42px !important;
+            background: #ffffff;
+            padding: 2px;
+            border-radius: 3px;
+            border: 1.5px solid #000000;
+            z-index: 10;
+            display: block;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        /* CSS KHUSUS MEDIA PRINT BROWSER */
         @media print {
-            .no-print { display: none !important; }
-            body { margin: 0; padding: 0; }
-            .page-container { width: 100%; max-width: 100%; }
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            #notulensi-container {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .page-sheet {
+                width: 100% !important;
+                min-height: auto !important;
+                height: auto !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: block !important;
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+
+            .page-sheet:last-child {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
         }
     </style>
 </head>
+
 <body>
 
-    <!-- TOMBOL PRINT & DOWNLOAD PDF FLOATING (HANYA LAYAR) -->
-    <div class="no-print" style="position: fixed; top: 15px; right: 15px; z-index: 9999; display: flex; gap: 10px;">
-        <button onclick="window.print()" style="background: #0d8a52; color: #fff; border: none; padding: 10px 20px; font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
-            🖨️ Cetak Risalah Notulensi
+    <!-- TOMBOL ACTION FLOATING (LAYAR SAJA) -->
+    <div class="no-print"
+        style="position: fixed; top: 18px; right: 24px; z-index: 9999; display: flex; gap: 10px; background: #ffffff; padding: 6px 12px; border-radius: 25px; border: 1px solid #000000; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
+        <button onclick="window.print()"
+            style="background: #000000; color: #ffffff; border: none; padding: 8px 18px; font-weight: bold; font-size: 12px; font-family: sans-serif; border-radius: 15px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            🖨️ Cetak Dokumen
         </button>
-        <button onclick="downloadPDF()" style="background: #0284c7; color: #fff; border: none; padding: 10px 20px; font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
-            📥 Download File PDF
+        <button onclick="downloadPDF()"
+            style="background: #0d8a52; color: #ffffff; border: none; padding: 8px 18px; font-weight: bold; font-size: 12px; font-family: sans-serif; border-radius: 15px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            📥 Download PDF
         </button>
     </div>
 
-    <div class="page-container">
-        <!-- KOP SURAT BAZNAS -->
-        <table class="kop-table">
-            <tr>
-                <td class="kop-logo">
-                    <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS" onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
-                </td>
-                <td class="kop-text">
-                    <h3>BADAN AMIL ZAKAT NASIONAL</h3>
-                    <h2>KABUPATEN TANGERANG</h2>
-                    <p>Gedung Islamic Center Jl. Islamic Raya Kel. Kelapa Dua Kec. Kelapa Dua Kab. Tangerang</p>
-                    <p>Website: kabtangerang.baznas.go.id | Email: info@baznas-kabtangerang.or.id</p>
-                </td>
-            </tr>
-        </table>
+    <div id="notulensi-container">
 
-        <!-- JUDUL RISALAH NOTULENSI -->
-        <div class="title-box">
-            <h4>RISALAH & NOTULENSI RAPAT INTERNAL</h4>
-            <p>Nomor: {{ meeting.meeting_number|default:"-" }}</p>
+        <!-- =========================================================
+             HALAMAN 1: RISALAH & NOTULENSI RAPAT (RINGKASAN & KESIMPULAN)
+             ========================================================= -->
+        <div class="page-sheet" id="sheet-page-1">
+            <div class="sheet-content">
+                <!-- KOP SURAT FORMAL BERKOTAK -->
+                <div class="kop-box-container">
+                    <table class="kop-table">
+                        <tr>
+                            <td class="kop-logo-td">
+                                <img src="{% static 'img/logo_baznas.png' %}" id="kop-logo-ref" alt="Logo BAZNAS"
+                                    onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
+                            </td>
+                            <td class="kop-text-td">
+                                <div class="instansi-luar">BADAN AMIL ZAKAT NASIONAL</div>
+                                <div class="instansi-daerah">KABUPATEN TANGERANG</div>
+                                <div class="alamat">Gedung Islamic Center, Jl. Islamic Center No. 1, Citra Raya, Desa
+                                    Ciakar, Kecamatan Panongan.</div>
+                                <div class="kontak">Website: kabtangerang.baznas.go.id | Email:
+                                    kabupatenbaznastangerang@gmail.com</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- JUDUL DOKUMEN -->
+                <div class="document-title">
+                    <h4>NOTULENSI RAPAT INTERNAL</h4>
+                    <p>Nomor: {{ meeting.meeting_number|default:"-" }}</p>
+                </div>
+
+                <!-- RINCIAN INFORMASI RAPAT -->
+                <table class="gov-table">
+                    <colgroup>
+                        <col style="width: 23%;">
+                        <col style="width: 27%;">
+                        <col style="width: 20%;">
+                        <col style="width: 30%;">
+                    </colgroup>
+                    <tr>
+                        <td class="lbl-col">Nama Rapat / Perihal</td>
+                        <td style="font-weight: bold;" colspan="3">{{ meeting.title }}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-col">Pimpinan Rapat</td>
+                        <td colspan="3">
+                            {% if meeting.ordered_leaders %}
+                            <ol style="margin: 0; padding-left: 18px;">
+                                {% for l in meeting.ordered_leaders %}
+                                <li><strong>{{ l.full_name }}</strong> ({% if l.position %}{{ l.position }}{% else %}Pimpinan BAZNAS{% endif %})</li>
+                                {% endfor %}
+                            </ol>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-col">Jenis Rapat</td>
+                        <td>{{ meeting.get_meeting_type_display }}</td>
+                        <td class="lbl-col">Tempat / Ruang</td>
+                        <td>{{ meeting.location }}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-col">Hari, Tanggal & Jam</td>
+                        <td colspan="3">{{ meeting.scheduled_at|date:"l, d F Y" }} — Jam {{ meeting.scheduled_at|date:"H:i" }} WIB</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-col">Daftar Peserta Hadir</td>
+                        <td colspan="3">Pegawai BAZNAS Kab. Tangerang</td>
+                    </tr>
+                </table>
+
+                <!-- 1. RINGKASAN PEMBAHASAN -->
+                <div class="section-group">
+                    <div class="section-bar">1. RINGKASAN PEMBAHASAN & RISALAH RAPAT</div>
+                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_summary|default:"-" }}</div>
+                </div>
+
+                <!-- 2. KESIMPULAN & KEPUTUSAN -->
+                <div class="section-group">
+                    <div class="section-bar">2. KESIMPULAN & KEPUTUSAN RAPAT</div>
+                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_decision|default:"-" }}</div>
+                </div>
+            </div>
+
+            {% if not meeting.notulensi_action_items %}
+            <div class="sheet-footer">
+                <!-- BLOK TANDA TANGAN NOTULIS (JIKA TIDAK ADA ACTION PLAN) -->
+                <table class="ttd-container">
+                    <tr>
+                        <td style="width: 50%;"></td>
+                        <td style="width: 50%;">
+                            <div class="ttd-box">
+                                Tangerang, {{ meeting.scheduled_at|date:"d F Y" }}<br>
+                                <strong>Notulis Rapat,</strong>
+
+                                <div class="qr-frame">
+                                    <div id="qrcode1"></div>
+                                    <img src="{% static 'img/logo_baznas.png' %}" class="center-logo" alt="Logo BAZNAS"
+                                        onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
+                                </div>
+
+                                <strong style="font-size: 9.5pt;"><u>{{ meeting.notulis_name_display }}</u></strong><br>
+                                <span style="font-size: 7.5pt;">Dokumen Ditandatangani Secara Digital</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            {% endif %}
         </div>
 
-        <!-- RINCIAN INFORMASI RAPAT -->
-        <table class="master-table">
-            <tr>
-                <td style="width: 22%; font-weight: bold; background: #f2f4f7;">Nama Rapat / Perihal</td>
-                <td style="width: 78%; font-weight: bold;" colspan="3">{{ meeting.title }}</td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; background: #f2f4f7; vertical-align: top;">Pimpinan Rapat</td>
-                <td colspan="3">
-                    {% if meeting.ordered_leaders %}
-                        <ol style="margin: 0; padding-left: 18px;">
-                        {% for l in meeting.ordered_leaders %}
-                            <li><strong>{{ l.full_name }}</strong> ({% if l.position %}{{ l.position }}{% else %}Pimpinan BAZNAS{% endif %})</li>
-                        {% endfor %}
-                        </ol>
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; background: #f2f4f7;">Jenis Rapat</td>
-                <td style="width: 28%;">{{ meeting.get_meeting_type_display }}</td>
-                <td style="width: 20%; font-weight: bold; background: #f2f4f7;">Tempat / Ruang</td>
-                <td style="width: 30%;">{{ meeting.location }}</td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; background: #f2f4f7;">Hari, Tanggal & Jam</td>
-                <td colspan="3">{{ meeting.scheduled_at|date:"l, d F Y" }} — Jam {{ meeting.scheduled_at|date:"H:i" }} WIB</td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; background: #f2f4f7;">Daftar Peserta Hadir</td>
-                <td colspan="3">Pegawai BAZNAS Kab. Tangerang <span style="font-size: 8.5pt; color: #555; font-style: italic;">(Rincian Kehadiran tersaji di Halaman 2)</span></td>
-            </tr>
-        </table>
-
-        <!-- RISALAH PEMBAHASAN -->
-        <div class="section-header">1. RINGKASAN PEMBAHASAN & RISALAH RAPAT</div>
-        <div class="content-box">{{ meeting.notulensi_summary|default:"-" }}</div>
-
-        <!-- KESIMPULAN & KEPUTUSAN -->
-        <div class="section-header">2. KESIMPULAN & KEPUTUSAN RAPAT</div>
-        <div class="content-box">{{ meeting.notulensi_decision|default:"-" }}</div>
-
-        <!-- ACTION PLAN -->
+        <!-- =========================================================
+             HALAMAN 2 (OPSIONAL): RENCANA TINDAK LANJUT (ACTION PLAN) & TTD
+             ========================================================= -->
         {% if meeting.notulensi_action_items %}
-        <div class="section-header">3. RENCANA TINDAK LANJUT (ACTION PLAN)</div>
-        <div class="content-box">{{ meeting.notulensi_action_items }}</div>
+        <div class="page-sheet" id="sheet-page-action-plan">
+            <div class="sheet-content">
+                <!-- KOP SURAT FORMAL BERKOTAK -->
+                <div class="kop-box-container">
+                    <table class="kop-table">
+                        <tr>
+                            <td class="kop-logo-td">
+                                <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS"
+                                    onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
+                            </td>
+                            <td class="kop-text-td">
+                                <div class="instansi-luar">BADAN AMIL ZAKAT NASIONAL</div>
+                                <div class="instansi-daerah">KABUPATEN TANGERANG</div>
+                                <div class="alamat">Gedung Islamic Center, Jl. Islamic Center No. 1, Citra Raya, Desa
+                                    Ciakar, Kecamatan Panongan.</div>
+                                <div class="kontak">Website: kabtangerang.baznas.go.id | Email:
+                                    kabupatenbaznastangerang@gmail.com</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="document-title">
+                    <h4>NOTULENSI RAPAT INTERNAL</h4>
+                    <p>Nomor: {{ meeting.meeting_number|default:"-" }} | Perihal: {{ meeting.title }}</p>
+                </div>
+
+                <!-- 3. ACTION PLAN -->
+                <div class="section-group" style="margin-top: 10px;">
+                    <div class="section-bar">3. RENCANA TINDAK LANJUT (ACTION PLAN)</div>
+                    <div class="section-box" style="min-height: 160px;">{{ meeting.notulensi_action_items }}</div>
+                </div>
+            </div>
+
+            <div class="sheet-footer">
+                <!-- BLOK TANDA TANGAN NOTULIS -->
+                <table class="ttd-container">
+                    <tr>
+                        <td style="width: 50%;"></td>
+                        <td style="width: 50%;">
+                            <div class="ttd-box">
+                                Tangerang, {{ meeting.scheduled_at|date:"d F Y" }}<br>
+                                <strong>Notulis Rapat,</strong>
+
+                                <div class="qr-frame">
+                                    <div id="qrcode1"></div>
+                                    <img src="{% static 'img/logo_baznas.png' %}" class="center-logo" alt="Logo BAZNAS"
+                                        onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
+                                </div>
+
+                                <strong style="font-size: 9.5pt;"><u>{{ meeting.notulis_name_display }}</u></strong><br>
+                                <span style="font-size: 7.5pt;">Dokumen Ditandatangani Secara Digital</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
         {% endif %}
 
-        <!-- TANDA TANGAN NOTULIS & BARCODE LOGO BAZNAS -->
-        <table class="ttd-table">
-            <tr>
-                <td style="width: 60%;"></td>
-                <td style="width: 40%; text-align: center; font-size: 10pt; line-height: 1.3;">
-                    Tangerang, {{ meeting.scheduled_at|date:"d F Y" }}<br>
-                    <strong>Notulis Rapat,</strong><br>
-                    <div style="position: relative; display: inline-block; margin: 8px auto 6px auto;">
-                        <div id="qrcode1"></div>
-                        <img src="{% static 'img/logo_baznas.png' %}" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: #ffffff; padding: 1px; border-radius: 2px;" alt="Logo BAZNAS">
-                    </div><br>
-                    <strong style="font-size: 10.5pt;"><u>{{ meeting.notulis_name_display }}</u></strong>
-                </td>
-            </tr>
-        </table>
+        <!-- =========================================================
+             HALAMAN PRESENSI / DAFTAR KEHADIRAN
+             ========================================================= -->
+        <div class="page-sheet" id="sheet-page-presensi">
+            <div class="sheet-content">
+                <!-- KOP SURAT HALAMAN PRESENSI -->
+                <div class="kop-box-container">
+                    <table class="kop-table">
+                        <tr>
+                            <td class="kop-logo-td">
+                                <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS"
+                                    onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
+                            </td>
+                            <td class="kop-text-td">
+                                <div class="instansi-luar">BADAN AMIL ZAKAT NASIONAL</div>
+                                <div class="instansi-daerah">KABUPATEN TANGERANG</div>
+                                <div class="alamat">Gedung Islamic Center, Jl. Islamic Center No. 1, Citra Raya, Desa
+                                    Ciakar, Kecamatan Panongan.</div>
+                                <div class="kontak">Website: kabtangerang.baznas.go.id | Email:
+                                    kabupatenbaznastangerang@gmail.com</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
 
-        <!-- HALAMAN 2: DAFTAR KEHADIRAN / PRESENSI PESERTA RAPAT -->
-        <div class="page-break"></div>
+                <div class="document-title">
+                    <h4>DAFTAR KEHADIRAN / PRESENSI PESERTA RAPAT INTERNAL</h4>
+                    <p>Agenda: {{ meeting.title }}</p>
+                </div>
 
-        <table class="kop-table" style="margin-top: 5px;">
-            <tr>
-                <td class="kop-logo">
-                    <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS" onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
-                </td>
-                <td class="kop-text">
-                    <h3>BADAN AMIL ZAKAT NASIONAL</h3>
-                    <h2>KABUPATEN TANGERANG</h2>
-                    <p>Gedung Islamic Center Jl. Islamic Raya Kel. Kelapa Dua Kec. Kelapa Dua Kab. Tangerang</p>
-                    <p>Website: kabtangerang.baznas.go.id | Email: info@baznas-kabtangerang.or.id</p>
-                </td>
-            </tr>
-        </table>
+                <table class="gov-table">
+                    <colgroup>
+                        <col style="width: 22%;">
+                        <col style="width: 38%;">
+                        <col style="width: 18%;">
+                        <col style="width: 22%;">
+                    </colgroup>
+                    <tr>
+                        <td class="lbl-col">Pimpinan Rapat</td>
+                        <td colspan="3">
+                            {% if meeting.ordered_leaders %}
+                            <ol style="margin: 0; padding-left: 18px;">
+                                {% for l in meeting.ordered_leaders %}
+                                <li><strong>{{ l.full_name }}</strong> ({% if l.position %}{{ l.position }}{% else %}Pimpinan BAZNAS{% endif %})</li>
+                                {% endfor %}
+                            </ol>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-col">Hari, Tanggal & Jam</td>
+                        <td>{{ meeting.scheduled_at|date:"l, d F Y" }} — Jam {{ meeting.scheduled_at|date:"H:i" }} WIB</td>
+                        <td class="lbl-col">Tempat / Ruang</td>
+                        <td>{{ meeting.location }}</td>
+                    </tr>
+                </table>
 
-        <div class="title-box">
-            <h4>DAFTAR KEHADIRAN / PRESENSI PESERTA RAPAT INTERNAL</h4>
-            <p>Agenda: {{ meeting.title }}</p>
-        </div>
-
-        <table class="master-table">
-            <tr>
-                <td style="width: 22%; font-weight: bold; background: #f2f4f7; vertical-align: top;">Pimpinan Rapat</td>
-                <td style="width: 78%;" colspan="3">
-                    {% if meeting.ordered_leaders %}
-                        <ol style="margin: 0; padding-left: 18px;">
-                        {% for l in meeting.ordered_leaders %}
-                            <li><strong>{{ l.full_name }}</strong> ({% if l.position %}{{ l.position }}{% else %}Pimpinan BAZNAS{% endif %})</li>
+                <!-- TABEL PESERTA HADIR -->
+                <table class="gov-table" style="margin-top: 6px;">
+                    <colgroup>
+                        <col style="width: 8%;">
+                        <col style="width: 42%;">
+                        <col style="width: 30%;">
+                        <col style="width: 20%;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>NO.</th>
+                            <th>NAMA PEGAWAI / AMIL BAZNAS</th>
+                            <th>JABATAN / UNIT KERJA</th>
+                            <th>STATUS KEHADIRAN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participant in meeting.participants.all %}
+                        <tr>
+                            <td style="text-align: center;">{{ forloop.counter }}</td>
+                            <td style="font-weight: bold;">{{ participant.full_name }}</td>
+                            <td>{{ participant.position|default:"Staff Pelaksana" }}</td>
+                            <td style="text-align: center; font-weight: bold; color: #000000;">[ HADIR ]</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4"
+                                style="text-align: center; color: #000000; font-style: italic; padding: 8px;">Seluruh
+                                Pimpinan & Amil BAZNAS Kab. Tangerang</td>
+                        </tr>
                         {% endfor %}
-                        </ol>
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; background: #f2f4f7;">Hari, Tanggal & Jam</td>
-                <td style="width: 38%;">{{ meeting.scheduled_at|date:"l, d F Y" }} — Jam {{ meeting.scheduled_at|date:"H:i" }} WIB</td>
-                <td style="width: 18%; font-weight: bold; background: #f2f4f7;">Tempat / Ruang</td>
-                <td style="width: 22%;">{{ meeting.location }}</td>
-            </tr>
-        </table>
+                    </tbody>
+                </table>
+            </div>
 
-        <table class="master-table" style="margin-top: 12px;">
-            <thead>
-                <tr>
-                    <th style="width: 8%;">No.</th>
-                    <th style="width: 42%;">Nama Pegawai / Amil BAZNAS</th>
-                    <th style="width: 30%;">Jabatan / Unit Kerja</th>
-                    <th style="width: 20%;">Tanda Tangan / Paraf</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for participant in meeting.participants.all %}
-                <tr>
-                    <td style="text-align: center;">{{ forloop.counter }}</td>
-                    <td style="font-weight: bold;">{{ participant.full_name }}</td>
-                    <td>{{ participant.position|default:"Staff Pelaksana" }}</td>
-                    <td style="text-align: center; height: 32px; vertical-align: middle;">
-                        <span style="font-size: 8pt; color: #444;">[ Hadir ]</span>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="text-align: center; color: #888;">Seluruh Pimpinan & Amil BAZNAS Kab. Tangerang</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            <div class="sheet-footer">
+                <!-- BLOK TANDA TANGAN PRESENSI -->
+                <table class="ttd-container">
+                    <tr>
+                        <td style="width: 50%;"></td>
+                        <td style="width: 50%;">
+                            <div class="ttd-box">
+                                Tangerang, {{ meeting.scheduled_at|date:"d F Y" }}<br>
+                                <strong>Notulis Rapat,</strong>
 
-        <table class="ttd-table">
-            <tr>
-                <td style="width: 60%;"></td>
-                <td style="width: 40%; text-align: center; font-size: 10pt; line-height: 1.3;">
-                    Tangerang, {{ meeting.scheduled_at|date:"d F Y" }}<br>
-                    <strong>Notulis Rapat,</strong><br>
-                    <div style="position: relative; display: inline-block; margin: 8px auto 6px auto;">
-                        <div id="qrcode2"></div>
-                        <img src="{% static 'img/logo_baznas.png' %}" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: #ffffff; padding: 1px; border-radius: 2px;" alt="Logo BAZNAS">
-                    </div><br>
-                    <strong style="font-size: 10.5pt;"><u>{{ meeting.notulis_name_display }}</u></strong>
-                </td>
-            </tr>
-        </table>
+                                <div class="qr-frame">
+                                    <div id="qrcode2"></div>
+                                    <img src="{% static 'img/logo_baznas.png' %}" class="center-logo" alt="Logo BAZNAS"
+                                        onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
+                                </div>
+
+                                <strong style="font-size: 9.5pt;"><u>{{ meeting.notulis_name_display }}</u></strong><br>
+                                <span style="font-size: 7.5pt;">Dokumen Ditandatangani Secara Digital</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- Script QR Code Barcode & Download PDF Generator -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- SCRIPT GENERATOR QR CODE 600X600 ULTRA-HD & DOWNLOAD PDF MURNI -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var qrText = "NOTULENSI BAZNAS: {{ meeting.meeting_number|default:'-' }} | Notulis: {{ meeting.notulis_name_display|escapejs }} | {{ meeting.scheduled_at|date:'d/m/Y' }}";
-            
-            var q1 = document.getElementById("qrcode1");
-            if (q1) {
-                new QRCode(q1, {
+        document.addEventListener('DOMContentLoaded', function () {
+            var qrText = "VERIFIKASI DIGITAL BAZNAS KAB. TANGERANG\nNomor: {{ meeting.meeting_number|default:'-' }}\nNotulis: {{ meeting.notulis_name_display|escapejs }}\nTanggal: {{ meeting.scheduled_at|date:'d/m/Y' }}";
+
+            function drawLogoOnQRCanvas(containerId) {
+                var container = document.getElementById(containerId);
+                if (!container) return;
+
+                // QR Code Ultra-HD dengan kanvas 600x600 px & Error Correction H
+                var qr = new QRCode(container, {
                     text: qrText,
-                    width: 68,
-                    height: 68,
+                    width: 600,
+                    height: 600,
                     colorDark: "#000000",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
                 });
+
+                function applyLogoToCanvas() {
+                    var canvas = container.querySelector('canvas');
+                    if (!canvas) return;
+
+                    var ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+
+                    var refImg = document.getElementById('kop-logo-ref') || document.querySelector('.kop-logo-td img');
+
+                    function renderLogo(imgObj) {
+                        var logoSize = 260; // Ukuran logo Ultra-HD proporsional (~43% kanvas 600x600)
+                        var x = (canvas.width - logoSize) / 2;
+                        var y = (canvas.height - logoSize) / 2;
+
+                        // Latar belakang putih tebal + bingkai hitam di tengah kanvas QR Ultra HD
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(x - 8, y - 8, logoSize + 16, logoSize + 16);
+
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(x - 8, y - 8, logoSize + 16, logoSize + 16);
+
+                        // Gambar logo BAZNAS Ultra-HD di tengah piksel kanvas
+                        try {
+                            ctx.drawImage(imgObj, x, y, logoSize, logoSize);
+                        } catch(e) {
+                            console.log("Canvas drawImage fallback:", e);
+                        }
+                    }
+
+                    if (refImg && refImg.complete && refImg.naturalWidth !== 0) {
+                        renderLogo(refImg);
+                    } else if (refImg) {
+                        refImg.onload = function() {
+                            renderLogo(refImg);
+                        };
+                    }
+                }
+
+                setTimeout(applyLogoToCanvas, 100);
+                setTimeout(applyLogoToCanvas, 400); // Fail-safe re-render if image loads slightly later
             }
-            
-            var q2 = document.getElementById("qrcode2");
-            if (q2) {
-                new QRCode(q2, {
-                    text: qrText,
-                    width: 68,
-                    height: 68,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-            }
+
+            drawLogoOnQRCanvas("qrcode1");
+            drawLogoOnQRCanvas("qrcode2");
         });
 
-        function downloadPDF() {
-            var element = document.querySelector('.page-container') || document.body;
-            var numStr = '{{ meeting.meeting_number|default:"RPT" }}'.replace(/[/\\?%*:|"<>]/g, '_');
-            var filename = 'Risalah_Notulensi_' + numStr + '.pdf';
-            
-            // Sembunyikan elemen tombol cetak dari PDF
-            var noPrintElems = document.querySelectorAll('.no-print');
-            noPrintElems.forEach(function(el) { el.style.display = 'none'; });
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
 
-            var opt = {
-                margin:       [8, 8, 8, 8],
-                filename:     filename,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' },
-                pagebreak:    { mode: ['css', 'legacy'] }
-            };
-            
-            html2pdf().set(opt).from(element).save().then(function() {
-                noPrintElems.forEach(function(el) { el.style.display = 'flex'; });
-            }).catch(function(err) {
-                noPrintElems.forEach(function(el) { el.style.display = 'flex'; });
-            });
+            var noPrintElems = document.querySelectorAll('.no-print');
+            noPrintElems.forEach(function (el) { el.style.display = 'none'; });
+
+            var numStr = '{{ meeting.meeting_number|default:"RPT" }}'.replace(/[/\\?%*:|"<>]/g, '_');
+            var filename = 'Notulensi_BAZNAS_' + numStr + '.pdf';
+
+            // Reset scroll ke paling atas
+            window.scrollTo(0, 0);
+
+            var sheets = document.querySelectorAll('.page-sheet');
+            var pdf = null;
+
+            for (var i = 0; i < sheets.length; i++) {
+                var sheet = sheets[i];
+
+                // Simpan style sementara
+                var origShadow = sheet.style.boxShadow;
+                var origMargin = sheet.style.margin;
+                sheet.style.boxShadow = 'none';
+                sheet.style.margin = '0 auto';
+
+                // Mengkonversi elemen sheet menjadi canvas presisi resolusi tinggi
+                var canvas = await html2canvas(sheet, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    width: sheet.offsetWidth,
+                    height: sheet.offsetHeight
+                });
+
+                // Kembalikan style
+                sheet.style.boxShadow = origShadow;
+                sheet.style.margin = origMargin;
+
+                var imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+                // Menghitung tinggi proporsional berdasarkan rasio canvas murni
+                var pdfWidth = 210;
+                var pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                var targetPageHeight = Math.max(297, pdfHeight);
+
+                if (i === 0) {
+                    pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: [pdfWidth, targetPageHeight]
+                    });
+                } else {
+                    pdf.addPage([pdfWidth, targetPageHeight], 'portrait');
+                }
+
+                // Tempelkan gambar canvas dengan rasio proporsional murni tanpa potongan
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+            }
+
+            noPrintElems.forEach(function (el) { el.style.display = 'flex'; });
+            pdf.save(filename);
         }
     </script>
 </body>
+
 </html>

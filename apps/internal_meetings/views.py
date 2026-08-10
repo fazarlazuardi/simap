@@ -307,7 +307,7 @@ def meeting_print_notulensi(request, pk):
     Ukuran Letter 1 Lembar Pas Presisi.
     """
     meeting = get_object_or_404(
-        InternalMeeting.objects.select_related('leader', 'notulis', 'created_by').prefetch_related('participants'),
+        InternalMeeting.objects.select_related('leader', 'notulis', 'created_by').prefetch_related('leaders', 'participants'),
         pk=pk
     )
 

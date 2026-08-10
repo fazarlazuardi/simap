@@ -228,34 +228,9 @@
 
                                     {% if archive.status in 'baru,pending,masuk' %}
                                         {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm %}
-                                            <div class="dropdown d-inline-block">
-                                                <button class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-check-circle me-1"></i> Verifikasi
-                                                </button>
-                                                <ul class="dropdown-menu shadow border-0 py-2" style="border-radius: 12px; z-index: 1080;">
-                                                    <li>
-                                                        <form method="post" action="{% url 'archives:verify' archive.pk %}" class="d-inline">
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="action" value="verify_and_disposition">
-                                                            <input type="hidden" name="archive_id" value="{{ archive.pk }}">
-                                                            <button type="submit" class="dropdown-item py-2 fw-semibold text-primary w-100 bg-transparent border-0 text-start">
-                                                                <i class="bi bi-send-check me-2"></i> Verifikasi & Buat Disposisi
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider my-1"></li>
-                                                    <li>
-                                                        <form method="post" action="{% url 'archives:verify' archive.pk %}" class="d-inline">
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="action" value="verify_only">
-                                                            <input type="hidden" name="archive_id" value="{{ archive.pk }}">
-                                                            <button type="submit" class="dropdown-item py-2 fw-semibold text-secondary w-100 bg-transparent border-0 text-start">
-                                                                <i class="bi bi-check2-square me-2"></i> Verifikasi Saja
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                </ul>
-                                            </div>
+                                            <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#verifyModalList{{ archive.pk }}">
+                                                <i class="bi bi-patch-check-fill me-1"></i> Verifikasi
+                                            </button>
 
                                             <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#rejectModal{{ archive.pk }}">
                                                 <i class="bi bi-x-lg me-1"></i> Tolak
@@ -290,6 +265,47 @@
 </form>
 
 {% for archive in archives %}
+    <div class="modal fade text-start" id="verifyModalList{{ archive.pk }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <form method="post" action="{% url 'archives:verify' archive.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="verify_only">
+                    <div class="modal-header bg-success text-white border-0 py-3" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                        <h5 class="modal-title fw-bold fs-6">
+                            <i class="bi bi-patch-check-fill me-2"></i>Dokumen Telah Diverifikasi Siap Didisposisikan
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4 text-start">
+                        <div class="text-center mb-3">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle p-3 mb-2" style="width: 60px; height: 60px;">
+                                <i class="bi bi-patch-check-fill fs-2 text-success"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1">Konfirmasi Verifikasi Dokumen</h6>
+                            <p class="text-secondary small mb-0">Dokumen akan diverifikasi dan disiapkan untuk disposisi Pimpinan BAZNAS.</p>
+                        </div>
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <span class="text-secondary d-block small fw-bold text-uppercase">Informasi Dokumen:</span>
+                            <strong class="text-primary d-block">{{ archive.archive_number|default:"Arsip Baru (Draft)" }}</strong>
+                            <span class="text-dark small d-block mt-1">{{ archive.title }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <label for="v_note_{{ archive.pk }}" class="form-label fw-semibold small text-dark">Catatan Verifikasi (Opsional):</label>
+                            <textarea name="verification_note" id="v_note_{{ archive.pk }}" rows="2" class="form-control form-control-sm rounded-3" placeholder="Tuliskan catatan verifikasi jika ada..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top bg-light py-2" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                        <button type="button" class="btn btn-light fw-semibold rounded-pill px-3 btn-sm border" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success fw-bold px-4 rounded-pill btn-sm shadow-sm">
+                            <i class="bi bi-patch-check-fill me-1"></i> Verifikasi Dokumen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="rejectModal{{ archive.pk }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">

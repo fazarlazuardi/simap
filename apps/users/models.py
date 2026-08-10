@@ -93,6 +93,11 @@ class Employee(models.Model):
         return self.full_name
 
     @property
+    def phone(self):
+        """Property alias untuk phone_number agar notifikasi WA kompatibel di semua modul."""
+        return self.phone_number
+
+    @property
     def current_department(self):
         """Mengembalikan departemen aktif (jika sedang jadi Plt, gunakan departemen Plt)."""
         if self.is_acting_role and self.acting_in_department:

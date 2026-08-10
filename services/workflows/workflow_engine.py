@@ -123,15 +123,31 @@ class WorkflowEngine:
             receivers = list(d.waka_forwarded_to.all())
             positions = ", ".join([e.position for e in receivers if e.position])
             names = ", ".join([e.full_name for e in receivers])
+            pos_lower = positions.lower()
             
-            if 'Wakil Ketua II' in positions or 'Waka II' in positions or 'Kabid II' in positions:
-                stage_name = '4. Di Meja Waka II / Bidang II (Penyaluran & Survey Bantuan)'
-                next_action = 'Pelaksanaan Survey / Penyaluran Bantuan oleh Bidang II'
-            elif 'Wakil Ketua III' in positions or 'Waka III' in positions or 'Kabid III' in positions:
-                stage_name = '4. Di Meja Waka III / Bidang III'
+            if any(k in pos_lower for k in ['waka iv', 'waka 4', 'wakil ketua iv', 'wakil ketua 4', 'kabid iv', 'kabid 4', 'kepala bidang iv', 'administrasi', 'sdm', 'umum']):
+                if 'kabid' in pos_lower or 'kepala bidang' in pos_lower:
+                    stage_name = '4. Di Meja Kabid IV / Bidang IV (Administrasi, SDM & Umum)'
+                else:
+                    stage_name = '4. Di Meja Waka IV / Bidang IV (Administrasi, SDM & Umum)'
+                next_action = 'Penanganan Bidang IV (Administrasi, SDM & Umum)'
+            elif any(k in pos_lower for k in ['waka iii', 'waka 3', 'wakil ketua iii', 'wakil ketua 3', 'kabid iii', 'kabid 3', 'kepala bidang iii', 'perencanaan', 'keuangan', 'pelaporan']):
+                if 'kabid' in pos_lower or 'kepala bidang' in pos_lower:
+                    stage_name = '4. Di Meja Kabid III / Bidang III (Perencanaan, Keuangan & Pelaporan)'
+                else:
+                    stage_name = '4. Di Meja Waka III / Bidang III (Perencanaan, Keuangan & Pelaporan)'
                 next_action = 'Penanganan Bidang III'
-            elif 'Wakil Ketua I' in positions or 'Waka I' in positions or 'Kabid I' in positions:
-                stage_name = '4. Di Meja Waka I / Bidang I'
+            elif any(k in pos_lower for k in ['waka ii', 'waka 2', 'wakil ketua ii', 'wakil ketua 2', 'kabid ii', 'kabid 2', 'kepala bidang ii', 'pendistribusian', 'pendayagunaan', 'pentasyarufan']):
+                if 'kabid' in pos_lower or 'kepala bidang' in pos_lower:
+                    stage_name = '4. Di Meja Kabid II / Bidang II (Penyaluran & Survey Bantuan)'
+                else:
+                    stage_name = '4. Di Meja Waka II / Bidang II (Penyaluran & Survey Bantuan)'
+                next_action = 'Pelaksanaan Survey / Penyaluran Bantuan oleh Bidang II'
+            elif any(k in pos_lower for k in ['waka i', 'waka 1', 'wakil ketua i', 'wakil ketua 1', 'kabid i', 'kabid 1', 'kepala bidang i', 'pengumpulan']):
+                if 'kabid' in pos_lower or 'kepala bidang' in pos_lower:
+                    stage_name = '4. Di Meja Kabid I / Bidang I (Pengumpulan)'
+                else:
+                    stage_name = '4. Di Meja Waka I / Bidang I (Pengumpulan)'
                 next_action = 'Penanganan Bidang I'
             elif positions:
                 stage_name = f'4. Di Meja {positions}'

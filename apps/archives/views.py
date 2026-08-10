@@ -313,7 +313,7 @@ def archive_verify(request, pk):
             archive.save()
 
             AuditService.log_action(request.user, f"Verifikasi Kabid IV / Pimpinan: {archive.archive_number}", request)
-            messages.success(request, f"Dokumen {archive.archive_number} berhasil diverifikasi (Status Terverifikasi - Siap Didisposisikan Pimpinan).")
+            messages.success(request, f"Dokumen {archive.archive_number} Telah Diverifikasi, Siap Didisposisikan Pimpinan.")
             return redirect('archives:detail', pk=archive.pk)
         elif archive.status == 'terverifikasi':
             messages.info(request, f"Dokumen {archive.archive_number} sudah dalam status Terverifikasi.")

@@ -390,37 +390,44 @@
 
 <!-- Verify Modal -->
 <div class="modal fade" id="verifyModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold"><i class="bi bi-patch-check-fill text-success me-2"></i>Verifikasi Dokumen</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title fw-bold fs-6">
+                    <i class="bi bi-patch-check-fill me-2"></i>Dokumen Telah Diverifikasi Siap Didisposisikan
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <p class="text-secondary mb-3">Dokumen: <strong>{{ archive.archive_number|default:archive.title }}</strong></p>
-                <p class="text-secondary small mb-4">Pilih tindakan setelah verifikasi:</p>
-                <div class="d-grid gap-3">
-                    <form method="post" action="{% url 'archives:verify' archive.pk %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="verify_and_disposition">
-                        <button type="submit" class="btn btn-primary w-100 rounded-3 py-3 fw-bold shadow-sm">
-                            <i class="bi bi-send-fill me-2"></i> Verifikasi & Buat Disposisi
-                            <div class="small fw-normal mt-1">Buat lembar disposisi dan isi arahan pimpinan</div>
-                        </button>
-                    </form>
-                    <form method="post" action="{% url 'archives:verify' archive.pk %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="verify_only">
-                        <button type="submit" class="btn btn-outline-success w-100 rounded-3 py-3 fw-bold">
-                            <i class="bi bi-patch-check me-2"></i> Verifikasi Saja
-                            <div class="small fw-normal mt-1">Hanya verifikasi, disposisi bisa dibuat nanti</div>
-                        </button>
-                    </form>
+            <form method="post" action="{% url 'archives:verify' archive.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="verify_only">
+                <div class="modal-body p-4 text-start">
+                    <div class="text-center mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle p-3 mb-2" style="width: 60px; height: 60px;">
+                            <i class="bi bi-patch-check-fill fs-2 text-success"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">Konfirmasi Verifikasi Dokumen</h6>
+                        <p class="text-secondary small mb-0">Dokumen akan diverifikasi dan disiapkan untuk disposisi Pimpinan BAZNAS.</p>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <span class="text-secondary d-block small fw-bold text-uppercase">Informasi Dokumen:</span>
+                        <strong class="text-primary d-block">{{ archive.archive_number|default:"Arsip Baru (Draft)" }}</strong>
+                        <span class="text-dark small d-block mt-1">{{ archive.title }}</span>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="agenda_v_note" class="form-label fw-semibold small text-dark">Catatan Verifikasi (Opsional):</label>
+                        <textarea name="verification_note" id="agenda_v_note" rows="2" class="form-control form-control-sm rounded-3" placeholder="Tuliskan catatan verifikasi jika ada..."></textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-            </div>
+                <div class="modal-footer bg-light py-2 border-top">
+                    <button type="button" class="btn btn-light fw-semibold rounded-pill px-3 btn-sm border" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4 rounded-pill btn-sm shadow-sm">
+                        <i class="bi bi-patch-check-fill me-1"></i> Verifikasi Dokumen
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

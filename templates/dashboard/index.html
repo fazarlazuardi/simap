@@ -239,6 +239,95 @@
         padding: 16px 24px;
         margin-top: 24px;
     }
+
+    /* Futuristic Cyber-Glass Theme Elements for SLA Dashboard */
+    .sla-cyber-card {
+        background: var(--card-bg, #FFFFFF);
+        border: 1px solid var(--border-color, #E2E8F0);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .sla-bidang-item {
+        background: var(--surface-alt, #F8FAFC);
+        border: 1px solid var(--border-color, #E2E8F0);
+        border-radius: 12px;
+        padding: 12px 16px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sla-bidang-item:hover {
+        transform: translateX(4px);
+        border-color: rgba(16, 185, 129, 0.5) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    .sla-progress-track {
+        height: 8px;
+        background: rgba(148, 163, 184, 0.2);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .sla-progress-bar-neon-1 {
+        background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+        border-radius: 10px;
+        transition: width 1s ease-in-out;
+    }
+
+    .sla-progress-bar-neon-2 {
+        background: linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%);
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+        border-radius: 10px;
+        transition: width 1s ease-in-out;
+    }
+
+    .sla-progress-bar-neon-3 {
+        background: linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%);
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+        border-radius: 10px;
+        transition: width 1s ease-in-out;
+    }
+
+    .sla-progress-bar-neon-4 {
+        background: linear-gradient(90deg, #8B5CF6 0%, #A78BFA 100%);
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+        border-radius: 10px;
+        transition: width 1s ease-in-out;
+    }
+
+    .sla-badge-glass-emerald {
+        background: rgba(16, 185, 129, 0.12);
+        color: #10B981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 30px;
+        padding: 6px 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .sla-badge-glass-blue {
+        background: rgba(59, 130, 246, 0.12);
+        color: #3B82F6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 30px;
+        padding: 6px 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .sla-title-text {
+        color: var(--text-primary, #111827) !important;
+    }
+
+    .sla-sub-text {
+        color: var(--text-secondary, #6B7280) !important;
+    }
 </style>
 {% endblock %}
 
@@ -508,7 +597,77 @@
     </div>
 </div>
 
-<!-- 3. Bottom Section: Charts (4. Legend Samping Kanan, 5. Bar Chart Bantuan, 6. Ukuran Manis) & Quick Action -->
+<!-- SLA & DISPOSISI ANALYTICS PIMPINAN (BIDANG 1 s/d BIDANG 4) -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="sla-cyber-card p-4">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3" style="border-bottom: 1px solid var(--border-color, #E2E8F0);">
+                <div>
+                    <h5 class="sla-title-text fw-bold mb-1 d-flex align-items-center gap-2">
+                        <span class="stat-icon-wrapper" style="background: rgba(16, 185, 129, 0.15); color: #10B981; width: 38px; height: 38px; font-size: 1.1rem;">
+                            <i class="bi bi-speedometer2"></i>
+                        </span>
+                        Dashboard Analytics & SLA Response Time Pimpinan
+                    </h5>
+                    <p class="sla-sub-text small mb-0">Monitoring real-time kecepatan disposisi & distribusi beban kerja Bidang 1 s/d Bidang 4 BAZNAS Kab. Tangerang</p>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="sla-badge-glass-emerald d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history"></i> Rata-Rata SLA: {{ dispo_sla_analytics.overall_avg_days }} Hari ({{ dispo_sla_analytics.overall_avg_hours }} Jam)
+                    </span>
+                    <span class="sla-badge-glass-blue d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-check2-circle"></i> Penyelesaian: {{ dispo_sla_analytics.sla_score_percent }}%
+                    </span>
+                </div>
+            </div>
+
+            <div class="row g-4 align-items-center">
+                <!-- Left: Bar Chart Distribusi Disposisi Per Bidang -->
+                <div class="col-lg-6" style="border-right: 1px solid var(--border-color, #E2E8F0);">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="sla-title-text small fw-bold"><i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Distribusi Disposisi Per Bidang Pelaksana</span>
+                        <span class="badge border small" style="background: var(--surface-alt); color: var(--text-primary); border-color: var(--border-color) !important;">
+                            Total: {{ dispo_sla_analytics.total_dispositions }} Disposisi
+                        </span>
+                    </div>
+                    <div style="height: 230px; position: relative;">
+                        <canvas id="chartBidangDispo"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right: Breakdown SLA Kecepatan Penyelesaian Per Bidang -->
+                <div class="col-lg-6">
+                    <span class="sla-title-text small fw-bold d-block mb-3"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Indikator Kecepatan Penyelesaian (SLA) Per Bidang</span>
+                    <div class="d-flex flex-column gap-2.5">
+                        {% for b_name, b_info in dispo_sla_analytics.bidang_sla_breakdown.items %}
+                        <div class="sla-bidang-item">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="sla-title-text small fw-semibold">{{ b_name }}</span>
+                                <span class="badge border small" style="background: var(--card-bg); color: var(--text-secondary); border-color: var(--border-color) !important; font-size: 0.73rem;">
+                                    Rata-Rata SLA: {% if b_info.avg_hours > 0 %}<strong>{{ b_info.avg_days }} Hari</strong> ({{ b_info.avg_hours }} jam){% else %}-{% endif %}
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="sla-progress-track flex-grow-1">
+                                    <div class="{% if forloop.counter == 1 %}sla-progress-bar-neon-1{% elif forloop.counter == 2 %}sla-progress-bar-neon-2{% elif forloop.counter == 3 %}sla-progress-bar-neon-3{% else %}sla-progress-bar-neon-4{% endif %}" 
+                                         role="progressbar" style="width: {{ b_info.completion_percent }}%; height: 100%;"></div>
+                                </div>
+                                <span class="sla-title-text small fw-bold" style="min-width: 45px; text-align: right; font-size: 0.82rem;">{{ b_info.completion_percent }}%</span>
+                            </div>
+                            <div class="d-flex justify-content-between sla-sub-text" style="font-size: 0.73rem;">
+                                <span>Disposisi Masuk: <strong class="sla-title-text">{{ b_info.total }}</strong></span>
+                                <span>Diselesaikan: <strong class="sla-title-text">{{ b_info.completed }}</strong></span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Bottom Section: Charts -->
 <div class="row g-3 mb-4">
     <!-- Left Column: 3 Charts (4, 5, 6) -->
     <div class="col-xl-8">
@@ -737,6 +896,46 @@
         });
 
 
+        // 4. Chart Distribusi Disposisi Per Bidang (Bidang 1 - Bidang 4)
+        const ctxBidang = document.getElementById('chartBidangDispo').getContext('2d');
+        const chartBidang = new Chart(ctxBidang, {
+            type: 'bar',
+            data: {
+                labels: {{ dispo_sla_analytics.bidang_chart_labels|safe }},
+                datasets: [{
+                    label: 'Jumlah Disposisi Masuk',
+                    data: {{ dispo_sla_analytics.bidang_chart_series|safe }},
+                    backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6'],
+                    borderColor: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6'],
+                    borderWidth: 1.5,
+                    borderRadius: 8,
+                    hoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { 
+                        ticks: { color: colors.text, font: { size: 9, weight: '600' } },
+                        grid: { color: colors.grid }
+                    },
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { color: colors.text, font: { size: 9.5, weight: '600' } },
+                        grid: { color: colors.grid }
+                    }
+                }
+            }
+        });
+
         // Listen for Theme Toggle changes dynamically
         const observer = new MutationObserver(() => {
             const newColors = getChartColors();
@@ -744,11 +943,13 @@
                 chart.options.plugins.legend.labels.color = newColors.text;
                 chart.update();
             });
-            chartBantuan.options.scales.x.ticks.color = newColors.text;
-            chartBantuan.options.scales.x.grid.color = newColors.grid;
-            chartBantuan.options.scales.y.ticks.color = newColors.text;
-            chartBantuan.options.scales.y.grid.color = newColors.grid;
-            chartBantuan.update();
+            [chartBantuan, chartBidang].forEach(chart => {
+                chart.options.scales.x.ticks.color = newColors.text;
+                chart.options.scales.x.grid.color = newColors.grid;
+                chart.options.scales.y.ticks.color = newColors.text;
+                chart.options.scales.y.grid.color = newColors.grid;
+                chart.update();
+            });
         });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     });

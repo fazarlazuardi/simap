@@ -152,6 +152,8 @@ def dashboard_index(request):
     bantuan_bar_labels = bantuan_analytics.get('bantuan_chart_labels', [])
     bantuan_bar_series = bantuan_analytics.get('bantuan_chart_series', [])
 
+    dispo_sla_analytics = ReportingService.get_disposition_sla_analytics()
+
     wa_health = cache.get('wa_health')
     if wa_health is None:
         wa_health = WhatsAppService.check_health()
@@ -174,6 +176,7 @@ def dashboard_index(request):
         'chart_proposal_status': chart_proposal_status,
         'bantuan_bar_labels': bantuan_bar_labels,
         'bantuan_bar_series': bantuan_bar_series,
+        'dispo_sla_analytics': dispo_sla_analytics,
         'today': timezone.now(),
         'wa_status': wa_health['status'],
         'wa_ready': wa_health['ready'],

@@ -228,12 +228,15 @@ class Archive(models.Model):
                 if receivers:
                     names = ", ".join([e.full_name for e in receivers])
                     positions = ", ".join([e.position for e in receivers if e.position])
-                    if 'Wakil Ketua II' in positions or 'Waka II' in positions or 'Kabid II' in positions:
-                        return 'Di Meja Waka II / Bidang II (Penyaluran Bantuan)'
-                    elif 'Wakil Ketua III' in positions or 'Waka III' in positions or 'Kabid III' in positions:
-                        return 'Di Meja Waka III / Bidang III'
-                    elif 'Wakil Ketua I' in positions or 'Waka I' in positions or 'Kabid I' in positions:
-                        return 'Di Meja Waka I / Bidang I'
+                    pos_lower = positions.lower()
+                    if any(k in pos_lower for k in ['waka iv', 'waka 4', 'wakil ketua iv', 'wakil ketua 4', 'kabid iv', 'kabid 4', 'kepala bidang iv', 'administrasi', 'sdm', 'umum']):
+                        return 'Di Meja Kabid IV / Bidang IV (Administrasi, SDM & Umum)' if ('kabid' in pos_lower or 'kepala bidang' in pos_lower) else 'Di Meja Waka IV / Bidang IV (Administrasi, SDM & Umum)'
+                    elif any(k in pos_lower for k in ['waka iii', 'waka 3', 'wakil ketua iii', 'wakil ketua 3', 'kabid iii', 'kabid 3', 'kepala bidang iii', 'perencanaan', 'keuangan', 'pelaporan']):
+                        return 'Di Meja Kabid III / Bidang III (Perencanaan, Keuangan & Pelaporan)' if ('kabid' in pos_lower or 'kepala bidang' in pos_lower) else 'Di Meja Waka III / Bidang III (Perencanaan, Keuangan & Pelaporan)'
+                    elif any(k in pos_lower for k in ['waka ii', 'waka 2', 'wakil ketua ii', 'wakil ketua 2', 'kabid ii', 'kabid 2', 'kepala bidang ii', 'pendistribusian', 'pendayagunaan', 'pentasyarufan']):
+                        return 'Di Meja Kabid II / Bidang II (Penyaluran Bantuan)' if ('kabid' in pos_lower or 'kepala bidang' in pos_lower) else 'Di Meja Waka II / Bidang II (Penyaluran Bantuan)'
+                    elif any(k in pos_lower for k in ['waka i', 'waka 1', 'wakil ketua i', 'wakil ketua 1', 'kabid i', 'kabid 1', 'kepala bidang i', 'pengumpulan']):
+                        return 'Di Meja Kabid I / Bidang I (Pengumpulan)' if ('kabid' in pos_lower or 'kepala bidang' in pos_lower) else 'Di Meja Waka I / Bidang I (Pengumpulan)'
                     elif positions:
                         return f'Di Meja {positions}'
                     return f'Di Meja {names}'

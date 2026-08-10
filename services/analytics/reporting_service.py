@@ -142,3 +142,130 @@ class ReportingService:
             'bantuan_details': bantuan_details,
             'umum_details': umum_details,
         }
+
+    @classmethod
+    def get_disposition_sla_analytics(cls) -> Dict[str, Any]:
+        """
+        Dashboard Analytics & SLA Response Time Pimpinan:
+        - Distribusi Disposisi berdasarkan Bidang Pelaksana (Bidang 1 s/d Bidang 4)
+        - Indikator Rata-rata Kecepatan Penyelesaian Tugas (SLA Response Time dalam Jam/Hari)
+        - Breakdown Kinerja per Bidang
+        """
+        from dispositions.models import Disposition
+
+        dispositions = Disposition.objects.select_related('archive', 'sender', 'archive__category').prefetch_related('forwarded_to', 'waka_forwarded_to')
+
+        bidang_counts = {
+            'Bidang 1 (Pengumpulan)': 0,
+            'Bidang 2 (Pendistribusian)': 0,
+            'Bidang 3 (Perencanaan & Keuangan)': 0,
+            'Bidang 4 (Administrasi & Umum)': 0,
+        }
+
+        bidang_completed_counts = {
+            'Bidang 1 (Pengumpulan)': 0,
+            'Bidang 2 (Pendistribusian)': 0,
+            'Bidang 3 (Perencanaan & Keuangan)': 0,
+            'Bidang 4 (Administrasi & Umum)': 0,
+        }
+
+        bidang_durations = {
+            'Bidang 1 (Pengumpulan)': [],
+            'Bidang 2 (Pendistribusian)': [],
+            'Bidang 3 (Perencanaan & Keuangan)': [],
+            'Bidang 4 (Administrasi & Umum)': [],
+        }
+
+        total_dispositions = dispositions.count()
+        total_completed = 0
+        all_completion_times = []
+
+        for dispo in dispositions:
+            assigned_emps = list(dispo.waka_forwarded_to.all()) or list(dispo.forwarded_to.all())
+            target_bidang_key = None
+
+            for emp in assigned_emps:
+                pos = (emp.position or '').lower()
+                ltype = (emp.leadership_type or '').lower()
+                dept = (emp.dept_relation.name if emp.dept_relation else '').lower()
+                combined = f"{pos} {ltype} {dept}"
+
+                if any(k in combined for k in ['4', 'iv', 'administrasi', 'sdm', 'umum', 'kabid 4', 'kabid iv', 'waka 4', 'waka iv']):
+                    target_bidang_key = 'Bidang 4 (Administrasi & Umum)'
+                    break
+                elif any(k in combined for k in ['3', 'iii', 'perencanaan', 'keuangan', 'pelaporan', 'kabid 3', 'kabid iii', 'waka 3', 'waka iii']):
+                    target_bidang_key = 'Bidang 3 (Perencanaan & Keuangan)'
+                    break
+                elif any(k in combined for k in ['2', 'ii', 'pendistribusian', 'pendayagunaan', 'pentasyarufan', 'kabid 2', 'kabid ii', 'waka 2', 'waka ii']):
+                    target_bidang_key = 'Bidang 2 (Pendistribusian)'
+                    break
+                elif any(k in combined for k in ['1', 'i', 'pengumpulan', 'kabid 1', 'kabid i', 'waka 1', 'waka i']):
+                    target_bidang_key = 'Bidang 1 (Pengumpulan)'
+                    break
+
+            if not target_bidang_key:
+                arc_title = (dispo.archive.title if dispo.archive else '').lower()
+                cat_name = (dispo.archive.category.name if dispo.archive and dispo.archive.category else '').lower()
+                combined_arc = f"{arc_title} {cat_name}"
+
+                if any(kw in combined_arc for kw in ['bantuan', 'rutilahu', 'kesehatan', 'pentasyarufan', 'sembako', 'mustahik']):
+                    target_bidang_key = 'Bidang 2 (Pendistribusian)'
+                elif any(kw in combined_arc for kw in ['pengumpulan', 'zakat', 'infaq', 'sedekah', 'upz', 'munfiq']):
+                    target_bidang_key = 'Bidang 1 (Pengumpulan)'
+                elif any(kw in combined_arc for kw in ['rencana', 'anggaran', 'keuangan', 'laporan keuangan', 'rkab']):
+                    target_bidang_key = 'Bidang 3 (Perencanaan & Keuangan)'
+                else:
+                    target_bidang_key = 'Bidang 4 (Administrasi & Umum)'
+
+            bidang_counts[target_bidang_key] += 1
+
+            if dispo.status == 'selesai' and dispo.completed_at and dispo.created_at:
+                total_completed += 1
+                bidang_completed_counts[target_bidang_key] += 1
+
+                duration_hours = (dispo.completed_at - dispo.created_at).total_seconds() / 3600.0
+                all_completion_times.append(duration_hours)
+                bidang_durations[target_bidang_key].append(duration_hours)
+
+        if all_completion_times:
+            avg_hours = sum(all_completion_times) / len(all_completion_times)
+            avg_days = avg_hours / 24.0
+        else:
+            avg_hours = 0
+            avg_days = 0
+
+        bidang_sla_breakdown = {}
+        for b_name in bidang_counts:
+            c_total = bidang_counts[b_name]
+            c_done = bidang_completed_counts[b_name]
+            d_list = bidang_durations[b_name]
+
+            if d_list:
+                b_avg_h = sum(d_list) / len(d_list)
+                b_avg_d = b_avg_h / 24.0
+            else:
+                b_avg_h = 0
+                b_avg_d = 0
+
+            completion_pct = round((c_done / c_total * 100), 1) if c_total > 0 else 0
+
+            bidang_sla_breakdown[b_name] = {
+                'total': c_total,
+                'completed': c_done,
+                'avg_hours': round(b_avg_h, 1),
+                'avg_days': round(b_avg_d, 1),
+                'completion_percent': completion_pct
+            }
+
+        sla_score_percent = round((total_completed / total_dispositions * 100), 1) if total_dispositions > 0 else 100
+
+        return {
+            'total_dispositions': total_dispositions,
+            'total_completed': total_completed,
+            'overall_avg_hours': round(avg_hours, 1),
+            'overall_avg_days': round(avg_days, 1),
+            'sla_score_percent': sla_score_percent,
+            'bidang_chart_labels': list(bidang_counts.keys()),
+            'bidang_chart_series': list(bidang_counts.values()),
+            'bidang_sla_breakdown': bidang_sla_breakdown
+        }
