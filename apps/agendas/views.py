@@ -21,7 +21,7 @@ from .models import Agenda
 class AgendaForm(forms.ModelForm):
     class Meta:
         model = Agenda
-        fields = ['title', 'description', 'scheduled_at', 'archive', 'attachment']
+        fields = ['title', 'location', 'description', 'scheduled_at', 'archive', 'attachment']
 
 
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -332,6 +332,7 @@ def agenda_edit(request, pk):
         form = AgendaForm(request.POST, request.FILES, instance=agenda)
         if form.is_valid():
             title = request.POST.get('title')
+            location = request.POST.get('location')
             description = request.POST.get('description')
             scheduled_at = request.POST.get('scheduled_at')
             archive_id = request.POST.get('archive')
@@ -351,6 +352,7 @@ def agenda_edit(request, pk):
             old_scheduled_at = agenda.scheduled_at
             agenda = form.save(commit=False)
             agenda.title = title
+            agenda.location = location
             agenda.description = description
             if scheduled_at:
                 agenda.scheduled_at = scheduled_at
@@ -455,6 +457,7 @@ def agenda_delete(request, pk):
 def agenda_create(request):
     if request.method == 'POST':
         title = request.POST.get('title')
+        location = request.POST.get('location')
         description = request.POST.get('description')
         scheduled_at = request.POST.get('scheduled_at')
         archive_id = request.POST.get('archive')
@@ -473,6 +476,7 @@ def agenda_create(request):
         
         agenda = Agenda.objects.create(
             title=title,
+            location=location,
             description=description,
             scheduled_at=scheduled_at,
             archive=archive,

@@ -107,14 +107,19 @@
                         <input type="datetime-local" class="form-control custom-input" id="scheduled_at" name="scheduled_at" required value="{{ agenda.scheduled_at|date:'Y-m-d\TH:i'|default:'' }}">
                     </div>
                     <div class="col-md-6">
-                        <label for="archive" class="form-label fw-bold">Kaitan Arsip / Dokumen (Opsional)</label>
-                        <select class="form-select custom-input" id="archive" name="archive">
-                            <option value="">Pilih Dokumen terkait...</option>
-                            {% for arc in archives %}
-                            <option value="{{ arc.id }}" {% if agenda and agenda.archive_id == arc.id %}selected{% elif selected_archive and selected_archive.id == arc.id %}selected{% endif %}>{{ arc.archive_number|default:'DRAFT' }} - {{ arc.title|truncatechars:40 }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="location" class="form-label fw-bold">Tempat / Lokasi Kegiatan <span class="text-muted fw-normal">(Opsional)</span></label>
+                        <input type="text" class="form-control custom-input" id="location" name="location" placeholder="Contoh: Ruang Rapat Kantor BAZNAS / Aula" value="{{ agenda.location|default:'Kantor BAZNAS Kab. Tangerang' }}">
                     </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="archive" class="form-label fw-bold">Kaitan Arsip / Dokumen <span class="text-muted fw-normal">(Opsional)</span></label>
+                    <select class="form-select custom-input" id="archive" name="archive">
+                        <option value="">Pilih Dokumen terkait...</option>
+                        {% for arc in archives %}
+                        <option value="{{ arc.id }}" {% if agenda and agenda.archive_id == arc.id %}selected{% elif selected_archive and selected_archive.id == arc.id %}selected{% endif %}>{{ arc.archive_number|default:'DRAFT' }} - {{ arc.title|truncatechars:40 }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <!-- Keterangan -->
