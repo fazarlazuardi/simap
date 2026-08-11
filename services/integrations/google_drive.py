@@ -252,41 +252,25 @@ class GoogleDriveService:
         creds_file = self.creds_path
         if not os.path.exists(creds_file):
             logger.error(f"File kredensial Google OAuth tidak ditemukan di: {creds_file}")
-            return None
+            raise ValueError("Kredensial Google OAuth (credentials.json) tidak ditemukan. Silakan atur kredensial Google di Pengaturan Aplikasi.")
 
+        # Cek apakah file JSON kredensial merupakan Service Account JSON
         try:
-            from google.oauth2.credentials import Credentials
-            from google_auth_oauthlib.flow import InstalledAppFlow
-
-            SCOPES = [
-                'https://www.googleapis.com/auth/drive.file',
-                'https://www.googleapis.com/auth/spreadsheets'
-            ]
-            flow = InstalledAppFlow.from_client_secrets_file(creds_file, SCOPES)
-            creds = flow.run_local_server(port=0)
-
-            try:
-                from users.models import GoogleOAuthToken
-                GoogleOAuthToken.objects.update_or_create(
-                    client_id=creds.client_id or '',
-                    defaults={
-                        'access_token': creds.token,
-                        'refresh_token': creds.refresh_token or '',
-                        'token_uri': creds.token_uri or 'https://oauth2.googleapis.com/token',
-                        'client_secret': creds.client_secret or '',
-                        'scopes': ' '.join(SCOPES),
-                        'token_expiry': creds.expiry or (timezone.now() + timezone.timedelta(hours=1)),
-                        'is_active': True,
-                    }
-                )
-            except Exception as ex:
-                logger.warning(f"Gagal menyimpan token baru ke DB: {ex}")
-
-            self._oauth_token = creds
-            return creds
+            import json
+            with open(creds_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if data.get('type') == 'service_account':
+                from google.oauth2.service_account import Credentials
+                SCOPES = [
+                    'https://www.googleapis.com/auth/drive.file',
+                    'https://www.googleapis.com/auth/spreadsheets'
+                ]
+                return Credentials.from_service_account_file(creds_file, scopes=SCOPES)
         except Exception as e:
-            logger.error(f"Gagal mengautentikasi Google Drive API: {e}")
-            return None
+            logger.warning(f"Pemeriksaan Service Account JSON: {e}")
+
+        # Jangan panggil flow.run_local_server() dalam konteks aplikasi web karena akan membekukan server
+        raise ValueError("Akun Google OAuth belum terhubung atau otorisasi kadaluarsa. Silakan buka Pengaturan Aplikasi -> klik 'Login dengan Google' untuk menghubungkan akun Google Drive BAZNAS.")
 
     def get_service(self):
         if self._drive_service:

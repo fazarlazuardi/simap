@@ -432,5 +432,12 @@ def trigger_backup_gdrive_email(request):
         call_command('backup_gdrive_email')
         messages.success(request, "Pencadangan dokumen SIMAP ke Google Drive & laporan email berhasil diproses.")
     except Exception as err:
-        messages.error(request, f"Gagal memproses pencadangan: {err}")
+        err_msg = str(err)
+        if "Google OAuth" in err_msg or "otorisasi" in err_msg or "credentials" in err_msg:
+            messages.warning(
+                request,
+                "⚠️ Akun Google Drive belum dihubungkan. Silakan buka Pengaturan Aplikasi -> klik 'Login dengan Google' untuk memberikan izin otorisasi Google Drive."
+            )
+        else:
+            messages.error(request, f"Gagal memproses pencadangan: {err_msg}")
     return redirect(request.META.get('HTTP_REFERER') or 'archives:list')
