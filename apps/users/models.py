@@ -71,9 +71,32 @@ class Employee(models.Model):
     )
     is_acting_role = models.BooleanField(default=False, verbose_name="Status Jabatan Plt Aktif")
 
+    EMPLOYMENT_STATUS_CHOICES = [
+        ('amil_tetap', 'Amil Tetap'),
+        ('amil_kontrak', 'Amil Kontrak'),
+        ('honorer', 'Pegawai Honorer'),
+        ('magang', 'Staf Magang / PKL'),
+    ]
+
     phone_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="No. WhatsApp / Telepon")
     email = models.EmailField(blank=True, null=True, verbose_name="Alamat Email")
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='L', verbose_name="Jenis Kelamin")
+
+    # Data Diri Pegawai / Amil
+    photo = models.ImageField(upload_to='employee_photos/', blank=True, null=True, verbose_name="Foto Resmi Pasfoto Pegawai")
+    nik_ktp = models.CharField(max_length=20, blank=True, null=True, verbose_name="No. NIK KTP (16 Digit)")
+    place_of_birth = models.CharField(max_length=100, blank=True, null=True, verbose_name="Tempat Lahir")
+    date_of_birth = models.DateField(blank=True, null=True, verbose_name="Tanggal Lahir")
+    address = models.TextField(blank=True, null=True, verbose_name="Alamat Lengkap Tempat Tinggal")
+    last_education = models.CharField(max_length=100, blank=True, null=True, verbose_name="Pendidikan Terakhir")
+
+    # Data SK Kepegawaian & Status Amil
+    sk_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nomor SK Pengangkatan / SK Amil")
+    sk_date = models.DateField(blank=True, null=True, verbose_name="Tanggal Terbit SK")
+    tmt_date = models.DateField(blank=True, null=True, verbose_name="TMT (Terhitung Mulai Tanggal) Bergabung")
+    employment_status = models.CharField(max_length=30, choices=EMPLOYMENT_STATUS_CHOICES, default='amil_tetap', verbose_name="Status Kepegawaian")
+    sk_file = models.FileField(upload_to='sk_pegawai/', blank=True, null=True, verbose_name="File Berkas SK (PDF/Gambar)")
+
     is_active = models.BooleanField(default=True, verbose_name="Status Aktif Pegawai")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -91,6 +114,17 @@ class Employee(models.Model):
     def display_name(self):
         """Mengembalikan nama lengkap pegawai."""
         return self.full_name
+
+    @property
+    def avatar_url(self):
+        """Mengembalikan URL foto resmi pegawai / amil."""
+        if self.photo:
+            return self.photo.url
+        user = getattr(self, 'user_account', None)
+        if user and user.profile_picture:
+            return user.profile_picture.url
+        name_str = (self.full_name or 'Pegawai BAZNAS').replace(' ', '+')
+        return f"https://ui-avatars.com/api/?name={name_str}&background=046C4E&color=fff&size=128&bold=true"
 
     @property
     def phone(self):
@@ -144,7 +178,11 @@ class User(AbstractUser):
     def avatar_url(self):
         if self.profile_picture:
             return self.profile_picture.url
-        name_str = (self.get_full_name() or self.username).replace(' ', '+')
+        emp = getattr(self, 'employee', None)
+        if emp and emp.photo:
+            return emp.photo.url
+        display_name = emp.full_name if (emp and emp.full_name) else (self.get_full_name() or self.username)
+        name_str = display_name.replace(' ', '+')
         return f"https://ui-avatars.com/api/?name={name_str}&background=046C4E&color=fff&size=128&bold=true"
 
 

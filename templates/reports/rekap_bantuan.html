@@ -315,13 +315,6 @@
                                 </a>
                             </td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-secondary">
-                                <i class="bi bi-inbox fs-2 d-block text-muted mb-2"></i>
-                                Tidak ada data permohonan bantuan pada periode ini.
-                            </td>
-                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -369,13 +362,6 @@
                                 <a href="{% url 'archives:detail' item.archive.pk %}" class="btn btn-sm btn-light border rounded-circle shadow-sm" title="Lihat Detail Dokumen">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-secondary">
-                                <i class="bi bi-inbox fs-2 d-block text-muted mb-2"></i>
-                                Tidak ada data dokumen umum pada periode ini.
                             </td>
                         </tr>
                         {% endfor %}

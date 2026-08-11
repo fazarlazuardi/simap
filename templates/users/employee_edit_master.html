@@ -1,86 +1,174 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Edit Karyawan - BAZNAS{% endblock %}
+{% block title %}Edit Master Pegawai - {{ employee.full_name }} - BAZNAS{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-md-12">
         <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'users:employee_list' %}" class="text-decoration-none text-primary">Karyawan</a></li>
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{% url 'users:employee_list' %}" class="text-decoration-none text-primary">Pegawai</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'users:employee_detail' employee.pk %}" class="text-decoration-none text-primary">Detail</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                <li class="breadcrumb-item active" aria-current="page">Edit Master & SK</li>
             </ol>
         </nav>
-        <h4 class="fw-bold">Edit Data: {{ employee.full_name }}</h4>
+        <h4 class="fw-bold mb-0" style="color: var(--text-primary);">Edit Master Data & SK Pegawai: {{ employee.full_name }}</h4>
+        <p class="text-secondary small">Perbarui data diri, status kepegawaian amil, dan berkas SK pengangkatan resmi.</p>
     </div>
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card border-0 shadow-sm p-4">
-            <form method="post">
-                {% csrf_token %}
-                <h5 class="fw-bold mb-4 border-bottom pb-2">Data Pegawai</h5>
+    <div class="col-lg-11">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- SEKSI 1: DATA UTAMA & KEPEGAWAIAN -->
+            <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
+                <h5 class="fw-bold text-success border-bottom pb-2 mb-4"><i class="bi bi-briefcase me-2"></i>Data Utama Kepegawaian & Jabatan</h5>
+                
                 <div class="row">
                     <div class="col-md-4 mb-4">
-                        <label class="form-label fw-bold">NIP / NIK <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input" name="nip" value="{{ employee.nip }}" required>
+                        <label for="nip" class="form-label fw-bold">NIP / NIK Amil <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="nip" name="nip" value="{{ employee.nip }}" required>
                     </div>
-                    <div class="col-md-8 mb-4">
-                        <label class="form-label fw-bold">Nama Lengkap <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input" name="full_name" value="{{ employee.full_name }}" required>
+                    <div class="col-md-5 mb-4">
+                        <label for="full_name" class="form-label fw-bold">Nama Lengkap & Gelar <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="full_name" name="full_name" value="{{ employee.full_name }}" required>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <label for="employment_status" class="form-label fw-bold">Status Kepegawaian <span class="text-danger">*</span></label>
+                        <select class="form-select custom-input" id="employment_status" name="employment_status" required>
+                            {% for code, name in employee.EMPLOYMENT_STATUS_CHOICES %}
+                            <option value="{{ code }}" {% if employee.employment_status == code %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
+
                 <div class="row">
                     <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Jabatan <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input" name="position" value="{{ employee.position }}" required>
+                        <label for="position" class="form-label fw-bold">Jabatan Pegawai <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="position" name="position" value="{{ employee.position }}" required>
                     </div>
                     <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Bidang / Bagian</label>
-                        <select class="form-select custom-input" name="dept_relation">
-                            <option value="">Pilih Bidang...</option>
+                        <label for="dept_relation" class="form-label fw-bold">Bidang / Bagian Utama <span class="text-danger">*</span></label>
+                        <select class="form-select custom-input" id="dept_relation" name="dept_relation">
+                            <option value="">Pilih Bidang Utama...</option>
                             {% for dept in departments %}
                             <option value="{{ dept.id }}" {% if employee.dept_relation.id == dept.id %}selected{% endif %}>{{ dept.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
+
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" {% if employee.is_active %}checked{% endif %}>
+                    <label class="form-check-label fw-bold text-dark" for="is_active">Status Pegawai Aktif Bekerja</label>
+                </div>
+            </div>
+
+            <!-- SEKSI 2: DATA DIRI & IDENTITAS -->
+            <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
+                <h5 class="fw-bold text-primary border-bottom pb-2 mb-4"><i class="bi bi-person-vcard me-2"></i>Data Diri & Identitas Pribadi</h5>
+                
+                <div class="mb-4">
+                    <label for="photo" class="form-label fw-bold"><i class="bi bi-person-bounding-box text-success me-1"></i> Foto Resmi Pasfoto Pegawai</label>
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <img src="{{ employee.avatar_url }}" class="rounded-circle border border-2 shadow-sm" width="64" height="64" style="object-fit: cover;">
+                        <div class="flex-grow-1">
+                            <input type="file" class="form-control custom-input" id="photo" name="photo" accept="image/*">
+                            <small class="text-muted">Pilih berkas foto baru jika ingin mengganti pasfoto amil.</small>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-md-4 mb-4">
-                        <label class="form-label fw-bold">Jenis Kelamin</label>
-                        <select class="form-select custom-input" name="gender">
+                        <label for="nik_ktp" class="form-label fw-bold">No. NIK KTP (16 Digit)</label>
+                        <input type="text" class="form-control custom-input" id="nik_ktp" name="nik_ktp" value="{{ employee.nik_ktp|default:'' }}" placeholder="Contoh: 3603123456780001">
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="place_of_birth" class="form-label fw-bold">Tempat Lahir</label>
+                        <input type="text" class="form-control custom-input" id="place_of_birth" name="place_of_birth" value="{{ employee.place_of_birth|default:'' }}" placeholder="Contoh: Tangerang">
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="date_of_birth" class="form-label fw-bold">Tanggal Lahir</label>
+                        <input type="date" class="form-control custom-input" id="date_of_birth" name="date_of_birth" value="{{ employee.date_of_birth|date:'Y-m-d' }}">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-4">
+                        <label for="gender" class="form-label fw-bold">Jenis Kelamin</label>
+                        <select class="form-select custom-input" id="gender" name="gender">
                             <option value="L" {% if employee.gender == 'L' %}selected{% endif %}>Laki-laki</option>
                             <option value="P" {% if employee.gender == 'P' %}selected{% endif %}>Perempuan</option>
                         </select>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <label class="form-label fw-bold">No. WhatsApp</label>
-                        <input type="text" class="form-control custom-input" name="phone_number" value="{{ employee.phone_number|default:'' }}">
+                    <div class="col-md-3 mb-4">
+                        <label for="last_education" class="form-label fw-bold">Pendidikan Terakhir</label>
+                        <input type="text" class="form-control custom-input" id="last_education" name="last_education" value="{{ employee.last_education|default:'' }}" placeholder="Contoh: S1 Ekonomi Syariah / SMA">
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <label class="form-label fw-bold">Email</label>
-                        <input type="email" class="form-control custom-input" name="email" value="{{ employee.email|default:'' }}">
+                    <div class="col-md-3 mb-4">
+                        <label for="phone_number" class="form-label fw-bold">No. WhatsApp / HP</label>
+                        <input type="text" class="form-control custom-input" id="phone_number" name="phone_number" value="{{ employee.phone_number|default:'' }}" placeholder="Contoh: 08123456789">
                     </div>
-                </div>
-                <div class="mb-4">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" name="is_active" {% if employee.is_active %}checked{% endif %}>
-                        <label class="form-check-label fw-bold">Pegawai Aktif</label>
+                    <div class="col-md-3 mb-4">
+                        <label for="email" class="form-label fw-bold">Alamat Email</label>
+                        <input type="email" class="form-control custom-input" id="email" name="email" value="{{ employee.email|default:'' }}" placeholder="pegawai@baznas.go.id">
                     </div>
                 </div>
 
-                {% if user_account %}
-                <h5 class="fw-bold mb-4 border-bottom pb-2 mt-5">Akun Sistem</h5>
+                <div class="mb-2">
+                    <label for="address" class="form-label fw-bold">Alamat Lengkap Tempat Tinggal</label>
+                    <textarea class="form-control" id="address" name="address" rows="3" style="border-radius: 12px;" placeholder="Masukkan alamat lengkap domisili saat ini...">{{ employee.address|default:'' }}</textarea>
+                </div>
+            </div>
+
+            <!-- SEKSI 3: DATA SURAT KEPUTUSAN (SK) -->
+            <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-4"><i class="bi bi-file-earmark-check me-2"></i>Dokumen Surat Keputusan (SK Amil)</h5>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <label for="sk_number" class="form-label fw-bold">Nomor SK Pengangkatan</label>
+                        <input type="text" class="form-control custom-input" id="sk_number" name="sk_number" value="{{ employee.sk_number|default:'' }}" placeholder="Contoh: SK/001/BAZNAS-TGN/2025">
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="sk_date" class="form-label fw-bold">Tanggal SK Terbit</label>
+                        <input type="date" class="form-control custom-input" id="sk_date" name="sk_date" value="{{ employee.sk_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <label for="tmt_date" class="form-label fw-bold">TMT Bergabung / Mulai Bekerja</label>
+                        <input type="date" class="form-control custom-input" id="tmt_date" name="tmt_date" value="{{ employee.tmt_date|date:'Y-m-d' }}">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="sk_file" class="form-label fw-bold"><i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> File Berkas SK Pengangkatan (PDF/Gambar)</label>
+                    {% if employee.sk_file %}
+                    <div class="mb-2">
+                        <a href="{{ employee.sk_file.url }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Buka Berkas SK Terunggah ({{ employee.sk_file.name }})
+                        </a>
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control custom-input" id="sk_file" name="sk_file" accept=".pdf,.png,.jpg,.jpeg">
+                </div>
+            </div>
+
+            <!-- SEKSI 4: AKUN SISTEM (JIKA ADA) -->
+            {% if user_account %}
+            <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-4"><i class="bi bi-shield-lock me-2"></i>Pengaturan Akun Akses SIMAP</h5>
                 <div class="row">
                     <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Username <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input" name="username" value="{{ user_account.username }}" required>
+                        <label for="username" class="form-label fw-bold">Username Login <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="username" name="username" value="{{ user_account.username }}" required>
                     </div>
                     <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Role <span class="text-danger">*</span></label>
-                        <select class="form-select custom-input" name="role" required>
+                        <label for="role" class="form-label fw-bold">Role Akses Sistem <span class="text-danger">*</span></label>
+                        <select class="form-select custom-input" id="role" name="role" required>
                             {% for code, name in roles %}
                             <option value="{{ code }}" {% if user_account.role == code %}selected{% endif %}>{{ name }}</option>
                             {% endfor %}
@@ -89,40 +177,41 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Nama Depan</label>
-                        <input type="text" class="form-control custom-input" name="first_name" value="{{ user_account.first_name }}">
+                        <label for="first_name" class="form-label fw-bold">Nama Depan</label>
+                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" value="{{ user_account.first_name }}">
                     </div>
                     <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Nama Belakang</label>
-                        <input type="text" class="form-control custom-input" name="last_name" value="{{ user_account.last_name }}">
+                        <label for="last_name" class="form-label fw-bold">Nama Belakang</label>
+                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" value="{{ user_account.last_name }}">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-4">
-                        <label class="form-label fw-bold">Password Baru</label>
-                        <input type="password" class="form-control custom-input" name="password" placeholder="Kosongkan jika tidak ingin ganti">
+                        <label for="password" class="form-label fw-bold">Password Baru (Opsional)</label>
+                        <input type="password" class="form-control custom-input" id="password" name="password" placeholder="Biarkan kosong jika tidak diubah">
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <div class="form-check form-switch mt-4">
-                            <input class="form-check-input" type="checkbox" role="switch" name="is_active_account" {% if user_account.is_active_account %}checked{% endif %}>
-                            <label class="form-check-label fw-bold">Akun Aktif</label>
+                    <div class="col-md-6 mb-4 d-flex align-items-center pt-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="is_active_account" name="is_active_account" {% if user_account.is_active_account %}checked{% endif %}>
+                            <label class="form-check-label fw-bold text-dark" for="is_active_account">Akun Login Aktif</label>
                         </div>
                     </div>
                 </div>
-                {% endif %}
+            </div>
+            {% endif %}
 
-                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                    <a href="{% url 'users:employee_detail' employee.pk %}" class="btn btn-light px-4 fw-semibold">Batal</a>
-                    <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold">
-                        <i class="bi bi-save me-2"></i> Simpan Perubahan
-                    </button>
-                </div>
-            </form>
-        </div>
+            <!-- TOMBOL AKSI -->
+            <div class="d-flex justify-content-end gap-3 mb-5">
+                <a href="{% url 'users:employee_detail' employee.pk %}" class="btn btn-light rounded-pill px-4 fw-bold">Batal</a>
+                <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
+                    <i class="bi bi-save-fill me-2"></i> Perbarui Data Master & SK
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <style>
-    .custom-input { height: 52px; border-radius: 12px; border: 1px solid #E5E7EB; }
+    .custom-input { height: 50px; border-radius: 12px; border: 1px solid #E5E7EB; }
 </style>
 {% endblock %}

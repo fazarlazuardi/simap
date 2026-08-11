@@ -98,9 +98,20 @@
                     <div class="col-md-6 mb-4">
                         <label for="category" class="form-label fw-bold">Kategori Bidang <span class="text-danger">*</span></label>
                         <select class="form-select custom-input" id="category" name="category" required>
+                            <optgroup label="── 🟢 KATEGORI PERMOHONAN BANTUAN ──">
                             {% for cat in categories %}
-                            <option value="{{ cat.id }}" {% if archive.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                {% if "bantuan" in cat.name.lower or "rutilahu" in cat.name.lower or "kesehatan" in cat.name.lower or "gharimin" in cat.name.lower or "pendidikan" in cat.name.lower or "santunan" in cat.name.lower or "umkm" in cat.name.lower or "musafir" in cat.name.lower or "sarpras" in cat.name.lower or "sekolah" in cat.name.lower or "pesantren" in cat.name.lower %}
+                                <option value="{{ cat.id }}" {% if archive.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endif %}
                             {% endfor %}
+                            </optgroup>
+                            <optgroup label="── 🔵 KATEGORI DOKUMEN UMUM ──">
+                            {% for cat in categories %}
+                                {% if not "bantuan" in cat.name.lower and not "rutilahu" in cat.name.lower and not "kesehatan" in cat.name.lower and not "gharimin" in cat.name.lower and not "pendidikan" in cat.name.lower and not "santunan" in cat.name.lower and not "umkm" in cat.name.lower and not "musafir" in cat.name.lower and not "sarpras" in cat.name.lower and not "sekolah" in cat.name.lower and not "pesantren" in cat.name.lower %}
+                                <option value="{{ cat.id }}" {% if archive.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                            </optgroup>
                         </select>
                         <div id="category_hint" class="form-text text-success small {% if not archive.is_proposal_bantuan %}d-none{% endif %}">
                             <i class="bi bi-check-circle-fill me-1"></i> Dialokasikan otomatis ke Bidang Pendistribusian / Pendayagunaan.

@@ -1,115 +1,160 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Detail Karyawan - BAZNAS{% endblock %}
+{% block title %}Detail Pegawai - {{ employee.full_name }} - BAZNAS{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-md-12 d-flex justify-content-between align-items-center">
         <div>
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'users:employee_list' %}" class="text-decoration-none text-primary">Karyawan</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Detail</li>
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'users:employee_list' %}" class="text-decoration-none text-primary">Pegawai</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Detail Pegawai</li>
                 </ol>
             </nav>
-            <h4 class="fw-bold mb-1">Detail Karyawan</h4>
+            <h4 class="fw-bold mb-0" style="color: var(--text-primary);">Profil & Data Kepegawaian Amil</h4>
+        </div>
+        <div>
+            <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm">
+                <i class="bi bi-pencil-square me-2"></i> Edit Data Master & SK
+            </a>
         </div>
     </div>
 </div>
 
 <div class="row">
+    <!-- KARTU 1: DATA DIRI PEGAWAI -->
     <div class="col-lg-6 mb-4">
-        <div class="card border-0 shadow-sm p-4 h-100">
-            <h5 class="fw-bold mb-4 border-bottom pb-2">Data Pegawai</h5>
-            <table class="table table-borderless mb-0">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 16px;">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                <h5 class="fw-bold mb-0 text-success"><i class="bi bi-person-vcard me-2"></i>Data Diri & Identitas</h5>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">
+                    {{ employee.get_gender_display }}
+                </span>
+            </div>
+            
+            <div class="text-center my-3 pb-3 border-bottom">
+                <img src="{{ employee.avatar_url }}" alt="{{ employee.full_name }}" class="rounded-circle border border-3 border-success shadow-sm mb-2" width="110" height="110" style="object-fit: cover;">
+                <h5 class="fw-bold mb-0 text-dark">{{ employee.full_name }}</h5>
+                <p class="text-muted small mb-0">{{ employee.position }}</p>
+            </div>
+            <table class="table table-borderless align-middle mb-0">
                 <tr>
-                    <td class="text-secondary fw-semibold" style="width: 140px;">NIP/NIK</td>
-                    <td class="fw-bold">{{ employee.nip }}</td>
+                    <td class="text-secondary fw-semibold" style="width: 160px;">NIP / NIK Amil</td>
+                    <td class="fw-bold text-primary fs-6">: {{ employee.nip }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">No. NIK KTP</td>
+                    <td class="fw-bold">: {{ employee.nik_ktp|default:"-" }}</td>
                 </tr>
                 <tr>
                     <td class="text-secondary fw-semibold">Nama Lengkap</td>
-                    <td class="fw-bold">{{ employee.full_name }}</td>
+                    <td class="fw-bold text-dark">: {{ employee.full_name }}</td>
                 </tr>
                 <tr>
-                    <td class="text-secondary fw-semibold">Jenis Kelamin</td>
-                    <td>{{ employee.get_gender_display }}</td>
+                    <td class="text-secondary fw-semibold">Tempat, Tgl Lahir</td>
+                    <td>: {{ employee.place_of_birth|default:"-" }}{% if employee.date_of_birth %}, {{ employee.date_of_birth|date:"d F Y" }}{% endif %}</td>
                 </tr>
                 <tr>
-                    <td class="text-secondary fw-semibold">Jabatan</td>
-                    <td>{{ employee.position }}</td>
+                    <td class="text-secondary fw-semibold">Pendidikan Terakhir</td>
+                    <td>: <span class="badge bg-light text-dark border rounded-pill px-3">{{ employee.last_education|default:"-" }}</span></td>
                 </tr>
                 <tr>
-                    <td class="text-secondary fw-semibold">Bidang</td>
-                    <td>{{ employee.dept_relation.name|default:'-' }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">No. Telepon</td>
-                    <td>{{ employee.phone_number|default:'-' }}</td>
+                    <td class="text-secondary fw-semibold">No. WhatsApp / Telp</td>
+                    <td>: {% if employee.phone_number %}<a href="https://wa.me/{{ employee.phone_number }}" target="_blank" class="text-success fw-bold text-decoration-none"><i class="bi bi-whatsapp me-1"></i>{{ employee.phone_number }}</a>{% else %}-{% endif %}</td>
                 </tr>
                 <tr>
                     <td class="text-secondary fw-semibold">Email</td>
-                    <td>{{ employee.email|default:'-' }}</td>
+                    <td>: {{ employee.email|default:"-" }}</td>
                 </tr>
                 <tr>
-                    <td class="text-secondary fw-semibold">Status</td>
-                    <td>
-                        {% if employee.is_active %}
-                        <span class="badge badge-approved rounded-pill">Aktif</span>
-                        {% else %}
-                        <span class="badge badge-pending rounded-pill">Non-aktif</span>
-                        {% endif %}
-                    </td>
+                    <td class="text-secondary fw-semibold">Alamat Tempat Tinggal</td>
+                    <td class="small" style="white-space: pre-wrap;">: {{ employee.address|default:"-" }}</td>
                 </tr>
             </table>
-            <div class="mt-4 pt-3 border-top">
-                <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-primary fw-semibold px-4">
-                    <i class="bi bi-pencil-square me-2"></i> Edit Data Pegawai
-                </a>
-            </div>
         </div>
     </div>
 
+    <!-- KARTU 2: DATA SK KEPEGAWAIAN & STATUS AMIL -->
     <div class="col-lg-6 mb-4">
-        <div class="card border-0 shadow-sm p-4 h-100">
-            <h5 class="fw-bold mb-4 border-bottom pb-2">Akun Sistem</h5>
-            {% if user_account %}
-            <table class="table table-borderless mb-0">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 16px;">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-file-earmark-pdf me-2"></i>Data SK & Kepegawaian</h5>
+                <span class="badge {% if employee.employment_status == 'amil_tetap' %}bg-success text-white{% elif employee.employment_status == 'amil_kontrak' %}bg-primary text-white{% else %}bg-warning text-dark{% endif %} rounded-pill px-3 py-1 fw-bold">
+                    {{ employee.get_employment_status_display }}
+                </span>
+            </div>
+            <table class="table table-borderless align-middle mb-0">
                 <tr>
-                    <td class="text-secondary fw-semibold" style="width: 140px;">Username</td>
-                    <td class="fw-bold">{{ user_account.username }}</td>
+                    <td class="text-secondary fw-semibold" style="width: 160px;">Jabatan Utama</td>
+                    <td class="fw-bold text-dark">: {{ employee.position }}</td>
                 </tr>
                 <tr>
-                    <td class="text-secondary fw-semibold">Role</td>
-                    <td><span class="badge bg-light text-dark rounded-pill">{{ user_account.get_role_display }}</span></td>
+                    <td class="text-secondary fw-semibold">Bidang / Bagian</td>
+                    <td>: {{ employee.dept_relation.name|default:'-' }}</td>
                 </tr>
                 <tr>
-                    <td class="text-secondary fw-semibold">Status Akun</td>
-                    <td>
-                        {% if user_account.is_active_account %}
-                        <span class="badge badge-approved rounded-pill">Aktif</span>
+                    <td class="text-secondary fw-semibold">Nomor SK Amil</td>
+                    <td class="fw-bold text-primary">: {{ employee.sk_number|default:"Belum Diinput" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Tanggal SK Terbit</td>
+                    <td>: {{ employee.sk_date|date:"d F Y"|default:"-" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">TMT Bergabung</td>
+                    <td>: {{ employee.tmt_date|date:"d F Y"|default:"-" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Status Aktif</td>
+                    <td>: 
+                        {% if employee.is_active %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">Aktif Bekerja</span>
                         {% else %}
-                        <span class="badge badge-pending rounded-pill">Non-aktif</span>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold">Non-aktif</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-secondary fw-semibold">Berkas Dokumen SK</td>
+                    <td>: 
+                        {% if employee.sk_file %}
+                        <a href="{{ employee.sk_file.url }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Unduh / Buka Berkas SK
+                        </a>
+                        {% else %}
+                        <span class="text-muted small">Belum ada berkas SK yang diunggah</span>
                         {% endif %}
                     </td>
                 </tr>
             </table>
-            <div class="d-flex gap-2 mt-4 pt-3 border-top">
-                <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-warning fw-semibold px-4">
-                    <i class="bi bi-person-gear me-2"></i> Edit Akun
-                </a>
-                <form method="post" action="{% url 'users:employee_delete_user' employee.pk %}" onsubmit="return confirm('Hapus akun {{ user_account.username|escapejs }}?')">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger fw-semibold px-4">
-                        <i class="bi bi-person-x me-2"></i> Hapus Akun
+
+            <!-- KARTU SUB: AKUN SISTEM -->
+            <div class="mt-4 pt-3 border-top">
+                <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-shield-lock me-2"></i>Akses Akun SIMAP</h6>
+                {% if user_account %}
+                <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded-3 border">
+                    <div>
+                        <div class="fw-bold text-dark"><i class="bi bi-person-circle me-1 text-success"></i>{{ user_account.username }}</div>
+                        <small class="text-secondary">Role: {{ user_account.get_role_display }}</small>
+                    </div>
+                    <div>
+                        {% if user_account.is_active_account %}
+                        <span class="badge bg-success rounded-pill px-3 me-2">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-danger rounded-pill px-3 me-2">Non-aktif</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded-3 border">
+                    <span class="text-muted small">Belum memiliki akun login sistem.</span>
+                    <button class="btn btn-sm btn-success fw-bold rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                        <i class="bi bi-person-plus me-1"></i> Buat Akun Login
                     </button>
-                </form>
+                </div>
+                {% endif %}
             </div>
-            {% else %}
-            <p class="text-muted small mb-4">Belum memiliki akun sistem.</p>
-            <button class="btn btn-success fw-semibold px-4" data-bs-toggle="modal" data-bs-target="#createUserModal">
-                <i class="bi bi-person-plus me-2"></i> Tambah Akun
-            </button>
-            {% endif %}
         </div>
     </div>
 </div>
@@ -117,7 +162,7 @@
 {% if not user_account %}
 <div class="modal fade" id="createUserModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content" style="border-radius: 16px;">
             <form method="post" action="{% url 'users:employee_create_user' employee.pk %}">
                 {% csrf_token %}
                 <div class="modal-header">
@@ -144,8 +189,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success fw-bold px-4">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4">
                         <i class="bi bi-check-lg me-1"></i> Buat Akun
                     </button>
                 </div>

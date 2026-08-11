@@ -109,6 +109,24 @@ def employee_edit_master(request, pk):
         emp.phone_number = request.POST.get('phone_number', '').strip()
         emp.email = request.POST.get('email', '').strip()
         emp.gender = request.POST.get('gender')
+
+        # Data Diri Pegawai
+        if request.FILES.get('photo'):
+            emp.photo = request.FILES.get('photo')
+        emp.nik_ktp = request.POST.get('nik_ktp', '').strip()
+        emp.place_of_birth = request.POST.get('place_of_birth', '').strip()
+        emp.date_of_birth = request.POST.get('date_of_birth') or None
+        emp.address = request.POST.get('address', '').strip()
+        emp.last_education = request.POST.get('last_education', '').strip()
+
+        # Data SK Kepegawaian
+        emp.sk_number = request.POST.get('sk_number', '').strip()
+        emp.sk_date = request.POST.get('sk_date') or None
+        emp.tmt_date = request.POST.get('tmt_date') or None
+        emp.employment_status = request.POST.get('employment_status', 'amil_tetap')
+        if request.FILES.get('sk_file'):
+            emp.sk_file = request.FILES.get('sk_file')
+
         emp.is_active = request.POST.get('is_active') == 'on'
         emp.save()
 
@@ -215,7 +233,18 @@ def employee_create(request):
             Employee.objects.create(
                 nip=nip, full_name=full_name, position=position,
                 dept_relation=dept, phone_number=phone_number,
-                email=email, gender=gender
+                email=email, gender=gender,
+                nik_ktp=request.POST.get('nik_ktp', '').strip(),
+                photo=request.FILES.get('photo'),
+                place_of_birth=request.POST.get('place_of_birth', '').strip(),
+                date_of_birth=request.POST.get('date_of_birth') or None,
+                address=request.POST.get('address', '').strip(),
+                last_education=request.POST.get('last_education', '').strip(),
+                sk_number=request.POST.get('sk_number', '').strip(),
+                sk_date=request.POST.get('sk_date') or None,
+                tmt_date=request.POST.get('tmt_date') or None,
+                employment_status=request.POST.get('employment_status', 'amil_tetap'),
+                sk_file=request.FILES.get('sk_file')
             )
             messages.success(request, f"Data pegawai {full_name} berhasil ditambahkan.")
             return redirect('users:employee_list')
@@ -223,6 +252,7 @@ def employee_create(request):
     return render(request, 'users/employee_create.html', {
         'departments': departments,
         'form_data': form_data,
+        'employment_statuses': Employee.EMPLOYMENT_STATUS_CHOICES,
     })
 
 
@@ -253,13 +283,35 @@ def employee_edit(request, pk):
         emp.phone_number = request.POST.get('phone_number', '').strip()
         emp.email = request.POST.get('email', '').strip()
         emp.gender = request.POST.get('gender')
+
+        # Data Diri Pegawai
+        if request.FILES.get('photo'):
+            emp.photo = request.FILES.get('photo')
+        emp.nik_ktp = request.POST.get('nik_ktp', '').strip()
+        emp.place_of_birth = request.POST.get('place_of_birth', '').strip()
+        emp.date_of_birth = request.POST.get('date_of_birth') or None
+        emp.address = request.POST.get('address', '').strip()
+        emp.last_education = request.POST.get('last_education', '').strip()
+
+        # Data SK Kepegawaian
+        emp.sk_number = request.POST.get('sk_number', '').strip()
+        emp.sk_date = request.POST.get('sk_date') or None
+        emp.tmt_date = request.POST.get('tmt_date') or None
+        emp.employment_status = request.POST.get('employment_status', 'amil_tetap')
+        if request.FILES.get('sk_file'):
+            emp.sk_file = request.FILES.get('sk_file')
+
         emp.is_active = request.POST.get('is_active') == 'on'
         emp.save()
         
         messages.success(request, f"Data pegawai {emp.full_name} berhasil diperbarui.")
         return redirect('users:employee_list')
         
-    return render(request, 'users/employee_edit.html', {'employee': emp, 'departments': departments})
+    return render(request, 'users/employee_edit.html', {
+        'employee': emp, 
+        'departments': departments,
+        'employment_statuses': Employee.EMPLOYMENT_STATUS_CHOICES,
+    })
 
 
 @login_required

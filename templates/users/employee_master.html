@@ -25,6 +25,7 @@
                     <th class="border-0">NIP/NIK</th>
                     <th class="border-0">Nama Lengkap</th>
                     <th class="border-0">Jabatan & Bidang</th>
+                    <th class="border-0">Status Amil & SK</th>
                     <th class="border-0">Akun User</th>
                     <th class="border-0 text-end">Aksi</th>
                 </tr>
@@ -32,12 +33,10 @@
             <tbody>
                 {% for emp, user in employee_list %}
                 <tr>
-                    <td class="fw-bold"><a href="{% url 'users:employee_detail' emp.pk %}" class="text-decoration-none">{{ emp.nip }}</a></td>
+                    <td class="fw-bold"><a href="{% url 'users:employee_detail' emp.pk %}" class="text-decoration-none text-primary">{{ emp.nip }}</a></td>
                     <td>
                         <div class="d-flex align-items-center">
-                            <div class="bg-light p-2 rounded-circle me-3">
-                                <i class="bi bi-person text-primary"></i>
-                            </div>
+                            <img src="{{ emp.avatar_url }}" class="rounded-circle border shadow-sm me-3" width="38" height="38" style="object-fit: cover;">
                             <div>
                                 <p class="mb-0 fw-bold">{{ emp.full_name }}</p>
                                 <span class="badge {% if emp.gender == 'L' %}bg-info{% else %}bg-danger opacity-75{% endif %} rounded-pill small" style="font-size: 0.6rem;">{{ emp.get_gender_display }}</span>
@@ -47,6 +46,16 @@
                     <td>
                         <p class="mb-0 fw-bold small">{{ emp.position }}</p>
                         <p class="mb-0 text-muted small">{{ emp.dept_relation.name|default:'-' }}</p>
+                    </td>
+                    <td>
+                        <span class="badge {% if emp.employment_status == 'amil_tetap' %}bg-success text-white{% elif emp.employment_status == 'amil_kontrak' %}bg-primary text-white{% else %}bg-warning text-dark{% endif %} rounded-pill px-2 py-1 small mb-1">
+                            {{ emp.get_employment_status_display }}
+                        </span>
+                        {% if emp.sk_number %}
+                        <p class="mb-0 text-muted small"><i class="bi bi-file-earmark-text me-1"></i>{{ emp.sk_number }}</p>
+                        {% else %}
+                        <p class="mb-0 text-muted small"><em>SK belum diinput</em></p>
+                        {% endif %}
                     </td>
                     <td>
                         {% if user %}

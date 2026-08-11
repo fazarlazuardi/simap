@@ -55,11 +55,14 @@ class WorkflowEngine:
                 return False
             return True
             
-        category_name = archive.category.name.lower() if archive.category else ''
+        cat_obj = getattr(archive, 'category', None)
+        category_name = cat_obj.name.lower() if cat_obj else ''
         bantuan_cat_keywords = [
             'bantuan', 'rutilahu', 'kesehatan', 'gharimin', 'pendidikan',
-            'peribadatan', 'meubelair', 'umkm', 'musafir', 'muallaf',
-            'santunan', 'sembako', 'lpj', 'pendistribusian', 'penyaluran'
+            'peribadatan', 'meubelair', 'meubellair', 'mebeulair', 'sarpras', 'sarana', 'prasarana',
+            'sekolah', 'pesantren', 'pembangunan',
+            'umkm', 'musafir', 'muallaf', 'santunan', 'sembako', 'lpj',
+            'pendistribusian', 'penyaluran', 'rtlh'
         ]
         if any(kw in category_name for kw in bantuan_cat_keywords):
             return True

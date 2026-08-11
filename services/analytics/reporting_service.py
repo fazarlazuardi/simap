@@ -80,8 +80,10 @@ class ReportingService:
 
         bantuan_cat_keywords = [
             'bantuan', 'rutilahu', 'kesehatan', 'gharimin', 'pendidikan',
-            'peribadatan', 'meubelair', 'umkm', 'musafir', 'muallaf',
-            'santunan', 'sembako', 'lpj', 'pendistribusian', 'penyaluran'
+            'peribadatan', 'meubelair', 'meubellair', 'mebeulair', 'sarpras', 'sarana', 'prasarana',
+            'sekolah', 'pesantren', 'pembangunan',
+            'umkm', 'musafir', 'muallaf', 'santunan', 'sembako', 'lpj',
+            'pendistribusian', 'penyaluran', 'rtlh'
         ]
 
         for cat in db_categories:

@@ -46,8 +46,8 @@
         /* Left Hero Side with Photo Background & Green Overlay */
         .login-hero {
             flex: 1.2;
-            background: linear-gradient(135deg, rgba(151, 226, 201, 0.85) 0%, rgba(2, 74, 54, 0.9) 100%), 
-                        url('/media/app_assets/gedung_baznas_tgn.png') center/cover no-repeat;
+            background: linear-gradient(135deg, rgba(4, 108, 78, 0.82) 0%, rgba(2, 45, 33, 0.92) 100%), 
+                        url("{% static 'img/gedung_baznas_tgn.png' %}") center/cover no-repeat;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -150,7 +150,7 @@
         <!-- Left Side -->
         <div class="login-hero">
             <div class="hero-content">
-                <img src="/media/app_assets/logo.png" alt="Logo BAZNAS" width="300" class="mb-4">
+                <img src="{% if app_config.app_logo %}{{ app_config.app_logo.url }}{% else %}{% static 'img/logo_baznas.png' %}{% endif %}" alt="Logo BAZNAS" width="280" class="mb-4" onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
                 <h1>Selamat Datang</h1>
                 <p>Sistem Manajemen Arsip Digital SDM BAZNAS. Kelola dokumen kepegawaian dengan aman, cepat, dan profesional.</p>
             </div>
@@ -159,8 +159,8 @@
         <!-- Right Side -->
         <div class="login-form-area">
             <div class="form-container">
-                <div class="brand-logo d-lg-none text-center">
-                    <h2 class="fw-bold" style="color: #0E9F6E;">BAZNAS</h2>
+                <div class="brand-logo d-lg-none text-center mb-3">
+                    <img src="{% if app_config.app_logo %}{{ app_config.app_logo.url }}{% else %}{% static 'img/logo_baznas.png' %}{% endif %}" alt="Logo BAZNAS" width="180" class="mb-2" onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
                 </div>
                 
                 <h2 class="fw-bold mb-2">Masuk ke Akun</h2>
