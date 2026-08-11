@@ -225,6 +225,8 @@ class Archive(models.Model):
             latest_ag = agendas[-1]
             if latest_ag and not latest_ag.is_completed and latest_ag.status != 'selesai':
                 sch_str = latest_ag.scheduled_at.strftime('%d/%m/%Y %H:%M') if latest_ag.scheduled_at else ''
+                if getattr(latest_ag, 'is_undangan_luar', False):
+                    return f"Agenda Hadiri Undangan Luar ({sch_str})"
                 return f"Agenda Terjadwal Kantor ({sch_str})"
             elif latest_ag and (latest_ag.is_completed or latest_ag.status == 'selesai'):
                 return 'Dokumen Selesai / Terarsip (Notulensi Terbit)'

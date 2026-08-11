@@ -152,15 +152,19 @@
 
                 {% if dispo.archive and dispo.archive.agendas.exists %}
                 {% with latest_ag=dispo.archive.agendas.last %}
-                <div class="card border-success border-opacity-50 rounded-4 shadow-sm mb-4 bg-success bg-opacity-10">
+                <div class="card {% if latest_ag.is_undangan_luar %}border-primary border-opacity-50 bg-primary bg-opacity-10{% else %}border-success border-opacity-50 bg-success bg-opacity-10{% endif %} rounded-4 shadow-sm mb-4">
                     <div class="card-body p-3">
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="p-3 bg-success text-white rounded-3">
-                                    <i class="bi bi-calendar-event fs-3"></i>
+                                <div class="p-3 {% if latest_ag.is_undangan_luar %}bg-primary{% else %}bg-success{% endif %} text-white rounded-3">
+                                    <i class="bi {% if latest_ag.is_undangan_luar %}bi-geo-alt-fill{% else %}bi-calendar-event{% endif %} fs-3"></i>
                                 </div>
                                 <div>
-                                    <span class="badge bg-success text-white rounded-pill px-3 mb-1">AGENDA TERJADWAL DI KANTOR BAZNAS</span>
+                                    {% if latest_ag.is_undangan_luar %}
+                                    <span class="badge bg-primary text-white rounded-pill px-3 mb-1"><i class="bi bi-geo-alt me-1"></i> AGENDA HADIRI UNDANGAN LUAR KANTOR</span>
+                                    {% else %}
+                                    <span class="badge bg-success text-white rounded-pill px-3 mb-1"><i class="bi bi-building me-1"></i> AGENDA TERJADWAL DI KANTOR BAZNAS</span>
+                                    {% endif %}
                                     <h6 class="fw-bold mb-1 text-dark">{{ latest_ag.title }}</h6>
                                     <small class="text-secondary d-block">
                                         <i class="bi bi-clock me-1"></i> Waktu: {{ latest_ag.scheduled_at|date:"d F Y, H:i" }} WIB
@@ -174,8 +178,8 @@
                                     <i class="bi bi-check-circle-fill me-1"></i> Selesai Terarsip
                                 </span>
                                 {% else %}
-                                <a href="{% url 'reports:create' dispo.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm">
-                                    <i class="bi bi-journal-check me-1"></i> Buat Notulensi / Laporan Audiensi
+                                <a href="{% url 'reports:create' dispo.pk %}" class="btn btn-sm {% if latest_ag.is_undangan_luar %}btn-primary{% else %}btn-success{% endif %} rounded-pill px-3 fw-bold shadow-sm">
+                                    <i class="bi bi-journal-check me-1"></i> Buat Notulensi / Laporan Acara
                                 </a>
                                 {% endif %}
                             </div>

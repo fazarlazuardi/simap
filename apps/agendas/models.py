@@ -98,6 +98,24 @@ class Agenda(models.Model):
         self._sppd_ref_cache = value
 
     @property
+    def is_undangan_luar(self):
+        """Mengecek apakah agenda ini merupakan penugasan luar / hadiri undangan luar kantor."""
+        if self.archive and getattr(self.archive, 'archive_type', '') == 'undangan':
+            return True
+        text = f"{self.title or ''} {self.description or ''} {self.location or ''}".lower()
+        if self.archive:
+            text += f" {self.archive.title or ''} {self.archive.archive_type or ''}".lower()
+        
+        if any(kw in text for kw in ['undangan', 'hadiri', 'rakor', 'sosialisasi', 'studi banding', 'luar kantor', 'hotel', 'gedung', 'pemkab', 'dinas']):
+            return True
+            
+        if self.location:
+            loc_lower = self.location.lower()
+            if not any(k in loc_lower for k in ['kantor baznas', 'ruang rapat baznas', 'aula baznas']):
+                return True
+        return False
+
+    @property
     def is_sppd_generated(self):
         """Mengecek apakah agenda bersumber dari SPPD."""
         if hasattr(self, '_is_sppd_generated_cache'):

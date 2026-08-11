@@ -436,21 +436,28 @@
                 </div>
                 {% endif %}
 
-                <!-- 6.5. Agenda Kalender Kantor BPMN Block -->
+                <!-- 6.5. Agenda Kalender / Undangan BPMN Block -->
                 {% if archive.agendas.exists %}
+                {% with latest_ag=archive.agendas.last %}
                 <div class="tm-item">
-                    <div class="tm-icon bg-success text-white"><i class="bi bi-calendar-event"></i></div>
+                    <div class="tm-icon {% if latest_ag.is_undangan_luar %}bg-primary{% else %}bg-success{% endif %} text-white">
+                        <i class="bi {% if latest_ag.is_undangan_luar %}bi-geo-alt-fill{% else %}bi-calendar-event{% endif %}"></i>
+                    </div>
                     <div class="tm-content">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <p class="mb-0 fw-bold text-success">Tahap Agenda / Audiensi Kantor BAZNAS</p>
-                            <span class="badge bg-success text-white rounded-pill" style="font-size: 0.65rem;">{{ archive.agendas.count }} Agenda Terjadwal</span>
+                            <p class="mb-0 fw-bold {% if latest_ag.is_undangan_luar %}text-primary{% else %}text-success{% endif %}">
+                                {% if latest_ag.is_undangan_luar %}Tahap Agenda: Hadiri Undangan Luar Kantor{% else %}Tahap Agenda: Terjadwal Kantor BAZNAS{% endif %}
+                            </p>
+                            <span class="badge {% if latest_ag.is_undangan_luar %}bg-primary{% else %}bg-success{% endif %} text-white rounded-pill" style="font-size: 0.65rem;">
+                                {{ archive.agendas.count }} Agenda Terjadwal
+                            </span>
                         </div>
                         {% for ag in archive.agendas.all %}
-                        <div class="my-2 p-2 rounded-3" style="background-color: var(--surface-alt); border: 1px solid #10b981;">
+                        <div class="my-2 p-2 rounded-3" style="background-color: var(--surface-alt); border: 1px solid {% if ag.is_undangan_luar %}#3b82f6{% else %}#10b981{% endif %};">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="fw-bold text-dark small">📅 {{ ag.title }}</span>
-                                <span class="badge {% if ag.is_completed or ag.status == 'selesai' %}bg-success{% else %}bg-warning text-dark{% endif %} rounded-pill small">
-                                    {% if ag.is_completed or ag.status == 'selesai' %}Selesai{% else %}Terjadwal Kantor{% endif %}
+                                <span class="fw-bold text-dark small">📌 {{ ag.title }}</span>
+                                <span class="badge {% if ag.is_completed or ag.status == 'selesai' %}bg-success{% elif ag.is_undangan_luar %}bg-primary{% else %}bg-warning text-dark{% endif %} rounded-pill small">
+                                    {% if ag.is_completed or ag.status == 'selesai' %}Selesai{% elif ag.is_undangan_luar %}Undangan Luar{% else %}Terjadwal Kantor{% endif %}
                                 </span>
                             </div>
                             <p class="mb-1 text-secondary small"><i class="bi bi-clock me-1"></i>Waktu: {{ ag.scheduled_at|date:"d F Y, H:i" }} WIB</p>
@@ -466,6 +473,7 @@
                         {% endfor %}
                     </div>
                 </div>
+                {% endwith %}
                 {% endif %}
 
                 <!-- 7. Rekap Data Laporan Hasil Penanganan Execution Block -->
