@@ -667,13 +667,23 @@ def oauth_login(request):
         return redirect('reports:index')
 
     redirect_uris = cfg.get('redirect_uris', [])
-    default_redirect = request.build_absolute_uri('/reports/oauth/callback/')
+    current_redirect = request.build_absolute_uri('/reports/oauth/callback/')
     
-    # Untuk Desktop Client ID (installed), Google mengharuskan domain localhost bukan IP 127.0.0.1
-    if 'installed' in client_config or any('localhost' in u for u in redirect_uris):
-        redirect_uri = 'http://localhost:8000/reports/oauth/callback/'
+    # Cocokkan redirect_uri secara dinamis sesuai host browser pengguna (127.0.0.1 vs localhost)
+    matching_uri = None
+    for u in redirect_uris:
+        if u.rstrip('/') == current_redirect.rstrip('/'):
+            matching_uri = u
+            break
+    
+    if matching_uri:
+        redirect_uri = matching_uri
+    elif '127.0.0.1' in request.get_host() and any('127.0.0.1' in u for u in redirect_uris):
+        redirect_uri = [u for u in redirect_uris if '127.0.0.1' in u][0]
+    elif 'localhost' in request.get_host() and any('localhost' in u for u in redirect_uris):
+        redirect_uri = [u for u in redirect_uris if 'localhost' in u][0]
     else:
-        redirect_uri = default_redirect
+        redirect_uri = current_redirect
 
     scopes = ['https://www.googleapis.com/auth/drive.file',
               'https://www.googleapis.com/auth/spreadsheets']
@@ -705,20 +715,20 @@ def oauth_callback(request):
 
     code_verifier = request.session.get('oauth_code_verifier')
     if not code_verifier:
-        messages.error(request, "Session OAuth expired. Coba login lagi.")
-        return redirect('reports:index')
+        messages.error(request, "Sesi OAuth tidak ditemukan. Silakan klik 'Login dengan Google' kembali.")
+        return redirect('users:app_settings')
 
     client_config = GoogleOAuthToken.get_client_config()
     if not client_config:
         messages.error(request, "Konfigurasi OAuth tidak ditemukan.")
-        return redirect('reports:index')
+        return redirect('users:app_settings')
 
     cfg = client_config.get('installed', client_config.get('web', client_config))
     client_id = cfg.get('client_id')
     client_secret = cfg.get('client_secret')
     if not client_id or not client_secret:
         messages.error(request, "client_id atau client_secret tidak ditemukan.")
-        return redirect('reports:index')
+        return redirect('users:app_settings')
 
     redirect_uri = request.session.get('oauth_redirect_uri') or request.build_absolute_uri('/reports/oauth/callback/')
     scopes = ['https://www.googleapis.com/auth/drive.file',
@@ -734,7 +744,7 @@ def oauth_callback(request):
     )
 
     token_obj, _ = GoogleOAuthToken.objects.get_or_create(pk=1)
-    token_obj.refresh_token = token.get('refresh_token', '')
+    token_obj.refresh_token = token.get('refresh_token', '') or token_obj.refresh_token
     token_obj.access_token = token.get('access_token', '')
     from django.utils import timezone
     from datetime import timedelta
@@ -746,8 +756,8 @@ def oauth_callback(request):
         del request.session['oauth_code_verifier']
     if 'oauth_state' in request.session:
         del request.session['oauth_state']
-    messages.success(request, "Berhasil login ke Google! Backup siap digunakan.")
-    return redirect('reports:index')
+    messages.success(request, "Berhasil terhubung ke Google Drive BAZNAS! Fitur pencadangan otomatis telah aktif 100%.")
+    return redirect('users:app_settings')
 
 @login_required
 @sdm_required
