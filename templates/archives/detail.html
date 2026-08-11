@@ -101,7 +101,7 @@
                         <i class="bi bi-envelope-paper-fill me-1"></i> Dokumen Umum
                     </span>
                 {% endif %}
-                <span class="badge {% if archive.status == 'selesai' %}bg-success text-white{% elif archive.status == 'baru' %}bg-warning text-dark{% elif archive.status == 'ditolak' %}bg-danger text-white{% else %}bg-primary text-white{% endif %} rounded-pill px-4 py-2 fw-bold">
+                <span class="badge {% if archive.status == 'selesai' or latest_report %}bg-success text-white{% elif archive.status == 'baru' %}bg-warning text-dark{% elif archive.status == 'ditolak' %}bg-danger text-white{% else %}bg-primary text-white{% endif %} rounded-pill px-4 py-2 fw-bold">
                     {{ archive.workflow_status_display }}
                 </span>
             </div>
@@ -124,8 +124,8 @@
             <div class="stepper-step {% if sppd_list.exists or archive.agendas.exists %}completed{% elif archive.status == 'dalam_survei' %}active pulse-active-node{% endif %}">
                 {% if sppd_list.exists or archive.agendas.exists %}<i class="bi bi-check-circle-fill me-1"></i>{% else %}<i class="bi bi-briefcase me-1"></i>{% endif %} 5. Agenda / SPPD
             </div>
-            <div class="stepper-step {% if archive.status == 'selesai' or archive.status == 'telah_disalurkan' %}active completed{% endif %}">
-                {% if archive.status == 'selesai' %}<i class="bi bi-check-circle-fill me-1"></i>{% else %}<i class="bi bi-flag me-1"></i>{% endif %} 6. LHP & Selesai
+            <div class="stepper-step {% if archive.status == 'selesai' or archive.status == 'telah_disalurkan' or latest_report %}active completed{% endif %}">
+                {% if archive.status == 'selesai' or latest_report %}<i class="bi bi-check-circle-fill me-1"></i>{% else %}<i class="bi bi-flag me-1"></i>{% endif %} 6. LHP & Selesai
             </div>
         </div>
     </div>
@@ -242,9 +242,54 @@
     </div>
 </div>
 
-<!-- FIGMA SPLIT DUAL-PANE LAYOUT -->
+<!-- FIGMA SWAPPED SPLIT LAYOUT -->
 <div class="row">
-    <!-- PANEL KIRI: METADATA, DISPOSISI & BPMN LOG -->
+    <!-- PANEL KIRI: EMBEDDED DOCUMENT VIEWER CARD (PRATINJAU BERKAS DIGITAL) -->
+    <div class="col-lg-5 mb-4">
+        <div class="card rekap-card border-0 shadow-sm p-4 position-sticky" style="top: 90px; border-radius: 16px;">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Pratinjau Berkas Digital</h5>
+                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                    <i class="bi bi-cloud-upload me-1"></i> {% if archive.file_path %}Ganti Berkas{% else %}Upload{% endif %}
+                </button>
+            </div>
+
+            {% if archive.file_path %}
+                <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-2 rounded-3 border">
+                    <span class="small fw-bold text-truncate" style="max-width: 200px;">{{ archive.file_path.name }}</span>
+                    <div class="d-flex gap-1">
+                        <a href="{{ archive.file_path.url }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" rel="noopener">
+                            <i class="bi bi-arrows-angle-expand me-1"></i> Fullscreen
+                        </a>
+                        <a href="{{ archive.file_path.url }}" download class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Unduh File">
+                            <i class="bi bi-download"></i>
+                        </a>
+                    </div>
+                </div>
+
+                {% if ".pdf" in archive.file_path.name.lower %}
+                <div class="ratio ratio-4x3 border rounded-4 overflow-hidden shadow-sm" style="min-height: 550px;">
+                    <iframe src="{{ archive.file_path.url }}#toolbar=0" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+                {% else %}
+                <div class="text-center p-2 border rounded-4 bg-light shadow-sm overflow-hidden" style="max-height: 550px;">
+                    <img src="{{ archive.file_path.url }}" class="img-fluid rounded-3" style="max-height: 530px; object-fit: contain;">
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="p-5 text-center border-2 border-dashed rounded-4 bg-light my-3" style="border: 2px dashed #CBD5E1;">
+                    <i class="bi bi-file-earmark-x fs-1 text-warning d-block mb-3 opacity-75"></i>
+                    <h6 class="fw-bold text-dark mb-1">Berkas PDF / Digital Belum Diunggah</h6>
+                    <p class="text-secondary small mb-4">Lampirkan file scan/PDF surat ini agar dapat dipratinjau langsung di panel layar ini.</p>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                        <i class="bi bi-cloud-upload-fill me-2"></i> Unggah Berkas Sekarang
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- PANEL KANAN: METADATA, DISPOSISI & BPMN LOG -->
     <div class="col-lg-7 mb-4">
         <!-- KARTU METADATA -->
         <div class="card rekap-card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
@@ -292,12 +337,12 @@
             </div>
         </div>
 
-        <!-- LOG ALUR KERJA BPMN TIMELINE -->
+        <!-- LOG ALUR KERJA BPMN TIMELINE LENGKAP -->
         <div class="card rekap-card border-0 shadow-sm p-4" style="border-radius: 16px;">
             <h5 class="fw-bold mb-4 border-bottom pb-2 text-primary"><i class="bi bi-diagram-3 me-2"></i>Log Alur Kerja BPMN</h5>
             
             <div class="timeline-modern mt-2">
-                <!-- 1. Upload -->
+                <!-- 1. UPLOAD / REGISTRASI -->
                 <div class="tm-item">
                     <div class="tm-icon bg-success text-white"><i class="bi bi-cloud-upload"></i></div>
                     <div class="tm-content">
@@ -307,7 +352,7 @@
                     </div>
                 </div>
 
-                <!-- 2. Tolak Dokumen -->
+                <!-- 2. TOLAK DOKUMEN -->
                 {% if archive.status == 'ditolak' %}
                 <div class="tm-item">
                     <div class="tm-icon bg-danger text-white"><i class="bi bi-x-circle"></i></div>
@@ -321,7 +366,7 @@
                 </div>
                 {% endif %}
 
-                <!-- 3. Verifikasi Arsip -->
+                <!-- 3. VERIFIKASI ARSIP KABID IV -->
                 {% if archive.archive_number %}
                 <div class="tm-item">
                     <div class="tm-icon bg-info text-white"><i class="bi bi-patch-check"></i></div>
@@ -454,52 +499,42 @@
                     </div>
                 </div>
                 {% endif %}
-            </div>
-        </div>
-    </div>
 
-    <!-- PANEL KANAN: EMBEDDED DOCUMENT VIEWER CARD -->
-    <div class="col-lg-5 mb-4">
-        <div class="card rekap-card border-0 shadow-sm p-4 position-sticky" style="top: 90px; border-radius: 16px;">
-            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Pratinjau Berkas Digital</h5>
-                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
-                    <i class="bi bi-cloud-upload me-1"></i> {% if archive.file_path %}Ganti Berkas{% else %}Upload{% endif %}
-                </button>
-            </div>
-
-            {% if archive.file_path %}
-                <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-2 rounded-3 border">
-                    <span class="small fw-bold text-truncate" style="max-width: 220px;">{{ archive.file_path.name }}</span>
-                    <div class="d-flex gap-1">
-                        <a href="{{ archive.file_path.url }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" rel="noopener">
-                            <i class="bi bi-arrows-angle-expand me-1"></i> Fullscreen
-                        </a>
-                        <a href="{{ archive.file_path.url }}" download class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Unduh File">
-                            <i class="bi bi-download"></i>
-                        </a>
+                <!-- 8. LAPORAN HASIL PENANGANAN (LHP) -->
+                {% if latest_report %}
+                <div class="tm-item">
+                    <div class="tm-icon bg-success text-white"><i class="bi bi-file-earmark-check-fill"></i></div>
+                    <div class="tm-content">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <p class="mb-0 fw-bold text-success">Tahap Laporan Hasil Penanganan (LHP)</p>
+                            <span class="badge bg-success text-white rounded-pill" style="font-size: 0.65rem;">LHP Terbit</span>
+                        </div>
+                        <div class="my-2 p-2 rounded-3" style="background-color: var(--surface-alt); border: 1px solid #86efac;">
+                            <span class="fw-bold text-dark small d-block">📄 No. LHP: {{ latest_report.report_number }}</span>
+                            <span class="text-muted d-block" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>{{ latest_report.created_at|date:"d M Y, H:i" }}</span>
+                            {% if latest_report.notes %}
+                            <p class="mb-1 text-secondary small italic">"{{ latest_report.notes|truncatechars:100 }}"</p>
+                            {% endif %}
+                            <a href="{% url 'reports:detail' latest_report.pk %}" class="text-decoration-none small text-success fw-bold d-inline-block mt-1">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Buka Detail LHP
+                            </a>
+                        </div>
                     </div>
                 </div>
+                {% endif %}
 
-                {% if ".pdf" in archive.file_path.name.lower %}
-                <div class="ratio ratio-4x3 border rounded-4 overflow-hidden shadow-sm" style="min-height: 520px;">
-                    <iframe src="{{ archive.file_path.url }}#toolbar=0" style="width: 100%; height: 100%; border: none;"></iframe>
-                </div>
-                {% else %}
-                <div class="text-center p-2 border rounded-4 bg-light shadow-sm overflow-hidden" style="max-height: 520px;">
-                    <img src="{{ archive.file_path.url }}" class="img-fluid rounded-3" style="max-height: 500px; object-fit: contain;">
+                <!-- 9. TAHAP SELESAI / DISALURKAN -->
+                {% if archive.status == 'selesai' or archive.status == 'telah_disalurkan' or latest_report %}
+                <div class="tm-item">
+                    <div class="tm-icon bg-success text-white"><i class="bi bi-check-all"></i></div>
+                    <div class="tm-content" style="background-color: #f0fdf4 !important; border: 1px solid #86efac !important;">
+                        <p class="mb-0 fw-bold text-success fs-6"><i class="bi bi-check-circle-fill me-1"></i> Dokumen Selesai Ditindaklanjuti</p>
+                        <p class="mb-0 text-secondary small">Seluruh alur kerja disposisi, penugasan, pelaksanaan, & pelaporan telah selesai 100%.</p>
+                        <span class="tm-date text-success fw-bold">{{ archive.updated_at|date:"d M Y, H:i" }}</span>
+                    </div>
                 </div>
                 {% endif %}
-            {% else %}
-                <div class="p-5 text-center border-2 border-dashed rounded-4 bg-light my-3" style="border: 2px dashed #CBD5E1;">
-                    <i class="bi bi-file-earmark-x fs-1 text-warning d-block mb-3 opacity-75"></i>
-                    <h6 class="fw-bold text-dark mb-1">Berkas PDF / Digital Belum Diunggah</h6>
-                    <p class="text-secondary small mb-4">Lampirkan file scan/PDF surat ini agar dapat dipratinjau langsung di panel layar ini.</p>
-                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
-                        <i class="bi bi-cloud-upload-fill me-2"></i> Unggah Berkas Sekarang
-                    </button>
-                </div>
-            {% endif %}
+            </div>
         </div>
     </div>
 </div>
