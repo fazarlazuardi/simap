@@ -403,6 +403,16 @@ class GoogleDriveService:
 
             body = {'values': values}
             try:
+                # Bersihkan isi lembar kerja lama agar data yang sudah dihapus di SIMAP tidak tersisa
+                try:
+                    sheets.spreadsheets().values().clear(
+                        spreadsheetId=spreadsheet_id,
+                        range='A:Z',
+                        body={}
+                    ).execute()
+                except Exception as clear_err:
+                    logger.warning(f"Gagal membersihkan sel lama: {clear_err}")
+
                 sheets.spreadsheets().values().update(
                     spreadsheetId=spreadsheet_id,
                     range='A1',
@@ -424,6 +434,16 @@ class GoogleDriveService:
                         SystemSetting.objects.update_or_create(key='GOOGLE_SHEET_ID', defaults={'value': spreadsheet_id})
                     except Exception:
                         pass
+                    
+                    try:
+                        sheets.spreadsheets().values().clear(
+                            spreadsheetId=spreadsheet_id,
+                            range='A:Z',
+                            body={}
+                        ).execute()
+                    except Exception:
+                        pass
+
                     sheets.spreadsheets().values().update(
                         spreadsheetId=spreadsheet_id,
                         range='A1',
