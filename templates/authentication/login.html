@@ -148,11 +148,21 @@
 
     <div class="login-wrapper">
         <!-- Left Side -->
-        <div class="login-hero">
+        <div class="login-hero position-relative overflow-hidden">
             <div class="hero-content">
                 <img src="{% if app_config.app_logo %}{{ app_config.app_logo.url }}{% else %}{% static 'img/logo_baznas.png' %}{% endif %}" alt="Logo BAZNAS" width="280" class="mb-4" onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
-                <h1>Selamat Datang</h1>
-                <p>Sistem Manajemen Arsip Digital SDM BAZNAS. Kelola dokumen kepegawaian dengan aman, cepat, dan profesional.</p>
+                <h1 class="fw-bold mb-3">Selamat Datang</h1>
+                <p class="mb-4">Sistem Manajemen Arsip Digital SDM BAZNAS. Kelola dokumen kepegawaian dengan aman, cepat, dan profesional.</p>
+                
+                <!-- Glassmorphism Floating Stat Badges -->
+                <div class="d-inline-flex gap-3 justify-content-center mt-3">
+                    <div class="px-3 py-2 rounded-pill text-white small fw-bold" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25);">
+                        <i class="bi bi-shield-check me-1 text-warning"></i> 100% Arsip Digital Terverifikasi
+                    </div>
+                    <div class="px-3 py-2 rounded-pill text-white small fw-bold" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25);">
+                        <i class="bi bi-lightning-charge me-1 text-warning"></i> Alur Kerja Presisi BAZNAS
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -164,21 +174,29 @@
                 </div>
                 
                 <h2 class="fw-bold mb-2">Masuk ke Akun</h2>
-                <p class="mb-5" style="color: var(--text-secondary);">Silakan masukkan kredensial Anda untuk mengakses dashboard.</p>
+                <p class="mb-4" style="color: var(--text-secondary);">Silakan masukkan kredensial Anda untuk mengakses dashboard SIMAP.</p>
 
                 <form method="post">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="username" class="form-label">Username atau Email</label>
-                        <input type="text" name="username" class="form-control" id="username" placeholder="admin_sdm" required autofocus>
+                        <input type="text" name="username" class="form-control" id="username" placeholder="Masukkan username" required autofocus>
                     </div>
                     
                     <div class="mb-4">
-                        <input type="password" name="password" class="form-control" id="password" placeholder="••••••••" required>
+                        <label for="password" class="form-label">Kata Sandi</label>
+                        <div class="input-group">
+                            <input type="password" name="password" class="form-control" id="password" placeholder="••••••••" required style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                            <button class="btn btn-outline-secondary px-3" type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()" style="border-top-right-radius: 12px; border-bottom-right-radius: 12px; border-color: var(--border-color);">
+                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Masuk Sekarang</button>
+                        <button type="submit" class="btn btn-primary shadow-sm" style="background-color: var(--primary); border-color: var(--primary);">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Masuk Sekarang
+                        </button>
                     </div>
                 </form>
 
@@ -199,6 +217,20 @@
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.body.setAttribute('data-theme', 'dark');
+    }
+
+    function togglePasswordVisibility() {
+        const passInput = document.getElementById('password');
+        const icon = document.getElementById('togglePasswordIcon');
+        if (passInput.type === 'password') {
+            passInput.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            passInput.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
     }
 </script>
 </body>

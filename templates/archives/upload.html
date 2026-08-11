@@ -127,7 +127,12 @@
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="file_path" class="form-label fw-bold">Berkas Digital (PDF/Gambar) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control custom-input" id="file_path" name="file_path" required>
+                        <div class="p-3 text-center border-2 border-dashed rounded-4 bg-light position-relative" id="dropzone_box" style="border: 2px dashed #CBD5E1; transition: all 0.25s ease;">
+                            <i class="bi bi-cloud-arrow-up fs-2 text-success d-block mb-1"></i>
+                            <span class="small text-secondary fw-semibold">Tarik & Lepas File ke sini, atau <strong class="text-success">Pilih Berkas</strong></span>
+                            <input type="file" class="form-control opacity-0 position-absolute top-0 start-0 w-100 h-100" id="file_path" name="file_path" required style="cursor: pointer;" onchange="updateDropzoneFile(this)">
+                            <div id="file_name_preview" class="small text-primary fw-bold mt-2 d-none"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -297,6 +302,23 @@
 
         // Auto Select Kategori Presisi saat mengetik Perihal / Judul Dokumen
         titleInput.addEventListener('input', autoSelectCategoryFromTitle);
+
+        // Update UI Dropzone Box saat file dipilih
+        window.updateDropzoneFile = function(input) {
+            const preview = document.getElementById('file_name_preview');
+            const dropzone = document.getElementById('dropzone_box');
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                preview.innerHTML = `<i class="bi bi-file-earmark-check-fill me-1"></i> Terpilih: <strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                preview.classList.remove('d-none');
+                dropzone.style.borderColor = '#10B981';
+                dropzone.style.backgroundColor = '#ECFDF5';
+            } else {
+                preview.classList.add('d-none');
+                dropzone.style.borderColor = '#CBD5E1';
+                dropzone.style.backgroundColor = '#F8FAFC';
+            }
+        };
 
         // Jalankan saat pertama kali dimuat jika belum diisi
         if (!archiveNumInput.value) {

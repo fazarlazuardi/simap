@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Detail Pegawai - {{ employee.full_name }} - BAZNAS{% endblock %}
+{% block title %}Profil Amil - {{ employee.full_name }} - BAZNAS{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
@@ -8,153 +8,204 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="{% url 'users:employee_list' %}" class="text-decoration-none text-primary">Pegawai</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Detail Pegawai</li>
+                    <li class="breadcrumb-item"><a href="{% url 'users:employee_list' %}" class="text-decoration-none text-success fw-semibold">Pegawai</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Profil Amil</li>
                 </ol>
             </nav>
-            <h4 class="fw-bold mb-0" style="color: var(--text-primary);">Profil & Data Kepegawaian Amil</h4>
+            <h4 class="fw-bold mb-0" style="color: var(--text-primary);">Profil Smart HRMS & Kepegawaian</h4>
         </div>
         <div>
-            <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm">
-                <i class="bi bi-pencil-square me-2"></i> Edit Data Master & SK
+            <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-emerald fw-bold rounded-pill px-4 shadow-sm text-white" style="background-color: var(--primary);">
+                <i class="bi bi-pencil-square me-2"></i> Edit Master & SK
             </a>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <!-- KARTU 1: DATA DIRI PEGAWAI -->
-    <div class="col-lg-6 mb-4">
-        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 16px;">
-            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
-                <h5 class="fw-bold mb-0 text-success"><i class="bi bi-person-vcard me-2"></i>Data Diri & Identitas</h5>
-                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">
-                    {{ employee.get_gender_display }}
-                </span>
+<!-- ODOO ENTERPRISE HERO PROFILE BANNER CARD -->
+<div class="card border-0 shadow-sm overflow-hidden mb-4" style="border-radius: 20px; background: var(--card-bg);">
+    <div style="height: 140px; background: linear-gradient(135deg, #047857 0%, #065F46 60%, #022D21 100%);" class="position-relative">
+        <div class="position-absolute top-0 end-0 p-3 opacity-25 text-white">
+            <i class="bi bi-shield-check" style="font-size: 5rem;"></i>
+        </div>
+    </div>
+    <div class="px-4 pb-4 position-relative">
+        <div class="d-flex flex-column flex-md-row align-items-center align-items-md-end gap-4" style="margin-top: -60px;">
+            <div class="position-relative">
+                <img src="{{ employee.avatar_url }}" alt="{{ employee.full_name }}" class="rounded-circle border border-4 border-white shadow-lg bg-white" width="130" height="130" style="object-fit: cover;">
+                <span class="position-absolute bottom-0 end-0 p-2 border border-2 border-white rounded-circle {% if employee.is_active %}bg-success{% else %}bg-secondary{% endif %}" title="{% if employee.is_active %}Aktif Bekerja{% else %}Non-Aktif{% endif %}"></span>
             </div>
-            
-            <div class="text-center my-3 pb-3 border-bottom">
-                <img src="{{ employee.avatar_url }}" alt="{{ employee.full_name }}" class="rounded-circle border border-3 border-success shadow-sm mb-2" width="110" height="110" style="object-fit: cover;">
-                <h5 class="fw-bold mb-0 text-dark">{{ employee.full_name }}</h5>
-                <p class="text-muted small mb-0">{{ employee.position }}</p>
+            <div class="flex-grow-1 text-center text-md-start">
+                <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2 mb-1">
+                    <h3 class="fw-bold mb-0" style="color: var(--text-primary);">{{ employee.full_name }}</h3>
+                    <span class="badge {% if employee.employment_status == 'amil_tetap' %}bg-success text-white{% elif employee.employment_status == 'amil_kontrak' %}bg-primary text-white{% else %}bg-warning text-dark{% endif %} rounded-pill px-3 py-1 fw-bold">
+                        {{ employee.get_employment_status_display }}
+                    </span>
+                </div>
+                <p class="text-secondary mb-2 fw-semibold"><i class="bi bi-briefcase me-1 text-success"></i>{{ employee.position }} &bull; <span class="text-dark">{{ employee.dept_relation.name|default:'-' }}</span></p>
+                <div class="d-flex flex-wrap justify-content-center justify-content-md-start gap-3 small text-secondary">
+                    <span><i class="bi bi-person-vcard text-primary me-1"></i>NIP: <strong class="text-dark">{{ employee.nip }}</strong></span>
+                    {% if employee.phone_number %}
+                    <span><i class="bi bi-whatsapp text-success me-1"></i><a href="https://wa.me/{{ employee.phone_number }}" target="_blank" class="text-success fw-bold text-decoration-none">{{ employee.phone_number }}</a></span>
+                    {% endif %}
+                    {% if employee.email %}
+                    <span><i class="bi bi-envelope text-info me-1"></i>{{ employee.email }}</span>
+                    {% endif %}
+                </div>
             </div>
-            <table class="table table-borderless align-middle mb-0">
-                <tr>
-                    <td class="text-secondary fw-semibold" style="width: 160px;">NIP / NIK Amil</td>
-                    <td class="fw-bold text-primary fs-6">: {{ employee.nip }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">No. NIK KTP</td>
-                    <td class="fw-bold">: {{ employee.nik_ktp|default:"-" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Nama Lengkap</td>
-                    <td class="fw-bold text-dark">: {{ employee.full_name }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Tempat, Tgl Lahir</td>
-                    <td>: {{ employee.place_of_birth|default:"-" }}{% if employee.date_of_birth %}, {{ employee.date_of_birth|date:"d F Y" }}{% endif %}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Pendidikan Terakhir</td>
-                    <td>: <span class="badge bg-light text-dark border rounded-pill px-3">{{ employee.last_education|default:"-" }}</span></td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">No. WhatsApp / Telp</td>
-                    <td>: {% if employee.phone_number %}<a href="https://wa.me/{{ employee.phone_number }}" target="_blank" class="text-success fw-bold text-decoration-none"><i class="bi bi-whatsapp me-1"></i>{{ employee.phone_number }}</a>{% else %}-{% endif %}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Email</td>
-                    <td>: {{ employee.email|default:"-" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Alamat Tempat Tinggal</td>
-                    <td class="small" style="white-space: pre-wrap;">: {{ employee.address|default:"-" }}</td>
-                </tr>
-            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB NAVIGATION SYSTEM -->
+<ul class="nav nav-pills custom-tabs mb-4 gap-2 border-bottom pb-3" id="profileTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active rounded-pill fw-bold px-4" id="identity-tab" data-bs-toggle="tab" data-bs-target="#identity-pane" type="button" role="tab"><i class="bi bi-person-vcard me-2"></i>Identitas & Data Diri</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link rounded-pill fw-bold px-4" id="sk-tab" data-bs-toggle="tab" data-bs-target="#sk-pane" type="button" role="tab"><i class="bi bi-file-earmark-check me-2"></i>SK & Kepegawaian</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link rounded-pill fw-bold px-4" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-pane" type="button" role="tab"><i class="bi bi-shield-lock me-2"></i>Akses Akun SIMAP</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="profileTabsContent">
+    <!-- TAB 1: IDENTITAS & DATA DIRI -->
+    <div class="tab-pane fade show active" id="identity-pane" role="tabpanel">
+        <div class="card border-0 shadow-sm p-4" style="border-radius: 16px;">
+            <h5 class="fw-bold text-success border-bottom pb-2 mb-4"><i class="bi bi-info-circle me-2"></i>Detail Identitas Amil</h5>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <table class="table table-borderless align-middle mb-0">
+                        <tr>
+                            <td class="text-secondary fw-semibold" style="width: 160px;">NIP / NIK Amil</td>
+                            <td class="fw-bold text-primary fs-6">: {{ employee.nip }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">No. NIK KTP</td>
+                            <td class="fw-bold">: {{ employee.nik_ktp|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">Nama Lengkap</td>
+                            <td class="fw-bold text-dark">: {{ employee.full_name }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">Jenis Kelamin</td>
+                            <td>: <span class="badge bg-light text-dark border rounded-pill px-3">{{ employee.get_gender_display }}</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless align-middle mb-0">
+                        <tr>
+                            <td class="text-secondary fw-semibold" style="width: 160px;">Tempat, Tgl Lahir</td>
+                            <td>: {{ employee.place_of_birth|default:"-" }}{% if employee.date_of_birth %}, {{ employee.date_of_birth|date:"d F Y" }}{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">Pendidikan Terakhir</td>
+                            <td>: <span class="badge bg-success-subtle text-success border rounded-pill px-3 fw-bold">{{ employee.last_education|default:"-" }}</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">Alamat Domisili</td>
+                            <td class="small" style="white-space: pre-wrap;">: {{ employee.address|default:"-" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- KARTU 2: DATA SK KEPEGAWAIAN & STATUS AMIL -->
-    <div class="col-lg-6 mb-4">
-        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 16px;">
-            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
-                <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-file-earmark-pdf me-2"></i>Data SK & Kepegawaian</h5>
-                <span class="badge {% if employee.employment_status == 'amil_tetap' %}bg-success text-white{% elif employee.employment_status == 'amil_kontrak' %}bg-primary text-white{% else %}bg-warning text-dark{% endif %} rounded-pill px-3 py-1 fw-bold">
-                    {{ employee.get_employment_status_display }}
-                </span>
+    <!-- TAB 2: SK & KEPEGAWAIAN -->
+    <div class="tab-pane fade" id="sk-pane" role="tabpanel">
+        <div class="card border-0 shadow-sm p-4" style="border-radius: 16px;">
+            <h5 class="fw-bold text-primary border-bottom pb-2 mb-4"><i class="bi bi-file-earmark-pdf me-2"></i>Surat Keputusan (SK Amil) & Masa Kerja</h5>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <table class="table table-borderless align-middle mb-0">
+                        <tr>
+                            <td class="text-secondary fw-semibold" style="width: 160px;">Status Kepegawaian</td>
+                            <td>: 
+                                <span class="badge {% if employee.employment_status == 'amil_tetap' %}bg-success text-white{% elif employee.employment_status == 'amil_kontrak' %}bg-primary text-white{% else %}bg-warning text-dark{% endif %} rounded-pill px-3 py-1 fw-bold">
+                                    {{ employee.get_employment_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">Jabatan Utama</td>
+                            <td class="fw-bold text-dark">: {{ employee.position }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">Bidang / Bagian</td>
+                            <td>: {{ employee.dept_relation.name|default:'-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless align-middle mb-0">
+                        <tr>
+                            <td class="text-secondary fw-semibold" style="width: 160px;">Nomor SK Amil</td>
+                            <td class="fw-bold text-primary">: {{ employee.sk_number|default:"Belum Diinput" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">Tanggal SK Terbit</td>
+                            <td>: {{ employee.sk_date|date:"d F Y"|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">TMT Bergabung</td>
+                            <td>: {{ employee.tmt_date|date:"d F Y"|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold">Berkas Dokumen SK</td>
+                            <td>: 
+                                {% if employee.sk_file %}
+                                <a href="{{ employee.sk_file.url }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i> Buka / Unduh Berkas SK
+                                </a>
+                                {% else %}
+                                <span class="text-muted small">Belum ada berkas SK yang diunggah</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
             </div>
-            <table class="table table-borderless align-middle mb-0">
-                <tr>
-                    <td class="text-secondary fw-semibold" style="width: 160px;">Jabatan Utama</td>
-                    <td class="fw-bold text-dark">: {{ employee.position }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Bidang / Bagian</td>
-                    <td>: {{ employee.dept_relation.name|default:'-' }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Nomor SK Amil</td>
-                    <td class="fw-bold text-primary">: {{ employee.sk_number|default:"Belum Diinput" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Tanggal SK Terbit</td>
-                    <td>: {{ employee.sk_date|date:"d F Y"|default:"-" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">TMT Bergabung</td>
-                    <td>: {{ employee.tmt_date|date:"d F Y"|default:"-" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Status Aktif</td>
-                    <td>: 
-                        {% if employee.is_active %}
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">Aktif Bekerja</span>
-                        {% else %}
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold">Non-aktif</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Berkas Dokumen SK</td>
-                    <td>: 
-                        {% if employee.sk_file %}
-                        <a href="{{ employee.sk_file.url }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
-                            <i class="bi bi-file-earmark-pdf me-1"></i> Unduh / Buka Berkas SK
-                        </a>
-                        {% else %}
-                        <span class="text-muted small">Belum ada berkas SK yang diunggah</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            </table>
+        </div>
+    </div>
 
-            <!-- KARTU SUB: AKUN SISTEM -->
-            <div class="mt-4 pt-3 border-top">
-                <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-shield-lock me-2"></i>Akses Akun SIMAP</h6>
-                {% if user_account %}
-                <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded-3 border">
+    <!-- TAB 3: AKSES AKUN SIMAP -->
+    <div class="tab-pane fade" id="account-pane" role="tabpanel">
+        <div class="card border-0 shadow-sm p-4" style="border-radius: 16px;">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-4"><i class="bi bi-key me-2"></i>Kredensial Login & Hak Akses System</h5>
+            {% if user_account %}
+            <div class="d-flex align-items-center justify-content-between bg-light p-4 rounded-4 border">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="{{ user_account.avatar_url }}" class="rounded-circle border" width="50" height="50">
                     <div>
-                        <div class="fw-bold text-dark"><i class="bi bi-person-circle me-1 text-success"></i>{{ user_account.username }}</div>
-                        <small class="text-secondary">Role: {{ user_account.get_role_display }}</small>
-                    </div>
-                    <div>
-                        {% if user_account.is_active_account %}
-                        <span class="badge bg-success rounded-pill px-3 me-2">Aktif</span>
-                        {% else %}
-                        <span class="badge bg-danger rounded-pill px-3 me-2">Non-aktif</span>
-                        {% endif %}
+                        <h6 class="fw-bold mb-0 text-dark">{{ user_account.username }}</h6>
+                        <small class="text-secondary">Role System: <strong>{{ user_account.get_role_display }}</strong></small>
                     </div>
                 </div>
-                {% else %}
-                <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded-3 border">
-                    <span class="text-muted small">Belum memiliki akun login sistem.</span>
-                    <button class="btn btn-sm btn-success fw-bold rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#createUserModal">
-                        <i class="bi bi-person-plus me-1"></i> Buat Akun Login
-                    </button>
+                <div>
+                    {% if user_account.is_active_account %}
+                    <span class="badge bg-success rounded-pill px-3 py-2 fw-bold me-2">Akun Aktif</span>
+                    {% else %}
+                    <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold me-2">Akun Non-aktif</span>
+                    {% endif %}
+                    <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold">
+                        <i class="bi bi-gear me-1"></i> Pengaturan Akun
+                    </a>
                 </div>
-                {% endif %}
             </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-person-x fs-1 text-muted d-block mb-2 opacity-50"></i>
+                <p class="text-muted">Pegawai ini belum memiliki akun login sistem SIMAP.</p>
+                <button class="btn btn-success fw-bold rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                    <i class="bi bi-person-plus me-1"></i> Buat Akun Akses
+                </button>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -199,4 +250,17 @@
     </div>
 </div>
 {% endif %}
+
+<style>
+    .custom-tabs .nav-link {
+        color: var(--text-secondary);
+        background-color: var(--surface-alt);
+        transition: all 0.2s ease;
+    }
+    .custom-tabs .nav-link.active {
+        color: #FFFFFF !important;
+        background-color: var(--primary) !important;
+        box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
+    }
+</style>
 {% endblock %}
