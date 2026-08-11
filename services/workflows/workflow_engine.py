@@ -105,6 +105,8 @@ class WorkflowEngine:
         status = archive.status
         sppd = archive.latest_sppd
         st = archive.latest_st
+        agendas = list(archive.agendas.all())
+        latest_ag = agendas[-1] if agendas else None
 
         if status == 'selesai':
             step = 5
@@ -118,6 +120,11 @@ class WorkflowEngine:
             step = 4
             stage_name = f'4. Penugasan Berkelanjutan / Surat Tugas Terbit ({st.nomor_surat or "ST"})'
             next_action = 'Pelaksanaan Tugas / Pembuatan SPPD'
+        elif latest_ag and not latest_ag.is_completed and latest_ag.status != 'selesai':
+            step = 4
+            sch_str = latest_ag.scheduled_at.strftime('%d/%m/%Y %H:%M') if latest_ag.scheduled_at else ''
+            stage_name = f'4. Agenda Terjadwal di Kantor BAZNAS ({latest_ag.title} - {sch_str} WIB)'
+            next_action = 'Pelaksanaan Acara di Kantor & Pembuatan Laporan / Notulensi'
         elif d and (d.is_stage_waka or d.disposition_stage == 'waka_iv' or d.waka_forwarded_to.exists() or dispo_count >= 2):
             step = 4
             receivers = list(d.waka_forwarded_to.all())

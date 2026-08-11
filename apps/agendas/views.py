@@ -537,11 +537,24 @@ def agenda_create(request):
         return redirect('agendas:list')
 
         
+    archive_param = request.GET.get('archive_id') or request.GET.get('archive')
+    dispo_param = request.GET.get('disposition_id') or request.GET.get('disposition')
+    
+    selected_archive = None
+    if archive_param and archive_param.isdigit():
+        selected_archive = Archive.objects.filter(id=int(archive_param)).first()
+    elif dispo_param and dispo_param.isdigit():
+        from dispositions.models import Disposition
+        dispo = Disposition.objects.filter(id=int(dispo_param)).first()
+        if dispo and dispo.archive:
+            selected_archive = dispo.archive
+
     archives = Archive.objects.exclude(status='baru')
     employees = Employee.objects.filter(is_active=True).order_by('full_name')
     return render(request, 'agendas/create.html', {
         'archives': archives,
         'employees': employees,
+        'selected_archive': selected_archive,
     })
 
 

@@ -220,6 +220,15 @@ class Archive(models.Model):
         if st:
             return f"Surat Tugas Terbit ({st.nomor_surat or 'ST'})"
 
+        agendas = list(self.agendas.all())
+        if agendas:
+            latest_ag = agendas[-1]
+            if latest_ag and not latest_ag.is_completed and latest_ag.status != 'selesai':
+                sch_str = latest_ag.scheduled_at.strftime('%d/%m/%Y %H:%M') if latest_ag.scheduled_at else ''
+                return f"Agenda Terjadwal Kantor ({sch_str})"
+            elif latest_ag and (latest_ag.is_completed or latest_ag.status == 'selesai'):
+                return 'Dokumen Selesai / Terarsip (Notulensi Terbit)'
+
         # Check latest disposition stage
         d = self.latest_dispo
         if d:

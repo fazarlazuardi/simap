@@ -98,7 +98,7 @@
                 <!-- Judul & Waktu -->
                 <div class="mb-4">
                     <label for="title" class="form-label fw-bold">Judul Kegiatan <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control custom-input" id="title" name="title" required placeholder="Contoh: Rapat Koordinasi SDM" value="{{ agenda.title|default:'' }}">
+                    <input type="text" class="form-control custom-input" id="title" name="title" required placeholder="Contoh: Rapat Audiensi / Kerjasama Vendor" value="{% if agenda %}{{ agenda.title }}{% elif selected_archive %}Audiensi: {{ selected_archive.title }}{% endif %}">
                 </div>
 
                 <div class="row mb-4">
@@ -107,11 +107,11 @@
                         <input type="datetime-local" class="form-control custom-input" id="scheduled_at" name="scheduled_at" required value="{{ agenda.scheduled_at|date:'Y-m-d\TH:i'|default:'' }}">
                     </div>
                     <div class="col-md-6">
-                        <label for="archive" class="form-label fw-bold">Kaitan Arsip (Opsional)</label>
+                        <label for="archive" class="form-label fw-bold">Kaitan Arsip / Dokumen (Opsional)</label>
                         <select class="form-select custom-input" id="archive" name="archive">
                             <option value="">Pilih Dokumen terkait...</option>
                             {% for arc in archives %}
-                            <option value="{{ arc.id }}" {% if agenda and agenda.archive_id == arc.id %}selected{% endif %}>{{ arc.archive_number|default:'DRAFT' }} - {{ arc.title|truncatechars:40 }}</option>
+                            <option value="{{ arc.id }}" {% if agenda and agenda.archive_id == arc.id %}selected{% elif selected_archive and selected_archive.id == arc.id %}selected{% endif %}>{{ arc.archive_number|default:'DRAFT' }} - {{ arc.title|truncatechars:40 }}</option>
                             {% endfor %}
                         </select>
                     </div>

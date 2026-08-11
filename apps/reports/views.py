@@ -363,10 +363,14 @@ def report_create(request, dispo_pk):
             archive.status = 'selesai'
             archive.save(update_fields=['status', 'updated_at'])
 
-            # Otomatis selesaikan SPPD terkait
+            # Otomatis selesaikan SPPD & Agenda terkait
             from sppd_service.models import SPPD
+            from agendas.models import Agenda
             sppds = SPPD.objects.filter(Q(disposition=dispo) | Q(disposition__archive=archive))
             sppds.update(status='selesai')
+
+            agendas = Agenda.objects.filter(archive=archive)
+            agendas.update(is_completed=True, status='selesai')
             if files:
                 sppds.filter(report_file='').update(report_file=files[0])
             for s in sppds:
