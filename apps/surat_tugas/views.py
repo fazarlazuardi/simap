@@ -11,12 +11,29 @@ from sppd_service.views import determine_smart_purpose
 
 
 
+def get_pending_dispositions_qs():
+    """
+    Mengambil daftar disposisi yang SIAP DIBUATKAN SURAT TUGAS.
+    Mengecualikan:
+    - Dokumen/Arsip yang berstatus 'selesai' atau 'ditolak'
+    - Disposisi yang berstatus 'selesai'
+    - Dokumen yang sudah memiliki Agenda Dalam Kantor (archive.agendas.exists())
+    """
+    return (
+        Disposition.objects.select_related('archive', 'sender', 'sender__employee')
+        .prefetch_related('forwarded_to', 'waka_forwarded_to', 'archive__agendas')
+        .exclude(archive__status__in=['selesai', 'ditolak'])
+        .exclude(status='selesai')
+        .exclude(archive__agendas__isnull=False)
+        .order_by('-created_at')
+        .distinct()
+    )
+
+
 @login_required
 def surat_list(request):
     surat_list = SuratTugas.objects.select_related('disposition__archive', 'created_by').prefetch_related('pegawai_ditugaskan').order_by('-created_at')
-    
-    st_dispo_ids = SuratTugas.objects.filter(disposition__isnull=False).values_list('disposition_id', flat=True)
-    dispositions_pending_st = Disposition.objects.select_related('archive', 'sender', 'sender__employee').prefetch_related('forwarded_to', 'waka_forwarded_to').order_by('-created_at')
+    dispositions_pending_st = get_pending_dispositions_qs()
 
     return render(request, 'surat_tugas/list.html', {
         'surat_list': surat_list,
@@ -80,7 +97,7 @@ def surat_create(request):
                 initial_data['archive'] = archive
         form = SuratTugasForm(initial=initial_data)
 
-    dispositions_pending_st = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to').order_by('-created_at')
+    dispositions_pending_st = get_pending_dispositions_qs()
 
 
     return render(request, 'surat_tugas/create.html', {
@@ -137,7 +154,7 @@ def surat_create_from_archive(request, pk):
         form = SuratTugasForm(initial=initial_data)
 
 
-    dispositions_pending_st = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to').order_by('-created_at')
+    dispositions_pending_st = get_pending_dispositions_qs()
 
 
     context = {
@@ -200,7 +217,7 @@ def surat_create_from_disposition(request, disposition_id):
         form = SuratTugasForm(initial=initial_data)
 
 
-    dispositions_pending_st = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to').order_by('-created_at')
+    dispositions_pending_st = get_pending_dispositions_qs()
 
 
     return render(request, 'surat_tugas/create.html', {

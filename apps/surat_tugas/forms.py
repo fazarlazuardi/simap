@@ -68,7 +68,13 @@ class SuratTugasForm(forms.ModelForm):
             )
 
         if 'disposition' in self.fields:
-            self.fields['disposition'].queryset = Disposition.objects.all().order_by('-id')
+            self.fields['disposition'].queryset = (
+                Disposition.objects.exclude(archive__status__in=['selesai', 'ditolak'])
+                .exclude(status='selesai')
+                .exclude(archive__agendas__isnull=False)
+                .order_by('-id')
+                .distinct()
+            )
             self.fields['disposition'].required = False
             
             def get_disposition_perihal(obj):
