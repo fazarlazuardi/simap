@@ -200,26 +200,27 @@
             </div>
 
             <div class="col-md-3">
-                {% if archive.agendas.exists %}
-                    <a href="{% url 'agendas:list' %}" class="btn btn-success text-white w-100 rounded-3 py-2 fw-bold shadow-sm">
-                        <i class="bi bi-calendar-check-fill me-1"></i> 4. Agenda Kantor Terjadwal
-                    </a>
-                {% elif latest_sppd %}
-                    <a href="{% url 'sppd_service:detail' latest_sppd.pk %}" class="btn btn-warning text-dark w-100 rounded-3 py-2 fw-bold shadow-sm">
-                        <i class="bi bi-briefcase-fill me-1"></i> 4. SPPD Terbit ({% if latest_sppd.sppd_type == 'survei' %}Survei{% else %}Dinas{% endif %})
-                    </a>
-                {% else %}
-                    <div class="d-flex gap-1">
-                        {% if latest_st %}
-                            <a href="{% url 'sppd_service:create_with_st' latest_st.pk %}" class="btn btn-outline-warning text-dark w-100 rounded-3 py-2 fw-bold shadow-sm small">
-                                <i class="bi bi-briefcase me-1"></i> 4. SPPD
-                            </a>
-                        {% endif %}
-                        <a href="{% url 'agendas:create' %}?archive_id={{ archive.pk }}" class="btn btn-outline-success w-100 rounded-3 py-2 fw-bold shadow-sm small">
-                            <i class="bi bi-calendar-plus me-1"></i> 4. Agenda
+                <div class="d-flex flex-column gap-1">
+                    {% if archive.agendas.exists %}
+                        <a href="{% url 'agendas:list' %}" class="btn btn-success text-white w-100 rounded-3 py-1 fw-bold shadow-sm small">
+                            <i class="bi bi-calendar-check-fill me-1"></i> 4. Agenda Terjadwal ({{ archive.agendas.count }})
                         </a>
-                    </div>
-                {% endif %}
+                    {% else %}
+                        <a href="{% url 'agendas:create' %}?archive_id={{ archive.pk }}" class="btn btn-outline-success w-100 rounded-3 py-1 fw-bold shadow-sm small">
+                            <i class="bi bi-calendar-plus me-1"></i> 4. + Agenda / Kerjasama
+                        </a>
+                    {% endif %}
+
+                    {% if latest_sppd %}
+                        <a href="{% url 'sppd_service:detail' latest_sppd.pk %}" class="btn btn-warning text-dark w-100 rounded-3 py-1 fw-bold shadow-sm small">
+                            <i class="bi bi-briefcase-fill me-1"></i> SPPD Terbit
+                        </a>
+                    {% elif latest_st %}
+                        <a href="{% url 'sppd_service:create_with_st' latest_st.pk %}" class="btn btn-outline-warning text-dark w-100 rounded-3 py-1 fw-bold shadow-sm small">
+                            <i class="bi bi-briefcase me-1"></i> + Buat SPPD
+                        </a>
+                    {% endif %}
+                </div>
             </div>
 
             <div class="col-md-12 mt-2">
@@ -412,6 +413,42 @@
                             <a href="{% url 'sppd_service:detail' sppd_item.pk %}" class="text-decoration-none small text-warning fw-bold">
                                 <i class="bi bi-box-arrow-up-right me-1"></i>Detail SPPD #{{ forloop.counter }}
                             </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 7. AGENDA KANTOR / KERJASAMA / AUDIENSI -->
+                {% if archive.agendas.exists %}
+                <div class="tm-item">
+                    <div class="tm-icon bg-success text-white"><i class="bi bi-calendar-event-fill"></i></div>
+                    <div class="tm-content">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <p class="mb-0 fw-bold text-success">Tahap Agenda Kegiatan & Kerjasama</p>
+                            <span class="badge bg-success text-white rounded-pill" style="font-size: 0.65rem;">{{ archive.agendas.count }} Agenda Terjadwal</span>
+                        </div>
+
+                        {% for ag in archive.agendas.all %}
+                        <div class="my-2 p-2 rounded-3" style="background-color: var(--surface-alt); border: 1px solid #86efac;">
+                            <span class="fw-bold text-dark small d-block">📅 {{ ag.title }}</span>
+                            <span class="text-muted d-block" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>{{ ag.scheduled_at|date:"d M Y, H:i" }}</span>
+                            {% if ag.location %}
+                            <p class="mb-1 text-secondary small"><i class="bi bi-geo-alt me-1 text-danger"></i>Lokasi: {{ ag.location }}</p>
+                            {% endif %}
+                            {% if ag.assigned_employees.exists %}
+                            <p class="mb-1 text-secondary small"><i class="bi bi-people me-1"></i>Petugas / Amil: 
+                                {% for emp in ag.assigned_employees.all %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            </p>
+                            {% endif %}
+                            <div class="d-flex gap-2 align-items-center mt-2">
+                                <span class="badge {% if ag.status == 'selesai' %}bg-success{% elif ag.status == 'diundur' %}bg-warning text-dark{% else %}bg-primary{% endif %} rounded-pill small">
+                                    {{ ag.get_status_display }}
+                                </span>
+                                <a href="{% url 'agendas:list' %}?q={{ ag.title|urlencode }}" class="text-decoration-none small text-success fw-bold">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>Kalender Agenda
+                                </a>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
