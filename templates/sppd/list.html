@@ -403,42 +403,85 @@
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             return {
                 mode: isDark ? 'dark' : 'light',
-                text: isDark ? '#F3F4F6' : '#1E293B',
-                grid: isDark ? 'rgba(255, 255, 255, 0.12)' : '#E2E8F0'
+                text: isDark ? '#F8FAFC' : '#0F172A',
+                grid: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0'
             };
         };
 
         let t = getSppdChartTheme();
-        const sppdBarColors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#06B6D4', '#EC4899', '#EAB308'];
+        const sppdBarColors = ['#10B981', '#0284C7', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#EAB308'];
 
         var chartContainer = document.querySelector("#sppdModuleChart");
-        if(chartContainer) {
+        if (chartContainer) {
             var options = {
-                series: [{ name: 'Jumlah SPPD', data: series }],
-                chart: { type: 'bar', height: 260, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                series: [{ name: 'Jumlah Perjalanan SPPD', data: series }],
+                chart: { 
+                    type: 'bar', 
+                    height: 280, 
+                    toolbar: { show: false }, 
+                    fontFamily: 'Inter, sans-serif',
+                    background: 'transparent'
+                },
                 theme: { mode: t.mode },
                 plotOptions: { 
-                    bar: { horizontal: true, borderRadius: 6, barHeight: '50%', distributed: true } 
+                    bar: { 
+                        horizontal: true, 
+                        borderRadius: 8, 
+                        barHeight: '55%', 
+                        distributed: true,
+                        dataLabels: { position: 'top' }
+                    } 
                 },
                 colors: sppdBarColors,
                 xaxis: { 
                     categories: labels,
-                    labels: { style: { colors: t.text, fontSize: '11px', fontWeight: 600 } }
+                    labels: { style: { colors: t.text, fontSize: '12px', fontWeight: 600 } },
+                    axisBorder: { show: false },
+                    axisTicks: { show: false }
                 },
                 yaxis: {
-                    labels: { style: { colors: t.text, fontSize: '11px', fontWeight: 600 } }
+                    labels: { style: { colors: t.text, fontSize: '12px', fontWeight: 600 } }
                 },
                 legend: { show: false },
-                grid: { borderColor: t.grid },
+                grid: { borderColor: t.grid, strokeDashArray: 4 },
                 dataLabels: {
                     enabled: true,
+                    textAnchor: 'start',
                     style: { fontSize: '12px', fontWeight: 'bold', colors: ['#ffffff'] },
-                    dropShadow: { enabled: true, top: 1, left: 1, blur: 1, opacity: 0.5 }
+                    formatter: function (val) {
+                        return val + " SPPD";
+                    },
+                    offsetX: 10,
+                    dropShadow: { enabled: true, top: 1, left: 1, blur: 2, opacity: 0.6 }
                 },
-                tooltip: { theme: t.mode }
+                tooltip: { 
+                    theme: t.mode,
+                    y: {
+                        formatter: function(val) {
+                            return val + " Kali Perjalanan Dinas";
+                        }
+                    }
+                }
             };
             var chart = new ApexCharts(chartContainer, options);
             chart.render();
+
+            // Re-render chart on Dark/Light Mode toggle
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'data-theme') {
+                        let newT = getSppdChartTheme();
+                        chart.updateOptions({
+                            theme: { mode: newT.mode },
+                            xaxis: { labels: { style: { colors: newT.text } } },
+                            yaxis: { labels: { style: { colors: newT.text } } },
+                            grid: { borderColor: newT.grid },
+                            tooltip: { theme: newT.mode }
+                        });
+                    }
+                });
+            });
+            observer.observe(document.documentElement, { attributes: true });
         }
     });
 

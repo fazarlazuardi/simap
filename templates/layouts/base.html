@@ -6,6 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}BAZNAS - Sistem Arsip SDM{% endblock %}</title>
     
+    <!-- Instant Anti-Flicker Dark Mode Script (Blocks White Canvas Paint) -->
+    <script>
+        (function() {
+            var t = localStorage.getItem('theme');
+            if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.documentElement.style.backgroundColor = '#090D16';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.documentElement.style.backgroundColor = '#F8FAFC';
+            }
+        })();
+    </script>
+    <style>
+        html, body {
+            background-color: var(--body-bg, #F8FAFC);
+        }
+        html[data-theme="dark"], html[data-theme="dark"] body {
+            background-color: #090D16 !important;
+            color: #F8FAFC !important;
+        }
+    </style>
+    
     <!-- Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
