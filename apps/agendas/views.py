@@ -372,6 +372,7 @@ def agenda_edit(request, pk):
 
             assigned_emps = Employee.objects.filter(id__in=assigned_emp_ids)
             assigned_users = User.objects.filter(employee__in=assigned_emps)
+            agenda.assigned_employees.set(assigned_emps)
             agenda.assigned_to.set(assigned_users)
 
             if send_wa:
@@ -424,6 +425,8 @@ def agenda_edit(request, pk):
     archives = Archive.objects.exclude(status='baru')
     employees = Employee.objects.filter(is_active=True).order_by('full_name')
     assigned_emp_ids = set(
+        agenda.assigned_employees.values_list('id', flat=True)
+    ) | set(
         agenda.assigned_to.filter(employee__isnull=False).values_list('employee_id', flat=True)
     )
     return render(request, 'agendas/create.html', {
@@ -491,6 +494,7 @@ def agenda_create(request):
         
         assigned_emps = Employee.objects.filter(id__in=assigned_emp_ids)
         assigned_users = User.objects.filter(employee__in=assigned_emps)
+        agenda.assigned_employees.set(assigned_emps)
         agenda.assigned_to.set(assigned_users)
         
         if send_wa:

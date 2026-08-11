@@ -188,9 +188,13 @@
                         {% if agenda.completed_notes %}
                         <p class="mb-0 text-muted small">Catatan: {{ agenda.completed_notes }}</p>
                         {% endif %}
-                        {% if agenda.assigned_to.all %}
+                        {% if agenda.assigned_employees.all %}
                         <p class="mb-0 text-muted small">Ditugaskan ke: 
-                            {% for u in agenda.assigned_to.all %}{{ u.username }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            {% for emp in agenda.assigned_employees.all %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </p>
+                        {% elif agenda.assigned_to.all %}
+                        <p class="mb-0 text-muted small">Ditugaskan ke: 
+                            {% for u in agenda.assigned_to.all %}{{ u.get_full_name|default:u.username }}{% if not forloop.last %}, {% endif %}{% endfor %}
                         </p>
                         {% endif %}
                         <span class="tm-date">{{ agenda.created_at|date:"d M Y, H:i" }}</span>
