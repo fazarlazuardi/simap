@@ -859,11 +859,14 @@
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
             var icon = document.getElementById('themeIconGlobal');
+            var text = document.getElementById('themeTextGlobal');
             if (icon) {
                 if (theme === 'dark') {
-                    icon.className = 'bi bi-sun-fill text-warning';
+                    icon.className = 'bi bi-sun-fill text-warning fs-6';
+                    if (text) text.textContent = 'Mode Gelap';
                 } else {
-                    icon.className = 'bi bi-moon-stars-fill text-primary';
+                    icon.className = 'bi bi-moon-stars-fill text-warning fs-6';
+                    if (text) text.textContent = 'Mode Terang';
                 }
             }
         }
@@ -895,6 +898,8 @@
                     var isCollapsed = $('#sidebar').hasClass('collapsed');
                     localStorage.setItem('sidebarCollapsed', isCollapsed);
                 }
+            });
+
             $('#sidebar .nav-link').on('click', function() {
                 if ($(window).width() <= 991.98) {
                     $('#sidebar').removeClass('active');
@@ -902,8 +907,8 @@
                 }
             });
 
-
-            $('#themeToggleGlobal').on('click', function () {
+            $(document).on('click', '#themeToggleGlobal', function (e) {
+                e.preventDefault();
                 const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
                 applyTheme(currentTheme);
             });
