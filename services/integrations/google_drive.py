@@ -402,12 +402,36 @@ class GoogleDriveService:
             values = kop_header + [header_row1, header_row2] + processed_rows
 
             body = {'values': values}
-            sheets.spreadsheets().values().update(
-                spreadsheetId=spreadsheet_id,
-                range='A1',
-                valueInputOption='USER_ENTERED',
-                body=body
-            ).execute()
+            try:
+                sheets.spreadsheets().values().update(
+                    spreadsheetId=spreadsheet_id,
+                    range='A1',
+                    valueInputOption='USER_ENTERED',
+                    body=body
+                ).execute()
+            except Exception as update_err:
+                if '404' in str(update_err) or 'not found' in str(update_err).lower():
+                    logger.warning(f"Spreadsheet ID {spreadsheet_id} tidak ditemukan (404). Membuat spreadsheet baru...")
+                    file_metadata = {
+                        'name': title,
+                        'mimeType': 'application/vnd.google-apps.spreadsheet',
+                        'parents': [target_folder]
+                    }
+                    created_file = drive.files().create(body=file_metadata, fields='id').execute()
+                    spreadsheet_id = created_file.get('id')
+                    try:
+                        from users.models import SystemSetting
+                        SystemSetting.objects.update_or_create(key='GOOGLE_SHEET_ID', defaults={'value': spreadsheet_id})
+                    except Exception:
+                        pass
+                    sheets.spreadsheets().values().update(
+                        spreadsheetId=spreadsheet_id,
+                        range='A1',
+                        valueInputOption='USER_ENTERED',
+                        body=body
+                    ).execute()
+                else:
+                    raise update_err
 
             # Formatting Kop, Logo, Vertical Headers & Borders
             try:
