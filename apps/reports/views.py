@@ -822,6 +822,251 @@ def rekap_bantuan_view(request):
     })
 
 @login_required
+def export_rekap_bantuan_excel(request):
+    """
+    Ekspor Laporan Rekapitulasi Penanganan Dokumen Bantuan & Dokumen Umum ke Excel (.xlsx).
+    Dilengkapi Kop Surat Resmi Logo BAZNAS di sebelah kiri, All Border, & Wrap Text.
+    """
+    from services.analytics.reporting_service import ReportingService
+    from django.http import HttpResponse
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+
+    year_param = request.GET.get('year')
+    month_param = request.GET.get('month')
+    all_time_param = request.GET.get('all_time')
+
+    if all_time_param == '1' or (not year_param and not month_param) or year_param == 'all' or month_param == 'all':
+        all_time = True
+        year = None
+        month = None
+        periode_str = "Semua_Data_Histori"
+    else:
+        all_time = False
+        year = int(year_param) if year_param and year_param.isdigit() else timezone.now().year
+        month = int(month_param) if month_param and month_param.isdigit() else timezone.now().month
+        month_names_dict = {
+            1: 'Januari', 2: 'Februari', 3: 'Maret', 4: 'April',
+            5: 'Mei', 6: 'Juni', 7: 'Juli', 8: 'Agustus',
+            9: 'September', 10: 'Oktober', 11: 'November', 12: 'Desember'
+        }
+        m_name = month_names_dict.get(month, str(month))
+        periode_str = f"{m_name}_{year}"
+
+    analytics = ReportingService.get_bantuan_analytics(year=year, month=month, all_time=all_time)
+
+    wb = Workbook()
+    logo_path = _get_logo_path()
+
+    font_kop_title = Font(name='Calibri', size=13, bold=True, color='006633')
+    font_kop_sub = Font(name='Calibri', size=11, bold=True, color='1E293B')
+    font_kop_meta = Font(name='Calibri', size=9.5, italic=True, color='475569')
+
+    fill_header_green = PatternFill(start_color='006633', end_color='006633', fill_type='solid')
+    fill_header_blue = PatternFill(start_color='1E3A8A', end_color='1E3A8A', fill_type='solid')
+    font_header = Font(name='Calibri', size=10, bold=True, color='FFFFFF')
+
+    fill_subhead = PatternFill(start_color='F1F5F9', end_color='F1F5F9', fill_type='solid')
+    font_subhead = Font(name='Calibri', size=10, bold=True, color='0F172A')
+
+    thin_gray = Side(style='thin', color='CBD5E1')
+    thin_border = Border(left=thin_gray, right=thin_gray, top=thin_gray, bottom=thin_gray)
+
+    align_center_wrap = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    align_left_wrap = Alignment(horizontal='left', vertical='center', wrap_text=True)
+
+    def apply_kop_surat(ws, sheet_title_text):
+        ws.views.sheetView[0].showGridLines = True
+        
+        ws.row_dimensions[1].height = 6
+        ws.row_dimensions[2].height = 20
+        ws.row_dimensions[3].height = 18
+        ws.row_dimensions[4].height = 18
+        ws.row_dimensions[5].height = 6
+
+        ws.column_dimensions['A'].width = 6
+        ws.column_dimensions['B'].width = 16
+        ws.merge_cells('B2:B4')
+        ws['B2'].alignment = align_center_wrap
+
+        if logo_path:
+            try:
+                img = OpenPyXLImage(logo_path)
+                img.height = 54
+                img.width = 88
+                ws.add_image(img, 'B2')
+            except Exception:
+                pass
+
+        ws.merge_cells('C2:F2')
+        ws['C2'].value = "BADAN AMIL ZAKAT NASIONAL (BAZNAS) KABUPATEN TANGERANG"
+        ws['C2'].font = font_kop_title
+        ws['C2'].alignment = align_left_wrap
+
+        ws.merge_cells('C3:F3')
+        ws['C3'].value = sheet_title_text
+        ws['C3'].font = font_kop_sub
+        ws['C3'].alignment = align_left_wrap
+
+        ws.merge_cells('C4:F4')
+        ws['C4'].value = f"Periode: {periode_str.replace('_', ' ')} | Diekspor: {timezone.now().strftime('%d/%m/%Y %H:%M')} WIB"
+        ws['C4'].font = font_kop_meta
+        ws['C4'].alignment = align_left_wrap
+
+        for r in range(2, 5):
+            for c in range(2, 7):
+                ws.cell(row=r, column=c).border = thin_border
+
+        double_bottom = Border(bottom=Side(style='double', color='006633'))
+        for c in range(2, 7):
+            ws.cell(row=5, column=c).border = double_bottom
+
+    # ---------------------------------------------------------
+    # SHEET 1: PERMOHONAN BANTUAN
+    # ---------------------------------------------------------
+    ws_bantuan = wb.active
+    ws_bantuan.title = "Permohonan Bantuan"
+    apply_kop_surat(ws_bantuan, "LAPORAN REKAPITULASI PENANGANAN PERMOHONAN BANTUAN (MUSTAHIK)")
+
+    ws_bantuan.merge_cells('B7:F7')
+    ws_bantuan['B7'].value = "RINGKASAN STATISTIK DOKUMEN & BANTUAN"
+    ws_bantuan['B7'].font = font_subhead
+    ws_bantuan['B7'].fill = fill_subhead
+
+    ws_bantuan.cell(row=8, column=2, value="Total Volume Dokumen Masuk").font = Font(bold=True)
+    ws_bantuan.cell(row=8, column=3, value=analytics['total_documents']).alignment = align_center_wrap
+    ws_bantuan.cell(row=8, column=5, value="Total Permohonan Bantuan").font = Font(bold=True)
+    ws_bantuan.cell(row=8, column=6, value=analytics['total_bantuan']).alignment = align_center_wrap
+
+    ws_bantuan.cell(row=9, column=2, value="Bantuan Selesai Terekap").font = Font(bold=True)
+    ws_bantuan.cell(row=9, column=3, value=analytics['bantuan_completed']).alignment = align_center_wrap
+    ws_bantuan.cell(row=9, column=5, value="Tingkat Penyelesaian Selesai").font = Font(bold=True)
+    ws_bantuan.cell(row=9, column=6, value=f"{analytics['completion_rate']}%").alignment = align_center_wrap
+
+    for r in range(7, 10):
+        for c in range(2, 7):
+            ws_bantuan.cell(row=r, column=c).border = thin_border
+
+    bantuan_headers = ['NO', 'TANGGAL MASUK', 'NO. DOKUMEN', 'PERIHAL / JUDUL PROPOSAL', 'SUB-KATEGORI BANTUAN', 'STATUS WORKFLOW']
+    row_idx = 11
+    ws_bantuan.row_dimensions[row_idx].height = 25
+
+    for col_i, h_text in enumerate(bantuan_headers, 1):
+        c = ws_bantuan.cell(row=row_idx, column=col_i, value=h_text)
+        c.fill = fill_header_green
+        c.font = font_header
+        c.alignment = align_center_wrap
+        c.border = thin_border
+
+    for idx, item in enumerate(analytics['bantuan_details'], 1):
+        row_idx += 1
+        arc = item['archive']
+        ws_bantuan.row_dimensions[row_idx].height = 28
+
+        c1 = ws_bantuan.cell(row=row_idx, column=1, value=idx)
+        c1.alignment = align_center_wrap
+
+        c2 = ws_bantuan.cell(row=row_idx, column=2, value=arc.created_at.strftime('%d/%m/%Y'))
+        c2.alignment = align_center_wrap
+
+        c3 = ws_bantuan.cell(row=row_idx, column=3, value=arc.archive_number or '(DRAFT)')
+        c3.alignment = align_center_wrap
+
+        c4 = ws_bantuan.cell(row=row_idx, column=4, value=arc.title or '-')
+        c4.alignment = align_left_wrap
+
+        c5 = ws_bantuan.cell(row=row_idx, column=5, value=item['sub_category'])
+        c5.alignment = align_center_wrap
+
+        c6 = ws_bantuan.cell(row=row_idx, column=6, value=arc.workflow_status_display)
+        c6.alignment = align_center_wrap
+
+        for col_i in range(1, 7):
+            ws_bantuan.cell(row=row_idx, column=col_i).border = thin_border
+
+    ws_bantuan.column_dimensions['A'].width = 6
+    ws_bantuan.column_dimensions['B'].width = 16
+    ws_bantuan.column_dimensions['C'].width = 22
+    ws_bantuan.column_dimensions['D'].width = 42
+    ws_bantuan.column_dimensions['E'].width = 26
+    ws_bantuan.column_dimensions['F'].width = 28
+
+    # ---------------------------------------------------------
+    # SHEET 2: DOKUMEN UMUM
+    # ---------------------------------------------------------
+    ws_umum = wb.create_sheet(title="Dokumen Umum")
+    apply_kop_surat(ws_umum, "LAPORAN REKAPITULASI PENANGANAN SURAT & DOKUMEN UMUM")
+
+    ws_umum.merge_cells('B7:F7')
+    ws_umum['B7'].value = "RINGKASAN STATISTIK DOKUMEN UMUM"
+    ws_umum['B7'].font = font_subhead
+    ws_umum['B7'].fill = fill_subhead
+
+    ws_umum.cell(row=8, column=2, value="Total Dokumen Umum").font = Font(bold=True)
+    ws_umum.cell(row=8, column=3, value=analytics['total_umum']).alignment = align_center_wrap
+    ws_umum.cell(row=8, column=5, value="Dokumen Umum Selesai").font = Font(bold=True)
+    ws_umum.cell(row=8, column=6, value=analytics['umum_completed']).alignment = align_center_wrap
+
+    ws_umum.cell(row=9, column=2, value="Total Dokumen Masuk").font = Font(bold=True)
+    ws_umum.cell(row=9, column=3, value=analytics['total_documents']).alignment = align_center_wrap
+    ws_umum.cell(row=9, column=5, value="Persentase Penyelesaian").font = Font(bold=True)
+    ws_umum.cell(row=9, column=6, value=f"{analytics['completion_rate']}%").alignment = align_center_wrap
+
+    for r in range(7, 10):
+        for c in range(2, 7):
+            ws_umum.cell(row=r, column=c).border = thin_border
+
+    umum_headers = ['NO', 'TANGGAL MASUK', 'NO. DOKUMEN', 'PERIHAL / SURAT DINAS', 'KLASIFIKASI UMUM', 'STATUS WORKFLOW']
+    row_idx = 11
+    ws_umum.row_dimensions[row_idx].height = 25
+
+    for col_i, h_text in enumerate(umum_headers, 1):
+        c = ws_umum.cell(row=row_idx, column=col_i, value=h_text)
+        c.fill = fill_header_blue
+        c.font = font_header
+        c.alignment = align_center_wrap
+        c.border = thin_border
+
+    for idx, item in enumerate(analytics['umum_details'], 1):
+        row_idx += 1
+        arc = item['archive']
+        ws_umum.row_dimensions[row_idx].height = 28
+
+        c1 = ws_umum.cell(row=row_idx, column=1, value=idx)
+        c1.alignment = align_center_wrap
+
+        c2 = ws_umum.cell(row=row_idx, column=2, value=arc.created_at.strftime('%d/%m/%Y'))
+        c2.alignment = align_center_wrap
+
+        c3 = ws_umum.cell(row=row_idx, column=3, value=arc.archive_number or '(DRAFT)')
+        c3.alignment = align_center_wrap
+
+        c4 = ws_umum.cell(row=row_idx, column=4, value=arc.title or '-')
+        c4.alignment = align_left_wrap
+
+        c5 = ws_umum.cell(row=row_idx, column=5, value=item['sub_category'])
+        c5.alignment = align_center_wrap
+
+        c6 = ws_umum.cell(row=row_idx, column=6, value=arc.workflow_status_display)
+        c6.alignment = align_center_wrap
+
+        for col_i in range(1, 7):
+            ws_umum.cell(row=row_idx, column=col_i).border = thin_border
+
+    ws_umum.column_dimensions['A'].width = 6
+    ws_umum.column_dimensions['B'].width = 16
+    ws_umum.column_dimensions['C'].width = 22
+    ws_umum.column_dimensions['D'].width = 42
+    ws_umum.column_dimensions['E'].width = 26
+    ws_umum.column_dimensions['F'].width = 28
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    filename_str = f"SIMAP_Rekap_Penanganan_BAZNAS_{periode_str}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename_str}"'
+    wb.save(response)
+    return response
+
+@login_required
 def calendar_work_view(request):
     from services.calendar.calendar_service import CalendarService
     events = CalendarService.get_calendar_events()

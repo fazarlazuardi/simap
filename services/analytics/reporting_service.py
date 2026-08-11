@@ -99,10 +99,16 @@ class ReportingService:
 
         bantuan_details = []
         umum_details = []
+        total_completed = 0
+        bantuan_completed = 0
+        umum_completed = 0
 
         for arc in archives.order_by('-created_at'):
             is_bantuan_doc = WorkflowEngine.is_bantuan(arc)
-            
+            is_done = arc.status in ['selesai', 'telah_disalurkan']
+            if is_done:
+                total_completed += 1
+
             if arc.category:
                 cat_name = arc.category.name
             else:
@@ -110,6 +116,8 @@ class ReportingService:
 
             if is_bantuan_doc:
                 total_bantuan += 1
+                if is_done:
+                    bantuan_completed += 1
                 if cat_name not in bantuan_subcat_counts:
                     bantuan_subcat_counts[cat_name] = 0
                 bantuan_subcat_counts[cat_name] += 1
@@ -119,6 +127,8 @@ class ReportingService:
                 })
             else:
                 total_umum += 1
+                if is_done:
+                    umum_completed += 1
                 if cat_name not in umum_subcat_counts:
                     umum_subcat_counts[cat_name] = 0
                 umum_subcat_counts[cat_name] += 1
@@ -127,12 +137,24 @@ class ReportingService:
                     'sub_category': cat_name,
                 })
 
+        total_docs = archives.count()
+        completion_rate = round((total_completed / total_docs * 100), 1) if total_docs > 0 else 0
+        bantuan_pct = round((total_bantuan / total_docs * 100), 1) if total_docs > 0 else 0
+        umum_pct = round((total_umum / total_docs * 100), 1) if total_docs > 0 else 0
+
         return {
             'year': year,
             'month': month,
-            'total_documents': archives.count(),
+            'total_documents': total_docs,
             'total_umum': total_umum,
             'total_bantuan': total_bantuan,
+            'total_completed': total_completed,
+            'total_in_progress': total_docs - total_completed,
+            'completion_rate': completion_rate,
+            'bantuan_pct': bantuan_pct,
+            'umum_pct': umum_pct,
+            'bantuan_completed': bantuan_completed,
+            'umum_completed': umum_completed,
             'bantuan_subcat_counts': bantuan_subcat_counts,
             'bantuan_chart_labels': list(bantuan_subcat_counts.keys()),
             'bantuan_chart_series': list(bantuan_subcat_counts.values()),
