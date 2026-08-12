@@ -145,9 +145,8 @@ def agenda_list(request):
         from datetime import datetime, time
         existing_sppds = SPPD.objects.select_related('disposition__archive', 'created_by').prefetch_related('assigned_employees').filter(is_cancelled=False)
         for sppd_obj in existing_sppds:
-            arc = sppd_obj.disposition.archive if (sppd_obj.disposition and sppd_obj.disposition.archive) else None
             num_str = sppd_obj.sppd_number
-            if not Agenda.objects.filter(description__icontains=num_str).exists() and not (arc and Agenda.objects.filter(archive=arc, title__startswith='SPPD:').exists()):
+            if not Agenda.objects.filter(description__icontains=num_str).exists():
                 sch_date = sppd_obj.departure_date
                 if sch_date:
                     raw_dt = datetime.combine(sch_date, time(8, 0))

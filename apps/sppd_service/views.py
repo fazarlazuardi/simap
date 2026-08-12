@@ -325,16 +325,10 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
             
             tgl_str = sch_date.strftime('%d/%m/%Y') if sch_date == ret_date else f"{sch_date.strftime('%d/%m/%Y')} s/d {ret_date.strftime('%d/%m/%Y')}"
 
-            agenda = None
-            if archive:
-                agenda = Agenda.objects.filter(archive=archive, title__startswith='SPPD:').first()
-
             agenda_title = f"SPPD: {purpose}" if len(purpose) <= 70 else f"SPPD: {purpose[:67]}..."
             agenda_desc = f"Perjalanan Dinas SPPD {sppd_number} ke {destination} ({tgl_str}). Maksud Keberangkatan SPPD: {purpose}"
 
-            agenda = None
-            if archive:
-                agenda = Agenda.objects.filter(archive=archive, title__startswith='SPPD:').first()
+            agenda = Agenda.objects.filter(description__icontains=sppd_number).first()
 
             if not agenda:
                 agenda = Agenda.objects.create(
@@ -506,16 +500,10 @@ def sppd_edit(request, pk):
             tgl_str = sch_date.strftime('%d/%m/%Y') if sch_date == ret_date else f"{sch_date.strftime('%d/%m/%Y')} s/d {ret_date.strftime('%d/%m/%Y')}"
 
             purpose = sppd.purpose or (dispo.archive.title if (dispo and dispo.archive) else sppd.destination)
-            agenda = None
-            if dispo and dispo.archive:
-                agenda = Agenda.objects.filter(archive=dispo.archive, title__startswith='SPPD:').first()
-            
             agenda_title = f"SPPD: {purpose}" if len(purpose) <= 70 else f"SPPD: {purpose[:67]}..."
             agenda_desc = f"Perjalanan Dinas SPPD {sppd.sppd_number} ke {sppd.destination} ({tgl_str}). Maksud Keberangkatan SPPD: {purpose}"
 
-            agenda = None
-            if dispo and dispo.archive:
-                agenda = Agenda.objects.filter(archive=dispo.archive, title__startswith='SPPD:').first()
+            agenda = Agenda.objects.filter(description__icontains=sppd.sppd_number).first()
             
             if not agenda:
                 agenda = Agenda.objects.create(
