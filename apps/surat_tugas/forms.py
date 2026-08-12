@@ -16,6 +16,29 @@ PIMPINAN_CHOICES = [
     ("Haetami, S.Sos.I|Wakil Ketua IV", "Haetami, S.Sos.I (Wakil Ketua IV - Administrasi, Umum, & SDM)"),
 ]
 
+HARI_CHOICES = [
+    ("", "-- Pilih Hari Kegiatan --"),
+    ("Senin", "Senin"),
+    ("Selasa", "Selasa"),
+    ("Rabu", "Rabu"),
+    ("Kamis", "Kamis"),
+    ("Jumat", "Jumat"),
+    ("Sabtu", "Sabtu"),
+    ("Minggu", "Minggu"),
+    ("Senin s.d. Selasa", "Senin s.d. Selasa"),
+    ("Senin s.d. Rabu", "Senin s.d. Rabu"),
+    ("Senin s.d. Kamis", "Senin s.d. Kamis"),
+    ("Senin s.d. Jumat", "Senin s.d. Jumat"),
+    ("Senin s.d. Sabtu", "Senin s.d. Sabtu"),
+    ("Selasa s.d. Rabu", "Selasa s.d. Rabu"),
+    ("Selasa s.d. Kamis", "Selasa s.d. Kamis"),
+    ("Selasa s.d. Jumat", "Selasa s.d. Jumat"),
+    ("Rabu s.d. Kamis", "Rabu s.d. Kamis"),
+    ("Rabu s.d. Jumat", "Rabu s.d. Jumat"),
+    ("Kamis s.d. Jumat", "Kamis s.d. Jumat"),
+    ("custom", "-- Ketik Kustom / Manual --"),
+]
+
 class SuratTugasForm(forms.ModelForm):
     pilihan_penandatangan = forms.ChoiceField(
         choices=PIMPINAN_CHOICES,
@@ -38,12 +61,19 @@ class SuratTugasForm(forms.ModelForm):
                 'placeholder': 'Otomatis digenerate oleh sistem'
             }),
             'tentang': forms.Textarea(attrs={'class': 'form-control shadow-sm', 'rows': 3, 'placeholder': 'Masukkan perihal atau tujuan penugasan...'}),
-            'hari_kegiatan': forms.TextInput(attrs={'class': 'form-control shadow-sm', 'placeholder': 'Contoh: Senin s.d. Rabu'}),
-            'tanggal_mulai': forms.DateInput(attrs={'class': 'form-control shadow-sm', 'type': 'date'}),
+            'hari_kegiatan': forms.Select(choices=HARI_CHOICES, attrs={'class': 'form-select shadow-sm', 'id': 'id_hari_kegiatan'}),
+            'tanggal_mulai': forms.DateInput(attrs={'class': 'form-control shadow-sm', 'type': 'date', 'id': 'id_tanggal_mulai'}),
             'lokasi_tujuan': forms.TextInput(attrs={'class': 'form-control shadow-sm', 'placeholder': 'Masukkan lokasi tujuan penugasan'}),
             'disposition': forms.Select(attrs={'class': 'form-select shadow-sm'}),
             'pegawai_ditugaskan': forms.SelectMultiple(attrs={'class': 'form-select select2-employee', 'data-placeholder': 'Ketik nama, jabatan, atau bidang pegawai...'}),
         }
+
+    def clean_hari_kegiatan(self):
+        hari = self.cleaned_data.get('hari_kegiatan')
+        custom = self.data.get('hari_kegiatan_custom', '').strip()
+        if hari == 'custom' and custom:
+            return custom
+        return hari
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

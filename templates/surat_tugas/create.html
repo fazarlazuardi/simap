@@ -65,9 +65,10 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold" style="color: var(--text-primary);">Hari Kegiatan</label>
+                                <label class="form-label fw-semibold" style="color: var(--text-primary);">Hari Kegiatan <span class="text-danger">*</span></label>
                                 {{ form.hari_kegiatan }}
-                                <div class="form-text text-muted small">Contoh: Senin s.d. Rabu</div>
+                                <input type="text" id="id_hari_kegiatan_custom" name="hari_kegiatan_custom" class="form-control shadow-sm mt-2 d-none" placeholder="Tuliskan hari kustom (contoh: Senin s.d. Minggu)...">
+                                <div class="form-text text-muted small">Pilih dari dropdown atau tentukan Tanggal Mulai untuk terisi otomatis.</div>
                                 {% if form.hari_kegiatan.errors %}
                                     <div class="text-danger small mt-1">{{ form.hari_kegiatan.errors.0 }}</div>
                                 {% endif %}
@@ -150,6 +151,37 @@
             placeholder: 'Cari nama pegawai...',
             allowClear: true
         });
+
+        // Handler untuk pilihan Kustom pada dropdown Hari Kegiatan
+        $('#id_hari_kegiatan').on('change', function() {
+            if ($(this).val() === 'custom') {
+                $('#id_hari_kegiatan_custom').removeClass('d-none').attr('required', true).focus();
+            } else {
+                $('#id_hari_kegiatan_custom').addClass('d-none').removeAttr('required').val('');
+            }
+        });
+
+        // Smart Auto-detection Hari dari Tanggal Mulai
+        const daysIndo = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+        $('#id_tanggal_mulai').on('change', function() {
+            var val = $(this).val();
+            if (val) {
+                var d = new Date(val);
+                if (!isNaN(d.getTime())) {
+                    var dayName = daysIndo[d.getDay()];
+                    var $hk = $('#id_hari_kegiatan');
+                    // Jika belum dipilih atau saat ini memilih salah satu hari tunggal, update otomatis
+                    if ($hk.length && (!$hk.val() || daysIndo.includes($hk.val()))) {
+                        $hk.val(dayName).trigger('change');
+                    }
+                }
+            }
+        });
+
+        // Trigger awal jika sudah ada tanggal terisi
+        if ($('#id_tanggal_mulai').val() && !$('#id_hari_kegiatan').val()) {
+            $('#id_tanggal_mulai').trigger('change');
+        }
 
         // Interactive Form Validation & Notification
         $('#suratTugasForm').on('submit', function(e) {
