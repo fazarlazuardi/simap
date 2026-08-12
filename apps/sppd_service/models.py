@@ -180,3 +180,13 @@ class SPPD(models.Model):
                 print('Failed to sync SPPD -> Archive status:', e)
         except Exception as e:
             print('Error in SPPD post-save integration:', e)
+
+
+class SPPDAttachment(models.Model):
+    sppd = models.ForeignKey(SPPD, on_delete=models.CASCADE, related_name='additional_attachments')
+    file = models.FileField(upload_to='sppd_reports/%Y/%m/', validators=[validate_file_extension, validate_file_size], verbose_name="File Lampiran Tambahan")
+    title = models.CharField(max_length=255, blank=True, null=True, verbose_name="Keterangan / Nama File")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Lampiran SPPD #{self.sppd.pk} - {self.file.name}"

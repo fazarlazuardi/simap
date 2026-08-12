@@ -436,6 +436,18 @@ def sppd_complete(request, pk):
             sppd.report_file = report_file
         sppd.save()
 
+        # Proses Unggah Berkas / Foto Lampiran Tambahan
+        additional_files = request.FILES.getlist('additional_files') or request.FILES.getlist('report_files')
+        if additional_files:
+            from .models import SPPDAttachment
+            for f in additional_files:
+                if f:
+                    SPPDAttachment.objects.create(
+                        sppd=sppd,
+                        file=f,
+                        title=f.name
+                    )
+
         
         if hasattr(sppd, 'agenda_set'):
             sppd.agenda_set.filter(status='terjadwal').update(status='selesai', is_completed=True)

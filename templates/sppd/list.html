@@ -342,9 +342,21 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="id_report_file" class="form-label fw-bold text-dark">Foto Dokumentasi / Berkas PDF LHP Lapangan</label>
+                        <label for="id_report_file" class="form-label fw-bold text-dark">Foto Utama / Berkas PDF LHP Lapangan</label>
                         <input type="file" name="report_file" id="id_report_file" class="form-control shadow-sm" accept="image/*,.pdf,.doc,.docx">
-                        <small class="text-muted"><i class="bi bi-paperclip me-1"></i>Unggah foto bukti kegiatan atau berkas LHP fisik yang telah di-scan.</small>
+                        <small class="text-muted"><i class="bi bi-paperclip me-1"></i>Unggah foto bukti kegiatan atau berkas LHP fisik utama yang telah di-scan.</small>
+                    </div>
+
+                    <!-- FITUR TAMBAH FILE LAMPIRAN LAINNYA -->
+                    <div class="mb-3 border-top pt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-dark mb-0"><i class="bi bi-folder-plus me-1 text-primary"></i>Lampiran Berkas / Foto Tambahan</label>
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="addAdditionalFileRow()">
+                                <i class="bi bi-plus-lg me-1"></i> Tambah File Lain
+                            </button>
+                        </div>
+                        <div id="additionalFilesContainer" class="d-flex flex-column gap-2"></div>
+                        <small class="text-muted mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Klik "Tambah File Lain" jika Anda ingin melampirkan beberapa foto/dokumen pendukung sekaligus.</small>
                     </div>
                 </div>
                 <div class="modal-footer bg-light rounded-bottom-4 py-3">
@@ -362,6 +374,19 @@
 {% block extra_js %}
 <!-- FUNGSI UNTUK MENANGKAP KLIK & MENAMPILKAN MODAL -->
 <script>
+    function addAdditionalFileRow() {
+        var container = document.getElementById('additionalFilesContainer');
+        var div = document.createElement('div');
+        div.className = 'd-flex gap-2 align-items-center bg-light p-2 rounded-3 border';
+        div.innerHTML = `
+            <input type="file" name="additional_files" class="form-control form-control-sm shadow-sm" accept="image/*,.pdf,.doc,.docx" required>
+            <button type="button" class="btn btn-sm btn-outline-danger rounded-circle px-2" onclick="this.parentElement.remove()" title="Hapus File Ini">
+                <i class="bi bi-trash"></i>
+            </button>
+        `;
+        container.appendChild(div);
+    }
+
     function bukaModalSelesai(btn) {
         var pk = btn.getAttribute('data-sppd-pk');
         var number = btn.getAttribute('data-sppd-number');
@@ -372,6 +397,7 @@
         document.getElementById('sppdModalNum').textContent = "Nomor SPPD: " + number;
         document.getElementById('sppdModalType').textContent = tahap;
         document.getElementById('id_report_notes').value = notes.trim();
+        document.getElementById('additionalFilesContainer').innerHTML = ''; // Reset container
         document.getElementById('formSelesaiSPPD').action = '/sppd/' + pk + '/complete/';
         
         var modalEl = document.getElementById('modalSelesaiSPPD');
