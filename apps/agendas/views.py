@@ -146,7 +146,10 @@ def agenda_list(request):
         existing_sppds = SPPD.objects.select_related('disposition__archive', 'created_by').prefetch_related('assigned_employees').filter(is_cancelled=False)
         for sppd_obj in existing_sppds:
             num_str = sppd_obj.sppd_number
-            if not Agenda.objects.filter(description__icontains=num_str).exists():
+            arc = sppd_obj.disposition.archive if (sppd_obj.disposition and sppd_obj.disposition.archive) else None
+            agenda_target = Agenda.objects.filter(description__icontains=num_str).first()
+            
+            if not agenda_target:
                 sch_date = sppd_obj.departure_date
                 if sch_date:
                     raw_dt = datetime.combine(sch_date, time(8, 0))
@@ -156,7 +159,7 @@ def agenda_list(request):
                         sch_dt = raw_dt
                     
                     purp = sppd_obj.purpose or sppd_obj.destination or "Perjalanan Dinas"
-                    new_agenda = Agenda.objects.create(
+                    agenda_target = Agenda.objects.create(
                         title=f"SPPD: {purp[:50]}",
                         location=sppd_obj.destination,
                         description=f"Perjalanan Dinas SPPD {num_str} ke {sppd_obj.destination}. Maksud: {purp}",
@@ -165,8 +168,12 @@ def agenda_list(request):
                         created_by=sppd_obj.created_by or request.user,
                         status='terjadwal',
                     )
-                    if sppd_obj.assigned_employees.exists():
-                        new_agenda.assigned_employees.set(sppd_obj.assigned_employees.all())
+            
+            if agenda_target:
+                if sppd_obj.assigned_employees.exists():
+                    agenda_target.assigned_employees.set(sppd_obj.assigned_employees.all())
+                elif sppd_obj.surat_tugas and sppd_obj.surat_tugas.pegawai_ditugaskan.exists():
+                    agenda_target.assigned_employees.set(sppd_obj.surat_tugas.pegawai_ditugaskan.all())
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning("SPPD agenda backfill notice: %s", e)
