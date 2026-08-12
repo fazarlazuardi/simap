@@ -28,6 +28,15 @@ class Report(models.Model):
             except Exception:
                 pass
         super().save(*args, **kwargs)
+        if self.disposition:
+            if self.disposition.status != 'selesai':
+                self.disposition.status = 'selesai'
+                if not self.disposition.completed_at:
+                    self.disposition.completed_at = timezone.now()
+                self.disposition.save()
+            if self.disposition.archive and self.disposition.archive.status != 'selesai':
+                self.disposition.archive.status = 'selesai'
+                self.disposition.archive.save(update_fields=['status', 'updated_at'])
 
 
 class ReportAttachment(models.Model):

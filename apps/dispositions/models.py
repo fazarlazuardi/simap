@@ -187,6 +187,14 @@ class Disposition(models.Model):
         return bool(self.result_note or self.result_file or hasattr(self, 'report'))
 
     @property
+    def is_completed(self):
+        return bool(
+            self.status == 'selesai' or 
+            hasattr(self, 'report') or 
+            (self.archive and self.archive.status in ['selesai', 'telah_disalurkan'])
+        )
+
+    @property
     def _forwarded_text(self):
         return " ".join([f"{e.full_name} {e.position}" for e in self.forwarded_to.all()]).lower()
 

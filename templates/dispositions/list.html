@@ -159,14 +159,14 @@
                     </td>
                     <td><span class="fw-bold text-primary small">{{ dispo.disposition_number|default:"-" }}</span></td>
                     <td>
-                        {% if dispo.status == 'baru' %}
+                        {% if dispo.is_completed or dispo.status == 'selesai' or dispo.archive.status == 'selesai' or dispo.report %}
+                            <span class="badge bg-success text-white rounded-pill px-3 py-1 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> SELESAI</span>
+                        {% elif dispo.status == 'baru' %}
                             <span class="badge bg-secondary text-white rounded-pill px-3">MENUNGGU DISPOSISI KETUA</span>
                         {% elif dispo.status == 'didisposisi_ketua' %}
                             <span class="badge bg-warning text-dark rounded-pill px-3">MENUNGGU DISPOSISI WAKA IV</span>
                         {% elif dispo.status == 'proses' %}
                             <span class="badge bg-primary text-white rounded-pill px-3">SEDANG DIPROSES</span>
-                        {% elif dispo.status == 'selesai' %}
-                            <span class="badge bg-dark text-white rounded-pill px-3">SELESAI</span>
                         {% else %}
                             <span class="badge bg-secondary text-white rounded-pill px-3">{{ dispo.get_status_display }}</span>
                         {% endif %}
