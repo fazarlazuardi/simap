@@ -98,14 +98,16 @@ class SuratTugasForm(forms.ModelForm):
             )
 
         if 'disposition' in self.fields:
-            self.fields['disposition'].queryset = (
-                Disposition.objects.exclude(archive__status__in=['selesai', 'ditolak'])
-                .exclude(status='selesai')
-                .exclude(archive__agendas__isnull=False)
-                .order_by('-id')
-                .distinct()
-            )
+            initial_dispo = kwargs.get('initial', {}).get('disposition') or getattr(self.instance, 'disposition', None)
+            valid_qs = Disposition.objects.exclude(archive__status__in=['selesai', 'ditolak']).exclude(status='selesai')
+            if initial_dispo:
+                dispo_pk = initial_dispo.pk if hasattr(initial_dispo, 'pk') else initial_dispo
+                valid_qs = valid_qs | Disposition.objects.filter(pk=dispo_pk)
+
+            self.fields['disposition'].queryset = valid_qs.select_related('archive', 'sender').order_by('-id').distinct()
             self.fields['disposition'].required = False
+            if initial_dispo:
+                self.fields['disposition'].initial = initial_dispo
             
             def get_disposition_perihal(obj):
                 perihal_val = None

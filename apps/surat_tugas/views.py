@@ -74,9 +74,18 @@ def surat_detail(request, pk):
 @login_required
 def surat_create(request):
     archive_id = request.GET.get('archive') or request.POST.get('archive_id')
+    disposition_id = request.GET.get('disposition') or request.POST.get('disposition_id')
+    
     archive = None
-    if archive_id:
+    disposition = None
+    if disposition_id:
+        disposition = Disposition.objects.filter(pk=disposition_id).first()
+        if disposition and not archive:
+            archive = disposition.archive
+    elif archive_id:
         archive = Archive.objects.filter(pk=archive_id).first()
+        if archive:
+            disposition = archive.dispositions.order_by('-created_at').first()
 
     surat_terakhir = (
         SuratTugas.objects.exclude(nomor_surat__isnull=True)
@@ -89,7 +98,11 @@ def surat_create(request):
         if form.is_valid():
             surat = form.save(commit=False)
             
-            # Hubungkan dengan arsip jika tersedia dari parameter URL/POST
+            if disposition and not surat.disposition:
+                surat.disposition = disposition
+            elif archive and not surat.disposition and archive.dispositions.exists():
+                surat.disposition = archive.dispositions.order_by('-created_at').first()
+
             if archive:
                 if hasattr(surat, 'archive') and not surat.archive:
                     surat.archive = archive
@@ -114,6 +127,8 @@ def surat_create(request):
             return redirect('surat_tugas:detail', pk=surat.pk)
     else:
         initial_data = {}
+        if disposition:
+            initial_data['disposition'] = disposition
         if archive:
             initial_data['tentang'] = archive.title or archive.subject
             if hasattr(SuratTugas, 'archive'):
@@ -122,14 +137,13 @@ def surat_create(request):
 
     dispositions_pending_st = get_pending_dispositions_qs()
 
-
     return render(request, 'surat_tugas/create.html', {
         'form': form,
         'archive': archive,
+        'disposition': disposition,
         'surat_terakhir': surat_terakhir,
         'dispositions_pending_st': dispositions_pending_st,
     })
-
 
 
 @login_required
@@ -139,6 +153,8 @@ def surat_create_from_archive(request, pk):
     Sekaligus menyelaraskan status arsip menjadi 'sudah_ditugaskan'.
     """
     archive = get_object_or_404(Archive, pk=pk)
+    disposition = archive.dispositions.order_by('-created_at').first()
+
     surat_terakhir = (
         SuratTugas.objects.exclude(nomor_surat__isnull=True)
         .exclude(nomor_surat__exact='')
@@ -149,6 +165,8 @@ def surat_create_from_archive(request, pk):
         form = SuratTugasForm(request.POST)
         if form.is_valid():
             surat = form.save(commit=False)
+            if disposition and not surat.disposition:
+                surat.disposition = disposition
             if hasattr(surat, 'archive') and not surat.archive:
                 surat.archive = archive
 
@@ -169,6 +187,8 @@ def surat_create_from_archive(request, pk):
             return redirect('archives:detail', pk=archive.pk)
     else:
         initial_data = {}
+        if disposition:
+            initial_data['disposition'] = disposition
         if hasattr(SuratTugas, 'archive'):
             initial_data['archive'] = archive
         smart_p, _ = determine_smart_purpose(archive=archive)
@@ -176,13 +196,12 @@ def surat_create_from_archive(request, pk):
             
         form = SuratTugasForm(initial=initial_data)
 
-
     dispositions_pending_st = get_pending_dispositions_qs()
-
 
     context = {
         'form': form,
         'archive': archive,
+        'disposition': disposition,
         'surat_terakhir': surat_terakhir,
         'dispositions_pending_st': dispositions_pending_st,
     }
@@ -239,8 +258,16 @@ def surat_create_from_disposition(request, disposition_id):
             
         form = SuratTugasForm(initial=initial_data)
 
-
     dispositions_pending_st = get_pending_dispositions_qs()
+
+    context = {
+        'form': form,
+        'archive': archive,
+        'disposition': disposition,
+        'surat_terakhir': surat_terakhir,
+        'dispositions_pending_st': dispositions_pending_st,
+    }
+    return render(request, 'surat_tugas/create.html', context)
 
 
     return render(request, 'surat_tugas/create.html', {
