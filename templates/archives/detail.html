@@ -445,27 +445,38 @@
                 </div>
                 {% endif %}
 
-                <!-- 6. SPPD -->
+                <!-- 6. SPPD & AGENDA PERJALANAN DINAS -->
                 {% if sppd_list %}
                 <div class="tm-item">
                     <div class="tm-icon bg-warning text-dark"><i class="bi bi-briefcase"></i></div>
                     <div class="tm-content">
-                        <p class="mb-0 fw-bold text-warning">Tahap Perjalanan Dinas (SPPD Terbit)</p>
+                        <p class="mb-0 fw-bold text-warning">Tahap Perjalanan Dinas (SPPD Terbit & Terjadwal)</p>
                         {% for sppd_item in sppd_list %}
                         <div class="my-2 p-2 rounded-3" style="background-color: var(--surface-alt); border: 1px solid #fde047;">
                             <span class="fw-bold text-dark small d-block">💼 SPPD #{{ forloop.counter }}: {{ sppd_item.sppd_number }}</span>
-                            <p class="mb-1 text-secondary small"><i class="bi bi-geo-alt me-1"></i>Tujuan: {{ sppd_item.destination }}</p>
-                            <a href="{% url 'sppd_service:detail' sppd_item.pk %}" class="text-decoration-none small text-warning fw-bold">
-                                <i class="bi bi-box-arrow-up-right me-1"></i>Detail SPPD #{{ forloop.counter }}
-                            </a>
+                            <p class="mb-1 text-secondary small"><i class="bi bi-geo-alt me-1 text-danger"></i>Tujuan: <strong>{{ sppd_item.destination }}</strong></p>
+                            <p class="mb-1 text-secondary small"><i class="bi bi-calendar3 me-1 text-primary"></i>Jadwal: {{ sppd_item.departure_date|date:"d M Y" }} s/d {{ sppd_item.return_date|date:"d M Y" }}</p>
+                            {% if sppd_item.assigned_employees.exists %}
+                            <p class="mb-1 text-secondary small"><i class="bi bi-people me-1 text-success"></i>Petugas / Amil Berangkat: 
+                                <strong>{% for emp in sppd_item.assigned_employees.all %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong>
+                            </p>
+                            {% endif %}
+                            <div class="d-flex gap-3 align-items-center mt-2 pt-1 border-top">
+                                <a href="{% url 'sppd_service:detail' sppd_item.pk %}" class="text-decoration-none small text-warning fw-bold">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>Lihat SPPD
+                                </a>
+                                <a href="{% url 'agendas:list' %}?q={{ sppd_item.sppd_number|urlencode }}" class="text-decoration-none small text-success fw-bold">
+                                    <i class="bi bi-calendar-event me-1"></i>Lihat di Kalender Kerja
+                                </a>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- 7. AGENDA KANTOR / KERJASAMA / AUDIENSI -->
-                {% if archive.agendas.exists %}
+                <!-- 7. AGENDA KANTOR / KERJASAMA / AUDIENSI (NON-SPPD) -->
+                {% if archive.agendas.exists and not sppd_list %}
                 <div class="tm-item">
                     <div class="tm-icon bg-success text-white"><i class="bi bi-calendar-event-fill"></i></div>
                     <div class="tm-content">
@@ -486,12 +497,12 @@
                                 {% for emp in ag.assigned_employees.all %}{{ emp.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
                             </p>
                             {% endif %}
-                            <div class="d-flex gap-2 align-items-center mt-2">
+                            <div class="d-flex gap-3 align-items-center mt-2 pt-1 border-top">
                                 <span class="badge {% if ag.status == 'selesai' %}bg-success{% elif ag.status == 'diundur' %}bg-warning text-dark{% else %}bg-primary{% endif %} rounded-pill small">
                                     {{ ag.get_status_display }}
                                 </span>
                                 <a href="{% url 'agendas:list' %}?q={{ ag.title|urlencode }}" class="text-decoration-none small text-success fw-bold">
-                                    <i class="bi bi-box-arrow-up-right me-1"></i>Kalender Agenda
+                                    <i class="bi bi-calendar-event me-1"></i>Lihat di Kalender Kerja
                                 </a>
                             </div>
                         </div>
