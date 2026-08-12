@@ -14,19 +14,42 @@ from sppd_service.views import determine_smart_purpose
 def get_pending_dispositions_qs():
     """
     Mengambil daftar disposisi yang SIAP DIBUATKAN SURAT TUGAS.
-    Mengecualikan:
-    - Dokumen/Arsip yang berstatus 'selesai' atau 'ditolak'
-    - Disposisi yang berstatus 'selesai'
-    - Dokumen yang sudah memiliki Agenda Dalam Kantor (archive.agendas.exists())
+    Cerdas mendeteksi:
+    - Dokumen Bantuan (proposal / permohonan_bantuan): Memiliki 2 tahap (Tahap 1 Survei & Tahap 2 Penyaluran).
+      Akan tetap berada di daftar kandidat hingga diterbitkan 2 Surat Tugas (atau status selesai/ditolak).
+    - Dokumen Umum: Berada di daftar kandidat jika belum memiliki Surat Tugas.
     """
-    return (
+    qs = (
         Disposition.objects.select_related('archive', 'sender', 'sender__employee')
-        .prefetch_related('forwarded_to', 'waka_forwarded_to', 'archive__agendas')
+        .prefetch_related('forwarded_to', 'waka_forwarded_to', 'surat_tugas')
         .exclude(archive__status__in=['selesai', 'ditolak'])
         .exclude(status='selesai')
-        .exclude(archive__agendas__isnull=False)
         .order_by('-created_at')
         .distinct()
+    )
+
+    valid_ids = []
+    for dispo in qs:
+        arch = dispo.archive
+        st_count = dispo.surat_tugas.count()
+        
+        # Deteksi otomatis dokumen bantuan (2 tahap)
+        is_bantuan = False
+        if arch:
+            is_bantuan = arch.archive_type in ['proposal', 'permohonan_bantuan'] or any(
+                k in (arch.title or '').lower() for k in ['bantuan', 'permohonan', 'survei', 'proposal', 'mustahik', 'bedah rumah', 'santunan']
+            )
+        
+        max_st = 2 if is_bantuan else 1
+
+        if st_count < max_st:
+            valid_ids.append(dispo.id)
+
+    return (
+        Disposition.objects.filter(id__in=valid_ids)
+        .select_related('archive', 'sender', 'sender__employee')
+        .prefetch_related('forwarded_to', 'waka_forwarded_to', 'surat_tugas')
+        .order_by('-created_at')
     )
 
 
