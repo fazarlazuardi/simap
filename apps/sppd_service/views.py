@@ -49,24 +49,27 @@ def sppd_list(request):
     st_dispo_ids = SuratTugas.objects.filter(disposition__isnull=False).values_list('disposition_id', flat=True)
 
     raw_dispositions = Disposition.objects.filter(
-        status__in=['terverifikasi', 'proses', 'didisposisi_ketua'],
-        id__in=st_dispo_ids,
+        id__in=st_dispo_ids
+    ).exclude(
+        archive__status='ditolak'
     ).select_related('archive', 'sender').prefetch_related('forwarded_to', 'sppd_list')
 
-    # Syarat SPPD 2 Langkah: Dokumen dengan 1 SPPD hanya boleh lanjut ke Tahap 2 jika memuat histori SPPD survei
+    # Syarat SPPD Multi-tahap: Dokumen Bantuan dengan 1 SPPD (Survei) tetap boleh diterbitkan SPPD Tahap 2 (Penyaluran)
     valid_dispo_ids = []
     for d in raw_dispositions:
-        sppds = list(d.sppd_list.all())
-        cnt = len(sppds)
-        if cnt == 0:
+        arch = d.archive
+        sppds_item_list = list(d.sppd_list.all())
+        cnt = len(sppds_item_list)
+        
+        is_bantuan = False
+        if arch:
+            is_bantuan = arch.archive_type in ['proposal', 'permohonan_bantuan'] or any(
+                k in (arch.title or '').lower() for k in ['bantuan', 'permohonan', 'survei', 'proposal', 'mustahik', 'bedah rumah', 'santunan']
+            )
+        max_sppd = 2 if is_bantuan else 1
+
+        if cnt < max_sppd:
             valid_dispo_ids.append(d.id)
-        elif cnt == 1:
-            last_sp = sppds[0]
-            if last_sp.status in ['selesai', 'dibatalkan']:
-                purp = ((last_sp.purpose or '') + ' ' + (last_sp.sppd_type or '')).lower()
-                has_survei = (last_sp.sppd_type == 'survei') or any(k in purp for k in ['survei', 'peninjauan', 'verifikasi', 'lapangan'])
-                if has_survei:
-                    valid_dispo_ids.append(d.id)
 
     dispositions = Disposition.objects.filter(id__in=valid_dispo_ids).select_related('archive', 'sender').prefetch_related('forwarded_to', 'sppd_list')
 
@@ -78,9 +81,7 @@ def sppd_list(request):
         dispositions = dispositions.filter(forwarded_to__id=pegawai)
     if archive_type:
         dispositions = dispositions.filter(archive__archive_type=archive_type)
-    if status == 'active':
-        dispositions = dispositions.filter(archive__status__in=['terverifikasi', 'proses'])
-    elif status == 'cancelled':
+    if status == 'cancelled':
         dispositions = dispositions.filter(archive__status='ditolak')
 
     dispositions = dispositions.order_by('-created_at')
