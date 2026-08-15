@@ -869,8 +869,25 @@
     {% include 'layouts/sidebar.html' %}
 
     <!-- Main Wrapper -->
-    <div id="main-wrapper">
         {% include 'layouts/navbar.html' %}
+
+        {% if user.is_superadmin and request.session.active_pov %}
+        <!-- STICKY FLOATING POV BANNER FOR SUPERADMIN -->
+        <div class="alert alert-warning border-0 rounded-0 m-0 py-2 px-4 shadow-sm text-dark d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(90deg, #FEF3C7 0%, #FDE68A 100%); border-bottom: 2px solid #F59E0B !important; z-index: 1040;">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-eye-fill fs-5 me-2" style="color: #D97706;"></i>
+                <div>
+                    <strong class="text-dark">Mode Simulasi POV Tampilan Aktif:</strong>
+                    <span class="ms-1 text-dark">Anda sedang melihat sistem dari perspektif <strong>{{ active_pov_name|default:request.session.active_pov|upper }}</strong>.</span>
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'users:switch_pov' %}?role=admin" class="btn btn-sm btn-dark rounded-pill px-3 fw-bold shadow-sm">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Tampilan ke Superadmin
+                </a>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Content Area -->
         <main class="content-area">

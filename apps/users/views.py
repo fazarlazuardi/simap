@@ -17,6 +17,46 @@ from services.integrations.gateway_service import WhatsAppService
 
 def superuser_only(user): return user.is_superuser
 
+def get_active_pov_role(request):
+    if request.user.is_authenticated and request.user.is_superadmin:
+        return request.session.get('active_pov', 'admin')
+    if getattr(request.user, 'is_ketua', False):
+        return 'ketua'
+    if getattr(request.user, 'is_waka_2', False):
+        return 'waka_2'
+    if getattr(request.user, 'is_kabid_2', False):
+        return 'kabid_2'
+    if getattr(request.user, 'is_kabid', False):
+        return 'kabid_4'
+    if getattr(request.user, 'is_pimpinan', False):
+        return 'waka_4'
+    return 'admin' if getattr(request.user, 'is_superadmin', False) else 'staff'
+
+@login_required
+def switch_pov(request):
+    """
+    Endpoint untuk Superadmin beralih mode simulasi Tampilan (POV Switcher)
+    ke peran Ketua, Waka IV, Kabid IV, Waka II, Kabid II, atau Reset ke Default.
+    """
+    if not request.user.is_superadmin:
+        messages.error(request, "Hanya Superadmin yang berhak mengakses simulasi POV Tampilan.")
+        return redirect('users:dashboard')
+
+    target_pov = request.GET.get('role', 'admin').strip().lower()
+    allowed_roles = ['admin', 'ketua', 'waka_4', 'kabid_4', 'waka_2', 'kabid_2', 'resepsionis']
+    
+    if target_pov in allowed_roles:
+        if target_pov == 'admin':
+            request.session.pop('active_pov', None)
+            messages.success(request, "Tampilan berhasil dikembalikan ke Superadmin IT Default.")
+        else:
+            request.session['active_pov'] = target_pov
+            messages.info(request, f"Mode Simulasi POV Aktif: Anda sedang melihat sistem dari perspektif {target_pov.replace('_', ' ').upper()}.")
+    else:
+        messages.error(request, "Pilihan Peran POV tidak valid.")
+
+    return redirect(request.META.get('HTTP_REFERER') or 'users:dashboard')
+
 @login_required
 def dashboard_index(request):
     today = timezone.now().date()
@@ -159,7 +199,22 @@ def dashboard_index(request):
         wa_health = WhatsAppService.check_health()
         cache.set('wa_health', wa_health, 60)
 
+    active_pov = get_active_pov_role(request)
+    pov_names = {
+        'admin': 'Superadmin IT (Default)',
+        'ketua': 'Ketua BAZNAS',
+        'waka_4': 'Waka IV (Administrasi, SDM & Umum)',
+        'kabid_4': 'Kabid IV (Verifikator Surat Masuk)',
+        'waka_2': 'Waka II (Pendistribusian & Bantuan)',
+        'kabid_2': 'Kabid II (Pendistribusian & Pendayagunaan)',
+        'resepsionis': 'Resepsionis (Front Office)',
+        'staff': 'Staf Pelaksana Amil'
+    }
+    active_pov_name = pov_names.get(active_pov, 'Superadmin IT')
+
     context = {
+        'active_pov': active_pov,
+        'active_pov_name': active_pov_name,
         'surat_masuk_count': surat_masuk_count,
         'proposal_aktif_count': proposal_aktif_count,
         'today_agendas_count': today_agendas_count,
