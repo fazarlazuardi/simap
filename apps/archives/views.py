@@ -24,11 +24,26 @@ from services.audit_logs.audit_service import AuditService
 archive_repo = ArchiveRepository()
 archive_service = ArchiveService(archive_repo)
 
+def can_view_arsip_sdm(request):
+    user = request.user
+    active_pov = request.session.get('active_pov')
+    if active_pov:
+        if active_pov in ['waka_4', 'kabid_4', 'sdm']:
+            return True
+        return False
+    if getattr(user, 'is_superadmin', False) or getattr(user, 'is_superuser', False):
+        return True
+    return getattr(user, 'is_sdm', False)
+
 @login_required
 def archive_list(request):
     """
     Archive list with client-side DataTables handling.
     """
+    if not can_view_arsip_sdm(request):
+        messages.error(request, "Modul Arsip SDM hanya dapat diakses oleh Bidang IV (Administrasi, SDM & Umum) dan Superadmin IT.")
+        return redirect('users:dashboard')
+
     archives = Archive.objects.all().select_related('category', 'uploaded_by').order_by('-created_at')
 
     status_filter = request.GET.get('status', 'all')
@@ -95,6 +110,10 @@ def archive_list(request):
 @login_required
 @sdm_required
 def archive_upload(request):
+    if not can_view_arsip_sdm(request):
+        messages.error(request, "Modul Arsip SDM hanya dapat diakses oleh Bidang IV (Administrasi, SDM & Umum) dan Superadmin IT.")
+        return redirect('users:dashboard')
+
     active_pov = request.session.get('active_pov')
     if active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False):
         messages.error(request, "Hak akses mengunggah arsip baru hanya dimiliki oleh Front Office / Resepsionis.")
@@ -218,6 +237,10 @@ def archive_edit(request, pk):
     """
     Allow editing file if status is 'baru'.
     """
+    if not can_view_arsip_sdm(request):
+        messages.error(request, "Modul Arsip SDM hanya dapat diakses oleh Bidang IV (Administrasi, SDM & Umum) dan Superadmin IT.")
+        return redirect('users:dashboard')
+
     archive = get_object_or_404(Archive, pk=pk)
     if archive.status != 'baru' and not request.user.is_superadmin:
         messages.error(request, "Dokumen sudah diproses, tidak dapat diubah.")
@@ -249,6 +272,9 @@ def archive_edit(request, pk):
 
 @login_required
 def archive_detail(request, pk):
+    if not can_view_arsip_sdm(request):
+        messages.error(request, "Modul Arsip SDM hanya dapat diakses oleh Bidang IV (Administrasi, SDM & Umum) dan Superadmin IT.")
+        return redirect('users:dashboard')
     from services.workflows.workflow_engine import WorkflowEngine
     from services.timeline.timeline_service import TimelineService
     archive = get_object_or_404(Archive, pk=pk)

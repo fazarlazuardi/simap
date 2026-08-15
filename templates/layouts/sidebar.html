@@ -51,10 +51,12 @@
         <!-- Navigasi Tambahan Dokumen & Kalender -->
         <div class="sidebar-divider my-2 border-top border-secondary border-opacity-25 ms-3 me-3"></div>
 
+        {% if user.is_sdm or (user.is_superadmin and not request.session.active_pov) or request.session.active_pov == 'waka_4' or request.session.active_pov == 'kabid_4' or request.session.active_pov == 'sdm' %}
         <a href="{% url 'archives:list' %}" class="nav-link {% if request.resolver_match.app_name == 'archives' %}active{% endif %}">
             <i class="bi bi-folder2-open"></i>
             <span class="sidebar-text">Arsip SDM</span>
         </a>
+        {% endif %}
 
         <a href="{% url 'agendas:list' %}" class="nav-link {% if request.resolver_match.app_name == 'agendas' %}active{% endif %}">
             <i class="bi bi-calendar3"></i>

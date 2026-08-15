@@ -218,6 +218,27 @@ class User(AbstractUser):
         return 'pendistribusian' in dept_name or 'bidang ii' in dept_name or 'bidang 2' in dept_name
 
     @property
+    def is_waka_4(self):
+        return self.is_pimpinan and self.employee and self.employee.leadership_type == 'waka_4'
+
+    @property
+    def is_kabid_4(self):
+        if not (self.is_kabid and self.employee and self.employee.dept_relation):
+            return False
+        dept_name = (self.employee.dept_relation.name or "").lower()
+        return any(k in dept_name for k in ['sekretariat', 'sdm', 'administrasi', 'bidang iv', 'bidang 4'])
+
+    @property
+    def is_sdm(self):
+        if self.is_waka_4 or self.is_kabid_4:
+            return True
+        emp = getattr(self, 'employee', None)
+        if emp and emp.dept_relation:
+            dept_name = (emp.dept_relation.name or "").lower()
+            return any(k in dept_name for k in ['sekretariat', 'sdm', 'administrasi', 'front office', 'bidang iv', 'bidang 4'])
+        return False
+
+    @property
     def role_display_badge(self):
         if self.is_superadmin:
             return "Superadmin IT"
