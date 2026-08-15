@@ -24,10 +24,18 @@ def sppd_list(request):
     archive_type = request.GET.get('type')
 
   
-    if request.user.is_superadmin:
+    active_pov = request.session.get('active_pov')
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
+    current_emp = getattr(request.user, 'employee', None)
+
+    if (request.user.is_superadmin and not active_pov) or is_waka_or_kabid_2 or getattr(request.user, 'is_pimpinan', False) or getattr(request.user, 'is_kabid', False):
         sppds = SPPD.objects.select_related('disposition__archive', 'disposition__report').prefetch_related('assigned_employees', 'followers').all()
+    elif current_emp:
+        sppds = SPPD.objects.filter(
+            Q(assigned_employees=current_emp) | Q(followers=current_emp) | Q(created_by=request.user)
+        ).select_related('disposition__archive', 'disposition__report').prefetch_related('assigned_employees', 'followers').distinct()
     else:
-        sppds = SPPD.objects.filter(assigned_employees__user=request.user).select_related('disposition__archive', 'disposition__report').prefetch_related('assigned_employees', 'followers')
+        sppds = SPPD.objects.filter(created_by=request.user).select_related('disposition__archive', 'disposition__report').prefetch_related('assigned_employees', 'followers').distinct()
 
     if date_from:
         sppds = sppds.filter(departure_date__gte=date_from)
