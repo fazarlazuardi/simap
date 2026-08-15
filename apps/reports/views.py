@@ -385,8 +385,6 @@ def report_create(request, dispo_pk):
             sppds = SPPD.objects.filter(Q(disposition=dispo) | Q(disposition__archive=archive))
             sppds.update(status='selesai')
 
-            agendas = Agenda.objects.filter(archive=archive)
-            agendas.update(is_completed=True, status='selesai')
             if files:
                 sppds.filter(report_file='').update(report_file=files[0])
             for s in sppds:
@@ -394,17 +392,35 @@ def report_create(request, dispo_pk):
                     s.report_notes = content
                     s.save(update_fields=['report_notes'])
 
-            # Otomatis selesaikan Agenda Kerja terkait
-            from agendas.models import Agenda
-            agendas = Agenda.objects.filter(archive=archive)
-            for ag in agendas:
-                ag.is_completed = True
-                ag.status = 'selesai'
-                if not ag.completed_notes:
-                    ag.completed_notes = f"Laporan Hasil Penanganan ({report_number}): {title}\n{content}"
-                if files and not ag.completed_file:
-                    ag.completed_file = files[0]
-                ag.save()
+            # Otomatis selesaikan Agenda Kerja terkait & pastikan Tanggal Agenda terisi tanggal LHP dibuat!
+            now_dt = timezone.now()
+            agendas = list(Agenda.objects.filter(archive=archive))
+            if not agendas:
+                # Untuk penyaluran langsung tanpa SPPD, buatkan Agenda resmi dengan tanggal LHP saat ini!
+                ag = Agenda.objects.create(
+                    archive=archive,
+                    title=f"Penyaluran Bantuan Direct: {archive.title}",
+                    location="Lokasi Mustahik / Penyaluran Direct",
+                    description=content or f"Penyaluran Bantuan BAZNAS untuk {archive.title}",
+                    scheduled_at=now_dt,
+                    is_completed=True,
+                    status='selesai',
+                    completed_notes=f"Laporan Hasil Penyaluran ({report_number}): {title}\n{content}",
+                    completed_file=files[0] if files else None,
+                    created_by=request.user,
+                )
+                agendas.append(ag)
+            else:
+                for ag in agendas:
+                    ag.is_completed = True
+                    ag.status = 'selesai'
+                    if not ag.scheduled_at:
+                        ag.scheduled_at = now_dt
+                    if not ag.completed_notes:
+                        ag.completed_notes = f"Laporan Hasil Penanganan ({report_number}): {title}\n{content}"
+                    if files and not ag.completed_file:
+                        ag.completed_file = files[0]
+                    ag.save()
         
         AuditService.log_action(request.user, f"Input Laporan Hasil Selesai: {report_number}", request)
         messages.success(request, f"Laporan Hasil '{report_number}' dengan {len(files)} berkas lampiran berhasil disimpan.")
