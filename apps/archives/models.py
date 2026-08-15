@@ -201,6 +201,9 @@ class Archive(models.Model):
         agenda = self.agendas.order_by('scheduled_at').last()
         if agenda and agenda.scheduled_at:
             return agenda.scheduled_at.date()
+        report = self.latest_report
+        if report and report.created_at:
+            return report.created_at.date()
         return None
 
     @property
