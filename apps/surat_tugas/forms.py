@@ -87,14 +87,19 @@ class SuratTugasForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         is_waka_or_kabid_2 = False
+        is_survei = False
         if request:
             active_pov = request.session.get('active_pov')
+            st_type = (request.GET.get('st_type', '') or request.POST.get('st_type', '')).strip().lower()
+            if st_type == 'survei' or (request.GET.get('tentang') and 'survei' in request.GET.get('tentang').lower()):
+                is_survei = True
+
             if active_pov in ['waka_2', 'kabid_2']:
                 is_waka_or_kabid_2 = True
             elif request.user and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)):
                 is_waka_or_kabid_2 = True
 
-        if is_waka_or_kabid_2 and 'pilihan_penandatangan' in self.fields:
+        if (is_waka_or_kabid_2 or is_survei) and 'pilihan_penandatangan' in self.fields:
             self.fields['pilihan_penandatangan'].choices = BIDANG2_PIMPINAN_CHOICES
 
         if not self.instance.pk and 'nomor_surat' in self.fields:
@@ -109,13 +114,13 @@ class SuratTugasForm(forms.ModelForm):
             self.initial['nomor_surat'] = f"ST/{str(surat_ke).zfill(3)}/BAZNAS-TGN/{bulan_romawi}/{tahun_ini}"
 
         if 'pegawai_ditugaskan' in self.fields:
-            if is_waka_or_kabid_2:
+            if is_waka_or_kabid_2 or is_survei:
                 b2_qs = Employee.objects.filter(
-                    Q(dept_relation__name__icontains='bidang ii') |
-                    Q(dept_relation__name__icontains='bidang 2') |
                     Q(dept_relation__name__icontains='pendistribusian') |
-                    Q(position__icontains='kabid ii') |
-                    Q(position__icontains='waka ii')
+                    Q(dept_relation__name__icontains='bidang ii:') |
+                    Q(dept_relation__name__startswith='Bidang II')
+                ).exclude(
+                    dept_relation__name__icontains='bidang iii'
                 ).select_related('dept_relation').order_by('full_name')
                 self.fields['pegawai_ditugaskan'].queryset = b2_qs
             else:

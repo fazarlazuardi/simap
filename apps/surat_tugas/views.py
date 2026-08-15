@@ -140,11 +140,10 @@ def surat_create(request):
 
             active_pov = request.session.get('active_pov')
             is_b2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
-            if is_b2:
-                messages.success(request, f"Surat Tugas '{surat.nomor_surat}' berhasil terbit. Notifikasi pembuatan SPPD telah dikirimkan ke Kabid IV & Front Office.")
-            else:
-                messages.success(request, 'Surat Tugas berhasil dibuat.')
+            messages.success(request, f"✅ Surat Tugas '{surat.nomor_surat}' telah terbit. Dokumen penugasan ini akan segera ditindaklanjuti oleh Bidang IV / Front Office untuk Penerbitan SPPD.")
             
+            if is_b2:
+                return redirect('surat_tugas:detail', pk=surat.pk)
             if target_archive:
                 return redirect('archives:detail', pk=target_archive.pk)
             return redirect('surat_tugas:detail', pk=surat.pk)
@@ -205,16 +204,10 @@ def surat_create_from_archive(request, pk):
 
             active_pov = request.session.get('active_pov')
             is_b2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
+            messages.success(request, f"✅ Surat Tugas '{surat.nomor_surat}' telah terbit. Dokumen penugasan ini akan segera ditindaklanjuti oleh Bidang IV / Front Office untuk Penerbitan SPPD.")
+            
             if is_b2:
-                messages.success(
-                    request, 
-                    f'Surat Tugas {surat.nomor_surat} berhasil terbit. Notifikasi penugasan SPPD dikirim ke Kabid IV & Front Office.'
-                )
-            else:
-                messages.success(
-                    request, 
-                    f'Surat Tugas berhasil dicatat. Status dokumen {archive.archive_number} menjadi "Penugasan".'
-                )
+                return redirect('surat_tugas:detail', pk=surat.pk)
             return redirect('archives:detail', pk=archive.pk)
     else:
         initial_data = {}
@@ -282,11 +275,10 @@ def surat_create_from_disposition(request, disposition_id):
 
             active_pov = request.session.get('active_pov')
             is_b2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
-            if is_b2:
-                messages.success(request, f"Surat Tugas '{surat.nomor_surat}' berhasil terbit. Notifikasi pembuatan SPPD telah dikirimkan ke Kabid IV & Front Office.")
-            else:
-                messages.success(request, 'Surat Tugas dari Disposisi berhasil dibuat.')
+            messages.success(request, f"✅ Surat Tugas '{surat.nomor_surat}' telah terbit. Dokumen penugasan ini akan segera ditindaklanjuti oleh Bidang IV / Front Office untuk Penerbitan SPPD.")
             
+            if is_b2:
+                return redirect('surat_tugas:detail', pk=surat.pk)
             if target_archive:
                 return redirect('archives:detail', pk=target_archive.pk)
             return redirect('surat_tugas:detail', pk=surat.pk)
