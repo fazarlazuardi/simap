@@ -10,13 +10,16 @@
         padding-left: 1.5rem;
         margin-bottom: 0.5rem;
     }
+    .notulensi-content ul {
+        list-style-type: disc !important;
+    }
     .notulensi-content ol {
         list-style-type: decimal;
     }
-    .notulensi-content ol ol {
+    .notulensi-content ol[type="a"], .notulensi-content ol[type="a" i], .notulensi-content ol.type-a, .notulensi-content ol ol {
         list-style-type: lower-alpha;
     }
-    .notulensi-content ol ol ol {
+    .notulensi-content ol[type="I"], .notulensi-content ol[type="I" i], .notulensi-content ol ol ol {
         list-style-type: lower-roman;
     }
     .notulensi-content p {
@@ -785,10 +788,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     var trimmedLine = line.trim();
                     if (!trimmedLine) return;
 
-                    var numMatch = trimmedLine.match(/^(\d+|\[?[a-zA-Z]\]?)[\.\)]\s+(.*)/);
-                    var bulletMatch = trimmedLine.match(/^[\-\*\•]\s+(.*)/);
+                    var letterMatch = trimmedLine.match(/^\[?([a-zA-Z])\]?[\.\)]\s+(.*)/);
+                    var numMatch = trimmedLine.match(/^(\d+)[\.\)]\s+(.*)/);
+                    var bulletMatch = trimmedLine.match(/^[\-\*\•\.]\s+(.*)/);
 
-                    if (numMatch) {
+                    if (letterMatch) {
+                        if (inUl) { htmlOutput += '</ul>'; inUl = false; }
+                        if (!inOl) { htmlOutput += '<ol type="a">'; inOl = true; }
+                        htmlOutput += '<li>' + letterMatch[2] + '</li>';
+                    } else if (numMatch) {
                         if (inUl) { htmlOutput += '</ul>'; inUl = false; }
                         if (!inOl) { htmlOutput += '<ol>'; inOl = true; }
                         htmlOutput += '<li>' + numMatch[2] + '</li>';
