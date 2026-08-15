@@ -35,6 +35,33 @@ def can_view_arsip_sdm(request):
         return True
     return getattr(user, 'is_sdm', False)
 
+def can_upload_archive(request):
+    """
+    Hanya Front Office / Resepsionis (POV sdm / user.is_sdm tanpa role kabid/pimpinan)
+    dan Superadmin IT (dalam mode default / tanpa POV) yang dapat mengunggah arsip baru.
+    """
+    user = request.user
+    active_pov = request.session.get('active_pov')
+    
+    if active_pov:
+        return active_pov in ['sdm', 'front_office']
+        
+    if getattr(user, 'is_superadmin', False) or getattr(user, 'is_superuser', False):
+        return True
+        
+    # Pimpinan & Kabid (Ketua, Waka 4, Kabid 4, Waka 2, Kabid 2, dll) TIDAK BOLEH upload
+    if getattr(user, 'is_pimpinan', False) or getattr(user, 'is_kabid', False) or getattr(user, 'is_waka_4', False) or getattr(user, 'is_kabid_4', False):
+        return False
+        
+    emp = getattr(user, 'employee', None)
+    if emp and emp.dept_relation:
+        dept_name = (emp.dept_relation.name or "").lower()
+        if any(k in dept_name for k in ['front office', 'resepsionis', 'sekretariat', 'sdm']):
+            return True
+            
+    return getattr(user, 'is_sdm', False)
+
+
 @login_required
 def archive_list(request):
     """
@@ -105,6 +132,7 @@ def archive_list(request):
         'current_type': archive_type_filter or '',
         'status_filter': status_filter,
         'is_waka_or_kabid_2': is_waka_or_kabid_2,
+        'can_upload': can_upload_archive(request),
     })
 
 @login_required
@@ -114,9 +142,8 @@ def archive_upload(request):
         messages.error(request, "Modul Arsip SDM hanya dapat diakses oleh Bidang IV (Administrasi, SDM & Umum) dan Superadmin IT.")
         return redirect('users:dashboard')
 
-    active_pov = request.session.get('active_pov')
-    if active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False):
-        messages.error(request, "Hak akses mengunggah arsip baru hanya dimiliki oleh Front Office / Resepsionis.")
+    if not can_upload_archive(request):
+        messages.error(request, "Hak akses mengunggah arsip/dokumen baru HANYA dimiliki oleh Front Office / Resepsionis dan Superadmin IT.")
         return redirect('archives:list')
 
     if request.method == 'POST':

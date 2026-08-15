@@ -51,12 +51,10 @@
                 <i class="bi bi-cloud-arrow-up-fill me-2 fs-5"></i> Backup GDrive & Email
             </a>
             {% endif %}
-            {% if not is_waka_or_kabid_2 and not user.is_waka_2 and not user.is_kabid_2 and not request.session.active_pov %}
-                {% if user.is_sdm or user.is_superuser or user.is_superadmin %}
-                <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-3 d-flex align-items-center">
-                    <i class="bi bi-plus-lg me-2 fs-5"></i> Unggah Arsip
-                </a>
-                {% endif %}
+            {% if can_upload %}
+            <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-3 d-flex align-items-center">
+                <i class="bi bi-plus-lg me-2 fs-5"></i> Unggah Arsip
+            </a>
             {% endif %}
         </div>
     </div>

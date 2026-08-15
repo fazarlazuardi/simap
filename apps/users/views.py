@@ -228,9 +228,12 @@ def dashboard_index(request):
     }
     active_pov_name = pov_names.get(active_pov, 'Superadmin IT')
 
+    from archives.views import can_upload_archive
+
     context = {
         'active_pov': active_pov,
         'active_pov_name': active_pov_name,
+        'can_upload': can_upload_archive(request),
         'surat_masuk_count': surat_masuk_count,
         'proposal_aktif_count': proposal_aktif_count,
         'today_agendas_count': today_agendas_count,
