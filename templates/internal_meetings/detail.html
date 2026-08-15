@@ -16,12 +16,29 @@
     .notulensi-content ol {
         list-style-type: decimal;
     }
+    .notulensi-content li[data-list="bullet"],
+    .notulensi-content ol li[data-list="bullet"],
+    .notulensi-content ul li[data-list="bullet"] {
+        list-style-type: disc !important;
+    }
+    .notulensi-content li[data-list="ordered"],
+    .notulensi-content ol li[data-list="ordered"],
+    .notulensi-content ul li[data-list="ordered"] {
+        list-style-type: decimal !important;
+    }
+    .notulensi-content ol ul, .notulensi-content ul ul, .notulensi-content ol li ul {
+        list-style-type: disc !important;
+        padding-left: 1.5rem;
+    }
     .notulensi-content ol[type="a"], .notulensi-content ol[type="a" i], .notulensi-content ol.type-a, .notulensi-content ol ol {
         list-style-type: lower-alpha;
     }
     .notulensi-content ol[type="I"], .notulensi-content ol[type="I" i], .notulensi-content ol ol ol {
         list-style-type: lower-roman;
     }
+    .notulensi-content li.ql-indent-1, .notulensi-content .ql-indent-1 { padding-left: 1.5em; }
+    .notulensi-content li.ql-indent-2, .notulensi-content .ql-indent-2 { padding-left: 3.0em; }
+    .notulensi-content li.ql-indent-3, .notulensi-content .ql-indent-3 { padding-left: 4.5em; }
     .notulensi-content p {
         margin-bottom: 0.35rem;
     }
