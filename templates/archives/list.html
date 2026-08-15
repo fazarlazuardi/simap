@@ -251,7 +251,17 @@
                                         {% endif %}
                                     {% endif %}
 
-                                     {% if archive.status in 'terverifikasi,didisposisikan,proses' and not archive.is_disposition_completed %}
+                                     {% if archive.status == 'selesai' or archive.is_disposition_completed %}
+                                         {% if archive.latest_report %}
+                                             <a href="{% url 'reports:detail' archive.latest_report.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Lihat LHP Selesai">
+                                                 <i class="bi bi-file-earmark-check-fill me-1"></i> LHP Selesai
+                                             </a>
+                                         {% else %}
+                                             <span class="badge bg-success text-white rounded-pill px-3 py-2 fw-bold">
+                                                 <i class="bi bi-check-circle-fill me-1"></i> TELAH DISALURKAN
+                                             </span>
+                                         {% endif %}
+                                     {% elif archive.status in 'terverifikasi,didisposisikan,proses' and not archive.is_disposition_completed %}
                                          {% if archive.is_proposal_bantuan or archive.archive_type == 'proposal' %}
                                              <div class="dropdown d-inline-block">
                                                  <button class="btn btn-warning btn-sm rounded-pill px-3 fw-bold dropdown-toggle shadow-sm text-dark" type="button" data-bs-toggle="dropdown">
