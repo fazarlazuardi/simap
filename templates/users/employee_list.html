@@ -13,9 +13,11 @@
             <h4 class="fw-bold mb-1">Master Data Pegawai</h4>
             <p class="text-secondary small">Kelola informasi profil seluruh pegawai BAZNAS Kabupaten Tangerang.</p>
         </div>
+        {% if user.is_superadmin and not request.session.active_pov %}
         <a href="{% url 'users:employee_create' %}" class="btn btn-primary px-4">
             <i class="bi bi-person-plus-fill me-2"></i> Tambah Pegawai
         </a>
+        {% endif %}
     </div>
 </div>
 

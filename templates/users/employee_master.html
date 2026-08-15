@@ -9,11 +9,13 @@
             <h4 class="fw-bold mb-1" style="color: var(--text-primary);">Master Data Pegawai & Amil BAZNAS</h4>
             <p class="text-secondary small mb-0">Kelola informasi kepegawaian, dokumen SK pengangkatan, dan kredensial login SIMAP.</p>
         </div>
+        {% if user.is_superadmin and not request.session.active_pov %}
         <div class="d-flex gap-2">
             <a href="{% url 'users:employee_create' %}" class="btn btn-emerald fw-bold rounded-pill px-4 shadow-sm text-white" style="background-color: var(--primary);">
                 <i class="bi bi-person-plus-fill me-2"></i> Tambah Pegawai Baru
             </a>
         </div>
+        {% endif %}
     </div>
 </div>
 

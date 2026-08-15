@@ -538,7 +538,7 @@
                 </a>
 
                 <!-- FITUR TRACE & KELOLA USER KHUSUS SUPER ADMIN -->
-                {% if user.is_superadmin %}
+                {% if user.is_superadmin and not request.session.active_pov %}
                 <a href="{% url 'reports:index' %}" class="quick-access-btn">
                     <div class="icon-box-wrapper me-3" style="background-color: rgba(59, 130, 246, 0.15);">
                         <i class="bi bi-geo-alt-fill text-primary"></i>

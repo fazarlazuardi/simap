@@ -731,7 +731,7 @@
                     <i class="bi bi-chevron-right" style="color: var(--text-secondary);"></i>
                 </a>
 
-                {% if user.is_superadmin or user.is_pimpinan %}
+                {% if user.is_superadmin and not request.session.active_pov %}
                 <a href="{% url 'users:list' %}" class="quick-action-card text-decoration-none d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-3 p-2" style="background-color: rgba(59, 130, 246, 0.2); color: #3B82F6;">
