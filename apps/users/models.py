@@ -206,6 +206,38 @@ class User(AbstractUser):
     def is_staff_biasa(self):
         return self.role == 'staff'
 
+    @property
+    def is_waka_2(self):
+        return self.is_pimpinan and self.employee and self.employee.leadership_type == 'waka_2'
+
+    @property
+    def is_kabid_2(self):
+        if not (self.is_kabid and self.employee and self.employee.dept_relation):
+            return False
+        dept_name = (self.employee.dept_relation.name or "").lower()
+        return 'pendistribusian' in dept_name or 'bidang ii' in dept_name or 'bidang 2' in dept_name
+
+    @property
+    def role_display_badge(self):
+        if self.is_superadmin:
+            return "Superadmin IT"
+        if self.is_ketua:
+            return "Ketua BAZNAS"
+        if self.is_waka_2:
+            return "Waka II (Pendistribusian & Pendayagunaan)"
+        if self.is_pimpinan:
+            emp = self.employee
+            if emp and emp.leadership_type != 'none':
+                return f"Pimpinan: {emp.get_leadership_type_display()}"
+            return "Pimpinan BAZNAS"
+        if self.is_kabid_2:
+            return "Kabid II (Pendistribusian & Pendayagunaan)"
+        if self.is_kabid:
+            dept = self.employee.dept_relation.name if (self.employee and self.employee.dept_relation) else "Bidang"
+            return f"Kabid ({dept})"
+        return "Amil / Staf Pelaksana"
+
+
 
 class SystemSetting(models.Model):
     key = models.CharField(max_length=100, unique=True)

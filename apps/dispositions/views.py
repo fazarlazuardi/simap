@@ -67,6 +67,15 @@ def disposition_list(request):
             qs |= Disposition.objects.filter(
                 Q(forwarded_to=current_emp) | Q(waka_forwarded_to=current_emp)
             )
+            # Khusus Waka II & Kabid II: sertakan juga disposisi berlabel bantuan & pendistribusian
+            if request.user.is_waka_2 or request.user.is_kabid_2:
+                qs |= Disposition.objects.filter(
+                    Q(archive__title__icontains='bantuan') |
+                    Q(archive__title__icontains='pendistribusian') |
+                    Q(archive__title__icontains='pendayagunaan') |
+                    Q(archive__title__icontains='mustahik') |
+                    Q(archive__description__icontains='bantuan')
+                )
         qs = qs.distinct()
     else:
         qs = Disposition.objects.none()
