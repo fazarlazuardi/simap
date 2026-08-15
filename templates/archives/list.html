@@ -259,8 +259,12 @@
                                                  </button>
                                                  <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2" style="z-index: 1080;">
                                                      <li><h6 class="dropdown-header fw-bold text-dark mb-0"><i class="bi bi-gift-fill text-success me-1"></i>Opsi Penanganan Bantuan</h6></li>
-                                                     <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'surat_tugas:create_from_archive' archive.pk %}?st_type=survei"><i class="bi bi-geo-alt-fill text-warning me-2"></i>📋 1. Survei Lapangan</a></li>
-                                                     <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'surat_tugas:create_from_archive' archive.pk %}?st_type=penyaluran"><i class="bi bi-box-seam-fill text-success me-2"></i>🎁 2. Langsung Disalurkan</a></li>
+                                                     <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'surat_tugas:create_from_archive' archive.pk %}?st_type=survei"><i class="bi bi-geo-alt-fill text-warning me-2"></i>📋 1. Survei Lapangan (Buat ST/SPPD)</a></li>
+                                                     {% if archive.latest_dispo %}
+                                                         <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'reports:create' archive.latest_dispo.pk %}?type=penyaluran"><i class="bi bi-box-seam-fill text-success me-2"></i>🎁 2. Langsung Disalurkan (Input LHP Penyaluran)</a></li>
+                                                     {% else %}
+                                                         <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'dispositions:create' archive.pk %}"><i class="bi bi-box-seam-fill text-success me-2"></i>🎁 2. Langsung Disalurkan (Buat Disposisi Bidang II)</a></li>
+                                                     {% endif %}
                                                  </ul>
                                              </div>
                                          {% else %}

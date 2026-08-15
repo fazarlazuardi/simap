@@ -140,8 +140,8 @@
                                                       <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=survei" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="Jadwalkan Survei Lapangan Kelayakan Bantuan Mustahik">
                                                           <i class="bi bi-geo-alt-fill me-1"></i> 📋 Survei Lapangan
                                                       </a>
-                                                      <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=penyaluran" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Proses Pentasyarufan / Langsung Disalurkan Direct">
-                                                          <i class="bi bi-box-seam-fill me-1"></i> 🎁 Langsung Disalurkan
+                                                      <a href="{% url 'reports:create' dispo.pk %}?type=penyaluran" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Input LHP Penyaluran Direct / Langsung Disalurkan">
+                                                          <i class="bi bi-box-seam-fill me-1"></i> 🎁 Langsung Disalurkan (Input LHP)
                                                       </a>
                                                   </div>
                                               {% else %}

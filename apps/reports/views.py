@@ -410,10 +410,20 @@ def report_create(request, dispo_pk):
         messages.success(request, f"Laporan Hasil '{report_number}' dengan {len(files)} berkas lampiran berhasil disimpan.")
         return redirect('reports:detail', pk=report.pk)
         
+    report_type = request.GET.get('type') or request.GET.get('st_type')
+    default_title = ""
+    default_content = ""
+    if report_type == 'penyaluran' and dispo and dispo.archive:
+        default_title = f"Laporan Hasil Penyaluran Bantuan Mustahik: {dispo.archive.title}"
+        default_content = f"Telah dilaksanakan penyaluran / pentasyarufan bantuan BAZNAS secara langsung (pentasyarufan direct) untuk permohonan '{dispo.archive.title}'."
+
     default_report_number = NumberingService.get_default_number('report')
     return render(request, 'reports/create.html', {
         'dispo': dispo,
         'default_report_number': default_report_number,
+        'default_title': default_title,
+        'default_content': default_content,
+        'is_penyaluran_direct': (report_type == 'penyaluran'),
     })
 
 @login_required

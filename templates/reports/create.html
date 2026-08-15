@@ -39,13 +39,13 @@
                     <label for="title" class="form-label fw-bold">Judul Laporan <span class="text-danger">*</span></label>
                     <input type="text" class="form-control custom-input" id="title" name="title" required
                            placeholder="Judul ringkas hasil kegiatan"
-                           value="{{ report.title|default:'' }}">
+                           value="{% if report %}{{ report.title }}{% else %}{{ default_title|default:'' }}{% endif %}">
                 </div>
 
                 <div class="mb-4">
-                    <label for="content" class="form-label fw-bold">Uraian / Ringkasan Hasil <span class="text-danger">*</span></label>
+                    <label for="content" class="form-label fw-bold">Uraian / Ringkasan Hasil Penyaluran <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="content" name="content" rows="5" required
-                              placeholder="Jelaskan secara detail tindakan yang telah dilakukan...">{{ report.content|default:'' }}</textarea>
+                              placeholder="Jelaskan secara detail tindakan yang telah dilakukan...">{% if report %}{{ report.content }}{% else %}{{ default_content|default:'' }}{% endif %}</textarea>
                 </div>
 
                 <!-- Bagian Lampiran -->
