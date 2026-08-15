@@ -1,3 +1,4 @@
+from django.db.models import Q
 from notifications.models import Notification
 from users.models import AppConfig
 from archives.models import Archive
@@ -25,7 +26,9 @@ def notification_context(request):
 
             pending_st_sppd_count = SuratTugas.objects.filter(
                 sppd_records__isnull=True
-            ).exclude(disposition__archive__status__in=['selesai', 'ditolak']).count()
+            ).filter(
+                Q(disposition__isnull=True) | ~Q(disposition__archive__status__in=['selesai', 'ditolak'])
+            ).count()
 
         pending_waka4_dispo_count = 0
         if is_waka_4_active or is_kabid_4_active or (request.user.is_superadmin and not active_pov):
