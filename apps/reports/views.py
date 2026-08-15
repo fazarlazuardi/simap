@@ -84,6 +84,22 @@ def report_index(request):
             'agendas'
         ).all().order_by('-updated_at')
 
+    # Filter khusus Waka II, Kabid II & Staf Bidang II / POV Waka II
+    active_pov = request.session.get('active_pov')
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
+    if not is_waka_or_kabid_2:
+        emp = getattr(request.user, 'employee', None)
+        if emp and emp.dept_relation and ('pendistribusian' in emp.dept_relation.name.lower() or 'bidang ii' in emp.dept_relation.name.lower() or 'bidang 2' in emp.dept_relation.name.lower()):
+            is_waka_or_kabid_2 = True
+
+    if is_waka_or_kabid_2:
+        from services.workflows.workflow_engine import WorkflowEngine
+        archives = archives.filter(
+            Q(verified_by_kabid=True) | ~Q(status='baru')
+        )
+        bantuan_ids = [arc.id for arc in archives if WorkflowEngine.is_bantuan(arc)]
+        archives = archives.filter(id__in=bantuan_ids)
+
     if query:
         archives = archives.filter(
             Q(archive_number__icontains=query) |
@@ -817,6 +833,13 @@ def rekap_bantuan_view(request):
         year = int(year_param) if year_param and year_param.isdigit() else None
         month = int(month_param) if month_param and month_param.isdigit() else None
 
+    active_pov = request.session.get('active_pov')
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
+    if not is_waka_or_kabid_2:
+        emp = getattr(request.user, 'employee', None)
+        if emp and emp.dept_relation and ('pendistribusian' in emp.dept_relation.name.lower() or 'bidang ii' in emp.dept_relation.name.lower() or 'bidang 2' in emp.dept_relation.name.lower()):
+            is_waka_or_kabid_2 = True
+
     bantuan_analytics = ReportingService.get_bantuan_analytics(year=year, month=month, all_time=all_time)
     
     return render(request, 'reports/rekap_bantuan.html', {
@@ -828,6 +851,7 @@ def rekap_bantuan_view(request):
         'selected_year': year or timezone.now().year,
         'selected_month': month or timezone.now().month,
         'all_time': all_time,
+        'is_waka_or_kabid_2': is_waka_or_kabid_2,
         'month_names': [
             (1, 'Januari'), (2, 'Februari'), (3, 'Maret'), (4, 'April'),
             (5, 'Mei'), (6, 'Juni'), (7, 'Juli'), (8, 'Agustus'),

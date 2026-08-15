@@ -123,9 +123,10 @@
     </div>
 </div>
 
-<!-- 4 KPI Executive Summary Cards -->
+<!-- KPI Executive Summary Cards -->
 <div class="row g-3 mb-4">
-    <!-- Card 1: Total Dokumen -->
+    {% if not is_waka_or_kabid_2 %}
+    <!-- Card 1: Total Dokumen (Hanya untuk Superadmin/Umum) -->
     <div class="col-xl-3 col-md-6">
         <div class="card rekap-card rounded-4 p-3 border-0 shadow-sm h-100 position-relative overflow-hidden">
             <div class="position-absolute top-0 end-0 p-3 opacity-10">
@@ -143,9 +144,10 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Card 2: Permohonan Bantuan -->
-    <div class="col-xl-3 col-md-6">
+    <div class="{% if is_waka_or_kabid_2 %}col-md-6{% else %}col-xl-3 col-md-6{% endif %}">
         <div class="card rekap-card rounded-4 p-3 border-0 shadow-sm h-100 position-relative overflow-hidden">
             <div class="position-absolute top-0 end-0 p-3 opacity-10">
                 <i class="bi bi-handbag-fill display-4 text-success"></i>
@@ -165,7 +167,8 @@
         </div>
     </div>
 
-    <!-- Card 3: Dokumen Umum -->
+    {% if not is_waka_or_kabid_2 %}
+    <!-- Card 3: Dokumen Umum (Hanya untuk Superadmin/Umum) -->
     <div class="col-xl-3 col-md-6">
         <div class="card rekap-card rounded-4 p-3 border-0 shadow-sm h-100 position-relative overflow-hidden">
             <div class="position-absolute top-0 end-0 p-3 opacity-10">
@@ -185,9 +188,10 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Card 4: Progress Penyelesaian -->
-    <div class="col-xl-3 col-md-6">
+    <!-- Card 4: Progress Penyelesaian Bantuan / Total -->
+    <div class="{% if is_waka_or_kabid_2 %}col-md-6{% else %}col-xl-3 col-md-6{% endif %}">
         <div class="card rekap-card rounded-4 p-3 border-0 shadow-sm h-100 position-relative overflow-hidden">
             <div class="position-absolute top-0 end-0 p-3 opacity-10">
                 <i class="bi bi-check-circle-fill display-4 text-warning"></i>
@@ -199,11 +203,11 @@
                 <div class="w-100">
                     <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Status Penyelesaian</span>
                     <div class="d-flex align-items-baseline gap-2">
-                        <h3 class="fw-extrabold mb-0 text-dark">{{ analytics.total_completed|default:0 }}</h3>
-                        <span class="small fw-bold text-success">({{ analytics.completion_rate }}% Selesai)</span>
+                        <h3 class="fw-extrabold mb-0 text-dark">{% if is_waka_or_kabid_2 %}{{ analytics.bantuan_completed|default:0 }}{% else %}{{ analytics.total_completed|default:0 }}{% endif %}</h3>
+                        <span class="small fw-bold text-success">({% if is_waka_or_kabid_2 %}{{ analytics.bantuan_pct|default:0 }}{% else %}{{ analytics.completion_rate }}{% endif %}% Selesai)</span>
                     </div>
                     <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
-                        <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: {{ analytics.completion_rate }}%" aria-valuenow="{{ analytics.completion_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: {% if is_waka_or_kabid_2 %}{{ analytics.bantuan_pct|default:0 }}{% else %}{{ analytics.completion_rate }}{% endif %}%" aria-valuenow="{% if is_waka_or_kabid_2 %}{{ analytics.bantuan_pct|default:0 }}{% else %}{{ analytics.completion_rate }}{% endif %}" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
             </div>
@@ -211,15 +215,15 @@
     </div>
 </div>
 
-<!-- DUA GRAFIK ANALITIK: BANTUAN & DOKUMEN UMUM -->
+<!-- GRAFIK ANALITIK: BANTUAN MUSTAHIK -->
 <div class="row g-4 mb-4">
     <!-- GRAFIK 1: PENANGANAN BANTUAN -->
-    <div class="col-lg-6">
+    <div class="{% if is_waka_or_kabid_2 %}col-lg-12{% else %}col-lg-6{% endif %}">
         <div class="card rekap-card rounded-4 shadow-sm h-100">
             <div class="card-header rekap-header py-3 d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="fw-bold mb-0 text-success">
-                        <i class="bi bi-bar-chart-fill me-2"></i>1. Distibusi Permohonan Bantuan (Mustahik)
+                        <i class="bi bi-bar-chart-fill me-2"></i>Distribusi Permohonan Bantuan (Mustahik)
                     </h6>
                     <small class="text-secondary">Sub-kategori Berobat, Beasiswa, Gharimin, RTLH, Sembako, dll.</small>
                 </div>
@@ -231,13 +235,14 @@
         </div>
     </div>
 
-    <!-- GRAFIK 2: PENANGANAN DOKUMEN UMUM -->
+    {% if not is_waka_or_kabid_2 %}
+    <!-- GRAFIK 2: PENANGANAN DOKUMEN UMUM (Hanya untuk Superadmin/Umum) -->
     <div class="col-lg-6">
         <div class="card rekap-card rounded-4 shadow-sm h-100">
             <div class="card-header rekap-header py-3 d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="fw-bold mb-0 text-primary">
-                        <i class="bi bi-bar-chart-line-fill me-2"></i>2. Distribusi Tindak Lanjut Dokumen Umum
+                        <i class="bi bi-bar-chart-line-fill me-2"></i>Distribusi Tindak Lanjut Dokumen Umum
                     </h6>
                     <small class="text-secondary">Sub-kategori Audiensi, Undangan, Kerjasama, Narasumber, Nota Dinas, dll.</small>
                 </div>
@@ -248,14 +253,15 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 
 <!-- TABEL RINCIAN MASTER DATA PENANGANAN -->
 <div class="card rekap-card rounded-4 p-4 shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-table text-success me-2"></i>Rincian Master Data Penanganan</h5>
-            <small class="text-secondary">Daftar dokumen terkini dengan filter status alur kerja dan klasifikasi bidang.</small>
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-table text-success me-2"></i>Rincian Master Data Penanganan Bantuan</h5>
+            <small class="text-secondary">Daftar permohonan bantuan mustahik dengan alur kerja dan verifikasi Bidang II.</small>
         </div>
         <ul class="nav nav-pills m-0" id="rekapTab" role="tablist">
             <li class="nav-item">
@@ -263,11 +269,13 @@
                     <i class="bi bi-heart-pulse me-2"></i>Bantuan ({{ analytics.total_bantuan }})
                 </button>
             </li>
+            {% if not is_waka_or_kabid_2 %}
             <li class="nav-item ms-2">
                 <button class="nav-link fw-bold px-4" id="umum-tab" data-bs-toggle="pill" data-bs-target="#umum-pane" type="button">
                     <i class="bi bi-envelope-paper me-2"></i>Dokumen Umum ({{ analytics.total_umum }})
                 </button>
             </li>
+            {% endif %}
         </ul>
     </div>
 
