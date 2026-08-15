@@ -188,14 +188,18 @@
     });
 
     function openCreateAccountModal(empPk, empNip, empName) {
-        var form = document.getElementById('globalCreateAccountForm');
-        form.action = "/users/employees/" + empPk + "/create-user/";
-        
-        document.getElementById('globalCreateAccountModalTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2 text-success"></i>Buat Akun untuk ' + empName;
-        document.getElementById('modalEmpInfo').value = empNip + " - " + empName;
-        
-        var bsModal = new bootstrap.Modal(document.getElementById('globalCreateAccountModal'));
-        bsModal.show();
+        var modalEl = document.getElementById('globalCreateAccountModal');
+        if (modalEl) {
+            document.body.appendChild(modalEl);
+            var form = document.getElementById('globalCreateAccountForm');
+            form.action = "/users/employees/" + empPk + "/create-user/";
+            
+            document.getElementById('globalCreateAccountModalTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2 text-success"></i>Buat Akun untuk ' + empName;
+            document.getElementById('modalEmpInfo').value = empNip + " - " + empName;
+            
+            var bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            bsModal.show();
+        }
     }
 
     function confirmDeleteEmp(id, name) {

@@ -521,6 +521,14 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
 
+        /* Universal Fix for Bootstrap Modal Stacking Context & Backdrop Overlap */
+        .modal-backdrop {
+            z-index: 1060 !important;
+        }
+        .modal {
+            z-index: 1070 !important;
+        }
+
         /* Buttons */
         .btn-primary {
             background-color: var(--primary);
