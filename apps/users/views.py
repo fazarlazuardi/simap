@@ -137,9 +137,9 @@ def dashboard_index(request):
                 step_idx = 5
             elif s == 'proses':
                 step_idx = 4
-            elif s == 'didisposisikan':
+            elif s in ['didisposisikan', 'disposisi_pimpinan', 'didisposisi_ketua', 'meja_waka4', 'disposisi_waka'] or arc.dispositions.exists():
                 step_idx = 3
-            elif s in ['verifikasi_kabid', 'terverifikasi']:
+            elif arc.verified_by_kabid or s in ['verifikasi_kabid', 'terverifikasi']:
                 step_idx = 2
             else:
                 step_idx = 1 # Masuk
@@ -158,9 +158,9 @@ def dashboard_index(request):
                 step_idx = 5 # Menghadiri / Tindak Lanjut
             elif s == 'proses':
                 step_idx = 4
-            elif s == 'didisposisikan':
+            elif s in ['didisposisikan', 'disposisi_pimpinan', 'didisposisi_ketua', 'meja_waka4', 'disposisi_waka'] or arc.dispositions.exists():
                 step_idx = 3
-            elif s in ['verifikasi_kabid', 'terverifikasi']:
+            elif arc.verified_by_kabid or s in ['verifikasi_kabid', 'terverifikasi']:
                 step_idx = 2
             else:
                 step_idx = 1 # Masuk
