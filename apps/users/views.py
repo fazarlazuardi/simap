@@ -17,9 +17,45 @@ from services.integrations.gateway_service import WhatsAppService
 
 def superuser_only(user): return user.is_superuser
 
+def get_active_pov_role(request):
+    if request.user.is_authenticated and request.user.is_superadmin:
+        return request.session.get('active_pov', 'admin')
+    if getattr(request.user, 'is_waka_2', False):
+        return 'waka_2'
+    if getattr(request.user, 'is_kabid_2', False):
+        return 'kabid_2'
+    return 'admin' if getattr(request.user, 'is_superadmin', False) else 'staff'
+
+@login_required
+def switch_pov(request):
+    """
+    Endpoint untuk Superadmin beralih mode simulasi Tampilan (POV Switcher)
+    ke peran Waka II, Kabid II, atau Reset ke Default.
+    """
+    if not request.user.is_superadmin:
+        messages.error(request, "Hanya Superadmin yang berhak mengakses simulasi POV Tampilan.")
+        return redirect('users:dashboard')
+
+    target_pov = request.GET.get('role', 'admin').strip().lower()
+    allowed_roles = ['admin', 'waka_2', 'kabid_2']
+    
+    if target_pov in allowed_roles:
+        if target_pov == 'admin':
+            request.session.pop('active_pov', None)
+            messages.success(request, "Tampilan berhasil dikembalikan ke Superadmin IT Default.")
+        else:
+            request.session['active_pov'] = target_pov
+            messages.info(request, f"Mode Simulasi POV Aktif: Anda sedang melihat sistem dari perspektif {target_pov.replace('_', ' ').upper()}.")
+    else:
+        messages.error(request, "Pilihan Peran POV tidak valid.")
+
+    return redirect(request.META.get('HTTP_REFERER') or 'users:dashboard')
+
 @login_required
 def dashboard_index(request):
     today = timezone.now().date()
+    active_pov = get_active_pov_role(request)
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
 
     # 1. Stat Counters
     surat_masuk_count = Archive.objects.filter(archive_type='surat_masuk').count()
@@ -36,10 +72,10 @@ def dashboard_index(request):
     total_archives = Archive.objects.count()
 
     # Disposisi Pending
-    if request.user.is_superadmin:
+    if request.user.is_superadmin and not is_waka_or_kabid_2:
         pending_dispositions = Disposition.objects.filter(Q(status='baru') | Q(status='terisi')).count()
-    elif request.user.is_pimpinan or request.user.is_kabid:
-        pending_dispositions = Disposition.objects.filter(Q(sender=request.user, status='baru') | Q(sender=request.user, status='terisi')).distinct().count()
+    elif request.user.is_pimpinan or request.user.is_kabid or is_waka_or_kabid_2:
+        pending_dispositions = Disposition.objects.filter(Q(status='baru') | Q(status='terisi')).distinct().count()
     else:
         pending_dispositions = Disposition.objects.filter(forwarded_to__user_account=request.user, status='terverifikasi').distinct().count()
 
@@ -52,7 +88,6 @@ def dashboard_index(request):
     tracker_proposals = Archive.objects.select_related('category', 'uploaded_by').prefetch_related('dispositions__sppd_list', 'dispositions__report').exclude(status='ditolak').order_by('-updated_at')
 
     # Khusus Waka II & Kabid II: HANYA menampilkan Dokumen Bantuan yang SUDAH diverifikasi Kabid IV
-    is_waka_or_kabid_2 = getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
     if is_waka_or_kabid_2:
         from services.workflows.workflow_engine import WorkflowEngine
         tracker_proposals = tracker_proposals.filter(
@@ -171,7 +206,17 @@ def dashboard_index(request):
         wa_health = WhatsAppService.check_health()
         cache.set('wa_health', wa_health, 60)
 
+    pov_names = {
+        'admin': 'Superadmin IT (Default)',
+        'waka_2': 'Waka II (Pendistribusian & Bantuan Mustahik)',
+        'kabid_2': 'Kabid II (Pendistribusian & Pendayagunaan Mustahik)',
+        'staff': 'Staf Pelaksana Amil'
+    }
+    active_pov_name = pov_names.get(active_pov, 'Superadmin IT')
+
     context = {
+        'active_pov': active_pov,
+        'active_pov_name': active_pov_name,
         'surat_masuk_count': surat_masuk_count,
         'proposal_aktif_count': proposal_aktif_count,
         'today_agendas_count': today_agendas_count,

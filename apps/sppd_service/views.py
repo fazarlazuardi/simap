@@ -44,8 +44,9 @@ def sppd_list(request):
 
     sppds = sppds.order_by('-created_at')
 
-    # Khusus Waka II & Kabid II: filter daftar SPPD & kandidat disposisi SPPD (Hanya Bantuan Terverifikasi Kabid IV)
-    is_waka_or_kabid_2 = getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
+    # Khusus Waka II & Kabid II / POV Waka II: filter daftar SPPD & kandidat disposisi SPPD (Hanya Bantuan Terverifikasi Kabid IV)
+    active_pov = request.session.get('active_pov')
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
     if is_waka_or_kabid_2:
         from services.workflows.workflow_engine import WorkflowEngine
         valid_sppd_ids = [

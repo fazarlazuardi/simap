@@ -11,14 +11,10 @@ from sppd_service.views import determine_smart_purpose
 
 
 
-def get_pending_dispositions_qs(user=None):
+def get_pending_dispositions_qs(user=None, request=None):
     """
     Mengambil daftar disposisi yang SIAP DIBUATKAN SURAT TUGAS.
-    Cerdas mendeteksi:
-    - Dokumen Bantuan (proposal / permohonan_bantuan): Memiliki 2 tahap (Tahap 1 Survei & Tahap 2 Penyaluran).
-      Akan tetap berada di daftar kandidat hingga diterbitkan 2 Surat Tugas (atau status selesai/ditolak).
-    - Dokumen Umum: Berada di daftar kandidat jika belum memiliki Surat Tugas.
-    - Untuk Waka II & Kabid II: HANYA menampilkan Dokumen Bantuan yang SUDAH DIVERIFIKASI Kabid IV.
+    - Untuk Waka II & Kabid II / POV Waka II: HANYA menampilkan Dokumen Bantuan yang SUDAH DIVERIFIKASI Kabid IV.
     """
     from services.workflows.workflow_engine import WorkflowEngine
 
@@ -31,7 +27,10 @@ def get_pending_dispositions_qs(user=None):
         .distinct()
     )
 
-    if user and (getattr(user, 'is_waka_2', False) or getattr(user, 'is_kabid_2', False)):
+    active_pov = request.session.get('active_pov') if request else None
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or (user and (getattr(user, 'is_waka_2', False) or getattr(user, 'is_kabid_2', False)))
+
+    if is_waka_or_kabid_2:
         qs = qs.filter(
             Q(archive__verified_by_kabid=True) | ~Q(archive__status='baru')
         )
@@ -45,8 +44,8 @@ def get_pending_dispositions_qs(user=None):
         if arch:
             is_bantuan = WorkflowEngine.is_bantuan(arch)
 
-        # Untuk user Bidang II, wajib dokumen bantuan
-        if user and (getattr(user, 'is_waka_2', False) or getattr(user, 'is_kabid_2', False)) and not is_bantuan:
+        # Untuk user Bidang II / POV Waka II, wajib dokumen bantuan
+        if is_waka_or_kabid_2 and not is_bantuan:
             continue
         
         max_st = 2 if is_bantuan else 1
@@ -66,13 +65,15 @@ def get_pending_dispositions_qs(user=None):
 def surat_list(request):
     surat_list = SuratTugas.objects.select_related('disposition__archive', 'created_by').prefetch_related('pegawai_ditugaskan').order_by('-created_at')
     
-    # Khusus Waka II & Kabid II: filter daftar Surat Tugas agar hanya menampilkan Surat Tugas terkait Bantuan
-    if getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False):
+    # Khusus Waka II & Kabid II / POV Waka II: filter daftar Surat Tugas
+    active_pov = request.session.get('active_pov')
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
+    if is_waka_or_kabid_2:
         from services.workflows.workflow_engine import WorkflowEngine
         valid_st_ids = [st.id for st in surat_list if st.disposition and st.disposition.archive and WorkflowEngine.is_bantuan(st.disposition.archive)]
         surat_list = surat_list.filter(id__in=valid_st_ids)
 
-    dispositions_pending_st = get_pending_dispositions_qs(request.user)
+    dispositions_pending_st = get_pending_dispositions_qs(request.user, request=request)
 
     return render(request, 'surat_tugas/list.html', {
         'surat_list': surat_list,

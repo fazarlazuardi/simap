@@ -57,24 +57,26 @@ def _resolve_sender_label(user, stage):
 @login_required
 def disposition_list(request):
     current_emp = getattr(request.user, 'employee', None)
-    if request.user.is_superadmin:
+    active_pov = request.session.get('active_pov')
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
+
+    if request.user.is_superadmin and not is_waka_or_kabid_2:
         qs = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to').all()
-    elif request.user.is_pimpinan or request.user.is_kabid:
-        qs = Disposition.objects.filter(
-            Q(sender=request.user)
-        ).select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to')
-        if current_emp:
-            qs |= Disposition.objects.filter(
-                Q(forwarded_to=current_emp) | Q(waka_forwarded_to=current_emp)
+    elif request.user.is_pimpinan or request.user.is_kabid or is_waka_or_kabid_2:
+        qs = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to').all()
+        if current_emp and not is_waka_or_kabid_2:
+            qs = Disposition.objects.filter(
+                Q(sender=request.user) | Q(forwarded_to=current_emp) | Q(waka_forwarded_to=current_emp)
+            ).select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to')
+
+        # Khusus Waka II & Kabid II / POV Waka II: HANYA mengambil Dokumen Bantuan Mustahik yang SUDAH diverifikasi Kabid IV
+        if is_waka_or_kabid_2:
+            from services.workflows.workflow_engine import WorkflowEngine
+            qs = qs.filter(
+                Q(archive__verified_by_kabid=True) | ~Q(archive__status='baru')
             )
-            # Khusus Waka II & Kabid II: HANYA mengambil Dokumen Bantuan Mustahik yang SUDAH diverifikasi Kabid IV
-            if getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False):
-                from services.workflows.workflow_engine import WorkflowEngine
-                qs = qs.filter(
-                    Q(archive__verified_by_kabid=True) | ~Q(archive__status='baru')
-                )
-                valid_ids = [d.id for d in qs if d.archive and WorkflowEngine.is_bantuan(d.archive)]
-                qs = qs.filter(id__in=valid_ids)
+            valid_ids = [d.id for d in qs if d.archive and WorkflowEngine.is_bantuan(d.archive)]
+            qs = qs.filter(id__in=valid_ids)
         qs = qs.distinct()
     else:
         qs = Disposition.objects.none()

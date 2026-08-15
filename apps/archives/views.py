@@ -44,7 +44,9 @@ def archive_list(request):
         archives = archives.filter(archive_type=archive_type_filter)
 
     # Khusus Waka II & Kabid II: hanya tampilkan Dokumen Bantuan Mustahik yang SUDAH diverifikasi Kabid IV
-    if getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False):
+    active_pov = request.session.get('active_pov')
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
+    if is_waka_or_kabid_2:
         from services.workflows.workflow_engine import WorkflowEngine
         archives = archives.filter(
             Q(verified_by_kabid=True) | ~Q(status='baru')
