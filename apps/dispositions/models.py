@@ -257,3 +257,9 @@ class Disposition(models.Model):
                     send_wa_message.delay(p, message, metadata={'disposition_id': self.pk})
         except Exception:
             pass
+
+    def __str__(self):
+        num = self.disposition_number or f"DISP-{self.pk:03d}"
+        if self.archive and (self.archive.archive_number or self.archive.title):
+            return f"{num} ({self.archive.archive_number or self.archive.title[:30]})"
+        return num

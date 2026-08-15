@@ -110,29 +110,29 @@ class SuratTugasForm(forms.ModelForm):
                 self.fields['disposition'].initial = initial_dispo
             
             def get_disposition_perihal(obj):
+                num_str = obj.disposition_number or f"DISP-{obj.pk:03d}"
                 perihal_val = None
                 try:
                     archive_obj = getattr(obj, 'archive', None)
                     if archive_obj:
                         perihal_val = (
-                            getattr(archive_obj, 'perihal', None) or
+                            getattr(archive_obj, 'title', None) or
                             getattr(archive_obj, 'subject', None) or
-                            getattr(archive_obj, 'judul', None) or
-                            getattr(archive_obj, 'title', None)
+                            getattr(archive_obj, 'perihal', None) or
+                            getattr(archive_obj, 'judul', None)
                         )
                 except Exception:
-                    # Mencegah error jika relasi archive terputus (DoesNotExist)
                     pass
 
                 if not perihal_val:
                     perihal_val = (
+                        getattr(obj, 'note', None) or
                         getattr(obj, 'perihal', None) or
-                        getattr(obj, 'subject', None) or
-                        getattr(obj, 'judul', None)
+                        getattr(obj, 'subject', None)
                     )
 
-                text_display = perihal_val if perihal_val else f"Disposisi ID: {obj.pk}"
-                return f"Disposisi #{obj.id} — {text_display}"
+                text_display = perihal_val[:60] if perihal_val else f"Disposisi {num_str}"
+                return f"{num_str} — {text_display}"
 
             self.fields['disposition'].label_from_instance = get_disposition_perihal
 
