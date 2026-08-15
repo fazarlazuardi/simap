@@ -84,7 +84,7 @@
                         {% if user %}
                         <span class="badge bg-success rounded-pill px-3">Sudah Ada</span>
                         {% else %}
-                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#createAccModalList{{ emp.pk }}">
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm fw-bold" onclick="openCreateAccountModal('{{ emp.pk }}', '{{ emp.nip|escapejs }}', '{{ emp.full_name|escapejs }}')">
                             <i class="bi bi-person-plus me-1"></i> Buat Akun
                         </button>
                         {% endif %}
@@ -95,59 +95,15 @@
                     </td>
                     <td class="text-end">
                         {% if not user %}
-                        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#createAccModalList{{ emp.pk }}">
+                        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-bold" onclick="openCreateAccountModal('{{ emp.pk }}', '{{ emp.nip|escapejs }}', '{{ emp.full_name|escapejs }}')">
                             <i class="bi bi-person-plus me-1"></i> Buat Akun
                         </button>
-
-                        <!-- Modal Buat Akun Direct -->
-                        <div class="modal fade text-start" id="createAccModalList{{ emp.pk }}" tabindex="-1" aria-labelledby="createAccModalListLabel{{ emp.pk }}" aria-hidden="true" style="z-index: 1080;">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-                                    <form method="post" action="{% url 'users:employee_create_user' emp.pk %}">
-                                        {% csrf_token %}
-                                        <div class="modal-header border-bottom-0 pb-0">
-                                            <h5 class="modal-title fw-bold text-dark" id="createAccModalListLabel{{ emp.pk }}"><i class="bi bi-person-plus-fill me-2 text-success"></i>Buat Akun untuk {{ emp.full_name }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body py-3">
-                                            <div class="mb-3">
-                                                <label class="form-label fw-semibold small text-secondary">NIP / Nama Pegawai</label>
-                                                <input type="text" class="form-control bg-light" value="{{ emp.nip }} - {{ emp.full_name }}" readonly>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label fw-semibold small text-dark">Username Akses SIMAP <span class="text-danger">*</span></label>
-                                                <input type="text" name="username" class="form-control" required placeholder="Contoh: waka2 / amil_sdm">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label fw-semibold small text-dark">Password <span class="text-danger">*</span></label>
-                                                <input type="password" name="password" class="form-control" required placeholder="Password unik">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label fw-semibold small text-dark">Role Akses SIMAP <span class="text-danger">*</span></label>
-                                                <select name="role" class="form-select" required style="height: 48px; border-radius: 10px;">
-                                                    <option value="" selected disabled>Pilih Peran Akun...</option>
-                                                    {% for code, name in roles %}
-                                                    <option value="{{ code }}">{{ name }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer border-top-0 pt-0">
-                                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                                            <button type="submit" class="btn btn-success fw-bold rounded-pill px-4">
-                                                <i class="bi bi-check-circle-fill me-1"></i> Terbitkan Akun
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
                         {% endif %}
                         <a href="{% url 'users:employee_detail' emp.pk %}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm">
                             <i class="bi bi-pencil me-1"></i> Edit
                         </a>
                         <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                                onclick="confirmDeleteEmp('{{ emp.pk }}', '{{ emp.full_name }}')">
+                                onclick="confirmDeleteEmp('{{ emp.pk }}', '{{ emp.full_name|escapejs }}')">
                             <i class="bi bi-trash me-1"></i> Hapus
                         </button>
                         <form id="delete-emp-form-{{ emp.pk }}" action="{% url 'users:employee_delete' emp.pk %}" method="post" class="d-none">
@@ -157,7 +113,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td class="text-center py-5 text-secondary">
+                    <td colspan="7" class="text-center py-5 text-secondary">
                         <i class="bi bi-people fs-1 d-block mb-3 opacity-25"></i>
                         Belum ada data pegawai yang terdaftar.
                     </td>
@@ -165,6 +121,52 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- GLOBAL MODAL BUAT AKUN PEGAWAI (DI LUAR TABEL) -->
+<div class="modal fade" id="globalCreateAccountModal" tabindex="-1" aria-labelledby="globalCreateAccountModalLabel" aria-hidden="true" style="z-index: 1085;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <form id="globalCreateAccountForm" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark" id="globalCreateAccountModalTitle">
+                        <i class="bi bi-person-plus-fill me-2 text-success"></i>Buat Akun Pegawai
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary">NIP / Nama Pegawai</label>
+                        <input type="text" id="modalEmpInfo" class="form-control bg-light" value="" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">Username Akses SIMAP <span class="text-danger">*</span></label>
+                        <input type="text" name="username" id="modalUsername" class="form-control" required placeholder="Contoh: waka2 / amil_sdm">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">Password <span class="text-danger">*</span></label>
+                        <input type="password" name="password" class="form-control" required placeholder="Password unik">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">Role Akses SIMAP <span class="text-danger">*</span></label>
+                        <select name="role" class="form-select" required style="height: 48px; border-radius: 10px;">
+                            <option value="" selected disabled>Pilih Peran Akun...</option>
+                            {% for code, name in roles %}
+                            <option value="{{ code }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4">
+                        <i class="bi bi-check-circle-fill me-1"></i> Terbitkan Akun
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -184,6 +186,17 @@
             ]
         });
     });
+
+    function openCreateAccountModal(empPk, empNip, empName) {
+        var form = document.getElementById('globalCreateAccountForm');
+        form.action = "/users/employees/" + empPk + "/create-user/";
+        
+        document.getElementById('globalCreateAccountModalTitle').innerHTML = '<i class="bi bi-person-plus-fill me-2 text-success"></i>Buat Akun untuk ' + empName;
+        document.getElementById('modalEmpInfo').value = empNip + " - " + empName;
+        
+        var bsModal = new bootstrap.Modal(document.getElementById('globalCreateAccountModal'));
+        bsModal.show();
+    }
 
     function confirmDeleteEmp(id, name) {
         Swal.fire({
