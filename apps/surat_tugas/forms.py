@@ -8,6 +8,13 @@ from services.integrations.gateway_service import WhatsAppService
 
 logger = logging.getLogger(__name__)
 
+from django.db.models import Q
+
+BIDANG2_PIMPINAN_CHOICES = [
+    ("Drs. Achmad Nawawi, M.Si|Ketua BAZNAS", "Drs. Achmad Nawawi, M.Si (Ketua BAZNAS)"),
+    ("Andi Irawan, S.Pd.I, M.Pd|Wakil Ketua II", "Andi Irawan, S.Pd.I, M.Pd (Wakil Ketua II - Pendistribusian & Pendayagunaan)"),
+]
+
 PIMPINAN_CHOICES = [
     ("Drs. Achmad Nawawi, M.Si|Ketua BAZNAS", "Drs. Achmad Nawawi, M.Si (Ketua BAZNAS)"),
     ("Haris Syarif Mansyur, S.H, M.H|Wakil Ketua I", "Haris Syarif Mansyur, S.H, M.H (Wakil Ketua I - Pengumpulan)"),
@@ -76,8 +83,20 @@ class SuratTugasForm(forms.ModelForm):
         return hari
 
     def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         
+        is_waka_or_kabid_2 = False
+        if request:
+            active_pov = request.session.get('active_pov')
+            if active_pov in ['waka_2', 'kabid_2']:
+                is_waka_or_kabid_2 = True
+            elif request.user and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)):
+                is_waka_or_kabid_2 = True
+
+        if is_waka_or_kabid_2 and 'pilihan_penandatangan' in self.fields:
+            self.fields['pilihan_penandatangan'].choices = BIDANG2_PIMPINAN_CHOICES
+
         if not self.instance.pk and 'nomor_surat' in self.fields:
             now = datetime.datetime.now()
             tahun_ini = now.year
@@ -90,7 +109,18 @@ class SuratTugasForm(forms.ModelForm):
             self.initial['nomor_surat'] = f"ST/{str(surat_ke).zfill(3)}/BAZNAS-TGN/{bulan_romawi}/{tahun_ini}"
 
         if 'pegawai_ditugaskan' in self.fields:
-            self.fields['pegawai_ditugaskan'].queryset = Employee.objects.all().select_related('dept_relation').order_by('full_name')
+            if is_waka_or_kabid_2:
+                b2_qs = Employee.objects.filter(
+                    Q(dept_relation__name__icontains='bidang ii') |
+                    Q(dept_relation__name__icontains='bidang 2') |
+                    Q(dept_relation__name__icontains='pendistribusian') |
+                    Q(position__icontains='kabid ii') |
+                    Q(position__icontains='waka ii')
+                ).select_related('dept_relation').order_by('full_name')
+                self.fields['pegawai_ditugaskan'].queryset = b2_qs
+            else:
+                self.fields['pegawai_ditugaskan'].queryset = Employee.objects.all().select_related('dept_relation').order_by('full_name')
+
             self.fields['pegawai_ditugaskan'].required = False
             self.fields['pegawai_ditugaskan'].label_from_instance = lambda obj: (
                 f"{obj.full_name} — {getattr(obj, 'position', 'Amil')} "

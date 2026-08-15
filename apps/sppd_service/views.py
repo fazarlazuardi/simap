@@ -131,6 +131,8 @@ def sppd_list(request):
     sppd_chart_labels = [item['employee'].full_name for item in sppd_recap[:7]]
     sppd_chart_series = [item['total_sppd'] for item in sppd_recap[:7]]
 
+    can_create_sppd = not (is_waka_or_kabid_2 and not getattr(request.user, 'is_superadmin', False))
+
     return render(request, 'sppd/list.html', {
         'page_obj': page_obj_sppd,
         'page_obj_dispo': page_obj_dispo,
@@ -144,6 +146,8 @@ def sppd_list(request):
         'sppd_recap': sppd_recap,
         'sppd_chart_labels': sppd_chart_labels,
         'sppd_chart_series': sppd_chart_series,
+        'can_create_sppd': can_create_sppd,
+        'is_waka_or_kabid_2': is_waka_or_kabid_2,
         'filters': {
             'date_from': date_from or '',
             'date_to': date_to or '',
@@ -214,6 +218,13 @@ def determine_smart_purpose(archive=None, dispo=None, st=None):
 @staff_or_kabid_or_pimpinan_required
 def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
     from surat_tugas.models import SuratTugas
+
+    active_pov = request.session.get('active_pov')
+    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
+    if is_waka_or_kabid_2:
+        messages.warning(request, "Akun Bidang II hanya dapat melihat daftar SPPD & grafik. Pembuatan berkas SPPD dilakukan oleh Kabid IV / Front Office.")
+        return redirect('sppd_service:list')
+
     st = None
     if dispo_pk:
         dispo = get_object_or_404(Disposition, pk=dispo_pk)

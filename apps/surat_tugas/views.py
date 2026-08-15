@@ -112,7 +112,7 @@ def surat_create(request):
     )
 
     if request.method == 'POST':
-        form = SuratTugasForm(request.POST)
+        form = SuratTugasForm(request.POST, request=request)
         if form.is_valid():
             surat = form.save(commit=False)
             
@@ -138,7 +138,12 @@ def surat_create(request):
                 target_archive.updated_at = timezone.now()
                 target_archive.save(update_fields=['status', 'updated_at'])
 
-            messages.success(request, 'Surat Tugas berhasil dibuat.')
+            active_pov = request.session.get('active_pov')
+            is_b2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
+            if is_b2:
+                messages.success(request, f"Surat Tugas '{surat.nomor_surat}' berhasil terbit. Notifikasi pembuatan SPPD telah dikirimkan ke Kabid IV & Front Office.")
+            else:
+                messages.success(request, 'Surat Tugas berhasil dibuat.')
             
             if target_archive:
                 return redirect('archives:detail', pk=target_archive.pk)
@@ -151,7 +156,7 @@ def surat_create(request):
             initial_data['tentang'] = archive.title or archive.subject
             if hasattr(SuratTugas, 'archive'):
                 initial_data['archive'] = archive
-        form = SuratTugasForm(initial=initial_data)
+        form = SuratTugasForm(initial=initial_data, request=request)
 
     dispositions_pending_st = get_pending_dispositions_qs()
 
@@ -180,7 +185,7 @@ def surat_create_from_archive(request, pk):
     )
 
     if request.method == 'POST':
-        form = SuratTugasForm(request.POST)
+        form = SuratTugasForm(request.POST, request=request)
         if form.is_valid():
             surat = form.save(commit=False)
             if disposition and not surat.disposition:
@@ -198,10 +203,18 @@ def surat_create_from_archive(request, pk):
             archive.updated_at = timezone.now()
             archive.save(update_fields=['status', 'updated_at'])
 
-            messages.success(
-                request, 
-                f'Surat Tugas berhasil dicatat. Status dokumen {archive.archive_number} menjadi "Penugasan".'
-            )
+            active_pov = request.session.get('active_pov')
+            is_b2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
+            if is_b2:
+                messages.success(
+                    request, 
+                    f'Surat Tugas {surat.nomor_surat} berhasil terbit. Notifikasi penugasan SPPD dikirim ke Kabid IV & Front Office.'
+                )
+            else:
+                messages.success(
+                    request, 
+                    f'Surat Tugas berhasil dicatat. Status dokumen {archive.archive_number} menjadi "Penugasan".'
+                )
             return redirect('archives:detail', pk=archive.pk)
     else:
         initial_data = {}
@@ -219,7 +232,7 @@ def surat_create_from_archive(request, pk):
             smart_p, _ = determine_smart_purpose(archive=archive)
             initial_data['tentang'] = smart_p
             
-        form = SuratTugasForm(initial=initial_data)
+        form = SuratTugasForm(initial=initial_data, request=request)
 
     dispositions_pending_st = get_pending_dispositions_qs()
 
@@ -245,7 +258,7 @@ def surat_create_from_disposition(request, disposition_id):
     )
 
     if request.method == 'POST':
-        form = SuratTugasForm(request.POST)
+        form = SuratTugasForm(request.POST, request=request)
         if form.is_valid():
             surat = form.save(commit=False)
             surat.disposition = disposition
@@ -267,7 +280,12 @@ def surat_create_from_disposition(request, disposition_id):
                 target_archive.updated_at = timezone.now()
                 target_archive.save(update_fields=['status', 'updated_at'])
 
-            messages.success(request, 'Surat Tugas dari Disposisi berhasil dibuat.')
+            active_pov = request.session.get('active_pov')
+            is_b2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
+            if is_b2:
+                messages.success(request, f"Surat Tugas '{surat.nomor_surat}' berhasil terbit. Notifikasi pembuatan SPPD telah dikirimkan ke Kabid IV & Front Office.")
+            else:
+                messages.success(request, 'Surat Tugas dari Disposisi berhasil dibuat.')
             
             if target_archive:
                 return redirect('archives:detail', pk=target_archive.pk)
@@ -288,7 +306,7 @@ def surat_create_from_disposition(request, disposition_id):
         if archive and hasattr(SuratTugas, 'archive'):
             initial_data['archive'] = archive
             
-        form = SuratTugasForm(initial=initial_data)
+        form = SuratTugasForm(initial=initial_data, request=request)
 
     dispositions_pending_st = get_pending_dispositions_qs()
 
