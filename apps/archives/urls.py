@@ -11,6 +11,7 @@ urlpatterns = [
     path('<int:pk>/receipt/', views.archive_receipt, name='receipt'),
     path('<int:pk>/edit/', views.archive_edit, name='edit'),
     path('<int:pk>/verify/', views.archive_verify, name='verify'),
+    path('<int:pk>/forward-to-ketua/', views.forward_to_ketua, name='forward_to_ketua'),
     path('<int:pk>/reject/', views.archive_reject, name='reject'),
     path('<int:pk>/create-surat-tugas/', views.create_surat_tugas_view, name='create_surat_tugas'),
     path('<int:pk>/create-sppd/', views.create_sppd_view, name='create_sppd'),

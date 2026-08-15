@@ -337,7 +337,7 @@ def archive_detail(request, pk):
 @login_required
 def archive_verify(request, pk):
     """
-    Verifikasi Dokumen Berjenjang (Kabid IV -> Terverifikasi / Siap Disposisi Pimpinan).
+    Verifikasi Dokumen Berjenjang (Kabid IV -> Terverifikasi / Siap Diteruskan ke Ketua BAZNAS).
     BARU -> TERVERIFIKASI
     """
     if not (request.user.is_pimpinan or request.user.is_kabid or request.user.is_superadmin):
@@ -351,15 +351,45 @@ def archive_verify(request, pk):
             if not archive.archive_number:
                 archive.archive_number = NumberingService.generate_number('archive', {'archive_type': archive.archive_type})
             archive.status = 'terverifikasi'
+            archive.verified_by_kabid = True
             if note:
                 archive.status_note = f"Catatan Verifikasi: {note}"
             archive.save()
 
-            AuditService.log_action(request.user, f"Verifikasi Kabid IV / Pimpinan: {archive.archive_number}", request)
-            messages.success(request, f"Dokumen {archive.archive_number} Telah Diverifikasi, Siap Didisposisikan Pimpinan.")
+            AuditService.log_action(request.user, f"Verifikasi Kabid IV: {archive.archive_number}", request)
+            messages.success(request, f"Dokumen {archive.archive_number} Telah Diverifikasi Kabid IV, Siap Diteruskan ke Ketua BAZNAS.")
             return redirect('archives:detail', pk=archive.pk)
-        elif archive.status == 'terverifikasi':
-            messages.info(request, f"Dokumen {archive.archive_number} sudah dalam status Terverifikasi.")
+        elif archive.status in ['terverifikasi', 'disposisi_pimpinan']:
+            messages.info(request, f"Dokumen {archive.archive_number} sudah dalam status Terverifikasi Kabid IV.")
+            return redirect('archives:detail', pk=archive.pk)
+
+    return redirect('archives:list')
+
+@login_required
+def forward_to_ketua(request, pk):
+    """
+    Penerusan Dokumen Terverifikasi oleh Front Office / Kabid IV ke Ketua BAZNAS (Siap Disposisi Pimpinan).
+    TERVERIFIKASI -> DISPOSISI_PIMPINAN
+    """
+    if not (request.user.is_sdm or request.user.is_kabid or request.user.is_superadmin):
+        messages.error(request, "Akses ditolak. Penerusan ke Ketua BAZNAS hanya dilakukan oleh Front Office atau Kabid IV.")
+        return redirect('archives:detail', pk=pk)
+
+    if request.method == 'POST':
+        archive = get_object_or_404(Archive, pk=pk)
+        if archive.status == 'terverifikasi':
+            archive.status = 'disposisi_pimpinan'
+            archive.verified_by_kabid = True
+            archive.save(update_fields=['status', 'verified_by_kabid', 'updated_at'])
+
+            AuditService.log_action(request.user, f"Teruskan Dokumen ke Ketua BAZNAS: {archive.archive_number or archive.title}", request)
+            messages.success(request, f"Dokumen {archive.archive_number or archive.title} berhasil diteruskan ke Meja Ketua BAZNAS untuk didisposisikan.")
+            return redirect('archives:detail', pk=archive.pk)
+        elif archive.status == 'disposisi_pimpinan':
+            messages.info(request, f"Dokumen {archive.archive_number or archive.title} sudah berada di Meja Ketua BAZNAS.")
+            return redirect('archives:detail', pk=archive.pk)
+        else:
+            messages.warning(request, f"Dokumen belum diverifikasi Kabid IV.")
             return redirect('archives:detail', pk=archive.pk)
 
     return redirect('archives:list')

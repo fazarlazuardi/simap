@@ -108,9 +108,9 @@ def disposition_list(request):
 
     users = User.objects.filter(is_active_account=True).order_by('username')
 
-    # Archives verified but have no disposition yet
+    # Archives verified/forwarded but have no disposition yet
     archives_verified_no_dispo = Archive.objects.filter(
-        status='terverifikasi'
+        status__in=['terverifikasi', 'disposisi_pimpinan']
     ).exclude(
         dispositions__isnull=False
     ).select_related('category', 'uploaded_by').order_by('-updated_at')

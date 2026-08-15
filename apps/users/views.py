@@ -71,11 +71,11 @@ def dashboard_index(request):
     dokumen_selesai_count = Archive.objects.filter(status='selesai').count()
     total_archives = Archive.objects.count()
 
-    # Disposisi Pending
+    # Disposisi Pending (Fokus Dokumen Terverifikasi yang Siap Didisposisikan Ketua BAZNAS)
     if request.user.is_superadmin and not is_waka_or_kabid_2:
-        pending_dispositions = Disposition.objects.filter(Q(status='baru') | Q(status='terisi')).count()
+        pending_dispositions = Archive.objects.filter(status__in=['terverifikasi', 'disposisi_pimpinan']).exclude(dispositions__isnull=False).count() + Disposition.objects.filter(status='baru').count()
     elif request.user.is_pimpinan or request.user.is_kabid or is_waka_or_kabid_2:
-        pending_dispositions = Disposition.objects.filter(Q(status='baru') | Q(status='terisi')).distinct().count()
+        pending_dispositions = Archive.objects.filter(status__in=['terverifikasi', 'disposisi_pimpinan']).exclude(dispositions__isnull=False).count() + Disposition.objects.filter(status='baru').distinct().count()
     else:
         pending_dispositions = Disposition.objects.filter(forwarded_to__user_account=request.user, status='terverifikasi').distinct().count()
 

@@ -210,8 +210,10 @@
                                     {% else %}
                                         <span class="badge bg-primary text-white rounded-pill px-3 py-2"><i class="bi bi-gear-fill me-1"></i> DIPROSES UNIT</span>
                                     {% endif %}
-                                {% elif archive.status == 'didisposisikan' or archive.status == 'verifikasi_kabid' or archive.status == 'disposisi_pimpinan' %}
+                                {% elif archive.status == 'disposisi_pimpinan' %}
                                     <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-person-badge-fill me-1"></i> MEJA KETUA</span>
+                                {% elif archive.status == 'terverifikasi' %}
+                                    <span class="badge bg-info text-dark rounded-pill px-3 py-2"><i class="bi bi-check2-square me-1"></i> TERVERIFIKASI KABID IV</span>
                                 {% elif archive.status in 'baru,pending,masuk' %}
                                     <span class="badge bg-secondary text-white rounded-pill px-3 py-2"><i class="bi bi-hourglass-split me-1"></i> MENUNGGU VERIFIKASI KABID IV</span>
                                 {% elif archive.status == 'ditolak' %}
@@ -239,6 +241,15 @@
                                             <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#rejectModal{{ archive.pk }}">
                                                 <i class="bi bi-x-lg me-1"></i> Tolak
                                             </button>
+                                        {% endif %}
+                                    {% elif archive.status == 'terverifikasi' %}
+                                        {% if user.is_superuser or user.is_sdm or user.is_kabid %}
+                                            <form method="post" action="{% url 'archives:forward_to_ketua' archive.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Teruskan ke Ketua BAZNAS">
+                                                    <i class="bi bi-arrow-right-circle-fill me-1"></i> Teruskan ke Ketua
+                                                </button>
+                                            </form>
                                         {% endif %}
                                     {% endif %}
 

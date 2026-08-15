@@ -145,11 +145,24 @@
                 {% if archive.status == 'baru' %}
                     {% if user.is_pimpinan or user.is_kabid or user.is_superadmin %}
                     <button type="button" class="btn btn-success w-100 rounded-3 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#verifyModal">
-                        <i class="bi bi-patch-check-fill me-1"></i> 1. Verifikasi Dokumen
+                        <i class="bi bi-patch-check-fill me-1"></i> 1. Verifikasi Kabid IV
                     </button>
                     {% else %}
                     <button type="button" class="btn btn-outline-secondary w-100 rounded-3 py-2 fw-bold" disabled>
                         <i class="bi bi-clock me-1"></i> 1. Menunggu Verifikasi
+                    </button>
+                    {% endif %}
+                {% elif archive.status == 'terverifikasi' %}
+                    {% if user.is_sdm or user.is_kabid or user.is_superadmin %}
+                    <form method="post" action="{% url 'archives:forward_to_ketua' archive.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning text-dark w-100 rounded-3 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-arrow-right-circle-fill me-1"></i> 2. Teruskan ke Ketua
+                        </button>
+                    </form>
+                    {% else %}
+                    <button type="button" class="btn btn-outline-success w-100 rounded-3 py-2 fw-bold" disabled>
+                        <i class="bi bi-check-circle-fill me-1"></i> 1. Terverifikasi Kabid IV
                     </button>
                     {% endif %}
                 {% else %}
@@ -162,16 +175,16 @@
             <div class="col-md-3">
                 {% if latest_dispo %}
                     <a href="{% url 'dispositions:detail' latest_dispo.pk %}" class="btn btn-primary w-100 rounded-3 py-2 fw-bold shadow-sm">
-                        <i class="bi bi-send-check-fill me-1"></i> 2. Disposisi Ada (Lihat)
+                        <i class="bi bi-send-check-fill me-1"></i> 3. Disposisi Ada (Lihat)
                     </a>
                 {% else %}
                     {% if archive.status == 'baru' %}
                         <button type="button" class="btn btn-outline-primary w-100 rounded-3 py-2 fw-bold" onclick="notifyNeedVerify()">
-                            <i class="bi bi-send me-1"></i> 2. Disposisi Pimpinan
+                            <i class="bi bi-send me-1"></i> 3. Disposisi Pimpinan
                         </button>
                     {% else %}
                         <a href="{% url 'dispositions:create' archive.pk %}" class="btn btn-outline-primary w-100 rounded-3 py-2 fw-bold shadow-sm">
-                            <i class="bi bi-send-plus me-1"></i> 2. Buat Disposisi Pimpinan
+                            <i class="bi bi-send-plus me-1"></i> 3. Disposisi Ketua BAZNAS
                         </a>
                     {% endif %}
                 {% endif %}

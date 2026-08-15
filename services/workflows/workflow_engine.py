@@ -176,14 +176,18 @@ class WorkflowEngine:
             step = 3
             stage_name = '3. Meja Waka IV (Disposisi Tahap 2)'
             next_action = 'Waka IV Membagi: Ke Bidang II (Jika Bantuan) atau Ke Bagian Terkait (Jika Umum)'
+        elif status == 'disposisi_pimpinan':
+            step = 3
+            stage_name = '3. Di Meja Ketua BAZNAS (Siap Didisposisikan)'
+            next_action = 'Ketua BAZNAS Mendisposisikan ke Waka IV (Disposisi Tahap 1)'
         elif status == 'terverifikasi':
             step = 2
             stage_name = '2. Terverifikasi Kabid IV'
-            next_action = 'Siap Didisposisikan oleh Ketua BAZNAS (Disposisi Tahap 1)'
+            next_action = 'Diteruskan oleh Front Office / Kabid IV ke Ketua BAZNAS'
         elif status == 'baru':
             step = 1
             stage_name = '1. Registrasi Front Office'
-            next_action = 'Verifikasi oleh Kabid IV'
+            next_action = 'Verifikasi Berkas oleh Kabid IV'
         else:
             step = 2
             stage_name = '2. Dalam Proses Disposisi'
