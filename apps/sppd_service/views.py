@@ -44,6 +44,18 @@ def sppd_list(request):
 
     sppds = sppds.order_by('-created_at')
 
+    # Khusus Waka II & Kabid II: filter daftar SPPD & kandidat disposisi SPPD (Hanya Bantuan Terverifikasi Kabid IV)
+    is_waka_or_kabid_2 = getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
+    if is_waka_or_kabid_2:
+        from services.workflows.workflow_engine import WorkflowEngine
+        valid_sppd_ids = [
+            sp.id for sp in sppds 
+            if sp.disposition and sp.disposition.archive and 
+            (sp.disposition.archive.verified_by_kabid or sp.disposition.archive.status != 'baru') and 
+            WorkflowEngine.is_bantuan(sp.disposition.archive)
+        ]
+        sppds = sppds.filter(id__in=valid_sppd_ids)
+
     # Disposisi yang bisa dibuat SPPD
     from surat_tugas.models import SuratTugas
     st_dispo_ids = SuratTugas.objects.filter(disposition__isnull=False).values_list('disposition_id', flat=True)
@@ -54,6 +66,11 @@ def sppd_list(request):
         archive__status='ditolak'
     ).select_related('archive', 'sender').prefetch_related('forwarded_to', 'sppd_list')
 
+    if is_waka_or_kabid_2:
+        raw_dispositions = raw_dispositions.filter(
+            Q(archive__verified_by_kabid=True) | ~Q(archive__status='baru')
+        )
+
     # Syarat SPPD Multi-tahap: Dokumen Bantuan dengan 1 SPPD (Survei) tetap boleh diterbitkan SPPD Tahap 2 (Penyaluran)
     valid_dispo_ids = []
     for d in raw_dispositions:
@@ -63,9 +80,12 @@ def sppd_list(request):
         
         is_bantuan = False
         if arch:
-            is_bantuan = arch.archive_type in ['proposal', 'permohonan_bantuan'] or any(
-                k in (arch.title or '').lower() for k in ['bantuan', 'permohonan', 'survei', 'proposal', 'mustahik', 'bedah rumah', 'santunan']
-            )
+            from services.workflows.workflow_engine import WorkflowEngine
+            is_bantuan = WorkflowEngine.is_bantuan(arch)
+
+        if is_waka_or_kabid_2 and not is_bantuan:
+            continue
+
         max_sppd = 2 if is_bantuan else 1
 
         if cnt < max_sppd:

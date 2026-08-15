@@ -43,6 +43,15 @@ def archive_list(request):
     if archive_type_filter:
         archives = archives.filter(archive_type=archive_type_filter)
 
+    # Khusus Waka II & Kabid II: hanya tampilkan Dokumen Bantuan Mustahik yang SUDAH diverifikasi Kabid IV
+    if getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False):
+        from services.workflows.workflow_engine import WorkflowEngine
+        archives = archives.filter(
+            Q(verified_by_kabid=True) | ~Q(status='baru')
+        )
+        bantuan_ids = [arc.id for arc in archives if WorkflowEngine.is_bantuan(arc)]
+        archives = archives.filter(id__in=bantuan_ids)
+
     # Handle Export
     if 'export' in request.GET:
         wb = Workbook()

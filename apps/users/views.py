@@ -49,7 +49,19 @@ def dashboard_index(request):
 
 
     # 3. Proposal / Document Pipeline Tracker (5 Latest Active Documents)
-    tracker_proposals = Archive.objects.select_related('category', 'uploaded_by').prefetch_related('dispositions__sppd_list', 'dispositions__report').exclude(status='ditolak').order_by('-updated_at')[:5]
+    tracker_proposals = Archive.objects.select_related('category', 'uploaded_by').prefetch_related('dispositions__sppd_list', 'dispositions__report').exclude(status='ditolak').order_by('-updated_at')
+
+    # Khusus Waka II & Kabid II: HANYA menampilkan Dokumen Bantuan yang SUDAH diverifikasi Kabid IV
+    is_waka_or_kabid_2 = getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
+    if is_waka_or_kabid_2:
+        from services.workflows.workflow_engine import WorkflowEngine
+        tracker_proposals = tracker_proposals.filter(
+            Q(verified_by_kabid=True) | ~Q(status='baru')
+        )
+        bantuan_ids = [arc.id for arc in tracker_proposals if WorkflowEngine.is_bantuan(arc)]
+        tracker_proposals = Archive.objects.filter(id__in=bantuan_ids).select_related('category', 'uploaded_by').prefetch_related('dispositions__sppd_list', 'dispositions__report').order_by('-updated_at')
+
+    tracker_proposals = tracker_proposals[:5]
 
     from services.workflows.workflow_engine import WorkflowEngine
     tracker_items = []

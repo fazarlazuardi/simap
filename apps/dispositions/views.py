@@ -67,15 +67,14 @@ def disposition_list(request):
             qs |= Disposition.objects.filter(
                 Q(forwarded_to=current_emp) | Q(waka_forwarded_to=current_emp)
             )
-            # Khusus Waka II & Kabid II: sertakan juga disposisi berlabel bantuan & pendistribusian
-            if request.user.is_waka_2 or request.user.is_kabid_2:
-                qs |= Disposition.objects.filter(
-                    Q(archive__title__icontains='bantuan') |
-                    Q(archive__title__icontains='pendistribusian') |
-                    Q(archive__title__icontains='pendayagunaan') |
-                    Q(archive__title__icontains='mustahik') |
-                    Q(archive__description__icontains='bantuan')
+            # Khusus Waka II & Kabid II: HANYA mengambil Dokumen Bantuan Mustahik yang SUDAH diverifikasi Kabid IV
+            if getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False):
+                from services.workflows.workflow_engine import WorkflowEngine
+                qs = qs.filter(
+                    Q(archive__verified_by_kabid=True) | ~Q(archive__status='baru')
                 )
+                valid_ids = [d.id for d in qs if d.archive and WorkflowEngine.is_bantuan(d.archive)]
+                qs = qs.filter(id__in=valid_ids)
         qs = qs.distinct()
     else:
         qs = Disposition.objects.none()
