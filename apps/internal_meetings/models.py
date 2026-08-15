@@ -193,6 +193,37 @@ class InternalMeeting(models.Model):
             return self.notulis.full_name
         return "-"
 
+    @property
+    def tracked_action_items(self):
+        return self.action_items.filter(is_tracked=True)
+
+    @property
+    def action_plan_stats(self):
+        items = list(self.tracked_action_items)
+        total = len(items)
+        if total == 0:
+            return {
+                'total': 0,
+                'completed': 0,
+                'in_progress': 0,
+                'pending': 0,
+                'overdue': 0,
+                'completion_percentage': 0
+            }
+        completed = sum(1 for item in items if item.status == 'completed')
+        in_progress = sum(1 for item in items if item.status == 'in_progress')
+        pending = sum(1 for item in items if item.status == 'pending')
+        overdue = sum(1 for item in items if item.is_overdue or item.status == 'overdue')
+        percentage = round((completed / total) * 100) if total > 0 else 0
+        return {
+            'total': total,
+            'completed': completed,
+            'in_progress': in_progress,
+            'pending': pending,
+            'overdue': overdue,
+            'completion_percentage': percentage
+        }
+
     def save(self, *args, **kwargs):
         if not self.meeting_number:
             try:
@@ -201,3 +232,51 @@ class InternalMeeting(models.Model):
             except Exception:
                 pass
         super().save(*args, **kwargs)
+
+
+class MeetingActionItem(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Belum Dimulai'),
+        ('in_progress', 'Sedang Diproses'),
+        ('completed', 'Selesai / Terealisasi'),
+        ('overdue', 'Terlambat'),
+    ]
+
+    meeting = models.ForeignKey(
+        InternalMeeting, on_delete=models.CASCADE, related_name='action_items',
+        verbose_name="Rapat Internal"
+    )
+    title = models.CharField(max_length=500, verbose_name="Tindak Lanjut / Action Item")
+    pic = models.ForeignKey(
+        Employee, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='assigned_action_items', verbose_name="Penanggung Jawab (PIC)"
+    )
+    due_date = models.DateField(null=True, blank=True, verbose_name="Target Selesai / Deadline")
+    is_tracked = models.BooleanField(default=True, verbose_name="Jadikan Action Plan Terlacak")
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True,
+        verbose_name="Status Realisasi"
+    )
+    notes = models.TextField(null=True, blank=True, verbose_name="Catatan Realisasi / Progress")
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Waktu Selesai")
+    completed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='completed_action_items', verbose_name="Diselesaikan Oleh"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = "Tindak Lanjut Rapat"
+        verbose_name_plural = "Daftar Tindak Lanjut Rapat"
+
+    def __str__(self):
+        return f"[{self.meeting.title}] {self.title}"
+
+    @property
+    def is_overdue(self):
+        if self.status != 'completed' and self.due_date and self.due_date < timezone.now().date():
+            return True
+        return False
+

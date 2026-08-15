@@ -168,7 +168,7 @@
             </div>
 
             <!-- CARD 2: HASIL NOTULENSI RAPAT -->
-            <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
+            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background-color: var(--card-bg);">
                 <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
                     <h6 class="fw-bold mb-0 text-success">
                         <i class="bi bi-journal-text me-2"></i>Hasil Risalah & Notulensi Rapat Internal
@@ -221,6 +221,164 @@
                     {% endif %}
                 </div>
             </div>
+
+            <!-- CARD 3: ACTION PLAN CHECKLIST & VISUALISASI GRAFIK CAPAIAN -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background-color: var(--card-bg);">
+                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
+                    <h6 class="fw-bold mb-0 text-warning">
+                        <i class="bi bi-pie-chart-fill me-2"></i>Monitoring & Capaian Action Plan (Tindak Lanjut)
+                    </h6>
+                    <span class="badge bg-primary rounded-pill px-3 py-2 fs-7" id="badge_total_capaian">
+                        <i class="bi bi-trophy-fill me-1"></i>Capaian: {{ action_stats.completion_percentage }}%
+                    </span>
+                </div>
+
+                <div class="card-body p-4">
+                    {% if action_items %}
+                    <div class="row g-4 mb-4 align-items-center">
+                        <!-- CHART DONUT -->
+                        <div class="col-md-5 col-lg-4 text-center">
+                            <div style="position: relative; height: 180px; width: 100%;">
+                                <canvas id="chartActionPlan"></canvas>
+                            </div>
+                            <div class="mt-2 small fw-bold text-secondary" id="chartLabelSummary">
+                                <span class="text-success"><i class="bi bi-circle-fill me-1"></i>Selesai: {{ action_stats.completed }}</span> | 
+                                <span class="text-warning"><i class="bi bi-circle-fill me-1"></i>Proses: {{ action_stats.in_progress }}</span> | 
+                                <span class="text-secondary"><i class="bi bi-circle-fill me-1"></i>Belum: {{ action_stats.pending }}</span>
+                            </div>
+                        </div>
+
+                        <!-- CAPAIAN STAT CARDS -->
+                        <div class="col-md-7 col-lg-8">
+                            <div class="row g-3">
+                                <div class="col-6 col-sm-3">
+                                    <div class="p-3 border rounded-3 text-center bg-light">
+                                        <span class="text-muted small d-block fw-bold text-uppercase">Total Plan</span>
+                                        <h4 class="fw-bold m-0 text-dark" id="stat_total_items">{{ action_stats.total }}</h4>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <div class="p-3 border rounded-3 text-center" style="background-color: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.2) !important;">
+                                        <span class="text-success small d-block fw-bold text-uppercase">Selesai</span>
+                                        <h4 class="fw-bold m-0 text-success" id="stat_completed_items">{{ action_stats.completed }}</h4>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <div class="p-3 border rounded-3 text-center" style="background-color: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2) !important;">
+                                        <span class="text-warning small d-block fw-bold text-uppercase">Diproses</span>
+                                        <h4 class="fw-bold m-0 text-warning" id="stat_in_progress_items">{{ action_stats.in_progress }}</h4>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-3">
+                                    <div class="p-3 border rounded-3 text-center" style="background-color: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.2) !important;">
+                                        <span class="text-primary small d-block fw-bold text-uppercase">Capaian</span>
+                                        <h4 class="fw-bold m-0 text-primary" id="stat_percentage">{{ action_stats.completion_percentage }}%</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between small fw-bold mb-1">
+                                    <span class="text-dark">Progres Realisasi Tindak Lanjut</span>
+                                    <span class="text-primary" id="progress_bar_text">{{ action_stats.completion_percentage }}% Completed</span>
+                                </div>
+                                <div class="progress rounded-pill" style="height: 10px; background-color: var(--border-color, #E2E8F0);">
+                                    <div class="progress-bar bg-success rounded-pill progress-bar-striped progress-bar-animated" id="main_progress_bar" role="progressbar" style="width: {{ action_stats.completion_percentage }}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABEL CHECKLIST INTERAKTIF -->
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle border rounded-3 overflow-hidden">
+                            <thead class="bg-light text-dark fw-bold small text-uppercase">
+                                <tr>
+                                    <th style="width: 45px;" class="text-center">Centang</th>
+                                    <th>Poin Action Plan Terlacak</th>
+                                    <th style="width: 180px;">PIC (Penanggung Jawab)</th>
+                                    <th style="width: 120px;">Target Deadline</th>
+                                    <th style="width: 160px;" class="text-end">Status / Realisasi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in action_items %}
+                                <tr id="action_item_row_{{ item.id }}">
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input action-item-checkbox" style="width: 1.25rem; height: 1.25rem; cursor: pointer;" data-item-id="{{ item.id }}" {% if item.status == 'completed' %}checked{% endif %}>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold d-block text-dark item-title {% if item.status == 'completed' %}text-decoration-line-through text-muted{% endif %}" id="item_title_{{ item.id }}">{{ item.title }}</span>
+                                        <div class="small text-muted mt-1 item-notes-container" id="item_notes_box_{{ item.id }}">
+                                            {% if item.notes %}
+                                                <div class="p-1 px-2 rounded bg-light border d-inline-block mt-1 text-dark" style="font-size: 0.8rem;">
+                                                    <i class="bi bi-chat-left-text me-1 text-primary"></i><span class="item-notes">{{ item.notes }}</span>
+                                                </div>
+                                            {% endif %}
+                                            {% if item.completed_at %}
+                                                <div class="mt-1" style="font-size: 0.75rem;">
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"><i class="bi bi-check-all me-1"></i>Selesai oleh {{ item.completed_by.get_full_name|default:item.completed_by.username }} ({{ item.completed_at|date:"d/m/Y H:i" }})</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if item.pic %}
+                                            <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small"><i class="bi bi-person-fill text-primary me-1"></i>{{ item.pic.full_name }}</span>
+                                        {% else %}
+                                            <span class="text-muted small">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.due_date %}
+                                            <span class="small fw-semibold {% if item.is_overdue %}text-danger fw-bold{% else %}text-secondary{% endif %}">
+                                                <i class="bi bi-calendar-event me-1"></i>{{ item.due_date|date:"d/m/Y" }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted small">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="dropdown d-inline-block">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3 py-1 small item-status-badge" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="badge_status_{{ item.id }}">
+                                                {% if item.status == 'completed' %}
+                                                    <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Selesai</span>
+                                                {% elif item.status == 'in_progress' %}
+                                                    <span class="text-warning fw-bold"><i class="bi bi-arrow-repeat me-1"></i>Diproses</span>
+                                                {% elif item.is_overdue or item.status == 'overdue' %}
+                                                    <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>Terlambat</span>
+                                                {% else %}
+                                                    <span class="text-secondary"><i class="bi bi-dash-circle me-1"></i>Belum</span>
+                                                {% endif %}
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="z-index: 1050;">
+                                                <li><a class="dropdown-item small text-success fw-semibold" href="#" onclick="updateActionItemStatus({{ item.id }}, 'completed'); return false;"><i class="bi bi-check-circle-fill me-2"></i>Tandai Selesai</a></li>
+                                                <li><a class="dropdown-item small text-warning fw-semibold" href="#" onclick="updateActionItemStatus({{ item.id }}, 'in_progress'); return false;"><i class="bi bi-arrow-repeat me-2"></i>Sedang Diproses</a></li>
+                                                <li><a class="dropdown-item small text-secondary" href="#" onclick="updateActionItemStatus({{ item.id }}, 'pending'); return false;"><i class="bi bi-dash-circle me-2"></i>Belum Dimulai</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item small text-primary" href="#" onclick="promptAddActionNotes({{ item.id }}, '{{ item.notes|escapejs }}'); return false;"><i class="bi bi-pencil-square me-2"></i>Tambah Catatan Realisasi</a></li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-card-checklist display-4 text-muted mb-2"></i>
+                        <h6 class="fw-bold text-secondary mb-1">Belum Ada Action Plan Terlacak</h6>
+                        <p class="small text-muted mb-3">Notulis belum menambahkan poin tindak lanjut yang di-track pada risalah ini.</p>
+                        <button type="button" class="btn btn-outline-success rounded-pill px-4 btn-sm fw-bold" onclick="openDetailNotulensiModal()">
+                            <i class="bi bi-plus-circle me-1"></i> Tambah Action Plan di Form Notulensi
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
 
         <!-- RIGHT COLUMN: DAFTAR PESERTA & AKSI -->
@@ -341,10 +499,97 @@
                         <div class="d-none">{{ notulensi_form.notulensi_action_items }}</div>
                     </div>
 
+                    <!-- BAGIAN SELEKSI & DYNAMIC ACTION PLAN ITEMS -->
+                    <div class="mb-4 p-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                            <label class="form-label fw-bold text-dark m-0">
+                                <i class="bi bi-list-check text-warning me-1"></i> Seleksi Poin Action Plan Terlacak
+                            </label>
+                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" id="btn_add_action_item_row">
+                                <i class="bi bi-plus-circle me-1"></i> Tambah Poin Action Item
+                            </button>
+                        </div>
+                        <p class="small text-muted mb-2">Pilih/Tambahkan poin keputusan hasil rapat yang akan dijadikan Action Plan terlacak beserta PIC dan tenggat waktunya.</p>
+                        <input type="hidden" name="has_action_items_form" value="1">
+                        
+                        <div id="action_items_container" class="d-flex flex-column gap-2">
+                            {% for item in action_items %}
+                            <div class="p-3 border rounded-3 bg-white action-item-row">
+                                <input type="hidden" name="action_id[]" value="{{ item.id }}">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-secondary mb-1">Poin Action Item / Tindak Lanjut</label>
+                                        <input type="text" name="action_title[]" class="form-control form-control-sm custom-input" value="{{ item.title }}" placeholder="Deskripsi poin tindakan / tugas rapat..." required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold text-secondary mb-1">PIC (Penanggung Jawab)</label>
+                                        <select name="action_pic[]" class="form-select form-select-sm custom-input">
+                                            <option value="">-- Pilih PIC --</option>
+                                            {% for emp in employees %}
+                                            <option value="{{ emp.id }}" {% if item.pic_id == emp.id %}selected{% endif %}>{{ emp.full_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold text-secondary mb-1">Target Deadline</label>
+                                        <input type="date" name="action_due_date[]" class="form-control form-control-sm custom-input" value="{{ item.due_date|date:'Y-m-d' }}">
+                                    </div>
+                                    <div class="col-md-1 text-end pt-3">
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle btn-remove-action-row" title="Hapus Baris">
+                                            <i class="bi bi-trash fs-6"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-2 d-flex align-items-center gap-2">
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="action_is_tracked_existing_{{ item.id }}" id="is_tracked_{{ item.id }}" {% if item.is_tracked %}checked{% endif %}>
+                                        <label class="form-check-label small fw-semibold text-secondary" for="is_tracked_{{ item.id }}">Jadikan Action Plan Terlacak di Grafik</label>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="p-3 border rounded-3 bg-white action-item-row">
+                                <input type="hidden" name="action_id[]" value="">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-secondary mb-1">Poin Action Item / Tindak Lanjut</label>
+                                        <input type="text" name="action_title[]" class="form-control form-control-sm custom-input" placeholder="Deskripsi poin tindakan / tugas rapat...">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold text-secondary mb-1">PIC (Penanggung Jawab)</label>
+                                        <select name="action_pic[]" class="form-select form-select-sm custom-input">
+                                            <option value="">-- Pilih PIC --</option>
+                                            {% for emp in employees %}
+                                            <option value="{{ emp.id }}">{{ emp.full_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold text-secondary mb-1">Target Deadline</label>
+                                        <input type="date" name="action_due_date[]" class="form-control form-control-sm custom-input">
+                                    </div>
+                                    <div class="col-md-1 text-end pt-3">
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle btn-remove-action-row" title="Hapus Baris">
+                                            <i class="bi bi-trash fs-6"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-2 d-flex align-items-center gap-2">
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="action_is_tracked_0" id="is_tracked_0" checked>
+                                        <label class="form-check-label small fw-semibold text-secondary" for="is_tracked_0">Jadikan Action Plan Terlacak di Grafik</label>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="{{ notulensi_form.notulensi_file.id_for_label }}" class="form-label fw-bold text-dark">Upload Dokumen / Foto Bukti Notulensi (Opsional)</label>
                         {{ notulensi_form.notulensi_file }}
                     </div>
+
                 </div>
 
                 <div class="modal-footer bg-light rounded-bottom-4 py-3">
@@ -361,8 +606,10 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 var quillSummary, quillDecision, quillActionItems;
+var chartActionPlan;
 
 function openDetailNotulensiModal() {
     var modalEl = document.getElementById('modalInputNotulensi');
@@ -372,6 +619,115 @@ function openDetailNotulensiModal() {
     var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
 }
+
+function updateActionItemStatus(itemId, newStatus, notesVal) {
+    var csrfToken = '{{ csrf_token }}';
+    var formData = new FormData();
+    formData.append('status', newStatus);
+    if (notesVal !== undefined && notesVal !== null) {
+        formData.append('notes', notesVal);
+    }
+    formData.append('csrfmiddlewaretoken', csrfToken);
+
+    fetch("{% url 'internal_meetings:detail' meeting.pk %}action-items/" + itemId + "/toggle/", {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            var cb = document.querySelector('.action-item-checkbox[data-item-id="' + itemId + '"]');
+            var titleEl = document.getElementById('item_title_' + itemId);
+            var badgeEl = document.getElementById('badge_status_' + itemId);
+            var notesBox = document.getElementById('item_notes_box_' + itemId);
+
+            if (cb) cb.checked = (data.item_status === 'completed');
+            if (titleEl) {
+                if (data.item_status === 'completed') {
+                    titleEl.classList.add('text-decoration-line-through', 'text-muted');
+                } else {
+                    titleEl.classList.remove('text-decoration-line-through', 'text-muted');
+                }
+            }
+
+            if (badgeEl) {
+                if (data.item_status === 'completed') {
+                    badgeEl.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Selesai</span>';
+                } else if (data.item_status === 'in_progress') {
+                    badgeEl.innerHTML = '<span class="text-warning fw-bold"><i class="bi bi-arrow-repeat me-1"></i>Diproses</span>';
+                } else if (data.item_status === 'overdue') {
+                    badgeEl.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>Terlambat</span>';
+                } else {
+                    badgeEl.innerHTML = '<span class="text-secondary"><i class="bi bi-dash-circle me-1"></i>Belum</span>';
+                }
+            }
+
+            if (notesBox) {
+                var notesHtml = '';
+                if (data.notes) {
+                    notesHtml += '<div class="p-1 px-2 rounded bg-light border d-inline-block mt-1 text-dark" style="font-size: 0.8rem;"><i class="bi bi-chat-left-text me-1 text-primary"></i><span class="item-notes">' + data.notes + '</span></div>';
+                }
+                if (data.completed_at) {
+                    notesHtml += '<div class="mt-1" style="font-size: 0.75rem;"><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"><i class="bi bi-check-all me-1"></i>Selesai oleh ' + data.completed_by + ' (' + data.completed_at + ')</span></div>';
+                }
+                notesBox.innerHTML = notesHtml;
+            }
+
+            if (data.stats) {
+                var s = data.stats;
+                var statTotal = document.getElementById('stat_total_items');
+                var statCompleted = document.getElementById('stat_completed_items');
+                var statInProgress = document.getElementById('stat_in_progress_items');
+                var statPercentage = document.getElementById('stat_percentage');
+                var badgeTotalCapaian = document.getElementById('badge_total_capaian');
+                var progressBarText = document.getElementById('progress_bar_text');
+                var mainProgressBar = document.getElementById('main_progress_bar');
+                var chartLabelSummary = document.getElementById('chartLabelSummary');
+
+                if (statTotal) statTotal.innerText = s.total;
+                if (statCompleted) statCompleted.innerText = s.completed;
+                if (statInProgress) statInProgress.innerText = s.in_progress;
+                if (statPercentage) statPercentage.innerText = s.completion_percentage + '%';
+                if (badgeTotalCapaian) badgeTotalCapaian.innerHTML = '<i class="bi bi-trophy-fill me-1"></i>Capaian: ' + s.completion_percentage + '%';
+                if (progressBarText) progressBarText.innerText = s.completion_percentage + '% Completed';
+                if (mainProgressBar) mainProgressBar.style.width = s.completion_percentage + '%';
+
+                if (chartLabelSummary) {
+                    chartLabelSummary.innerHTML = 
+                        '<span class="text-success"><i class="bi bi-circle-fill me-1"></i>Selesai: ' + s.completed + '</span> | ' +
+                        '<span class="text-warning"><i class="bi bi-circle-fill me-1"></i>Proses: ' + s.in_progress + '</span> | ' +
+                        '<span class="text-secondary"><i class="bi bi-circle-fill me-1"></i>Belum: ' + s.pending + '</span>';
+                }
+
+                if (chartActionPlan) {
+                    chartActionPlan.data.datasets[0].data = [s.completed, s.in_progress, s.pending];
+                    chartActionPlan.update();
+                }
+            }
+        }
+    })
+    .catch(err => console.error('Error toggling action item status:', err));
+}
+
+function promptAddActionNotes(itemId, existingNotes) {
+    var notes = prompt("Tuliskan Catatan Realisasi / Progres untuk poin ini:", existingNotes || "");
+    if (notes !== null) {
+        var cb = document.querySelector('.action-item-checkbox[data-item-id="' + itemId + '"]');
+        var currentStatus = cb && cb.checked ? 'completed' : 'in_progress';
+        updateActionItemStatus(itemId, currentStatus, notes);
+    }
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.classList.contains('action-item-checkbox')) {
+        var itemId = e.target.getAttribute('data-item-id');
+        var newStatus = e.target.checked ? 'completed' : 'pending';
+        updateActionItemStatus(itemId, newStatus);
+    }
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     var toolbarOptions = [
@@ -403,13 +759,11 @@ document.addEventListener('DOMContentLoaded', function() {
         modules: { toolbar: toolbarOptions }
     });
 
-    // Helper konversi Markdown (hilangkan ** dan ubah jadi <strong>)
     function convertMarkdownToHTML(text) {
         if (!text) return text;
         return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     }
 
-    // Helper penanganan Smart Paste dari WhatsApp / ChatGPT / MS Word
     function setupSmartPaste(quillObj) {
         quillObj.root.addEventListener('paste', function(e) {
             var clipboardData = e.clipboardData || window.clipboardData;
@@ -417,7 +771,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var text = clipboardData.getData('text/plain');
             var html = clipboardData.getData('text/html');
 
-            // Jika paste berupa teks polos dengan simbol ** atau penomoran 1. 2. a. b.
             if (!html && text && (text.includes('**') || /^(\d+|\[?[a-zA-Z]\]?)[\.\)]\s+/m.test(text) || /^[\-\*\•]\s+/m.test(text))) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -463,7 +816,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSmartPaste(quillDecision);
     setupSmartPaste(quillActionItems);
 
-    // Filter, Select All, & Counter Peserta Hadir pada Modal
     var modalCheckboxes = document.querySelectorAll('#modal_participant_list input[type="checkbox"]');
     var modalCounter = document.getElementById('modal_participant_counter');
     var modalSearch = document.getElementById('modal_search_participant');
@@ -510,7 +862,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     updateModalParticipantCounter();
 
-    // Helper untuk load konten awal (HTML / Plain Text legacy)
     function setInitialContent(quillObj, rawVal) {
         if (!rawVal) return;
         var trimmed = rawVal.trim();
@@ -529,7 +880,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (decisionInput) setInitialContent(quillDecision, decisionInput.value);
     if (actionItemsInput) setInitialContent(quillActionItems, actionItemsInput.value);
 
-    // Sync back ke textarea saat submit form (dan bersihkan sisa ** jika ada)
     var notulensiForm = document.getElementById('formNotulensiModal');
     if (notulensiForm) {
         notulensiForm.addEventListener('submit', function() {
@@ -551,6 +901,97 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.location.search.indexOf('open_notulensi=1') !== -1) {
         openDetailNotulensiModal();
     }
+
+    // Dynamic Action Item Rows
+    var addBtn = document.getElementById('btn_add_action_item_row');
+    var container = document.getElementById('action_items_container');
+
+    if (addBtn && container) {
+        addBtn.addEventListener('click', function() {
+            var rowIdx = container.children.length;
+            var newRow = document.createElement('div');
+            newRow.className = 'p-3 border rounded-3 bg-white action-item-row';
+            newRow.innerHTML = `
+                <input type="hidden" name="action_id[]" value="">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-5">
+                        <label class="form-label small fw-bold text-secondary mb-1">Poin Action Item / Tindak Lanjut</label>
+                        <input type="text" name="action_title[]" class="form-control form-control-sm custom-input" placeholder="Deskripsi poin tindakan / tugas rapat..." required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">PIC (Penanggung Jawab)</label>
+                        <select name="action_pic[]" class="form-select form-select-sm custom-input">
+                            <option value="">-- Pilih PIC --</option>
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}">{{ emp.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-secondary mb-1">Target Deadline</label>
+                        <input type="date" name="action_due_date[]" class="form-control form-control-sm custom-input">
+                    </div>
+                    <div class="col-md-1 text-end pt-3">
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle btn-remove-action-row" title="Hapus Baris">
+                            <i class="bi bi-trash fs-6"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-2 d-flex align-items-center gap-2">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" name="action_is_tracked_${rowIdx}" id="is_tracked_${rowIdx}" checked>
+                        <label class="form-check-label small fw-semibold text-secondary" for="is_tracked_${rowIdx}">Jadikan Action Plan Terlacak di Grafik</label>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newRow);
+        });
+
+        container.addEventListener('click', function(e) {
+            var removeBtn = e.target.closest('.btn-remove-action-row');
+            if (removeBtn) {
+                var row = removeBtn.closest('.action-item-row');
+                if (container.children.length > 1) {
+                    row.remove();
+                } else {
+                    row.querySelector('input[type="text"]').value = '';
+                    row.querySelector('select').value = '';
+                    row.querySelector('input[type="date"]').value = '';
+                }
+            }
+        });
+    }
+
+    // Donut Chart Init
+    var chartCanvas = document.getElementById('chartActionPlan');
+    if (chartCanvas) {
+        var completedVal = parseInt("{{ action_stats.completed|default:0 }}");
+        var inProgressVal = parseInt("{{ action_stats.in_progress|default:0 }}");
+        var pendingVal = parseInt("{{ action_stats.pending|default:0 }}");
+
+        chartActionPlan = new Chart(chartCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['Selesai', 'Diproses', 'Belum / Overdue'],
+                datasets: [{
+                    data: [completedVal, inProgressVal, pendingVal],
+                    backgroundColor: ['#10B981', '#F59E0B', '#6B7280'],
+                    borderColor: ['#10B981', '#F59E0B', '#6B7280'],
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                cutout: '70%'
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
+

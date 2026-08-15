@@ -1,12 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from .forms import InternalMeetingForm, NotulensiForm
-from .models import InternalMeeting
+from .models import InternalMeeting, MeetingActionItem
 from users.models import Employee
 from services.audit_logs.audit_service import AuditService
+
 
 
 def send_meeting_wa_notifications(meeting, is_notulensi=False):
@@ -227,11 +230,15 @@ def meeting_detail(request, pk):
     )
     employees = Employee.objects.filter(is_active=True).order_by('full_name')
     notulensi_form = NotulensiForm(instance=meeting)
+    action_items = meeting.action_items.select_related('pic', 'completed_by').all()
+    action_stats = meeting.action_plan_stats
 
     return render(request, 'internal_meetings/detail.html', {
         'meeting': meeting,
         'employees': employees,
         'notulensi_form': notulensi_form,
+        'action_items': action_items,
+        'action_stats': action_stats,
     })
 
 
@@ -271,7 +278,7 @@ def meeting_edit(request, pk):
 @login_required
 def meeting_notulensi(request, pk):
     """
-    Input / Perbarui Notulensi Rapat Internal & Terbitkan Hasil Notulensi.
+    Input / Perbarui Notulensi Rapat Internal & Terbitkan Hasil Notulensi beserta Action Items.
     """
     meeting = get_object_or_404(InternalMeeting, pk=pk)
 
@@ -285,12 +292,61 @@ def meeting_notulensi(request, pk):
             meeting_obj.save()
             form.save_m2m()
 
+            # Process Dynamic Action Plan Items
+            action_titles = request.POST.getlist('action_title[]')
+            action_pics = request.POST.getlist('action_pic[]')
+            action_due_dates = request.POST.getlist('action_due_date[]')
+            action_ids = request.POST.getlist('action_id[]')
+
+            processed_ids = []
+            for i, title in enumerate(action_titles):
+                title_str = title.strip()
+                if not title_str:
+                    continue
+
+                item_id = action_ids[i] if i < len(action_ids) else None
+                pic_id = action_pics[i] if i < len(action_pics) and action_pics[i] else None
+                due_date_val = action_due_dates[i] if i < len(action_due_dates) and action_due_dates[i] else None
+                
+                # Checkbox check: is_tracked checkbox per row
+                is_tracked_val = request.POST.get(f'action_is_tracked_{i}') == 'on' or request.POST.get(f'action_is_tracked_existing_{item_id}') == 'on'
+                # If checkbox not sent or default, default to True if user filled in action item
+                if f'action_is_tracked_{i}' not in request.POST and f'action_is_tracked_existing_{item_id}' not in request.POST:
+                    is_tracked_val = True
+
+                pic_obj = Employee.objects.filter(pk=pic_id).first() if pic_id else None
+
+                if item_id and item_id.isdigit():
+                    item = MeetingActionItem.objects.filter(pk=int(item_id), meeting=meeting_obj).first()
+                    if item:
+                        item.title = title_str
+                        item.pic = pic_obj
+                        if due_date_val:
+                            item.due_date = due_date_val
+                        item.is_tracked = is_tracked_val
+                        item.save()
+                        processed_ids.append(item.pk)
+                        continue
+
+                new_item = MeetingActionItem.objects.create(
+                    meeting=meeting_obj,
+                    title=title_str,
+                    pic=pic_obj,
+                    due_date=due_date_val if due_date_val else None,
+                    is_tracked=is_tracked_val
+                )
+                processed_ids.append(new_item.pk)
+
+            # Option: Delete items explicitly removed by user in form if action_titles array was provided
+            if 'has_action_items_form' in request.POST:
+                meeting_obj.action_items.exclude(pk__in=processed_ids).delete()
+
             sync_meeting_to_agenda(meeting_obj)
             send_meeting_wa_notifications(meeting_obj, is_notulensi=True)
 
             AuditService.log_action(request.user, f"Input Notulensi Rapat: {meeting.title}", request)
             messages.success(request, f"Notulensi Rapat '{meeting.title}' berhasil disimpan & diterbitkan di Agenda Kerja.")
-            
+
             referer = request.META.get('HTTP_REFERER', '')
             if 'agendas' in referer:
                 return redirect('agendas:list')
@@ -299,6 +355,52 @@ def meeting_notulensi(request, pk):
             messages.error(request, "Terjadi kesalahan saat menyimpan Notulensi Rapat.")
 
     return redirect('internal_meetings:detail', pk=pk)
+
+
+@login_required
+@require_POST
+def toggle_action_item_status(request, pk, item_id):
+    """
+    AJAX endpoint untuk mengubah status Action Item (Checklist) & Catatan Realisasi secara interaktif.
+    """
+    meeting = get_object_or_404(InternalMeeting, pk=pk)
+    action_item = get_object_or_404(MeetingActionItem, pk=item_id, meeting=meeting)
+
+    new_status = request.POST.get('status')
+    notes = request.POST.get('notes', '')
+
+    valid_statuses = ['pending', 'in_progress', 'completed', 'overdue']
+    if new_status in valid_statuses:
+        action_item.status = new_status
+        if new_status == 'completed':
+            action_item.completed_at = timezone.now()
+            action_item.completed_by = request.user
+        else:
+            action_item.completed_at = None
+            action_item.completed_by = None
+
+        if notes != '':
+            action_item.notes = notes
+
+        action_item.save()
+
+        stats = meeting.action_plan_stats
+        completed_by_name = (action_item.completed_by.get_full_name() or action_item.completed_by.username) if action_item.completed_by else '-'
+        completed_at_str = action_item.completed_at.strftime('%d/%m/%Y %H:%M WIB') if action_item.completed_at else '-'
+
+        return JsonResponse({
+            'status': 'success',
+            'item_id': action_item.id,
+            'item_status': action_item.status,
+            'item_status_display': action_item.get_status_display(),
+            'notes': action_item.notes or '',
+            'completed_at': completed_at_str,
+            'completed_by': completed_by_name,
+            'stats': stats,
+        })
+
+    return JsonResponse({'status': 'error', 'message': 'Status tidak valid'}, status=400)
+
 
 
 @login_required

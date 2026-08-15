@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import InternalMeeting
+from .models import InternalMeeting, MeetingActionItem
+
+
+class MeetingActionItemInline(admin.TabularInline):
+    model = MeetingActionItem
+    extra = 1
+    fields = ('title', 'pic', 'due_date', 'is_tracked', 'status', 'notes')
 
 
 @admin.register(InternalMeeting)
@@ -16,6 +22,7 @@ class InternalMeetingAdmin(admin.ModelAdmin):
     ordering = ('-scheduled_at',)
     filter_horizontal = ('leaders', 'participants')
     readonly_fields = ('meeting_number', 'created_at', 'updated_at')
+    inlines = [MeetingActionItemInline]
 
     fieldsets = (
         ('Informasi Utama Rapat', {
@@ -60,3 +67,11 @@ class InternalMeetingAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return True
+
+
+@admin.register(MeetingActionItem)
+class MeetingActionItemAdmin(admin.ModelAdmin):
+    list_display = ('title', 'meeting', 'pic', 'due_date', 'is_tracked', 'status', 'completed_at')
+    list_filter = ('status', 'is_tracked', 'due_date')
+    search_fields = ('title', 'notes', 'meeting__title', 'pic__full_name')
+

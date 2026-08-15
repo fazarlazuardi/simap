@@ -510,7 +510,7 @@
         <!-- =========================================================
              HALAMAN 2 (OPSIONAL): RENCANA TINDAK LANJUT (ACTION PLAN) & TTD
              ========================================================= -->
-        {% if meeting.notulensi_action_items %}
+        {% if meeting.notulensi_action_items or meeting.tracked_action_items.exists %}
         <div class="page-sheet" id="sheet-page-action-plan">
             <div class="sheet-content">
                 <!-- KOP SURAT FORMAL BERKOTAK -->
@@ -541,7 +541,42 @@
                 <!-- 3. ACTION PLAN -->
                 <div class="section-group" style="margin-top: 10px;">
                     <div class="section-bar">3. RENCANA TINDAK LANJUT (ACTION PLAN)</div>
-                    <div class="section-box" style="min-height: 160px;">{{ meeting.notulensi_action_items|default:"-"|safe }}</div>
+                    <div class="section-box" style="min-height: 120px;">
+                        {% if meeting.notulensi_action_items %}
+                            <div style="margin-bottom: 8px;">{{ meeting.notulensi_action_items|safe }}</div>
+                        {% endif %}
+                        {% if meeting.tracked_action_items.exists %}
+                            <table class="gov-table" style="margin-top: 6px;">
+                                <colgroup>
+                                    <col style="width: 7%;">
+                                    <col style="width: 43%;">
+                                    <col style="width: 25%;">
+                                    <col style="width: 13%;">
+                                    <col style="width: 12%;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>NO.</th>
+                                        <th>POIN TINDAK LANJUT / ACTION ITEM</th>
+                                        <th>PIC (PENANGGUNG JAWAB)</th>
+                                        <th>DEADLINE</th>
+                                        <th>STATUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in meeting.tracked_action_items %}
+                                    <tr>
+                                        <td style="text-align: center;">{{ forloop.counter }}</td>
+                                        <td style="font-weight: bold;">{{ item.title }}</td>
+                                        <td>{{ item.pic.full_name|default:"-" }}</td>
+                                        <td style="text-align: center;">{{ item.due_date|date:"d/m/Y"|default:"-" }}</td>
+                                        <td style="text-align: center; font-weight: bold;">{{ item.get_status_display }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -570,6 +605,7 @@
             </div>
         </div>
         {% endif %}
+
 
         <!-- =========================================================
              HALAMAN PRESENSI / DAFTAR KEHADIRAN
