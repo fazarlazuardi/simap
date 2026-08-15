@@ -104,8 +104,42 @@ class InternalMeeting(models.Model):
         return bool(self.status == 'selesai' or self.notulensi_summary or self.notulensi_decision)
 
     @property
+    def ordered_participants(self):
+        """Mengembalikan daftar peserta rapat terurut berdasarkan hirarki jabatan struktural (Ketua -> Waka -> Kabid -> Staf)."""
+        participants_list = list(self.participants.all())
+
+        def get_rank(emp):
+            pos = (emp.position or "").lower().strip()
+            l_type = getattr(emp, 'leadership_type', 'none')
+
+            if l_type == 'ketua' or ('ketua' in pos and 'wakil' not in pos):
+                return 1
+            if l_type == 'waka_1' or 'wakil ketua i' in pos or 'wakil ketua 1' in pos or 'waka i' in pos or 'waka 1' in pos:
+                return 2
+            if l_type == 'waka_2' or 'wakil ketua ii' in pos or 'wakil ketua 2' in pos or 'waka ii' in pos or 'waka 2' in pos:
+                return 3
+            if l_type == 'waka_3' or 'wakil ketua iii' in pos or 'wakil ketua 3' in pos or 'waka iii' in pos or 'waka 3' in pos:
+                return 4
+            if l_type == 'waka_4' or 'wakil ketua iv' in pos or 'wakil ketua 4' in pos or 'waka iv' in pos or 'waka 4' in pos:
+                return 5
+            if 'wakil' in pos:
+                return 6
+            if 'sekretaris' in pos:
+                return 7
+            if 'kabid' in pos or 'kepala bidang' in pos or 'kepala' in pos:
+                return 8
+            if 'kasubid' in pos or 'kepala sub' in pos or 'kasub' in pos:
+                return 9
+            if 'staf' in pos or 'pelaksana' in pos or 'amil' in pos:
+                return 10
+            return 11
+
+        participants_list.sort(key=lambda emp: (get_rank(emp), emp.full_name or ''))
+        return participants_list
+
+    @property
     def participants_names_display(self):
-        names = [p.full_name for p in self.participants.all() if p.full_name]
+        names = [p.full_name for p in self.ordered_participants if p.full_name]
         return ", ".join(names) if names else "-"
 
     @property

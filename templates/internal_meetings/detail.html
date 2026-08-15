@@ -3,6 +3,77 @@
 
 {% block title %}Detail Rapat - {{ meeting.title }} - BAZNAS{% endblock %}
 
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<style>
+    .notulensi-content ol, .notulensi-content ul {
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .notulensi-content ol {
+        list-style-type: decimal;
+    }
+    .notulensi-content ol ol {
+        list-style-type: lower-alpha;
+    }
+    .notulensi-content ol ol ol {
+        list-style-type: lower-roman;
+    }
+    .notulensi-content p {
+        margin-bottom: 0.35rem;
+    }
+    .notulensi-content p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Quill Editor Theme Styling & Dark Mode Compatibility */
+    .ql-container {
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+        font-family: inherit;
+        font-size: 0.95rem;
+        min-height: 140px;
+    }
+    .ql-toolbar {
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        background-color: var(--surface-alt, #f8f9fa);
+        border-color: var(--border-color, #dee2e6) !important;
+    }
+    .ql-container.ql-snow {
+        border-color: var(--border-color, #dee2e6) !important;
+        background-color: var(--card-bg, #ffffff);
+        color: var(--text-primary, #212529);
+    }
+    [data-theme="dark"] .ql-toolbar {
+        background-color: #1E293B !important;
+        border-color: #374151 !important;
+    }
+    [data-theme="dark"] .ql-toolbar .ql-stroke {
+        stroke: #F8FAFC !important;
+    }
+    [data-theme="dark"] .ql-toolbar .ql-fill {
+        fill: #F8FAFC !important;
+    }
+    [data-theme="dark"] .ql-toolbar .ql-picker {
+        color: #F8FAFC !important;
+    }
+    [data-theme="dark"] .ql-toolbar .ql-picker-options {
+        background-color: #1E293B !important;
+        border-color: #374151 !important;
+        color: #F8FAFC !important;
+    }
+    [data-theme="dark"] .ql-container.ql-snow {
+        background-color: #111827 !important;
+        border-color: #374151 !important;
+        color: #F8FAFC !important;
+    }
+    [data-theme="dark"] .ql-editor.ql-blank::before {
+        color: #9CA3AF !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-2">
     <!-- Header Navigation & Actions -->
@@ -111,17 +182,17 @@
                     {% if meeting.is_notulensi_completed %}
                         <div class="mb-4">
                             <span class="text-secondary small d-block fw-bold text-uppercase mb-2 text-primary"><i class="bi bi-chat-left-text me-1"></i> 1. Ringkasan Pembahasan & Risalah Rapat:</span>
-                            <div class="p-3 bg-light rounded-3 border text-dark" style="white-space: pre-line;">{{ meeting.notulensi_summary|default:"-" }}</div>
+                            <div class="p-3 bg-light rounded-3 border text-dark notulensi-content">{{ meeting.notulensi_summary|default:"-"|safe }}</div>
                         </div>
 
                         <div class="mb-4">
                             <span class="text-secondary small d-block fw-bold text-uppercase mb-2 text-success"><i class="bi bi-check-circle-fill me-1"></i> 2. Kesimpulan & Keputusan Rapat:</span>
-                            <div class="p-3 rounded-3 border text-dark" style="background-color: rgba(13, 138, 82, 0.05); border-color: rgba(13, 138, 82, 0.2) !important; white-space: pre-line;">{{ meeting.notulensi_decision|default:"-" }}</div>
+                            <div class="p-3 rounded-3 border text-dark notulensi-content" style="background-color: rgba(13, 138, 82, 0.05); border-color: rgba(13, 138, 82, 0.2) !important;">{{ meeting.notulensi_decision|default:"-"|safe }}</div>
                         </div>
 
                         <div class="mb-4">
                             <span class="text-secondary small d-block fw-bold text-uppercase mb-2 text-warning"><i class="bi bi-list-task me-1"></i> 3. Rencana Tindak Lanjut (Action Plan):</span>
-                            <div class="p-3 bg-light rounded-3 border text-dark" style="white-space: pre-line;">{{ meeting.notulensi_action_items|default:"-" }}</div>
+                            <div class="p-3 bg-light rounded-3 border text-dark notulensi-content">{{ meeting.notulensi_action_items|default:"-"|safe }}</div>
                         </div>
 
                         <div class="row g-3 border-top pt-3">
@@ -165,7 +236,7 @@
 
                 <div class="card-body p-3">
                     <div class="d-flex flex-column gap-2" style="max-height: 350px; overflow-y: auto;">
-                        {% for participant in meeting.participants.all %}
+                        {% for participant in meeting.ordered_participants %}
                         <div class="p-2 border rounded-3 d-flex align-items-center justify-content-between bg-light">
                             <div>
                                 <span class="fw-bold d-block small text-dark">{{ participant.full_name }}</span>
@@ -203,7 +274,7 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post" action="{% url 'internal_meetings:notulensi' meeting.pk %}" enctype="multipart/form-data">
+            <form id="formNotulensiModal" method="post" action="{% url 'internal_meetings:notulensi' meeting.pk %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body p-4">
                     <div class="alert alert-success d-flex align-items-center mb-3">
@@ -222,19 +293,52 @@
                         </div>
                     </div>
 
+                    <!-- Bagian Edit Peserta Hadir Rapat -->
+                    <div class="mb-3 p-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                            <label class="form-label fw-bold text-dark m-0"><i class="bi bi-people-fill text-success me-1"></i> Peserta Rapat Hadir</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" id="modal_btn_select_all">
+                                    <i class="bi bi-check-all me-1"></i> Pilih Semua
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" id="modal_btn_deselect_all">
+                                    <i class="bi bi-x-circle me-1"></i> Batal Semua
+                                </button>
+                                <span class="badge bg-success rounded-pill px-3" id="modal_participant_counter">0 Hadir</span>
+                            </div>
+                        </div>
+                        <input type="text" id="modal_search_participant" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari nama / jabatan peserta rapat...">
+                        
+                        <div class="p-2 rounded-3 border bg-white" style="max-height: 180px; overflow-y: auto;">
+                            <div class="row g-2" id="modal_participant_list">
+                                {% for checkbox in notulensi_form.participants %}
+                                <div class="col-md-6 modal-participant-item">
+                                    <label class="form-check-label d-flex align-items-center gap-2 m-0 border p-2 rounded-3 w-100 bg-light" style="cursor: pointer;">
+                                        {{ checkbox.tag }}
+                                        <span class="small fw-semibold text-dark">{{ checkbox.choice_label }}</span>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="{{ notulensi_form.notulensi_summary.id_for_label }}" class="form-label fw-bold text-dark">1. Ringkasan Pembahasan & Risalah Rapat <span class="text-danger">*</span></label>
-                        {{ notulensi_form.notulensi_summary }}
+                        <div id="quill-editor-summary" class="bg-white"></div>
+                        <div class="d-none">{{ notulensi_form.notulensi_summary }}</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="{{ notulensi_form.notulensi_decision.id_for_label }}" class="form-label fw-bold text-dark">2. Kesimpulan & Keputusan Rapat</label>
-                        {{ notulensi_form.notulensi_decision }}
+                        <div id="quill-editor-decision" class="bg-white"></div>
+                        <div class="d-none">{{ notulensi_form.notulensi_decision }}</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="{{ notulensi_form.notulensi_action_items.id_for_label }}" class="form-label fw-bold text-dark">3. Rencana Tindak Lanjut (Action Items)</label>
-                        {{ notulensi_form.notulensi_action_items }}
+                        <div id="quill-editor-action-items" class="bg-white"></div>
+                        <div class="d-none">{{ notulensi_form.notulensi_action_items }}</div>
                     </div>
 
                     <div class="mb-3">
@@ -256,7 +360,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 <script>
+var quillSummary, quillDecision, quillActionItems;
+
 function openDetailNotulensiModal() {
     var modalEl = document.getElementById('modalInputNotulensi');
     if (modalEl && modalEl.parentElement !== document.body) {
@@ -267,6 +374,180 @@ function openDetailNotulensiModal() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    var toolbarOptions = [
+        ['bold', 'italic', 'underline'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        ['clean']
+    ];
+
+    var summaryInput = document.getElementById('{{ notulensi_form.notulensi_summary.id_for_label }}');
+    var decisionInput = document.getElementById('{{ notulensi_form.notulensi_decision.id_for_label }}');
+    var actionItemsInput = document.getElementById('{{ notulensi_form.notulensi_action_items.id_for_label }}');
+
+    quillSummary = new Quill('#quill-editor-summary', {
+        theme: 'snow',
+        placeholder: 'Tuliskan ringkasan pembahasan & dinamika rapat (Gunakan toolbar penomoran 1,2,3 / a,b,c)...',
+        modules: { toolbar: toolbarOptions }
+    });
+
+    quillDecision = new Quill('#quill-editor-decision', {
+        theme: 'snow',
+        placeholder: 'Tuliskan kesimpulan & poin-poin keputusan rapat...',
+        modules: { toolbar: toolbarOptions }
+    });
+
+    quillActionItems = new Quill('#quill-editor-action-items', {
+        theme: 'snow',
+        placeholder: 'Tuliskan rencana tindak lanjut (Action Plan) dan penanggung jawab...',
+        modules: { toolbar: toolbarOptions }
+    });
+
+    // Helper konversi Markdown (hilangkan ** dan ubah jadi <strong>)
+    function convertMarkdownToHTML(text) {
+        if (!text) return text;
+        return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    }
+
+    // Helper penanganan Smart Paste dari WhatsApp / ChatGPT / MS Word
+    function setupSmartPaste(quillObj) {
+        quillObj.root.addEventListener('paste', function(e) {
+            var clipboardData = e.clipboardData || window.clipboardData;
+            if (!clipboardData) return;
+            var text = clipboardData.getData('text/plain');
+            var html = clipboardData.getData('text/html');
+
+            // Jika paste berupa teks polos dengan simbol ** atau penomoran 1. 2. a. b.
+            if (!html && text && (text.includes('**') || /^(\d+|\[?[a-zA-Z]\]?)[\.\)]\s+/m.test(text) || /^[\-\*\•]\s+/m.test(text))) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var converted = convertMarkdownToHTML(text);
+                var lines = converted.split(/\r?\n/);
+                var htmlOutput = '';
+                var inOl = false;
+                var inUl = false;
+
+                lines.forEach(function(line) {
+                    var trimmedLine = line.trim();
+                    if (!trimmedLine) return;
+
+                    var numMatch = trimmedLine.match(/^(\d+|\[?[a-zA-Z]\]?)[\.\)]\s+(.*)/);
+                    var bulletMatch = trimmedLine.match(/^[\-\*\•]\s+(.*)/);
+
+                    if (numMatch) {
+                        if (inUl) { htmlOutput += '</ul>'; inUl = false; }
+                        if (!inOl) { htmlOutput += '<ol>'; inOl = true; }
+                        htmlOutput += '<li>' + numMatch[2] + '</li>';
+                    } else if (bulletMatch) {
+                        if (inOl) { htmlOutput += '</ol>'; inOl = false; }
+                        if (!inUl) { htmlOutput += '<ul>'; inUl = true; }
+                        htmlOutput += '<li>' + bulletMatch[1] + '</li>';
+                    } else {
+                        if (inOl) { htmlOutput += '</ol>'; inOl = false; }
+                        if (inUl) { htmlOutput += '</ul>'; inUl = false; }
+                        htmlOutput += '<p>' + trimmedLine + '</p>';
+                    }
+                });
+
+                if (inOl) htmlOutput += '</ol>';
+                if (inUl) htmlOutput += '</ul>';
+
+                var range = quillObj.getSelection(true) || { index: 0 };
+                quillObj.clipboard.dangerouslyPasteHTML(range.index, htmlOutput);
+            }
+        });
+    }
+
+    setupSmartPaste(quillSummary);
+    setupSmartPaste(quillDecision);
+    setupSmartPaste(quillActionItems);
+
+    // Filter, Select All, & Counter Peserta Hadir pada Modal
+    var modalCheckboxes = document.querySelectorAll('#modal_participant_list input[type="checkbox"]');
+    var modalCounter = document.getElementById('modal_participant_counter');
+    var modalSearch = document.getElementById('modal_search_participant');
+    var modalBtnSelectAll = document.getElementById('modal_btn_select_all');
+    var modalBtnDeselectAll = document.getElementById('modal_btn_deselect_all');
+
+    function updateModalParticipantCounter() {
+        var count = 0;
+        modalCheckboxes.forEach(function(cb) { if (cb.checked) count++; });
+        if (modalCounter) modalCounter.innerText = count + ' Hadir';
+    }
+
+    if (modalSearch) {
+        modalSearch.addEventListener('input', function() {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('.modal-participant-item').forEach(function(item) {
+                var txt = item.innerText.toLowerCase();
+                item.style.display = txt.includes(q) ? 'block' : 'none';
+            });
+        });
+    }
+
+    if (modalBtnSelectAll) {
+        modalBtnSelectAll.addEventListener('click', function() {
+            document.querySelectorAll('.modal-participant-item').forEach(function(item) {
+                if (item.style.display !== 'none') {
+                    var cb = item.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = true;
+                }
+            });
+            updateModalParticipantCounter();
+        });
+    }
+
+    if (modalBtnDeselectAll) {
+        modalBtnDeselectAll.addEventListener('click', function() {
+            modalCheckboxes.forEach(function(cb) { cb.checked = false; });
+            updateModalParticipantCounter();
+        });
+    }
+
+    modalCheckboxes.forEach(function(cb) {
+        cb.addEventListener('change', updateModalParticipantCounter);
+    });
+    updateModalParticipantCounter();
+
+    // Helper untuk load konten awal (HTML / Plain Text legacy)
+    function setInitialContent(quillObj, rawVal) {
+        if (!rawVal) return;
+        var trimmed = rawVal.trim();
+        if (trimmed.startsWith('<p') || trimmed.startsWith('<ol') || trimmed.startsWith('<ul') || trimmed.startsWith('<div')) {
+            quillObj.clipboard.dangerouslyPasteHTML(convertMarkdownToHTML(trimmed));
+        } else {
+            var formattedText = convertMarkdownToHTML(trimmed);
+            var paragraphs = formattedText.split('\n').map(function(line) {
+                return line.trim() ? '<p>' + line.trim() + '</p>' : '';
+            }).join('');
+            quillObj.clipboard.dangerouslyPasteHTML(paragraphs || '<p>' + formattedText + '</p>');
+        }
+    }
+
+    if (summaryInput) setInitialContent(quillSummary, summaryInput.value);
+    if (decisionInput) setInitialContent(quillDecision, decisionInput.value);
+    if (actionItemsInput) setInitialContent(quillActionItems, actionItemsInput.value);
+
+    // Sync back ke textarea saat submit form (dan bersihkan sisa ** jika ada)
+    var notulensiForm = document.getElementById('formNotulensiModal');
+    if (notulensiForm) {
+        notulensiForm.addEventListener('submit', function() {
+            if (summaryInput) {
+                var htmlSum = convertMarkdownToHTML(quillSummary.root.innerHTML);
+                summaryInput.value = (htmlSum === '<p><br></p>') ? '' : htmlSum;
+            }
+            if (decisionInput) {
+                var htmlDec = convertMarkdownToHTML(quillDecision.root.innerHTML);
+                decisionInput.value = (htmlDec === '<p><br></p>') ? '' : htmlDec;
+            }
+            if (actionItemsInput) {
+                var htmlAct = convertMarkdownToHTML(quillActionItems.root.innerHTML);
+                actionItemsInput.value = (htmlAct === '<p><br></p>') ? '' : htmlAct;
+            }
+        });
+    }
+
     if (window.location.search.indexOf('open_notulensi=1') !== -1) {
         openDetailNotulensiModal();
     }

@@ -244,15 +244,34 @@
             font-size: 9.5pt;
             text-align: justify;
             line-height: 1.35;
-            white-space: pre-wrap;
             word-wrap: break-word;
             color: #000000;
         }
 
+        .section-box p {
+            margin: 0 0 4px 0;
+        }
+
+        .section-box p:last-child {
+            margin-bottom: 0;
+        }
+
         .section-box ul,
         .section-box ol {
-            margin: 2px 0;
-            padding-left: 18px;
+            margin: 3px 0;
+            padding-left: 20px;
+        }
+
+        .section-box ol {
+            list-style-type: decimal;
+        }
+
+        .section-box ol ol {
+            list-style-type: lower-alpha;
+        }
+
+        .section-box ol ol ol {
+            list-style-type: lower-roman;
         }
 
         .section-box li {
@@ -451,13 +470,13 @@
                 <!-- 1. RINGKASAN PEMBAHASAN -->
                 <div class="section-group">
                     <div class="section-bar">1. RINGKASAN PEMBAHASAN & RISALAH RAPAT</div>
-                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_summary|default:"-" }}</div>
+                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_summary|default:"-"|safe }}</div>
                 </div>
 
                 <!-- 2. KESIMPULAN & KEPUTUSAN -->
                 <div class="section-group">
                     <div class="section-bar">2. KESIMPULAN & KEPUTUSAN RAPAT</div>
-                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_decision|default:"-" }}</div>
+                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_decision|default:"-"|safe }}</div>
                 </div>
             </div>
 
@@ -522,7 +541,7 @@
                 <!-- 3. ACTION PLAN -->
                 <div class="section-group" style="margin-top: 10px;">
                     <div class="section-bar">3. RENCANA TINDAK LANJUT (ACTION PLAN)</div>
-                    <div class="section-box" style="min-height: 160px;">{{ meeting.notulensi_action_items }}</div>
+                    <div class="section-box" style="min-height: 160px;">{{ meeting.notulensi_action_items|default:"-"|safe }}</div>
                 </div>
             </div>
 
@@ -628,7 +647,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for participant in meeting.participants.all %}
+                        {% for participant in meeting.ordered_participants %}
                         <tr>
                             <td style="text-align: center;">{{ forloop.counter }}</td>
                             <td style="font-weight: bold;">{{ participant.full_name }}</td>

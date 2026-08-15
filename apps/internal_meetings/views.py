@@ -283,6 +283,7 @@ def meeting_notulensi(request, pk):
             if meeting_obj.status != 'dibatalkan':
                 meeting_obj.status = 'selesai'
             meeting_obj.save()
+            form.save_m2m()
 
             sync_meeting_to_agenda(meeting_obj)
             send_meeting_wa_notifications(meeting_obj, is_notulensi=True)

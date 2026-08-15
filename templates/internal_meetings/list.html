@@ -293,7 +293,7 @@
                                         <div class="text-secondary"><strong>Notulis:</strong> {{ meeting.notulis_name_display }}</div>
                                     </td>
                                     <td class="small" style="color: var(--text-secondary);">
-                                        {{ meeting.notulensi_decision|default:meeting.notulensi_summary|default:"-"|truncatechars:45 }}
+                                        {{ meeting.notulensi_decision|striptags|default:meeting.notulensi_summary|striptags|default:"-"|truncatechars:45 }}
                                     </td>
                                     <td class="text-center">
                                         <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Terbit</span>
@@ -414,17 +414,17 @@
 
                 <div class="mb-3">
                     <h6 class="fw-bold text-primary"><i class="bi bi-chat-left-text me-1"></i> 1. Ringkasan Pembahasan & Risalah Rapat:</h6>
-                    <div id="viewNotulensiSummary" class="p-3 bg-light border rounded-3 text-dark" style="white-space: pre-line;"></div>
+                    <div id="viewNotulensiSummary" class="p-3 bg-light border rounded-3 text-dark notulensi-content"></div>
                 </div>
 
                 <div class="mb-3">
                     <h6 class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1"></i> 2. Kesimpulan & Keputusan Rapat:</h6>
-                    <div id="viewNotulensiDecision" class="p-3 border rounded-3 text-dark" style="background-color: rgba(13, 138, 82, 0.05); border-color: rgba(13, 138, 82, 0.2) !important; white-space: pre-line;"></div>
+                    <div id="viewNotulensiDecision" class="p-3 border rounded-3 text-dark notulensi-content" style="background-color: rgba(13, 138, 82, 0.05); border-color: rgba(13, 138, 82, 0.2) !important;"></div>
                 </div>
 
                 <div class="mb-3" id="viewActionItemsBox">
                     <h6 class="fw-bold text-warning"><i class="bi bi-list-task me-1"></i> 3. Rencana Tindak Lanjut (Action Plan):</h6>
-                    <div id="viewNotulensiActionItems" class="p-3 bg-light border rounded-3 text-dark" style="white-space: pre-line;"></div>
+                    <div id="viewNotulensiActionItems" class="p-3 bg-light border rounded-3 text-dark notulensi-content"></div>
                 </div>
             </div>
             <div class="modal-footer bg-light rounded-bottom-4 py-3">
@@ -459,9 +459,9 @@
         document.getElementById('viewNotulensiDate').innerText = dateStr;
         document.getElementById('viewNotulensiLeader').innerText = leaderStr;
         document.getElementById('viewNotulensiNotulis').innerText = notulisStr;
-        document.getElementById('viewNotulensiSummary').innerText = summaryStr || '-';
-        document.getElementById('viewNotulensiDecision').innerText = decisionStr || '-';
-        document.getElementById('viewNotulensiActionItems').innerText = actionItemsStr || '-';
+        document.getElementById('viewNotulensiSummary').innerHTML = summaryStr || '-';
+        document.getElementById('viewNotulensiDecision').innerHTML = decisionStr || '-';
+        document.getElementById('viewNotulensiActionItems').innerHTML = actionItemsStr || '-';
         document.getElementById('viewNotulensiPrintBtn').href = '/rapat-internal/' + id + '/print/';
 
         var modalEl = document.getElementById('notulensiViewModal');

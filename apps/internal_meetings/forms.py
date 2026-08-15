@@ -1,6 +1,23 @@
 from django import forms
+from django.db.models import Case, When, Value, IntegerField
 from .models import InternalMeeting
 from users.models import Employee
+
+
+def get_ordered_employee_queryset():
+    return Employee.objects.filter(is_active=True).annotate(
+        rank=Case(
+            When(position__icontains='ketua', then=Value(1)),
+            When(position__icontains='waka', then=Value(2)),
+            When(position__icontains='kabid', then=Value(3)),
+            When(position__icontains='kepala', then=Value(3)),
+            When(position__icontains='kasubid', then=Value(4)),
+            When(position__icontains='staf', then=Value(5)),
+            When(position__icontains='pelaksana', then=Value(5)),
+            default=Value(6),
+            output_field=IntegerField(),
+        )
+    ).order_by('rank', 'full_name')
 
 
 class EmployeeChoiceField(forms.ModelMultipleChoiceField):
@@ -25,7 +42,7 @@ class InternalMeetingForm(forms.ModelForm):
         label="Pimpinan Rapat"
     )
     participants = EmployeeChoiceField(
-        queryset=Employee.objects.filter(is_active=True).order_by('full_name'),
+        queryset=Employee.objects.none(),
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
         required=False,
         label="Peserta Rapat (Pegawai / Amil)"
@@ -48,8 +65,9 @@ class InternalMeetingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Filter Pimpinan Rapat hanya untuk Jabatan Struktural (Ketua s/d Kabid IV), exclude Staff Pelaksana
-        pimpinan_qs = Employee.objects.filter(is_active=True).exclude(position__icontains='staf').exclude(position__icontains='pelaksana').order_by('id')
+        pimpinan_qs = get_ordered_employee_queryset().exclude(position__icontains='staf').exclude(position__icontains='pelaksana')
         self.fields['leaders'].queryset = pimpinan_qs
+        self.fields['participants'].queryset = get_ordered_employee_queryset()
 
         if self.instance and self.instance.pk:
             self.fields['leaders'].initial = self.instance.leaders.all()
@@ -64,17 +82,23 @@ class SingleEmployeeChoiceField(forms.ModelChoiceField):
 
 class NotulensiForm(forms.ModelForm):
     notulis = SingleEmployeeChoiceField(
-        queryset=Employee.objects.filter(is_active=True).order_by('full_name'),
+        queryset=Employee.objects.none(),
         widget=forms.Select(attrs={'class': 'form-select custom-input'}),
         required=False,
         label="Notulis Rapat"
+    )
+    participants = EmployeeChoiceField(
+        queryset=Employee.objects.none(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False,
+        label="Peserta Hadir Rapat"
     )
 
     class Meta:
         model = InternalMeeting
         fields = [
             'notulensi_summary', 'notulensi_decision', 'notulensi_action_items',
-            'notulis', 'notulensi_file', 'status'
+            'notulis', 'participants', 'notulensi_file', 'status'
         ]
         widgets = {
             'notulensi_summary': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Tuliskan ringkasan pembahasan & dinamika rapat...'}),
@@ -83,3 +107,10 @@ class NotulensiForm(forms.ModelForm):
             'notulensi_file': forms.FileInput(attrs={'class': 'form-control custom-input'}),
             'status': forms.Select(attrs={'class': 'form-select custom-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['notulis'].queryset = get_ordered_employee_queryset()
+        self.fields['participants'].queryset = get_ordered_employee_queryset()
+        if self.instance and self.instance.pk:
+            self.fields['participants'].initial = self.instance.participants.all()
