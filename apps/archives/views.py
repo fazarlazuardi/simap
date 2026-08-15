@@ -75,7 +75,7 @@ def archive_list(request):
 
     status_filter = request.GET.get('status', 'all')
     if status_filter == 'perlu_verifikasi':
-        archives = archives.filter(status__in=['baru', 'pending', 'masuk', 'verifikasi_kabid'])
+        archives = archives.filter(Q(verified_by_kabid=False) | Q(status__in=['baru', 'pending', 'masuk', 'verifikasi_kabid'])).exclude(status__in=['selesai', 'ditolak'])
     elif status_filter == 'belum_disposition':
         archives = archives.filter(status__in=['terverifikasi', 'disposisi_pimpinan', 'meja_waka4', 'disposisi_waka'])
     elif status_filter == 'sudah_disposition':
