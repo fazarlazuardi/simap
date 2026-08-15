@@ -9,7 +9,7 @@ class WorkflowEngine:
     """
 
     BANTUAN_SUB_KEYWORDS = {
-        'rtlh': ['rutilahu', 'bedah rumah', 'rumah roboh', 'perbaikan rumah', 'renovasi rumah'],
+        'rtlh': ['rutilahu', 'rtlh', 'bedah rumah', 'rumah roboh', 'perbaikan rumah', 'renovasi rumah', 'ruti lahu', 'rumah tidak layak'],
         'berobat': ['pengobatan', 'berobat', 'kesehatan', 'rumah sakit', 'pasien', 'operasi', 'alat bantu', 'kursi roda', 'medis'],
         'hutang': ['gharimin', 'gharim', 'hutang', 'hutanh', 'piutang', 'tunggakan sewa', 'tunggakan hidup', 'kontrakan'],
         'pendidikan': ['beasiswa', 'spp', 'sekolah', 'ijazah', 'tunggakan sekolah', 'kuliah', 'pendidikan', 'siswa', 'mahasiswa', 'tunggakan pendidikan', 'tunggakan spp'],

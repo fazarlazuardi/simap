@@ -201,7 +201,7 @@
 
         // Mapping Rule Kata Kunci Cerdas untuk Auto-Select Kategori Presisi
         const categoryKeywordRules = [
-            { keywords: ['rutilahu', 'bedah rumah', 'rumah roboh', 'perbaikan rumah', 'renovasi rumah'], match: 'rutilahu' },
+            { keywords: ['rutilahu', 'rtlh', 'bedah rumah', 'rumah roboh', 'perbaikan rumah', 'renovasi rumah', 'ruti lahu', 'rumah tidak layak'], match: 'rutilahu' },
             { keywords: ['pengobatan', 'berobat', 'kesehatan', 'rumah sakit', 'pasien', 'operasi', 'alat bantu', 'kursi roda', 'medis'], match: 'kesehatan' },
             { keywords: ['gharimin', 'gharim', 'hutang', 'hutanh', 'piutang', 'tunggakan sewa', 'tunggakan hidup', 'kontrakan'], match: 'gharimin' },
             { keywords: ['beasiswa', 'spp', 'sekolah', 'ijazah', 'tunggakan sekolah', 'kuliah', 'pendidikan', 'siswa', 'mahasiswa', 'tunggakan pendidikan', 'tunggakan spp', 'biaya pendidikan'], match: 'pendidikan' },
@@ -218,7 +218,14 @@
             { keywords: ['internal', 'sk', 'cuti', 'absensi', 'nota dinas'], match: 'internal' }
         ];
 
+        let userManuallySelected = false;
+        categorySelect.addEventListener('change', function() {
+            userManuallySelected = true;
+            categoryHint.classList.add('d-none');
+        });
+
         function autoSelectCategoryFromTitle() {
+            if (userManuallySelected) return;
             const titleVal = titleInput.value.toLowerCase();
             if (!titleVal) return;
 
@@ -240,12 +247,13 @@
                 }
             }
 
-            // 2. Pencocokan kata langsung ke nama kategori di database
+            // 2. Pencocokan kata langsung ke nama kategori di database (abaikan kata kunci generik seperti 'bantuan')
+            const genericStopWords = ['bantuan', 'permohonan', 'pengajuan', 'surat', 'dokumen', 'laporan', 'dinas', 'khusus', 'lainnya'];
             for (let i = 0; i < categorySelect.options.length; i++) {
                 const opt = categorySelect.options[i];
                 if (!opt.value) continue;
                 const optText = opt.text.toLowerCase();
-                const words = optText.replace(/[^a-z0-9\s]/gi, ' ').split(/\s+/).filter(w => w.length >= 4);
+                const words = optText.replace(/[^a-z0-9\s]/gi, ' ').split(/\s+/).filter(w => w.length >= 4 && !genericStopWords.includes(w));
                 if (words.some(w => titleVal.includes(w))) {
                     categorySelect.selectedIndex = i;
                     categoryHint.classList.remove('d-none');
