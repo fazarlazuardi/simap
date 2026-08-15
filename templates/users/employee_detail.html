@@ -211,9 +211,9 @@
 </div>
 
 {% if not user_account %}
-<div class="modal fade" id="createUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border-radius: 16px;">
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true" style="z-index: 1080;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
             <form method="post" action="{% url 'users:employee_create_user' employee.pk %}">
                 {% csrf_token %}
                 <div class="modal-header">

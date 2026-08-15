@@ -50,9 +50,9 @@ def employee_create_user(request, emp_pk):
             user.save()
             messages.success(request, f"Akun '{username}' berhasil dibuat untuk {emp.full_name}.")
             
-        return redirect('users:employee_detail', pk=emp.pk)
+        return redirect(request.META.get('HTTP_REFERER') or 'users:employee_master')
         
-    return redirect('users:employee_list')
+    return redirect('users:employee_master')
 
 
 @login_required
