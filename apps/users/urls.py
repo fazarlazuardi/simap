@@ -6,7 +6,6 @@ app_name = 'users'
 
 urlpatterns = [
     path('dashboard/', views.dashboard_index, name='dashboard'),
-    path('switch-pov/', views.switch_pov, name='switch_pov'),
     path('profile/', views.profile_view, name='profile'),
     path('app-settings/', views.app_settings_view, name='app_settings'),
     

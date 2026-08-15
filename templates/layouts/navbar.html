@@ -38,24 +38,6 @@
             </ul>
         </div>
         
-        {% if user.is_superadmin %}
-        <!-- POV SWITCHER WIDGET FOR SUPERADMIN -->
-        <div class="dropdown me-2">
-            <button class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 fw-bold dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-color: #F59E0B;">
-                <i class="bi bi-eye-fill me-1 text-warning"></i> POV: {% if request.session.active_pov %}<span class="text-uppercase fw-extrabold text-primary">{{ request.session.active_pov }}</span>{% else %}Superadmin{% endif %}
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 mt-2 p-2" style="width: 290px; z-index: 1060;">
-                <li class="px-3 py-2 border-bottom"><h6 class="mb-0 fw-bold small text-dark"><i class="bi bi-person-bounding-box me-2 text-warning"></i>Simulasi POV Peran Tampilan</h6></li>
-                <li><a class="dropdown-item rounded-3 small py-2 fw-semibold {% if not request.session.active_pov %}bg-warning-subtle text-dark{% endif %}" href="{% url 'users:switch_pov' %}?role=admin"><i class="bi bi-shield-check text-primary me-2"></i>Superadmin IT (Default)</a></li>
-                <li><a class="dropdown-item rounded-3 small py-2 fw-semibold {% if request.session.active_pov == 'ketua' %}bg-warning-subtle text-dark{% endif %}" href="{% url 'users:switch_pov' %}?role=ketua"><i class="bi bi-award-fill text-warning me-2"></i>Ketua BAZNAS</a></li>
-                <li><a class="dropdown-item rounded-3 small py-2 fw-semibold {% if request.session.active_pov == 'waka_4' %}bg-warning-subtle text-dark{% endif %}" href="{% url 'users:switch_pov' %}?role=waka_4"><i class="bi bi-building text-info me-2"></i>Waka IV (Administrasi & Umum)</a></li>
-                <li><a class="dropdown-item rounded-3 small py-2 fw-semibold {% if request.session.active_pov == 'kabid_4' %}bg-warning-subtle text-dark{% endif %}" href="{% url 'users:switch_pov' %}?role=kabid_4"><i class="bi bi-check-circle-fill text-success me-2"></i>Kabid IV (Verifikator Surat Masuk)</a></li>
-                <li><a class="dropdown-item rounded-3 small py-2 fw-semibold {% if request.session.active_pov == 'waka_2' %}bg-warning-subtle text-dark{% endif %}" href="{% url 'users:switch_pov' %}?role=waka_2"><i class="bi bi-heart-fill text-danger me-2"></i>Waka II (Pendistribusian & Bantuan)</a></li>
-                <li><a class="dropdown-item rounded-3 small py-2 fw-semibold {% if request.session.active_pov == 'kabid_2' %}bg-warning-subtle text-dark{% endif %}" href="{% url 'users:switch_pov' %}?role=kabid_2"><i class="bi bi-box-seam-fill text-warning me-2"></i>Kabid II (Pendistribusian & Pendayagunaan)</a></li>
-            </ul>
-        </div>
-        {% endif %}
-
         <div class="dropdown">
             <a href="#" class="d-flex align-items-center text-decoration-none" data-bs-toggle="dropdown">
                 <div class="me-2 text-end d-none d-sm-block">
