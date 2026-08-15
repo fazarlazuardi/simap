@@ -255,22 +255,9 @@
 
                 <div class="card-body p-4">
                     {% if action_items %}
-                    <div class="row g-4 mb-4 align-items-center">
-                        <!-- CHART DONUT -->
-                        <div class="col-md-5 col-lg-4 text-center">
-                            <div style="position: relative; height: 180px; width: 100%;">
-                                <canvas id="chartActionPlan"></canvas>
-                            </div>
-                            <div class="mt-2 small fw-bold text-secondary" id="chartLabelSummary">
-                                <span class="text-success"><i class="bi bi-circle-fill me-1"></i>Selesai: {{ action_stats.completed }}</span> | 
-                                <span class="text-warning"><i class="bi bi-circle-fill me-1"></i>Proses: {{ action_stats.in_progress }}</span> | 
-                                <span class="text-secondary"><i class="bi bi-circle-fill me-1"></i>Belum: {{ action_stats.pending }}</span>
-                            </div>
-                        </div>
-
-                        <!-- CAPAIAN STAT CARDS -->
-                        <div class="col-md-7 col-lg-8">
-                            <div class="row g-3">
+                    <!-- CAPAIAN STAT CARDS -->
+                    <div class="mb-4">
+                        <div class="row g-3">
                                 <div class="col-6 col-sm-3">
                                     <div class="p-3 border rounded-3 text-center bg-light">
                                         <span class="text-muted small d-block fw-bold text-uppercase">Total Plan</span>
@@ -721,11 +708,7 @@ function updateActionItemStatus(itemId, newStatus, notesVal) {
                         '<span class="text-warning"><i class="bi bi-circle-fill me-1"></i>Proses: ' + s.in_progress + '</span> | ' +
                         '<span class="text-secondary"><i class="bi bi-circle-fill me-1"></i>Belum: ' + s.pending + '</span>';
                 }
-
-                if (chartActionPlan) {
-                    chartActionPlan.data.datasets[0].data = [s.completed, s.in_progress, s.pending];
-                    chartActionPlan.update();
-                }
+            }
             }
         }
     })
@@ -983,36 +966,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.querySelector('select').value = '';
                     row.querySelector('input[type="date"]').value = '';
                 }
-            }
-        });
-    }
-
-    // Donut Chart Init
-    var chartCanvas = document.getElementById('chartActionPlan');
-    if (chartCanvas) {
-        var completedVal = parseInt("{{ action_stats.completed|default:0 }}");
-        var inProgressVal = parseInt("{{ action_stats.in_progress|default:0 }}");
-        var pendingVal = parseInt("{{ action_stats.pending|default:0 }}");
-
-        chartActionPlan = new Chart(chartCanvas, {
-            type: 'doughnut',
-            data: {
-                labels: ['Selesai', 'Diproses', 'Belum / Overdue'],
-                datasets: [{
-                    data: [completedVal, inProgressVal, pendingVal],
-                    backgroundColor: ['#10B981', '#F59E0B', '#6B7280'],
-                    borderColor: ['#10B981', '#F59E0B', '#6B7280'],
-                    borderWidth: 2,
-                    hoverOffset: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                cutout: '70%'
             }
         });
     }
