@@ -126,19 +126,30 @@
                                     </td>
                                     <td class="small" style="color: var(--text-secondary);">{{ dispo.note|default:"-"|truncatechars:35 }}</td>
                                     <td class="text-end pe-3">
-                                         {% if dispo.surat_tugas.count >= 2 %}
-                                             <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2 fw-bold">
-                                                 <i class="bi bi-journal-check me-1"></i> 2 Surat Tugas Terbit
-                                             </span>
-                                         {% elif dispo.surat_tugas.count == 1 %}
-                                             <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="ST #1 (Survei) sudah terbit. Klik untuk membuat ST #2 (Penyaluran Bantuan)">
-                                                 <i class="bi bi-plus-circle-fill me-1"></i> Buat ST #2 (Penyaluran)
-                                             </a>
-                                         {% else %}
-                                             <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm">
-                                                 <i class="bi bi-plus-lg me-1"></i> Buat Surat Tugas
-                                             </a>
-                                         {% endif %}
+                                          {% if dispo.surat_tugas.count >= 2 %}
+                                              <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2 fw-bold">
+                                                  <i class="bi bi-journal-check me-1"></i> 2 Surat Tugas Terbit
+                                              </span>
+                                          {% elif dispo.surat_tugas.count == 1 %}
+                                              <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=penyaluran" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="ST #1 (Survei) sudah terbit. Klik untuk membuat ST #2 (Penyaluran Bantuan)">
+                                                  <i class="bi bi-plus-circle-fill me-1"></i> Buat ST #2 (Penyaluran)
+                                              </a>
+                                          {% else %}
+                                              {% if dispo.archive and dispo.archive.archive_type == 'proposal' or dispo.archive and 'bantuan' in dispo.archive.category.name|lower %}
+                                                  <div class="d-flex justify-content-end gap-1 flex-wrap">
+                                                      <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=survei" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="Jadwalkan Survei Lapangan Kelayakan Bantuan Mustahik">
+                                                          <i class="bi bi-geo-alt-fill me-1"></i> 📋 Survei Lapangan
+                                                      </a>
+                                                      <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=penyaluran" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Proses Pentasyarufan / Langsung Disalurkan Direct">
+                                                          <i class="bi bi-box-seam-fill me-1"></i> 🎁 Langsung Disalurkan
+                                                      </a>
+                                                  </div>
+                                              {% else %}
+                                                  <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm">
+                                                      <i class="bi bi-plus-lg me-1"></i> Buat Surat Tugas
+                                                  </a>
+                                              {% endif %}
+                                          {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}

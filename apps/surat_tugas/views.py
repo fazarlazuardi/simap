@@ -209,8 +209,15 @@ def surat_create_from_archive(request, pk):
             initial_data['disposition'] = disposition
         if hasattr(SuratTugas, 'archive'):
             initial_data['archive'] = archive
-        smart_p, _ = determine_smart_purpose(archive=archive)
-        initial_data['tentang'] = smart_p
+
+        st_type = request.GET.get('st_type') or request.GET.get('type')
+        if st_type == 'survei':
+            initial_data['tentang'] = f"Survei Lapangan / Verifikasi Kelayakan Bantuan Mustahik: {archive.title if archive else ''}"
+        elif st_type == 'penyaluran':
+            initial_data['tentang'] = f"Pentasyarufan / Langsung Disalurkan Bantuan Mustahik: {archive.title if archive else ''}"
+        else:
+            smart_p, _ = determine_smart_purpose(archive=archive)
+            initial_data['tentang'] = smart_p
             
         form = SuratTugasForm(initial=initial_data)
 
@@ -266,9 +273,16 @@ def surat_create_from_disposition(request, disposition_id):
                 return redirect('archives:detail', pk=target_archive.pk)
             return redirect('surat_tugas:detail', pk=surat.pk)
     else:
-        smart_p, _ = determine_smart_purpose(archive=archive, dispo=disposition)
+        st_type = request.GET.get('st_type') or request.GET.get('type')
+        if st_type == 'survei':
+            tentang_text = f"Survei Lapangan / Verifikasi Kelayakan Bantuan Mustahik: {archive.title if archive else ''}"
+        elif st_type == 'penyaluran':
+            tentang_text = f"Pentasyarufan / Langsung Disalurkan Bantuan Mustahik: {archive.title if archive else ''}"
+        else:
+            tentang_text, _ = determine_smart_purpose(archive=archive, dispo=disposition)
+
         initial_data = {
-            'tentang': smart_p,
+            'tentang': tentang_text,
             'disposition': disposition,
         }
         if archive and hasattr(SuratTugas, 'archive'):
