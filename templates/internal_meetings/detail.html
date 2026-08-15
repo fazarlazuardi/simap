@@ -327,12 +327,22 @@
                                 <span class="badge bg-success rounded-pill px-3" id="modal_participant_counter">0 Hadir</span>
                             </div>
                         </div>
+                        <!-- BAR FILTER BIDANG PEGAWAI PADA MODAL NOTULENSI -->
+                        <div class="d-flex align-items-center gap-1 flex-wrap mb-2 p-2 rounded-3 bg-light border" id="modal_bidang_filter_bar">
+                            <span class="small fw-bold text-secondary me-1"><i class="bi bi-funnel-fill text-success me-1"></i>Filter Bidang:</span>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-bidang-filter active btn-primary" data-filter="all">Semua</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter btn-light border" data-filter="bidang_1">Bidang I</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter btn-light border" data-filter="bidang_2">Bidang II</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter btn-light border" data-filter="bidang_3">Bidang III</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter btn-light border" data-filter="bidang_4">Bidang IV</button>
+                        </div>
+
                         <input type="text" id="modal_search_participant" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari nama / jabatan peserta rapat...">
                         
                         <div class="p-2 rounded-3 border bg-white" style="max-height: 180px; overflow-y: auto;">
                             <div class="row g-2" id="modal_participant_list">
                                 {% for checkbox in notulensi_form.participants %}
-                                <div class="col-md-6 modal-participant-item">
+                                <div class="col-md-6 modal-participant-item" data-emp-id="{{ checkbox.choice_value }}">
                                     <label class="form-check-label d-flex align-items-center gap-2 m-0 border p-2 rounded-3 w-100 bg-light" style="cursor: pointer;">
                                         {{ checkbox.tag }}
                                         <span class="small fw-semibold text-dark">{{ checkbox.choice_label }}</span>
@@ -534,6 +544,51 @@ document.addEventListener('DOMContentLoaded', function() {
         cb.addEventListener('change', updateModalParticipantCounter);
     });
     updateModalParticipantCounter();
+
+    // --- SMART BIDANG FILTER PADA MODAL NOTULENSI ---
+    var empBidangMapModal = JSON.parse('{{ employee_bidang_json|default:"{}"|escapejs }}');
+    var userBidangModal = '{{ user_bidang|default:"all" }}';
+    var meetingTypeVal = '{{ meeting.meeting_type }}';
+
+    document.querySelectorAll('.modal-participant-item').forEach(function(item) {
+        var empId = item.getAttribute('data-emp-id');
+        if (empId && empBidangMapModal[empId]) {
+            item.setAttribute('data-bidang', empBidangMapModal[empId]);
+        }
+    });
+
+    function filterModalParticipantsByBidang(bidangCode) {
+        document.querySelectorAll('.btn-modal-bidang-filter').forEach(function(btn) {
+            if (btn.getAttribute('data-filter') === bidangCode) {
+                btn.classList.add('active', 'btn-primary');
+                btn.classList.remove('btn-light', 'border');
+            } else {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-light', 'border');
+            }
+        });
+
+        document.querySelectorAll('.modal-participant-item').forEach(function(item) {
+            var itemBidang = item.getAttribute('data-bidang');
+            if (bidangCode === 'all' || itemBidang === bidangCode) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    document.querySelectorAll('.btn-modal-bidang-filter').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var targetFilter = this.getAttribute('data-filter');
+            filterModalParticipantsByBidang(targetFilter);
+        });
+    });
+
+    if (meetingTypeVal === 'pleno') {
+        var targetBidangModal = userBidangModal !== 'all' ? userBidangModal : 'bidang_2';
+        filterModalParticipantsByBidang(targetBidangModal);
+    }
 
     // Helper untuk load konten awal (HTML / Plain Text legacy)
     function setInitialContent(quillObj, rawVal) {

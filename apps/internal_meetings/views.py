@@ -5,10 +5,57 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+import re
+import json
+
 from .forms import InternalMeetingForm, NotulensiForm
 from .models import InternalMeeting, MeetingActionItem
 from users.models import Employee
 from services.audit_logs.audit_service import AuditService
+
+
+def resolve_employee_bidang(emp):
+    if not emp:
+        return 'other'
+    pos = (emp.position or '').lower()
+    dept = (emp.dept_relation.name if emp.dept_relation else '').lower()
+    text = f"{pos} {dept}"
+
+    if re.search(r'\bbidang\s*(4|iv)\b', text) or re.search(r'\b(waka|kabid)\s*(4|iv)\b', text) or 'administrasi' in text or 'sdm' in text:
+        return 'bidang_4'
+    if re.search(r'\bbidang\s*(3|iii)\b', text) or re.search(r'\b(waka|kabid)\s*(3|iii)\b', text) or 'perencanaan' in text or 'pelaporan' in text:
+        return 'bidang_3'
+    if re.search(r'\bbidang\s*(2|ii)\b', text) or re.search(r'\b(waka|kabid)\s*(2|ii)\b', text) or 'pendistribusian' in text or 'pendayagunaan' in text:
+        return 'bidang_2'
+    if re.search(r'\bbidang\s*(1|i)\b', text) or re.search(r'\b(waka|kabid)\s*(1|i)\b', text) or 'pengumpulan' in text:
+        return 'bidang_1'
+
+    return 'other'
+
+
+def resolve_user_bidang(request):
+    active_pov = request.session.get('active_pov')
+    if active_pov:
+        if active_pov in ['waka_1', 'kabid_1']: return 'bidang_1'
+        if active_pov in ['waka_2', 'kabid_2']: return 'bidang_2'
+        if active_pov in ['waka_3', 'kabid_3']: return 'bidang_3'
+        if active_pov in ['waka_4', 'kabid_4', 'sdm', 'front_office']: return 'bidang_4'
+        if active_pov == 'admin': return 'all'
+
+    user = request.user
+    if getattr(user, 'is_superadmin', False) and not active_pov:
+        return 'all'
+
+    emp = getattr(user, 'employee', None)
+    if emp:
+        b = resolve_employee_bidang(emp)
+        if b != 'other':
+            return b
+
+    if getattr(user, 'is_waka_2', False) or getattr(user, 'is_kabid_2', False): return 'bidang_2'
+    if getattr(user, 'is_waka_4', False) or getattr(user, 'is_kabid_4', False) or getattr(user, 'is_sdm', False): return 'bidang_4'
+
+    return 'all'
 
 
 
@@ -213,9 +260,17 @@ def meeting_create(request):
     else:
         form = InternalMeetingForm()
 
+    all_employees = Employee.objects.filter(is_active=True).order_by('full_name')
+    emp_bidang_map = {str(e.id): resolve_employee_bidang(e) for e in all_employees}
+    employee_bidang_json = json.dumps(emp_bidang_map)
+    user_bidang = resolve_user_bidang(request)
+
     return render(request, 'internal_meetings/create.html', {
         'form': form,
         'is_edit': False,
+        'user_bidang': user_bidang,
+        'emp_bidang_map': emp_bidang_map,
+        'employee_bidang_json': employee_bidang_json,
     })
 
 
@@ -233,12 +288,19 @@ def meeting_detail(request, pk):
     action_items = meeting.action_items.select_related('pic', 'completed_by').all()
     action_stats = meeting.action_plan_stats
 
+    emp_bidang_map = {str(e.id): resolve_employee_bidang(e) for e in employees}
+    employee_bidang_json = json.dumps(emp_bidang_map)
+    user_bidang = resolve_user_bidang(request)
+
     return render(request, 'internal_meetings/detail.html', {
         'meeting': meeting,
         'employees': employees,
         'notulensi_form': notulensi_form,
         'action_items': action_items,
         'action_stats': action_stats,
+        'user_bidang': user_bidang,
+        'emp_bidang_map': emp_bidang_map,
+        'employee_bidang_json': employee_bidang_json,
     })
 
 
@@ -268,10 +330,18 @@ def meeting_edit(request, pk):
     else:
         form = InternalMeetingForm(instance=meeting)
 
+    all_employees = Employee.objects.filter(is_active=True).order_by('full_name')
+    emp_bidang_map = {str(e.id): resolve_employee_bidang(e) for e in all_employees}
+    employee_bidang_json = json.dumps(emp_bidang_map)
+    user_bidang = resolve_user_bidang(request)
+
     return render(request, 'internal_meetings/create.html', {
         'form': form,
         'meeting': meeting,
         'is_edit': True,
+        'user_bidang': user_bidang,
+        'emp_bidang_map': emp_bidang_map,
+        'employee_bidang_json': employee_bidang_json,
     })
 
 

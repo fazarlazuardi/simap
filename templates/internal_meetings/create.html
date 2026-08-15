@@ -139,9 +139,24 @@
                         </div>
                     </div>
 
-                    <!-- Filter Search Input Peserta -->
+                    <!-- Filter Search Input Peserta & Smart Bidang Filter -->
                     <div class="mb-2">
-                        <input type="text" id="search_participant" class="form-control form-control-sm rounded-pill px-3" placeholder="🔍 Cari nama atau jabatan pegawai / amil...">
+                        <input type="text" id="search_participant" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari nama atau jabatan pegawai / amil...">
+                        
+                        <!-- BAR FILTER BIDANG PEGAWAI -->
+                        <div class="d-flex align-items-center gap-1 flex-wrap mb-2 p-2 rounded-3 bg-light border" id="bidang_filter_bar">
+                            <span class="small fw-bold text-secondary me-1"><i class="bi bi-funnel-fill text-success me-1"></i>Filter Bidang:</span>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-bidang-filter active btn-primary" data-filter="all">Semua Bidang</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-bidang-filter btn-light border" data-filter="bidang_1">Bidang I (Pengumpulan)</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-bidang-filter btn-light border" data-filter="bidang_2">Bidang II (Pendistribusian)</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-bidang-filter btn-light border" data-filter="bidang_3">Bidang III (Perencanaan)</button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-bidang-filter btn-light border" data-filter="bidang_4">Bidang IV (Administrasi/SDM)</button>
+                        </div>
+
+                        <!-- ALERT NOTIFIKASI SMARTER FILTER PLENO BIDANG -->
+                        <div id="pleno_auto_filter_alert" class="alert alert-success border-0 rounded-3 py-2 px-3 mb-2 d-none small shadow-sm">
+                            <i class="bi bi-magic me-1"></i> <span id="pleno_alert_text">Mode Rapat Pleno Bidang Aktif</span>
+                        </div>
                     </div>
 
                     <!-- Container Indikator Nama Pegawai yang Diceklis -->
@@ -153,7 +168,7 @@
                     <div class="p-3 rounded-3 border" style="max-height: 250px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
                         <div class="row g-2" id="participant_checkbox_container">
                             {% for checkbox in form.participants %}
-                            <div class="col-md-4 col-sm-6 participant-card-item">
+                            <div class="col-md-4 col-sm-6 participant-card-item" data-emp-id="{{ checkbox.choice_value }}">
                                 <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100">
                                     {{ checkbox.tag }}
                                     <span class="small fw-semibold text-dark">{{ checkbox.choice_label }}</span>
@@ -303,6 +318,80 @@
 
         participantCheckboxes.forEach(cb => cb.addEventListener('change', updateParticipantBadges));
         updateParticipantBadges();
+
+        // --- 3. SMART BIDANG FILTERING UNTUK RAPAT PLENO BIDANG ---
+        const empBidangMap = JSON.parse('{{ employee_bidang_json|default:"{}"|escapejs }}');
+        const userBidang = '{{ user_bidang|default:"all" }}';
+        const meetingTypeSelect = document.getElementById('id_meeting_type');
+        const alertBox = document.getElementById('pleno_auto_filter_alert');
+        const alertText = document.getElementById('pleno_alert_text');
+
+        // Bind data-bidang attribute to each participant card item
+        document.querySelectorAll('.participant-card-item').forEach(item => {
+            const empId = item.getAttribute('data-emp-id');
+            if (empId && empBidangMap[empId]) {
+                item.setAttribute('data-bidang', empBidangMap[empId]);
+            }
+        });
+
+        function filterParticipantsByBidang(bidangCode) {
+            document.querySelectorAll('.btn-bidang-filter').forEach(btn => {
+                if (btn.getAttribute('data-filter') === bidangCode) {
+                    btn.classList.add('active', 'btn-primary');
+                    btn.classList.remove('btn-light', 'border');
+                } else {
+                    btn.classList.remove('active', 'btn-primary');
+                    btn.classList.add('btn-light', 'border');
+                }
+            });
+
+            document.querySelectorAll('.participant-card-item').forEach(item => {
+                const itemBidang = item.getAttribute('data-bidang');
+                if (bidangCode === 'all' || itemBidang === bidangCode) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        document.querySelectorAll('.btn-bidang-filter').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetFilter = this.getAttribute('data-filter');
+                filterParticipantsByBidang(targetFilter);
+            });
+        });
+
+        function applySmartBidangFilter() {
+            const selectedType = meetingTypeSelect ? meetingTypeSelect.value : '';
+            if (selectedType === 'pleno') {
+                const targetBidang = userBidang !== 'all' ? userBidang : 'bidang_2';
+                filterParticipantsByBidang(targetBidang);
+
+                if (alertBox) {
+                    alertBox.classList.remove('d-none');
+                    const bidangNames = {
+                        'bidang_1': 'Bidang I (Pengumpulan)',
+                        'bidang_2': 'Bidang II (Pendistribusian & Pendayagunaan)',
+                        'bidang_3': 'Bidang III (Perencanaan, Keuangan & Pelaporan)',
+                        'bidang_4': 'Bidang IV (Administrasi, SDM & Umum)',
+                    };
+                    if (alertText) {
+                        alertText.innerHTML = `Mode <strong>Rapat Pleno Bidang</strong> Aktif: Menyaring peserta rapat khusus pegawai/amil <strong>${bidangNames[targetBidang] || targetBidang}</strong>.`;
+                    }
+                }
+            } else {
+                if (alertBox) alertBox.classList.add('d-none');
+                filterParticipantsByBidang('all');
+            }
+        }
+
+        if (meetingTypeSelect) {
+            meetingTypeSelect.addEventListener('change', applySmartBidangFilter);
+        }
+
+        // Trigger on initial page load
+        applySmartBidangFilter();
     });
 </script>
 {% endblock %}
