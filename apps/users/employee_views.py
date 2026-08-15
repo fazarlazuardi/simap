@@ -196,6 +196,7 @@ def employee_list(request):
         'page_obj': page_obj,
         'employee_list': employee_list_ctx,
         'departments': departments,
+        'roles': User.ROLE_CHOICES,
         'filters': {
             'bidang': bidang or '',
             'akun': akun or '',
