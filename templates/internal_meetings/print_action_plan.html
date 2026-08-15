@@ -208,8 +208,45 @@
                 </tr>
                 {% endfor %}
             </tbody>
+        <!-- BLOK TANDA TANGAN 3 PILAR TANPA BARCODE (MANUAL / FORMAL) -->
+        <table style="width: 100%; table-layout: fixed; margin-top: 35px; border-collapse: collapse;">
+            <tr>
+                <!-- 1. DIVERIFIKASI OLEH (KABID) -->
+                <td style="width: 33.3%; text-align: center; vertical-align: top; padding: 0 10px;">
+                    <div>
+                        Diverifikasi Oleh,<br>
+                        <strong>Kepala Bidang IV / Kabid Terkait</strong>
+                        <div style="height: 65px;"></div>
+                        <strong style="font-size: 9.5pt;"><u>( ________________________ )</u></strong><br>
+                        <span style="font-size: 8pt; color: #333;">Kepala Bidang BAZNAS</span>
+                    </div>
+                </td>
+
+                <!-- 2. DIKETAHUI OLEH (WAKA / PIMPINAN) -->
+                <td style="width: 33.3%; text-align: center; vertical-align: top; padding: 0 10px;">
+                    <div>
+                        Diketahui Oleh,<br>
+                        <strong>Wakil Ketua IV / Waka Terkait</strong>
+                        <div style="height: 65px;"></div>
+                        <strong style="font-size: 9.5pt;"><u>( ________________________ )</u></strong><br>
+                        <span style="font-size: 8pt; color: #333;">Pimpinan BAZNAS</span>
+                    </div>
+                </td>
+
+                <!-- 3. PETUGAS / NOTULIS -->
+                <td style="width: 33.3%; text-align: center; vertical-align: top; padding: 0 10px;">
+                    <div>
+                        Tangerang, {{ printed_at|date:"d F Y" }}<br>
+                        <strong>Petugas / Notulis Rapat</strong>
+                        <div style="height: 65px;"></div>
+                        <strong style="font-size: 9.5pt;"><u>( ________________________ )</u></strong><br>
+                        <span style="font-size: 8pt; color: #333;">Petugas Monitoring</span>
+                    </div>
+                </td>
+            </tr>
         </table>
     </div>
 
 </body>
 </html>
+
