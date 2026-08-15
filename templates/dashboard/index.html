@@ -351,6 +351,25 @@
     </div>
 </div>
 
+{% if user.is_pimpinan or user.is_superadmin %}
+{% if pending_dispositions > 0 %}
+<div class="alert alert-warning border-0 shadow-sm rounded-4 mb-4 p-3 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);">
+    <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle p-2 bg-warning text-dark">
+            <i class="bi bi-exclamation-circle-fill fs-4"></i>
+        </div>
+        <div>
+            <h6 class="fw-bold text-dark mb-0">Ada {{ pending_dispositions }} Dokumen Terverifikasi Kabid IV yang Siap Didisposisikan!</h6>
+            <span class="small text-dark opacity-75">Dokumen telah diverifikasi Kabid IV dan siap untuk Anda berikan instruksi disposisi.</span>
+        </div>
+    </div>
+    <a href="{% url 'dispositions:list' %}" class="btn btn-warning btn-sm rounded-pill px-4 fw-bold shadow-sm text-dark border-dark">
+        <i class="bi bi-send-fill me-1"></i> Buka Antrean Disposisi
+    </a>
+</div>
+{% endif %}
+{% endif %}
+
 <!-- 1. Top Stat Counters (6 Cards) -->
 <div class="row g-3 mb-4">
     <div class="col-xl-2 col-md-4 col-6">
