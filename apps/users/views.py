@@ -30,14 +30,24 @@ def get_active_pov_role(request):
 def switch_pov(request):
     """
     Endpoint untuk Superadmin beralih mode simulasi Tampilan (POV Switcher)
-    ke peran Waka II, Kabid II, atau Reset ke Default.
+    ke peran Front Office, Kabid IV, Ketua BAZNAS, Waka IV, Waka II, Kabid II, atau Reset ke Default.
     """
     if not request.user.is_superadmin:
         messages.error(request, "Hanya Superadmin yang berhak mengakses simulasi POV Tampilan.")
         return redirect('users:dashboard')
 
     target_pov = request.GET.get('role', 'admin').strip().lower()
-    allowed_roles = ['admin', 'waka_2', 'kabid_2']
+    allowed_roles = ['admin', 'sdm', 'kabid_4', 'ketua', 'waka_4', 'waka_2', 'kabid_2']
+    
+    role_labels = {
+        'admin': 'Superadmin IT Default',
+        'sdm': 'Front Office / Resepsionis',
+        'kabid_4': 'Kabid IV (Administrasi & SDM)',
+        'ketua': 'Ketua BAZNAS',
+        'waka_4': 'Waka IV (Administrasi, SDM & Umum)',
+        'waka_2': 'Waka II (Pendistribusian & Bantuan)',
+        'kabid_2': 'Kabid II (Pendistribusian & Pendayagunaan)',
+    }
     
     if target_pov in allowed_roles:
         if target_pov == 'admin':
@@ -45,7 +55,7 @@ def switch_pov(request):
             messages.success(request, "Tampilan berhasil dikembalikan ke Superadmin IT Default.")
         else:
             request.session['active_pov'] = target_pov
-            messages.info(request, f"Mode Simulasi POV Aktif: Anda sedang melihat sistem dari perspektif {target_pov.replace('_', ' ').upper()}.")
+            messages.info(request, f"Mode Simulasi POV Aktif: Anda sedang melihat sistem dari perspektif {role_labels.get(target_pov, target_pov.upper())}.")
     else:
         messages.error(request, "Pilihan Peran POV tidak valid.")
 
@@ -208,6 +218,10 @@ def dashboard_index(request):
 
     pov_names = {
         'admin': 'Superadmin IT (Default)',
+        'sdm': 'Front Office / Resepsionis (Registrasi & Upload)',
+        'kabid_4': 'Kabid IV (Administrasi & SDM)',
+        'ketua': 'Ketua BAZNAS (Disposisi Tahap 1)',
+        'waka_4': 'Waka IV (Administrasi, SDM & Umum)',
         'waka_2': 'Waka II (Pendistribusian & Bantuan Mustahik)',
         'kabid_2': 'Kabid II (Pendistribusian & Pendayagunaan Mustahik)',
         'staff': 'Staf Pelaksana Amil'
