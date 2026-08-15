@@ -326,11 +326,13 @@
         const alertBox = document.getElementById('pleno_auto_filter_alert');
         const alertText = document.getElementById('pleno_alert_text');
 
-        // Bind data-bidang attribute to each participant card item
+        // Bind data-bidang attribute to each participant card item using input checkbox value
         document.querySelectorAll('.participant-card-item').forEach(item => {
-            const empId = item.getAttribute('data-emp-id');
-            if (empId && empBidangMap[empId]) {
-                item.setAttribute('data-bidang', empBidangMap[empId]);
+            const inputCb = item.querySelector('input[type="checkbox"]');
+            if (inputCb && inputCb.value) {
+                const empIdStr = String(inputCb.value).trim();
+                const bCode = empBidangMap[empIdStr] || empBidangMap[parseInt(empIdStr, 10)] || 'other';
+                item.setAttribute('data-bidang', bCode);
             }
         });
 
@@ -345,14 +347,23 @@
                 }
             });
 
+            let visibleCount = 0;
             document.querySelectorAll('.participant-card-item').forEach(item => {
                 const itemBidang = item.getAttribute('data-bidang');
-                if (bidangCode === 'all' || itemBidang === bidangCode) {
+                if (bidangCode === 'all' || itemBidang === bidangCode || itemBidang === 'other') {
                     item.style.display = 'block';
+                    visibleCount++;
                 } else {
                     item.style.display = 'none';
                 }
             });
+
+            // Fallback: If no items matched specific filter, show all items to prevent empty container
+            if (visibleCount === 0 && bidangCode !== 'all') {
+                document.querySelectorAll('.participant-card-item').forEach(item => {
+                    item.style.display = 'block';
+                });
+            }
         }
 
         document.querySelectorAll('.btn-bidang-filter').forEach(btn => {
@@ -377,7 +388,7 @@
                         'bidang_4': 'Bidang IV (Administrasi, SDM & Umum)',
                     };
                     if (alertText) {
-                        alertText.innerHTML = `Mode <strong>Rapat Pleno Bidang</strong> Aktif: Menyaring peserta rapat khusus pegawai/amil <strong>${bidangNames[targetBidang] || targetBidang}</strong>.`;
+                        alertText.innerHTML = `Mode <strong>Rapat Pleno Bidang</strong> Aktif: Menampilkan daftar pegawai/amil <strong>${bidangNames[targetBidang] || targetBidang}</strong>.`;
                     }
                 }
             } else {

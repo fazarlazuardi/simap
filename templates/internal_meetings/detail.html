@@ -551,9 +551,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var meetingTypeVal = '{{ meeting.meeting_type }}';
 
     document.querySelectorAll('.modal-participant-item').forEach(function(item) {
-        var empId = item.getAttribute('data-emp-id');
-        if (empId && empBidangMapModal[empId]) {
-            item.setAttribute('data-bidang', empBidangMapModal[empId]);
+        var inputCb = item.querySelector('input[type="checkbox"]');
+        if (inputCb && inputCb.value) {
+            var empIdStr = String(inputCb.value).trim();
+            var bCode = empBidangMapModal[empIdStr] || empBidangMapModal[parseInt(empIdStr, 10)] || 'other';
+            item.setAttribute('data-bidang', bCode);
         }
     });
 
@@ -568,14 +570,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        var visibleCount = 0;
         document.querySelectorAll('.modal-participant-item').forEach(function(item) {
             var itemBidang = item.getAttribute('data-bidang');
-            if (bidangCode === 'all' || itemBidang === bidangCode) {
+            if (bidangCode === 'all' || itemBidang === bidangCode || itemBidang === 'other') {
                 item.style.display = 'block';
+                visibleCount++;
             } else {
                 item.style.display = 'none';
             }
         });
+
+        if (visibleCount === 0 && bidangCode !== 'all') {
+            document.querySelectorAll('.modal-participant-item').forEach(function(item) {
+                item.style.display = 'block';
+            });
+        }
     }
 
     document.querySelectorAll('.btn-modal-bidang-filter').forEach(function(btn) {
