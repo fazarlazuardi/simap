@@ -869,6 +869,7 @@
     {% include 'layouts/sidebar.html' %}
 
     <!-- Main Wrapper -->
+    <div id="main-wrapper">
         {% include 'layouts/navbar.html' %}
 
         {% if user.is_superadmin and request.session.active_pov %}
