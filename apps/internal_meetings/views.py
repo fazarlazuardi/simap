@@ -438,3 +438,138 @@ def meeting_delete(request, pk):
         return redirect('internal_meetings:list')
 
     return redirect('internal_meetings:detail', pk=pk)
+
+
+@login_required
+def action_plan_list(request):
+    """
+    Halaman Khusus Monitoring & Analytics Action Plan Rapat Internal BAZNAS.
+    Menampilkan Donut Chart Capaian Global, Bar Chart per PIC, dan Tabel Action Items.
+    """
+    items_qs = MeetingActionItem.objects.filter(is_tracked=True).select_related('meeting', 'pic', 'completed_by').order_by('-id')
+
+    # Filter parameters
+    status_filter = request.GET.get('status', '')
+    pic_filter = request.GET.get('pic', '')
+    meeting_filter = request.GET.get('meeting', '')
+    search_q = request.GET.get('q', '').strip()
+
+    if status_filter:
+        if status_filter == 'overdue':
+            items_qs = [item for item in items_qs if item.is_overdue or item.status == 'overdue']
+        else:
+            items_qs = items_qs.filter(status=status_filter)
+
+    if pic_filter and pic_filter.isdigit():
+        if isinstance(items_qs, list):
+            items_qs = [i for i in items_qs if i.pic_id == int(pic_filter)]
+        else:
+            items_qs = items_qs.filter(pic_id=int(pic_filter))
+
+    if meeting_filter and meeting_filter.isdigit():
+        if isinstance(items_qs, list):
+            items_qs = [i for i in items_qs if i.meeting_id == int(meeting_filter)]
+        else:
+            items_qs = items_qs.filter(meeting_id=int(meeting_filter))
+
+    if search_q:
+        if isinstance(items_qs, list):
+            items_qs = [i for i in items_qs if search_q.lower() in i.title.lower()]
+        else:
+            items_qs = items_qs.filter(title__icontains=search_q)
+
+    items_list = list(items_qs) if not isinstance(items_qs, list) else items_qs
+
+    # Global stats across all tracked items
+    all_tracked = list(MeetingActionItem.objects.filter(is_tracked=True).select_related('pic'))
+    total_all = len(all_tracked)
+    completed_all = sum(1 for item in all_tracked if item.status == 'completed')
+    in_progress_all = sum(1 for item in all_tracked if item.status == 'in_progress')
+    pending_all = sum(1 for item in all_tracked if item.status == 'pending')
+    overdue_all = sum(1 for item in all_tracked if item.is_overdue or item.status == 'overdue')
+    completion_percentage = round((completed_all / total_all) * 100) if total_all > 0 else 0
+
+    # Analytics per PIC for Bar Chart
+    pic_stats_map = {}
+    for item in all_tracked:
+        pic_name = item.pic.full_name if item.pic else 'Tanpa PIC'
+        if pic_name not in pic_stats_map:
+            pic_stats_map[pic_name] = {'completed': 0, 'total': 0}
+        pic_stats_map[pic_name]['total'] += 1
+        if item.status == 'completed':
+            pic_stats_map[pic_name]['completed'] += 1
+
+    chart_pic_labels = list(pic_stats_map.keys())
+    chart_pic_completed = [pic_stats_map[k]['completed'] for k in chart_pic_labels]
+    chart_pic_total = [pic_stats_map[k]['total'] for k in chart_pic_labels]
+
+    employees = Employee.objects.filter(is_active=True).order_by('full_name')
+    meetings = InternalMeeting.objects.order_by('-scheduled_at')[:50]
+
+    return render(request, 'internal_meetings/action_plan_list.html', {
+        'action_items': items_list,
+        'total_all': total_all,
+        'completed_all': completed_all,
+        'in_progress_all': in_progress_all,
+        'pending_all': pending_all,
+        'overdue_all': overdue_all,
+        'completion_percentage': completion_percentage,
+        'chart_pic_labels': chart_pic_labels,
+        'chart_pic_completed': chart_pic_completed,
+        'chart_pic_total': chart_pic_total,
+        'employees': employees,
+        'meetings': meetings,
+        'selected_status': status_filter,
+        'selected_pic': pic_filter,
+        'selected_meeting': meeting_filter,
+        'search_q': search_q,
+    })
+
+
+@login_required
+def action_plan_upload_proof(request, item_id):
+    """
+    Upload dokumen/foto bukti realisasi hasil rapat untuk Action Item.
+    """
+    action_item = get_object_or_404(MeetingActionItem, pk=item_id)
+    if request.method == 'POST':
+        proof_file = request.FILES.get('proof_file')
+        notes = request.POST.get('notes', '')
+        if proof_file:
+            action_item.proof_file = proof_file
+            action_item.status = 'completed'
+            action_item.completed_at = timezone.now()
+            action_item.completed_by = request.user
+            if notes:
+                action_item.notes = notes
+            action_item.save()
+            AuditService.log_action(request.user, f"Upload Bukti Realisasi Action Item: {action_item.title}", request)
+            messages.success(request, f"Bukti realisasi untuk '{action_item.title}' berhasil diunggah!")
+        else:
+            messages.error(request, "File bukti realisasi tidak ditemukan.")
+
+    next_url = request.META.get('HTTP_REFERER')
+    if next_url:
+        return redirect(next_url)
+    return redirect('internal_meetings:action_plan_list')
+
+
+@login_required
+def action_plan_print(request):
+    """
+    Format Cetak Lembar Kerja / Tabel Data Action Plan Resmi.
+    """
+    items_qs = MeetingActionItem.objects.filter(is_tracked=True).select_related('meeting', 'pic', 'completed_by').order_by('meeting__scheduled_at', 'id')
+
+    status_filter = request.GET.get('status', '')
+    pic_filter = request.GET.get('pic', '')
+    if status_filter:
+        items_qs = items_qs.filter(status=status_filter)
+    if pic_filter and pic_filter.isdigit():
+        items_qs = items_qs.filter(pic_id=int(pic_filter))
+
+    return render(request, 'internal_meetings/print_action_plan.html', {
+        'action_items': items_qs,
+        'printed_at': timezone.now(),
+    })
+

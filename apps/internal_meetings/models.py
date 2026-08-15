@@ -263,6 +263,11 @@ class MeetingActionItem(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='completed_action_items', verbose_name="Diselesaikan Oleh"
     )
+    proof_file = models.FileField(
+        upload_to='meetings/action_plan_proofs/%Y/%m/', null=True, blank=True,
+        validators=[validate_file_extension, validate_file_size],
+        verbose_name="Dokumen Bukti / File Hasil Realisasi"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
