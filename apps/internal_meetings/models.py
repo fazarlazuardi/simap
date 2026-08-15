@@ -194,6 +194,27 @@ class InternalMeeting(models.Model):
         return "-"
 
     @property
+    def verifier_kabid(self):
+        """Mencari Kabid (Kepala Bidang) dari pimpinan/peserta rapat untuk blok Verifikasi TTD."""
+        all_emps = list(self.ordered_leaders) + list(self.participants.all())
+        for emp in all_emps:
+            pos = (emp.position or "").lower()
+            if 'kabid' in pos or 'kepala bidang' in pos or 'kepala' in pos:
+                return emp
+        return None
+
+    @property
+    def approver_waka(self):
+        """Mencari Waka (Wakil Ketua) atau Ketua dari pimpinan rapat untuk blok Diketahui TTD."""
+        leaders = self.ordered_leaders
+        for emp in leaders:
+            pos = (emp.position or "").lower()
+            if 'waka' in pos or 'wakil' in pos or 'ketua' in pos:
+                return emp
+        return None
+
+
+    @property
     def tracked_action_items(self):
         return self.action_items.filter(is_tracked=True)
 
