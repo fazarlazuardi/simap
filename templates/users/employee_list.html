@@ -84,9 +84,13 @@
                         {% if user %}
                         <span class="badge bg-success rounded-pill px-3">Sudah Ada</span>
                         {% else %}
-                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm fw-bold" onclick="openCreateAccountModal('{{ emp.pk }}', '{{ emp.nip|escapejs }}', '{{ emp.full_name|escapejs }}')">
-                            <i class="bi bi-person-plus me-1"></i> Buat Akun
-                        </button>
+                            {% if request.user.is_superadmin and not request.session.active_pov %}
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm fw-bold" onclick="openCreateAccountModal('{{ emp.pk }}', '{{ emp.nip|escapejs }}', '{{ emp.full_name|escapejs }}')">
+                                <i class="bi bi-person-plus me-1"></i> Buat Akun
+                            </button>
+                            {% else %}
+                            <span class="badge bg-secondary rounded-pill px-3">Belum Ada</span>
+                            {% endif %}
                         {% endif %}
                     </td>
                     <td class="small">
@@ -94,7 +98,7 @@
                         <i class="bi bi-envelope text-primary me-1"></i> {{ emp.email|default:"-" }}
                     </td>
                     <td class="text-end">
-                        {% if not user %}
+                        {% if not user and request.user.is_superadmin and not request.session.active_pov %}
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-bold" onclick="openCreateAccountModal('{{ emp.pk }}', '{{ emp.nip|escapejs }}', '{{ emp.full_name|escapejs }}')">
                             <i class="bi bi-person-plus me-1"></i> Buat Akun
                         </button>
