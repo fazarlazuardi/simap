@@ -15,7 +15,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from services.integrations.gateway_service import WhatsAppService
 
-def superuser_only(user): return user.is_superuser
+def superuser_only(user): return getattr(user, 'is_superadmin', False) or user.is_superuser
 
 def get_active_pov_role(request):
     if request.user.is_authenticated and request.user.is_superadmin:
@@ -429,15 +429,27 @@ def user_list(request):
 @user_passes_test(superuser_only)
 def user_create(request):
     if request.method == 'POST':
-        username = request.POST.get('username'); email = request.POST.get('email')
-        password = request.POST.get('password'); first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name'); role_code = request.POST.get('role')
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        role_code = request.POST.get('role')
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username sudah digunakan.")
         else:
-            User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name, role=role_code)
+            User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                role=role_code
+            )
             messages.success(request, f"Pengguna {username} berhasil ditambahkan.")
-    return redirect('users:list')
+            return redirect('users:list')
+    roles = User.ROLE_CHOICES
+    return render(request, 'users/create.html', {'roles': roles})
 
 @login_required
 def wa_health_check(request):
