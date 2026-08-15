@@ -36,6 +36,16 @@
         </span>
     </div>
 
+    {% if request.session.active_pov == 'kabid_4' or is_kabid_4_active %}
+    <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex align-items-center mb-3">
+        <i class="bi bi-lightning-charge-fill fs-4 me-3 text-warning"></i>
+        <div>
+            <h6 class="fw-bold mb-1"><i class="bi bi-shield-lock-fill me-1"></i> Mode Take-Over Disposisi (Kabid IV / SDM)</h6>
+            <span class="small">Sebagai Kabid IV, Anda dapat mengisi lembar disposisi ini untuk menjaga kelancaran alur pimpinan jika Ketua / Waka IV berhalangan login.</span>
+        </div>
+    </div>
+    {% endif %}
+
     <form method="post" action="{% if dispo and dispo.pk %}{% url 'dispositions:edit' dispo.pk %}{% elif archive %}{% url 'dispositions:create' archive.pk %}{% endif %}" id="formCreateDisposisi">
 
         {% csrf_token %}

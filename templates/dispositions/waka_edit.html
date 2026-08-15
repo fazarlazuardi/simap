@@ -39,6 +39,16 @@
         </span>
     </div>
 
+    {% if request.session.active_pov == 'kabid_4' or is_kabid_4_active %}
+    <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex align-items-center mb-3">
+        <i class="bi bi-lightning-charge-fill fs-4 me-3 text-warning"></i>
+        <div>
+            <h6 class="fw-bold mb-1"><i class="bi bi-shield-lock-fill me-1"></i> Mode Take-Over Disposisi Waka IV (Kabid IV / SDM)</h6>
+            <span class="small">Sebagai Kabid IV, Anda dapat mengisi disposisi Waka IV ini untuk melanjutkan alur penugasan dokumen jika Waka IV berhalangan login.</span>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Info Disposisi Ketua (Tahap 1 - Readonly) -->
     <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px; border-left: 4px solid #0d8a52 !important;">
         <div class="card-body p-3">

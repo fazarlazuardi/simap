@@ -404,19 +404,28 @@ def forward_to_ketua(request, pk):
 
     if request.method == 'POST':
         archive = get_object_or_404(Archive, pk=pk)
+        referer = request.META.get('HTTP_REFERER', '')
+        redirect_target = 'archives:list' if 'archives/detail' not in referer else 'archives:detail'
+        
         if archive.status == 'terverifikasi':
             archive.status = 'disposisi_pimpinan'
             archive.verified_by_kabid = True
             archive.save(update_fields=['status', 'verified_by_kabid', 'updated_at'])
 
             AuditService.log_action(request.user, f"Teruskan Dokumen ke Ketua BAZNAS: {archive.archive_number or archive.title}", request)
-            messages.success(request, f"Dokumen {archive.archive_number or archive.title} berhasil diteruskan ke Meja Ketua BAZNAS untuk didisposisikan.")
+            messages.success(request, f"Dokumen {archive.archive_number or archive.title} berhasil diteruskan ke Meja Ketua BAZNAS (Status: Meja Ketua).")
+            if redirect_target == 'archives:list':
+                return redirect('archives:list')
             return redirect('archives:detail', pk=archive.pk)
         elif archive.status == 'disposisi_pimpinan':
             messages.info(request, f"Dokumen {archive.archive_number or archive.title} sudah berada di Meja Ketua BAZNAS.")
+            if redirect_target == 'archives:list':
+                return redirect('archives:list')
             return redirect('archives:detail', pk=archive.pk)
         else:
             messages.warning(request, f"Dokumen belum diverifikasi Kabid IV.")
+            if redirect_target == 'archives:list':
+                return redirect('archives:list')
             return redirect('archives:detail', pk=archive.pk)
 
     return redirect('archives:list')

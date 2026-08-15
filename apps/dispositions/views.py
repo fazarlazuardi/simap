@@ -232,8 +232,10 @@ def disposition_waka_edit(request, pk):
     """
     dispo = get_object_or_404(Disposition.objects.select_related('archive'), pk=pk)
 
-    if not request.user.is_pimpinan and not request.user.is_superadmin:
-        messages.error(request, "Hanya Pimpinan atau Superadmin yang bisa melakukan disposisi Waka IV.")
+    active_pov = request.session.get('active_pov')
+    is_kabid_4 = active_pov in ['kabid_4', 'sdm'] or getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_kabid', False)
+    if not request.user.is_pimpinan and not request.user.is_superadmin and not is_kabid_4:
+        messages.error(request, "Hanya Pimpinan, Kabid IV, atau Superadmin yang bisa melakukan disposisi Waka IV.")
         return redirect('dispositions:list')
 
     if dispo.status != 'didisposisi_ketua':
