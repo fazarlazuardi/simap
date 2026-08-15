@@ -10,51 +10,60 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
         body {
             font-family: 'Times New Roman', Times, serif;
-            font-size: 12pt;
-            line-height: 1.4;
+            font-size: 11pt;
+            line-height: 1.35;
             color: #000;
             margin: 0;
-            padding: 15px;
+            padding: 10px;
             background: #555;
         }
         .container {
-            width: 100%;
-            max-width: 210mm; /* Lebar standar Kertas A4 */
-            min-height: 297mm; /* Tinggi standar Kertas A4 */
+            width: 210mm;
+            height: 297mm;
+            max-width: 210mm;
+            max-height: 297mm;
             margin: 0 auto;
             background: #fff;
-            padding: 15mm 20mm 20mm 20mm;
+            padding: 12mm 18mm 12mm 18mm;
             box-sizing: border-box;
             position: relative;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            overflow: hidden;
         }
 
         .main-body {
             flex: 1;
-            padding-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
         
         /* Kop Surat: Hanya Logo BAZNAS di Tengah */
         .kop-surat {
             text-align: center;
-            border-bottom: 3px double #000;
-            padding-bottom: 8px;
-            margin-bottom: 15px;
+            border-bottom: 2px double #000;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
         }
         .logo-baznas {
-            width: 80px;
+            width: 75px;
             height: auto;
         }
         
         /* Judul Surat */
         .judul-surat {
             text-align: center;
-            margin: 12px 0;
+            margin: 6px 0 10px 0;
         }
         .judul-surat h4 {
             font-size: 12pt;
@@ -64,19 +73,19 @@
             text-transform: uppercase;
         }
         .judul-surat p {
-            margin: 3px 0 0 0;
-            font-size: 11pt;
+            margin: 2px 0 0 0;
+            font-size: 10.5pt;
         }
 
         /* Isi Surat */
         .content {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             text-align: justify;
         }
         .table-data {
             width: 100%;
-            margin-left: 15px;
-            margin-bottom: 10px;
+            margin-left: 10px;
+            margin-bottom: 6px;
             border-collapse: collapse;
         }
         .table-data td {
@@ -86,8 +95,8 @@
         
         /* Tabel Pegawai yang Ditugaskan */
         .pegawai-wrapper {
-            margin: 8px 0 12px 15px;
-            width: calc(100% - 15px);
+            margin: 6px 0 8px 10px;
+            width: calc(100% - 10px);
         }
         .pegawai-list {
             width: 100%;
@@ -96,8 +105,8 @@
         }
         .pegawai-list th, .pegawai-list td {
             border: 1px solid #000;
-            padding: 4px 6px;
-            font-size: 11pt;
+            padding: 3px 5px;
+            font-size: 10pt;
             vertical-align: middle;
             word-wrap: break-word;
         }
@@ -109,17 +118,18 @@
         /* Bagian Penandatangan dengan Barcode & Logo */
         .ttd-container {
             width: 100%;
-            margin-top: 15px;
+            margin-top: 10px;
             page-break-inside: avoid;
             break-inside: avoid;
         }
         .ttd-section {
             float: right;
-            width: 270px;
+            width: 260px;
             text-align: left;
         }
         .ttd-section p {
-            margin: 2px 0;
+            margin: 1px 0;
+            font-size: 10.5pt;
         }
         .ttd-flex {
             display: flex;
@@ -128,8 +138,8 @@
             margin-top: 4px;
         }
         .barcode-box {
-            width: 60px;
-            height: 60px;
+            width: 54px;
+            height: 54px;
             border: 1px solid #ccc;
             padding: 2px;
             background: #fff;
@@ -139,7 +149,7 @@
             position: relative;
         }
         .space-ttd {
-            height: 50px;
+            height: 40px;
         }
         .clearfix::after {
             content: "";
@@ -152,11 +162,11 @@
             width: 100%;
             text-align: center;
             font-style: italic;
-            font-size: 8.5pt;
+            font-size: 8pt;
             border-top: 1px solid #bbb;
-            padding-top: 6px;
+            padding-top: 4px;
             line-height: 1.2;
-            margin-top: 15px;
+            margin-top: 8px;
         }
         .footer-alamat p {
             margin: 0;
@@ -184,23 +194,35 @@
         }
 
         @media print {
-            body {
-                background: none;
-                padding: 0;
-            }
-            .container {
-                box-shadow: none;
-                margin: 0;
-                width: 100%;
-                min-height: 100vh;
-                padding: 10mm 15mm;
-            }
-            .no-print {
-                display: none;
+            html, body {
+                width: 210mm !important;
+                height: 297mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+                font-size: 11pt !important;
             }
             @page {
-                size: A4;
+                size: A4 portrait;
                 margin: 0;
+            }
+            .container {
+                box-shadow: none !important;
+                margin: 0 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-width: 210mm !important;
+                max-height: 297mm !important;
+                padding: 10mm 15mm 10mm 15mm !important;
+                box-sizing: border-box !important;
+                page-break-after: avoid !important;
+                page-break-inside: avoid !important;
+                break-after: avoid !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
+            }
+            .no-print {
+                display: none !important;
             }
         }
     </style>
