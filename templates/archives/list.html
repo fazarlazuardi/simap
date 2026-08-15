@@ -46,13 +46,17 @@
             <p class="text-secondary small mb-0">Daftar dokumen masuk, proposal, surat permohonan bantuan, laporan, dan surat keluar yang tersimpan dalam sistem.</p>
         </div>
         <div class="d-flex align-items-center gap-2">
+            {% if user.is_superadmin and not request.session.active_pov %}
             <a href="{% url 'archives:backup_gdrive_email' %}" class="btn btn-outline-success px-3 py-2 fw-bold shadow-sm rounded-3 d-flex align-items-center" title="Cadangkan seluruh dokumen ke Google Drive & kirim laporan email">
                 <i class="bi bi-cloud-arrow-up-fill me-2 fs-5"></i> Backup GDrive & Email
             </a>
-            {% if user.is_sdm or user.is_superuser or user.is_superadmin %}
-            <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-3 d-flex align-items-center">
-                <i class="bi bi-plus-lg me-2 fs-5"></i> Unggah Arsip
-            </a>
+            {% endif %}
+            {% if not is_waka_or_kabid_2 and not user.is_waka_2 and not user.is_kabid_2 and not request.session.active_pov %}
+                {% if user.is_sdm or user.is_superuser or user.is_superadmin %}
+                <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-3 d-flex align-items-center">
+                    <i class="bi bi-plus-lg me-2 fs-5"></i> Unggah Arsip
+                </a>
+                {% endif %}
             {% endif %}
         </div>
     </div>

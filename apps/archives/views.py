@@ -89,11 +89,17 @@ def archive_list(request):
         'archive_types': Archive.TYPE_CHOICES,
         'current_type': archive_type_filter or '',
         'status_filter': status_filter,
+        'is_waka_or_kabid_2': is_waka_or_kabid_2,
     })
 
 @login_required
 @sdm_required
 def archive_upload(request):
+    active_pov = request.session.get('active_pov')
+    if active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False):
+        messages.error(request, "Hak akses mengunggah arsip baru hanya dimiliki oleh Front Office / Resepsionis.")
+        return redirect('archives:list')
+
     if request.method == 'POST':
         archive_type = request.POST.get('archive_type')
         archive_number_input = request.POST.get('archive_number', '').strip()
