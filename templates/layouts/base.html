@@ -1245,42 +1245,64 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (window.flatpickr) {
+        var fpInstances = {};
+
+        function initAllDatePickers() {
+            if (typeof flatpickr === 'undefined') return;
+            if (flatpickr.l10ns && flatpickr.l10ns.id) {
                 flatpickr.localize(flatpickr.l10ns.id);
+            }
+            
+            document.querySelectorAll("input[type='date'], input[type='datetime-local'], .datepicker-input, .flatpickr-date").forEach(function(el) {
+                if (el.dataset.fpDone) return;
+                el.dataset.fpDone = "true";
                 
-                // 1. Structural wrap initialization (input-group dengan data-input & data-toggle)
-                document.querySelectorAll(".flatpickr-wrap").forEach(function(wrapGroup) {
-                    flatpickr(wrapGroup, {
-                        wrap: true,
-                        dateFormat: "Y-m-d",
-                        altInput: true,
-                        altFormat: "j F Y",
-                        allowInput: true,
-                        monthSelectorType: "dropdown",
-                        animate: true
-                    });
+                var initVal = el.value;
+                el.type = 'text';
+                el.setAttribute('autocomplete', 'off');
+                el.style.cursor = 'pointer';
+                
+                var inst = flatpickr(el, {
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altFormat: "j F Y",
+                    defaultDate: initVal || null,
+                    monthSelectorType: "dropdown",
+                    animate: true,
+                    allowInput: true,
+                    clickOpens: true,
+                    onReady: function(selectedDates, dateStr, instance) {
+                        if (instance.altInput) {
+                            instance.altInput.style.cursor = 'pointer';
+                            instance.altInput.addEventListener('click', function() {
+                                instance.open();
+                            });
+                        }
+                    }
                 });
 
-                // 2. Fallback initialization untuk input date biasa
-                document.querySelectorAll("input[type='date'], input[type='datetime-local'], .flatpickr-date").forEach(function(inputEl) {
-                    if (inputEl.closest('.flatpickr-wrap')) return;
-                    const initVal = inputEl.value;
-                    inputEl.type = 'text';
-                    inputEl.setAttribute('autocomplete', 'off');
-                    
-                    flatpickr(inputEl, {
-                        dateFormat: "Y-m-d",
-                        altInput: true,
-                        altFormat: "j F Y",
-                        allowInput: true,
-                        defaultDate: initVal || null,
-                        monthSelectorType: "dropdown",
-                        animate: true
-                    });
-                });
+                if (el.id) {
+                    fpInstances[el.id] = inst;
+                }
+            });
+        }
+
+        function openDatePicker(id) {
+            if (fpInstances[id]) {
+                fpInstances[id].open();
+            } else {
+                var el = document.getElementById(id);
+                if (el && el._flatpickr) {
+                    el._flatpickr.open();
+                } else if (el) {
+                    el.click();
+                    el.focus();
+                }
             }
-        });
+        }
+
+        document.addEventListener('DOMContentLoaded', initAllDatePickers);
+        window.addEventListener('load', initAllDatePickers);
     </script>
     {% block extra_js %}{% endblock %}
 </body>
