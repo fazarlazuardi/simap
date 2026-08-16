@@ -59,25 +59,27 @@ def resolve_user_bidang(request):
 
 
 
-def send_meeting_wa_notifications(meeting, is_notulensi=False):
-    """Mengirimkan notifikasi WA Gateway untuk Undangan Rapat & Notulensi Terbit."""
+def send_meeting_wa_notifications(meeting, is_notulensi=False, custom_message=None, custom_phones=None):
+    """
+    Kirim Notifikasi WA Gateway islami & humanis tanpa garis ke Pimpinan & Peserta Rapat.
+    """
     try:
-        phones = []
-        # Ambil HP Pimpinan Rapat
-        for l in meeting.leaders.all():
-            if hasattr(l, 'phone') and l.phone and l.phone not in phones:
-                phones.append(l.phone)
-        if meeting.leader and hasattr(meeting.leader, 'phone') and meeting.leader.phone:
-            if meeting.leader.phone not in phones:
-                phones.append(meeting.leader.phone)
-                
-        # Ambil HP Peserta Rapat
-        for p in meeting.participants.all():
-            if hasattr(p, 'phone') and p.phone and p.phone not in phones:
-                phones.append(p.phone)
+        if custom_phones is not None:
+            phones = list(set([p for p in custom_phones if p]))
+        else:
+            recipients = set()
+            if meeting.leader:
+                recipients.add(meeting.leader)
+            for l in meeting.leaders.all():
+                recipients.add(l)
+            for p in meeting.participants.all():
+                recipients.add(p)
+            phones = [r.phone for r in recipients if r.phone]
 
         if not phones:
             return
+
+        note_str = f"\n\n• *Catatan Tambahan:*\n{custom_message}" if custom_message else ""
 
         if not is_notulensi:
             msg = (
@@ -89,7 +91,8 @@ def send_meeting_wa_notifications(meeting, is_notulensi=False):
                 f"• *Waktu:* {meeting.scheduled_at.strftime('%d/%m/%Y %H:%M')} WIB\n"
                 f"• *Tempat:* {meeting.location}\n"
                 f"• *Pimpinan Rapat:* {meeting.leader_names_display}\n\n"
-                f"• *Agenda Pembahasan:*\n{meeting.agenda_topics}\n\n"
+                f"• *Agenda Pembahasan:*\n{meeting.agenda_topics or '-'}"
+                f"{note_str}\n\n"
                 f"Mohon untuk dapat bersiap dan menghadiri rapat tepat waktu.\n\n"
                 f"Atas perhatian dan kehadirannya, kami ucapkan terima kasih.\n"
                 f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
@@ -102,7 +105,8 @@ def send_meeting_wa_notifications(meeting, is_notulensi=False):
                 f"• *Judul Rapat:* {meeting.title}\n"
                 f"• *No. Risalah:* {meeting.meeting_number or '-'}\n"
                 f"• *Notulis:* {meeting.notulis_name_display}\n\n"
-                f"• *Kesimpulan & Keputusan Rapat:*\n{meeting.notulensi_decision or meeting.notulensi_summary or '-'}\n\n"
+                f"• *Kesimpulan & Keputusan Rapat:*\n{meeting.notulensi_decision or meeting.notulensi_summary or '-'}"
+                f"{note_str}\n\n"
                 f"Dokumen risalah notulensi lengkap serta lampiran dapat diakses melalui sistem SIMAP BAZNAS.\n\n"
                 f"Terima kasih atas perhatian dan tindak lanjutnya.\n"
                 f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
@@ -528,13 +532,35 @@ def meeting_print_notulensi(request, pk):
 @login_required
 def meeting_notify(request, pk):
     """
-    Kirim / Kirim Ulang Notifikasi WA Undangan Rapat Internal.
+    Kirim / Kirim Ulang Notifikasi WA Undangan Rapat Internal via Modal.
     """
     meeting = get_object_or_404(InternalMeeting, pk=pk)
     if request.method == 'POST':
-        send_meeting_wa_notifications(meeting, is_notulensi=False)
-        AuditService.log_action(request.user, f"Kirim WA Undangan Rapat: {meeting.title}", request)
-        messages.success(request, f"✅ Notifikasi WA Undangan Rapat '{meeting.title}' berhasil dikirimkan ke seluruh Pimpinan & Peserta Rapat.")
+        recipient_type = request.POST.get('recipient_type', 'participants')
+        custom_message = request.POST.get('custom_message', '').strip()
+        
+        custom_phones = None
+        recipient_label = "Pimpinan & Peserta Rapat"
+        
+        if recipient_type == 'specific':
+            selected_emp_ids = request.POST.getlist('specific_employees')
+            emps = Employee.objects.filter(id__in=selected_emp_ids)
+            custom_phones = [e.phone for e in emps if e.phone]
+            recipient_label = f"{len(custom_phones)} Pegawai Pilihan"
+        elif recipient_type == 'all':
+            emps = Employee.objects.filter(is_active=True)
+            custom_phones = [e.phone for e in emps if e.phone]
+            recipient_label = "Seluruh Pegawai BAZNAS"
+
+        send_meeting_wa_notifications(
+            meeting, 
+            is_notulensi=False, 
+            custom_message=custom_message if custom_message else None,
+            custom_phones=custom_phones
+        )
+        
+        AuditService.log_action(request.user, f"Kirim WA Notifikasi Rapat ({recipient_label}): {meeting.title}", request)
+        messages.success(request, f"✅ Notifikasi WA Undangan Rapat '{meeting.title}' berhasil dikirimkan ke {recipient_label}.")
     return redirect('internal_meetings:detail', pk=pk)
 
 

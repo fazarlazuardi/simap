@@ -116,12 +116,9 @@
             <a href="{% url 'internal_meetings:print' meeting.pk %}" target="_blank" class="btn btn-outline-primary rounded-pill px-3 fw-bold">
                 <i class="bi bi-printer me-1"></i> Cetak Notulensi
             </a>
-            <form method="post" action="{% url 'internal_meetings:notify' meeting.pk %}" class="d-inline" onsubmit="return confirm('Kirim notifikasi WA Undangan Rapat ke seluruh Pimpinan & Peserta Rapat?')">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-success rounded-pill px-3 fw-bold">
-                    <i class="bi bi-whatsapp me-1"></i> Kirim WA Undangan
-                </button>
-            </form>
+            <button type="button" class="btn btn-outline-success rounded-pill px-3 fw-bold" onclick="openWANotifyModal()">
+                <i class="bi bi-whatsapp me-1"></i> Kirim WA Undangan
+            </button>
             <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="openDetailNotulensiModal()">
                 <i class="bi bi-pencil-square me-1"></i> {% if meeting.is_notulensi_completed %}Edit Notulensi{% else %}Input Notulensi{% endif %}
             </button>
@@ -548,6 +545,122 @@
     </div>
 </div>
 
+<!-- MODAL KIRIM NOTIFIKASI WA GATEWAY UNTUK PEGAWAI BAZNAS -->
+<div class="modal fade" id="modalSendWA" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-whatsapp me-2"></i>Kirim Notifikasi WA Gateway Undangan Rapat
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'internal_meetings:notify' meeting.pk %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <!-- Target Recipients Section -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-2">
+                            <i class="bi bi-people-fill text-success me-1"></i> Target Penerima Notifikasi WA:
+                        </label>
+                        <div class="d-flex flex-column gap-2 p-3 bg-light rounded-3 border">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="recipient_type" id="rec_participants" value="participants" checked>
+                                <label class="form-check-label fw-bold text-dark" for="rec_participants">
+                                    Pimpinan & Peserta Hadir Rapat Ini <span class="badge bg-success rounded-pill ms-1">{{ meeting.participants.count|add:meeting.ordered_leaders|length }} Pegawai</span>
+                                </label>
+                                <div class="form-text small text-muted">Dikirimkan khusus ke HP Pimpinan dan Peserta yang tercantum dalam agenda rapat ini.</div>
+                            </div>
+                            <hr class="my-1 text-muted">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="recipient_type" id="rec_specific" value="specific">
+                                <label class="form-check-label fw-bold text-dark" for="rec_specific">
+                                    Pilih Spesifik Pegawai / Amil Terterntu
+                                </label>
+                                <div class="form-text small text-muted">Pilih beberapa nama amil secara khusus dari daftar pegawai BAZNAS.</div>
+                            </div>
+                            <hr class="my-1 text-muted">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="recipient_type" id="rec_all" value="all">
+                                <label class="form-check-label fw-bold text-dark" for="rec_all">
+                                    Broadcast Seluruh Pegawai & Amil BAZNAS <span class="badge bg-primary rounded-pill ms-1">{{ employees|length }} Pegawai</span>
+                                </label>
+                                <div class="form-text small text-muted">Disarankan untuk rapat pleno umum atau pengumuman penting seluruh BAZNAS.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Container Checkbox Pegawai Spesifik -->
+                    <div id="container_specific_employees" class="mb-4 d-none">
+                        <div class="p-3 border rounded-3 bg-white">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold small text-dark m-0">Centang Pegawai Yang Ingin Dikirimkan WA:</label>
+                                <input type="text" id="search_wa_emp" class="form-control form-control-sm rounded-pill px-3" style="max-width: 220px;" placeholder="🔍 Cari nama amil...">
+                            </div>
+                            <div class="p-2 border rounded-3 bg-light" style="max-height: 180px; overflow-y: auto;">
+                                <div class="row g-2">
+                                    {% for emp in employees %}
+                                    <div class="col-md-6 wa-emp-item">
+                                        <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1">
+                                            <input type="checkbox" name="specific_employees" value="{{ emp.id }}" class="form-check-input" {% if emp in meeting.participants.all or emp in meeting.ordered_leaders %}checked{% endif %}>
+                                            <span class="small fw-semibold text-dark">{{ emp.full_name }} <span class="text-muted">({{ emp.position|default:"Staff" }})</span></span>
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Custom Message Field -->
+                    <div class="mb-4">
+                        <label for="custom_message" class="form-label fw-bold text-dark">
+                            <i class="bi bi-pencil-square text-primary me-1"></i> Catatan / Pesan Tambahan <span class="text-muted fw-normal">(Opsional)</span>
+                        </label>
+                        <textarea name="custom_message" id="custom_message" class="form-control" rows="2" placeholder="Contoh: Harap membawa berkas Laporan Pendistribusian Triwulan dan Laptop masing-masing..."></textarea>
+                    </div>
+
+                    <!-- Live Preview WhatsApp Chat Message Card -->
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-dark mb-1">
+                            <i class="bi bi-chat-dots-fill text-success me-1"></i> Pratinjau Teks Pesan WA Gateway (Format Resmi Islami & Humanis):
+                        </label>
+                        <div class="p-3 rounded-4 shadow-sm text-dark position-relative border" style="background-color: #E7F6E7; font-family: system-ui, -apple-system, sans-serif; font-size: 0.88rem; line-height: 1.5;">
+                            <div class="fw-bold text-success mb-1" style="font-size: 0.78rem;"><i class="bi bi-whatsapp me-1"></i> PESAN MASUK WA GATEWAY SIMAP</div>
+                            <div class="p-3 bg-white rounded-3 shadow-sm text-dark border-start border-success border-4" style="white-space: pre-wrap;">Assalamu'alaikum Warahmatullahi Wabarakatuh,
+
+Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,
+
+Undangan Rapat Internal BAZNAS Kabupaten Tangerang:
+
+• *Judul Rapat:* {{ meeting.title }}
+• *No. Risalah:* {{ meeting.meeting_number|default:"-" }}
+• *Waktu:* {{ meeting.scheduled_at|date:"d/m/Y H:i" }} WIB
+• *Tempat:* {{ meeting.location }}
+• *Pimpinan Rapat:* {{ meeting.leader_names_display }}
+
+• *Agenda Pembahasan:*
+{{ meeting.agenda_topics|default:"-" }}
+
+Mohon untuk dapat bersiap dan menghadiri rapat tepat waktu.
+
+Atas perhatian dan kehadirannya, kami ucapkan terima kasih.
+Wassalamu'alaikum Warahmatullahi Wabarakatuh.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light rounded-bottom-4 py-3">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-send-fill me-2"></i> Kirim Notifikasi WA Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% for att in meeting.notulensi_attachments.all %}
 <form id="formDeleteAtt_{{ att.id }}" method="post" action="{% url 'internal_meetings:delete_attachment' att.id %}" class="d-none">
     {% csrf_token %}
@@ -582,6 +695,17 @@ function openAttendanceModal() {
     }
 }
 
+function openWANotifyModal() {
+    var modalEl = document.getElementById('modalSendWA');
+    if (modalEl) {
+        if (modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Pindahkan elemen modal langsung ke document.body agar terbebas dari CSS stacking context container-wrapper
     var modalNotulensi = document.getElementById('modalInputNotulensi');
@@ -591,6 +715,37 @@ document.addEventListener('DOMContentLoaded', function() {
     var modalAttendance = document.getElementById('modalAttendanceAdjustment');
     if (modalAttendance && modalAttendance.parentElement !== document.body) {
         document.body.appendChild(modalAttendance);
+    }
+    var modalSendWA = document.getElementById('modalSendWA');
+    if (modalSendWA && modalSendWA.parentElement !== document.body) {
+        document.body.appendChild(modalSendWA);
+    }
+
+    // Toggle radio penerima spesifik di modal WA
+    var radiosRecipient = document.querySelectorAll('input[name="recipient_type"]');
+    var containerSpecific = document.getElementById('container_specific_employees');
+    var searchWaEmp = document.getElementById('search_wa_emp');
+
+    if (radiosRecipient && containerSpecific) {
+        radiosRecipient.forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                if (this.value === 'specific') {
+                    containerSpecific.classList.remove('d-none');
+                } else {
+                    containerSpecific.classList.add('d-none');
+                }
+            });
+        });
+    }
+
+    if (searchWaEmp) {
+        searchWaEmp.addEventListener('input', function() {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('.wa-emp-item').forEach(function(item) {
+                var txt = item.innerText.toLowerCase();
+                item.style.display = txt.includes(q) ? 'block' : 'none';
+            });
+        });
     }
 
     // 2. DYNAMIC UPLOAD BERKAS & FOTO NOTULENSI (+ TAMBAH BERKAS)
