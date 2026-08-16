@@ -233,4 +233,59 @@ class SuratTugasForm(forms.ModelForm):
             except Exception as e:
                 logger.error(f"Gagal mengirim notifikasi WA Surat Tugas ke {emp}: {str(e)}")
 
+        # Kirim notifikasi WA & Web Dashboard ke Front Office (FO), Kabid IV, dan Superadmin
+        try:
+            from users.models import User
+            from notifications.models import Notification
+            from django.db.models import Q
+            
+            creator_name = self.request.user.username if hasattr(self, 'request') and self.request and self.request.user else 'Sistem'
+            
+            fo_kabid4_superadmin_users = User.objects.filter(
+                Q(username__in=['fo', 'kabid4', 'admin', 'fajarl']) |
+                Q(role='admin') |
+                Q(is_superuser=True) |
+                Q(employee__position__icontains='front office') |
+                Q(employee__position__icontains='kabid iv') |
+                Q(employee__position__icontains='kabid 4')
+            ).distinct()
+            
+            msg_fo_kabid4 = (
+                f"━━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"   📋 *SURAT TUGAS BARU (PERLU SPPD)*\n"
+                f"   BAZNAS Kab. Tangerang\n"
+                f"━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"📄 *Perihal:* {instance.tentang}\n"
+                f"🔢 *No. Surat:* {instance.nomor_surat}\n"
+                f"👤 *Dibuat Oleh:* {creator_name}\n"
+                f"✍️ *Penandatangan:* {instance.pejabat_penandatangan}\n"
+                f"📅 *Tanggal:* {tanggal_format}\n"
+                f"📍 *Lokasi:* {instance.lokasi_tujuan}\n\n"
+                f"📌 *Pemberitahuan Bidang IV & FO:*\n"
+                f"Surat Tugas ini telah diterbitkan dan memerlukan proses penanganan SPPD di sistem SIMAP BAZNAS.\n"
+                f"━━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"Silakan login ke sistem SIMAP untuk memproses SPPD."
+            )
+            
+            for f_user in fo_kabid4_superadmin_users:
+                # Kirim WA Gateway
+                WhatsAppService.send_notification(
+                    user=f_user,
+                    message=msg_fo_kabid4,
+                    employee=getattr(f_user, 'employee', None),
+                    category='surat_tugas',
+                    title="Surat Tugas Baru Perlu SPPD"
+                )
+                # Kirim Notifikasi Web Dashboard (Lonceng)
+                if not Notification.objects.filter(user=f_user, link_url=f"/surat-tugas/{instance.pk}/", status='unread').exists():
+                    Notification.create_system_notif(
+                        user=f_user,
+                        title="📋 Surat Tugas Baru (Siap SPPD)",
+                        message=f"Surat Tugas '{instance.nomor_surat}' ({instance.tentang}) diterbitkan. Siap diproses SPPD oleh FO & Bidang IV.",
+                        link_url=f"/surat-tugas/{instance.pk}/",
+                        category="sppd"
+                    )
+        except Exception as e:
+            logger.error(f"Gagal mengirim notifikasi WA/Web Surat Tugas ke FO/Kabid4/Superadmin: {str(e)}")
+
         return instance
