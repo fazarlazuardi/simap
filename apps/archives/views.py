@@ -203,8 +203,7 @@ def archive_upload(request):
                 }
             )
         
-        auto_verify = request.POST.get('auto_verify') == 'on' or request.POST.get('auto_verify') == 'true' or request.POST.get('action_type') == 'upload_and_print'
-        action_type = request.POST.get('action_type', 'upload_only')
+        auto_verify = request.POST.get('auto_verify') == 'on' or request.POST.get('auto_verify') == 'true'
 
         initial_status = "disposisi_pimpinan" if auto_verify else "baru"
         
@@ -223,13 +222,13 @@ def archive_upload(request):
             uploaded_by=request.user,
             file_path=file,
             status=initial_status,
-            verified_by_kabid=True if (auto_verify or initial_status in ['disposisi_pimpinan', 'terverifikasi'] or action_type == 'upload_and_print') else False,
+            verified_by_kabid=True if (auto_verify or initial_status in ['disposisi_pimpinan', 'terverifikasi']) else False,
         )
 
         AuditService.log_action(request.user, f"Upload Arsip Baru ({initial_status}): {title}", request)
 
         # Buat draf disposisi & Notifikasi ke Ketua BAZNAS jika status terverifikasi/disposisi_pimpinan
-        if initial_status in ['disposisi_pimpinan', 'terverifikasi'] or auto_verify or action_type == 'upload_and_print':
+        if initial_status in ['disposisi_pimpinan', 'terverifikasi'] or auto_verify:
             dispo = archive.latest_dispo
             if not dispo:
                 dispo_number = NumberingService.generate_number('disposition')
@@ -262,10 +261,6 @@ def archive_upload(request):
                     link_url=f"/dispositions/{archive.pk}/create/",
                     category="disposition"
                 )
-
-        if action_type == 'upload_and_print':
-            messages.success(request, "Dokumen berhasil diunggah & terverifikasi. Membuka Lembar Disposisi Ketua BAZNAS...")
-            return redirect(f"/archives/?auto_print={archive.pk}")
 
         if auto_verify:
             messages.success(request, "Dokumen berhasil diunggah & terverifikasi (Siap Disposisi Ketua BAZNAS).")
