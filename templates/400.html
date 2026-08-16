@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>400 - Permintaan Tidak Valid</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --body-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+        }
+        body[data-theme="dark"] {
+            --body-bg: #0B0F19;
+            --card-bg: #151C2C;
+            --text-primary: #F3F4F6;
+            --text-secondary: #D1D5DB;
+            --border-color: #1F2937;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--body-bg); color: var(--text-primary); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .error-card { text-align: center; padding: 60px 40px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); max-width: 500px; }
+        .error-code { font-size: 100px; font-weight: 800; color: #DC2626; line-height: 1; margin-bottom: 10px; }
+        .error-title { font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+        .error-desc { color: var(--text-secondary); font-size: 15px; margin-bottom: 30px; }
+        .btn-back { background: #0E9F6E; color: #fff; border: none; border-radius: 12px; padding: 14px 32px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-back:hover { background: #046C4E; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <div class="error-code">400</div>
+        <div class="error-title">Permintaan Tidak Valid</div>
+        <div class="error-desc">Permintaan yang dikirimkan tidak dapat diproses oleh server. Silakan periksa kembali data yang dimasukkan.</div>
+        <a href="{% url 'users:dashboard' %}" class="btn-back"><i class="bi bi-arrow-left"></i> Kembali ke Dashboard</a>
+    </div>
+<script>
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
+    }
+</script>
+</body>
+</html>
