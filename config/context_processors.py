@@ -23,15 +23,16 @@ def notification_context(request):
         ).order_by('-created_at')
         
         active_pov = request.session.get('active_pov')
-        is_kabid_4_active = active_pov in ['kabid_4', 'sdm'] or (not active_pov and (getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_waka_4', False) or getattr(request.user, 'is_sdm', False)))
+        is_kabid_4_active = active_pov == 'kabid_4' or (not active_pov and getattr(request.user, 'is_kabid_4', False))
         is_waka_4_active = active_pov == 'waka_4' or (not active_pov and (getattr(request.user, 'is_waka_4', False) or getattr(request.user, 'is_pimpinan', False)))
 
         unverified_count = 0
         pending_st_sppd_count = 0
         if is_kabid_4_active or (request.user.is_superadmin and not active_pov):
             unverified_count = Archive.objects.filter(
-                verified_by_kabid=False
-            ).exclude(status__in=['selesai', 'ditolak']).count()
+                verified_by_kabid=False,
+                status__in=['baru', 'pending', 'masuk']
+            ).count()
 
             pending_st_sppd_count = SuratTugas.objects.filter(
                 sppd_records__isnull=True

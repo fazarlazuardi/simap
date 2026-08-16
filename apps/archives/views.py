@@ -223,7 +223,7 @@ def archive_upload(request):
             uploaded_by=request.user,
             file_path=file,
             status=initial_status,
-            verified_by_kabid=True if auto_verify else False,
+            verified_by_kabid=True if (auto_verify or initial_status in ['disposisi_pimpinan', 'terverifikasi'] or action_type == 'upload_and_print') else False,
         )
 
         AuditService.log_action(request.user, f"Upload Arsip Baru ({initial_status}): {title}", request)
