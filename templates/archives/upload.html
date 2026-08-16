@@ -59,9 +59,9 @@
                     </div>
                     <div class="col-md-4 mb-4">
                         <label for="letter_date" class="form-label fw-bold">Tanggal Surat <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="text" class="form-control custom-input flatpickr-date" id="letter_date" name="letter_date" value="{% now 'Y-m-d' %}" required placeholder="Pilih Tanggal Surat...">
-                            <span class="input-group-text bg-white border border-start-0 text-success fs-5 px-3" style="border-color: #E5E7EB !important; border-top-right-radius: 12px; border-bottom-right-radius: 12px;"><i class="bi bi-calendar-event"></i></span>
+                        <div class="input-group flatpickr-wrap">
+                            <input type="text" class="form-control custom-input" id="letter_date" name="letter_date" value="{% now 'Y-m-d' %}" required placeholder="Pilih Tanggal Surat..." data-input>
+                            <span class="input-group-text bg-white border border-start-0 text-success fs-5 px-3" style="border-color: #E5E7EB !important; border-top-right-radius: 12px; border-bottom-right-radius: 12px; cursor: pointer;" data-toggle><i class="bi bi-calendar-event"></i></span>
                         </div>
                     </div>
                     {% if letter_date_value %}
@@ -87,9 +87,9 @@
                     </div>
                     <div class="col-md-3 mb-4">
                         <label for="received_date" class="form-label fw-bold">Tanggal Diterima / Dikirim</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control custom-input flatpickr-date" id="received_date" name="received_date" value="{% now 'Y-m-d' %}" placeholder="Pilih Tanggal...">
-                            <span class="input-group-text bg-white border border-start-0 text-success fs-5 px-3" style="border-color: #E5E7EB !important; border-top-right-radius: 12px; border-bottom-right-radius: 12px;"><i class="bi bi-calendar-event"></i></span>
+                        <div class="input-group flatpickr-wrap">
+                            <input type="text" class="form-control custom-input" id="received_date" name="received_date" value="{% now 'Y-m-d' %}" placeholder="Pilih Tanggal..." data-input>
+                            <span class="input-group-text bg-white border border-start-0 text-success fs-5 px-3" style="border-color: #E5E7EB !important; border-top-right-radius: 12px; border-bottom-right-radius: 12px; cursor: pointer;" data-toggle><i class="bi bi-calendar-event"></i></span>
                         </div>
                     </div>
                 </div>

@@ -1249,34 +1249,35 @@
             if (window.flatpickr) {
                 flatpickr.localize(flatpickr.l10ns.id);
                 
-                document.querySelectorAll(".flatpickr-date, input[type='date'], input[type='datetime-local']").forEach(function(inputEl) {
+                // 1. Structural wrap initialization (input-group dengan data-input & data-toggle)
+                document.querySelectorAll(".flatpickr-wrap").forEach(function(wrapGroup) {
+                    flatpickr(wrapGroup, {
+                        wrap: true,
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: "j F Y",
+                        allowInput: true,
+                        monthSelectorType: "dropdown",
+                        animate: true
+                    });
+                });
+
+                // 2. Fallback initialization untuk input date biasa
+                document.querySelectorAll("input[type='date'], input[type='datetime-local'], .flatpickr-date").forEach(function(inputEl) {
+                    if (inputEl.closest('.flatpickr-wrap')) return;
                     const initVal = inputEl.value;
                     inputEl.type = 'text';
                     inputEl.setAttribute('autocomplete', 'off');
-                    inputEl.style.cursor = 'pointer';
                     
-                    const fp = flatpickr(inputEl, {
+                    flatpickr(inputEl, {
                         dateFormat: "Y-m-d",
                         altInput: true,
                         altFormat: "j F Y",
                         allowInput: true,
                         defaultDate: initVal || null,
                         monthSelectorType: "dropdown",
-                        animate: true,
-                        clickOpens: true
+                        animate: true
                     });
-
-                    const group = inputEl.closest('.input-group');
-                    if (group) {
-                        const iconSpan = group.querySelector('.input-group-text');
-                        if (iconSpan) {
-                            iconSpan.style.cursor = 'pointer';
-                            iconSpan.addEventListener('click', function(e) {
-                                e.preventDefault();
-                                fp.open();
-                            });
-                        }
-                    }
                 });
             }
         });
