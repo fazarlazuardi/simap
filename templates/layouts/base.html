@@ -1077,6 +1077,11 @@
         function applyTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
+            if (theme === 'dark') {
+                document.documentElement.style.backgroundColor = '#090D16';
+            } else {
+                document.documentElement.style.backgroundColor = '#F8FAFC';
+            }
             var icon = document.getElementById('themeIconGlobal');
             var text = document.getElementById('themeTextGlobal');
             if (icon) {
@@ -1088,6 +1093,11 @@
                     if (text) text.textContent = 'Mode Terang';
                 }
             }
+        }
+
+        function toggleThemeGlobal() {
+            var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            applyTheme(cur);
         }
 
         $(document).ready(function () {
@@ -1128,8 +1138,7 @@
 
             $(document).on('click', '#themeToggleGlobal', function (e) {
                 e.preventDefault();
-                const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                applyTheme(currentTheme);
+                toggleThemeGlobal();
             });
 
             function fixSelect2Colors() {
