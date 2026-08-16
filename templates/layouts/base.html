@@ -39,8 +39,8 @@
     </script>
     <style>
         html, body {
-            background-color: #081014 !important;
-            background-image: url("/static/img/simap_bg.png") !important;
+            background-color: #060D12 !important;
+            background-image: url("{% static 'img/simap_bg.png' %}") !important;
             background-size: cover !important;
             background-position: center center !important;
             background-attachment: fixed !important;
@@ -59,11 +59,11 @@
             bottom: 0;
             pointer-events: none;
             z-index: 0;
-            transition: background-color 0.3s ease;
-            background-color: rgba(248, 250, 252, 0.45);
+            transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+            background-color: rgba(248, 250, 252, 0.40);
         }
         [data-theme="dark"] body::before {
-            background-color: rgba(6, 12, 20, 0.55);
+            background-color: rgba(6, 12, 20, 0.50);
         }
         #sidebar, #main-wrapper, footer {
             position: relative;
@@ -71,16 +71,18 @@
             background-color: transparent !important;
         }
         .card {
-            background-color: rgba(255, 255, 255, 0.88) !important;
-            backdrop-filter: blur(12px) !important;
-            -webkit-backdrop-filter: blur(12px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            background-color: rgba(255, 255, 255, 0.90) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
         }
         [data-theme="dark"] .card {
-            background-color: rgba(15, 23, 42, 0.82) !important;
-            backdrop-filter: blur(12px) !important;
-            -webkit-backdrop-filter: blur(12px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background-color: rgba(15, 23, 42, 0.85) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35) !important;
         }
         html[data-theme="dark"], html[data-theme="dark"] body {
             color: #F8FAFC !important;
