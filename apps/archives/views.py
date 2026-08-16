@@ -229,7 +229,7 @@ def archive_upload(request):
 
         if action_type == 'upload_and_print':
             messages.success(request, "Dokumen berhasil diunggah & terverifikasi. Membuka Lembar Disposisi Ketua BAZNAS...")
-            return redirect('archives:print_disposition', pk=archive.pk)
+            return redirect(f"/archives/?auto_print={archive.pk}")
 
         if auto_verify:
             messages.success(request, "Dokumen berhasil diunggah & terverifikasi (Siap Disposisi Ketua BAZNAS).")

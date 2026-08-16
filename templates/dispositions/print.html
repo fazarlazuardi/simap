@@ -170,11 +170,14 @@
 <body>
 
     <!-- Tombol Aksi -->
-    <div class="no-print action-container">
-        <button class="btn-print" onclick="window.print()">
+    <div class="no-print action-container" style="display: flex; justify-content: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+        <a href="{% url 'archives:list' %}" class="btn-back" style="padding: 10px 20px; font-weight: bold; background: #475569; color: #fff; text-decoration: none; border-radius: 6px; font-size: 14px; display: inline-flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            ⬅️ Kembali ke Manajemen Arsip
+        </a>
+        <button class="btn-print" onclick="window.print()" style="padding: 10px 20px; font-weight: bold; background: #0d8a52; color: #fff; border: none; cursor: pointer; border-radius: 6px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             🖨️ Cetak Lembar Ini
         </button>
-        <button class="btn-download" onclick="downloadPDF()">
+        <button class="btn-download" onclick="downloadPDF()" style="padding: 10px 20px; font-weight: bold; background: #c0392b; color: #fff; border: none; cursor: pointer; border-radius: 6px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             📥 Download PDF
         </button>
     </div>

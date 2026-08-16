@@ -409,6 +409,14 @@
 {% endblock %}
 
 {% block extra_js %}
+{% if request.GET.auto_print %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var printUrl = "{% url 'archives:print_disposition' request.GET.auto_print %}";
+        window.open(printUrl, "_blank");
+    });
+</script>
+{% endif %}
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 <script>
