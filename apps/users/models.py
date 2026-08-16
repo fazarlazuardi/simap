@@ -187,6 +187,13 @@ class User(AbstractUser):
 
 
     @property
+    def display_name(self):
+        emp = getattr(self, 'employee', None)
+        if emp and emp.full_name:
+            return emp.full_name
+        return self.get_full_name() or self.username
+
+    @property
     def is_superadmin(self):
         return self.role == 'admin' or self.is_superuser
 

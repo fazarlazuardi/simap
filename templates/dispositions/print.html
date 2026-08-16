@@ -372,7 +372,7 @@
                     
                     <div style="text-decoration: underline; font-weight: bold; margin-top: 3px;">
                         {% if is_blank_physical or dispo.status == 'baru' and not dispo.note and not dispo.is_stage_waka %}
-                            {{ dispo.sender.employee.full_name|default:dispo.sender.get_full_name|default:dispo.sender.username|default:request.user.employee.full_name|default:request.user.get_full_name|default:request.user.username }}
+                            {{ dispo.sender.display_name|default:request.user.display_name }}
                         {% elif dispo.is_stage_waka %}
                             {{ dispo.display_waka_name }}
                         {% else %}
