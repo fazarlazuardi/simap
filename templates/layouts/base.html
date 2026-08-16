@@ -89,6 +89,49 @@
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
         }
 
+        /* High-contrast Alert Banners for Light & Dark Mode */
+        .alert-banner-sppd {
+            background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%) !important;
+            border-left: 5px solid #10B981 !important;
+        }
+        .alert-banner-sppd .alert-title { color: #065F46 !important; }
+        .alert-banner-sppd .alert-desc { color: #047857 !important; }
+
+        .alert-banner-verify {
+            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%) !important;
+            border-left: 5px solid #F59E0B !important;
+        }
+        .alert-banner-verify .alert-title { color: #78350F !important; }
+        .alert-banner-verify .alert-desc { color: #92400E !important; }
+
+        .alert-banner-dispo {
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important;
+            border-left: 5px solid #3B82F6 !important;
+        }
+        .alert-banner-dispo .alert-title { color: #1E40AF !important; }
+        .alert-banner-dispo .alert-desc { color: #1D4ED8 !important; }
+
+        [data-theme="dark"] .alert-banner-sppd {
+            background: linear-gradient(135deg, #064E3B 0%, #022C22 100%) !important;
+            border-left: 5px solid #34D399 !important;
+        }
+        [data-theme="dark"] .alert-banner-sppd .alert-title { color: #A7F3D0 !important; }
+        [data-theme="dark"] .alert-banner-sppd .alert-desc { color: #6EE7B7 !important; }
+
+        [data-theme="dark"] .alert-banner-verify {
+            background: linear-gradient(135deg, #78350F 0%, #451A03 100%) !important;
+            border-left: 5px solid #F59E0B !important;
+        }
+        [data-theme="dark"] .alert-banner-verify .alert-title { color: #FDE68A !important; }
+        [data-theme="dark"] .alert-banner-verify .alert-desc { color: #FCD34D !important; }
+
+        [data-theme="dark"] .alert-banner-dispo {
+            background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%) !important;
+            border-left: 5px solid #60A5FA !important;
+        }
+        [data-theme="dark"] .alert-banner-dispo .alert-title { color: #BFDBFE !important; }
+        [data-theme="dark"] .alert-banner-dispo .alert-desc { color: #93C5FD !important; }
+
         .card-hover-lift {
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -901,16 +944,16 @@
         <!-- Content Area -->
         <main class="content-area">
             {% if is_kabid_4_active and unverified_count > 0 %}
-            <div class="alert border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border-left: 5px solid #F59E0B !important;">
+            <div class="alert alert-banner-verify border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown">
                 <div class="d-flex align-items-center">
                     <div class="rounded-circle bg-warning text-dark p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
                         <i class="bi bi-shield-exclamation fs-4"></i>
                     </div>
                     <div>
-                        <h6 class="fw-bold mb-1 text-dark">
+                        <h6 class="fw-bold mb-1 alert-title">
                             <i class="bi bi-patch-check-fill text-warning me-1"></i> Perhatian Kabid IV: Ada {{ unverified_count }} Dokumen Baru Membutuhkan Verifikasi!
                         </h6>
-                        <span class="small text-secondary">
+                        <span class="small alert-desc">
                             Terdapat <strong>{{ unverified_count }} dokumen / proposal baru</strong> yang memerlukan verifikasi kelengkapan berkas & penomoran resmi dari Anda sebelum didisposisikan ke Ketua BAZNAS.
                         </span>
                     </div>
@@ -923,16 +966,16 @@
             </div>
             {% endif %}
             {% if is_waka_4_active and pending_waka4_dispo_count > 0 %}
-            <div class="alert border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown" style="background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); border-left: 5px solid #3B82F6 !important;">
+            <div class="alert alert-banner-dispo border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown">
                 <div class="d-flex align-items-center">
                     <div class="rounded-circle bg-primary text-white p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
                         <i class="bi bi-file-earmark-text-fill fs-4"></i>
                     </div>
                     <div>
-                        <h6 class="fw-bold mb-1 text-dark">
+                        <h6 class="fw-bold mb-1 alert-title">
                             <i class="bi bi-bell-fill text-primary me-1"></i> Perhatian Waka IV: Ada {{ pending_waka4_dispo_count }} Disposisi Dari Ketua Membutuhkan Disposisi Pelaksana!
                         </h6>
-                        <span class="small text-secondary">
+                        <span class="small alert-desc">
                             Terdapat <strong>{{ pending_waka4_dispo_count }} lembar disposisi</strong> yang telah didisposisikan oleh Ketua BAZNAS dan siap Anda teruskan / disposisikan ke unit kerja pelaksana.
                         </span>
                     </div>
@@ -945,16 +988,16 @@
             </div>
             {% endif %}
             {% if is_kabid_4_active and pending_st_sppd_count > 0 %}
-            <div class="alert border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown" style="background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); border-left: 5px solid #10B981 !important;">
+            <div class="alert alert-banner-sppd border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown">
                 <div class="d-flex align-items-center">
                     <div class="rounded-circle bg-success text-white p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
                         <i class="bi bi-file-earmark-plus-fill fs-4"></i>
                     </div>
                     <div>
-                        <h6 class="fw-bold mb-1 text-dark">
+                        <h6 class="fw-bold mb-1 alert-title">
                             <i class="bi bi-bell-fill text-success me-1"></i> Perhatian FO & Kabid IV: Ada {{ pending_st_sppd_count }} Surat Tugas Baru Perlu Dibuatkan SPPD!
                         </h6>
-                        <span class="small text-secondary">
+                        <span class="small alert-desc">
                             Terdapat <strong>{{ pending_st_sppd_count }} Surat Tugas terbit</strong> dari Pimpinan / Bidang (termasuk penugasan mandiri) yang memerlukan pembuatan dokumen Surat Perintah Perjalanan Dinas (SPPD) oleh Anda.
                         </span>
                     </div>
