@@ -262,6 +262,10 @@ def archive_upload(request):
                     category="disposition"
                 )
 
+            # Notifikasi ke Waka II & Kabid II jika dokumen bersifat bantuan
+            from services.notifications.notification_service import NotificationService
+            NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
+
         if auto_verify:
             messages.success(request, "Dokumen berhasil diunggah & terverifikasi (Siap Disposisi Ketua BAZNAS).")
         else:

@@ -204,3 +204,52 @@ class NotificationService:
 
         return sent_count
 
+    @classmethod
+    def notify_bidang2_for_bantuan_document(cls, archive, dispo=None):
+        """
+        Kirim notifikasi web dashboard otomatis ke Waka II & Kabid II saat:
+        - Dokumen bersifat permohonan bantuan (Mustahik) baru diunggah / masuk ke sistem.
+        - Disposisi dokumen bantuan/umum diteruskan ke Bidang II / Waka II / Kabid II.
+        """
+        if not archive:
+            return
+        
+        from services.workflows.workflow_engine import WorkflowEngine
+        from users.models import User
+        from django.db.models import Q
+        
+        is_bantuan = WorkflowEngine.is_bantuan(archive)
+        is_forwarded_to_bidang2 = False
+        
+        if dispo:
+            for emp in list(dispo.forwarded_to.all()) + list(dispo.waka_forwarded_to.all()):
+                dept_name = emp.dept_relation.name.lower() if emp and emp.dept_relation else ''
+                pos_name = emp.position.lower() if emp and emp.position else ''
+                if any(kw in dept_name or kw in pos_name for kw in ['pendistribusian', 'bidang 2', 'bidang ii', 'waka 2', 'kabid 2']):
+                    is_forwarded_to_bidang2 = True
+                    break
+        
+        if is_bantuan or is_forwarded_to_bidang2:
+            bidang2_users = User.objects.filter(
+                Q(username__icontains='waka2') |
+                Q(username__icontains='kabid2') |
+                Q(role='waka_2') |
+                Q(role='kabid_2') |
+                Q(employee__leadership_type='waka_2') |
+                Q(employee__dept_relation__name__icontains='pendistribusian') |
+                Q(employee__dept_relation__name__icontains='bidang 2') |
+                Q(employee__dept_relation__name__icontains='bidang ii')
+            ).distinct()
+            
+            link_target = f"/dispositions/{dispo.pk}/" if dispo else f"/archives/{archive.pk}/"
+            
+            for b_user in bidang2_users:
+                if not Notification.objects.filter(user=b_user, link_url=link_target, status='unread').exists():
+                    Notification.create_system_notif(
+                        user=b_user,
+                        title="🤝 Disposisi Dokumen Bantuan (Bidang II)",
+                        message=f"Dokumen bantuan '{archive.title}' memerlukan tindakan & tindak lanjut oleh Waka II / Kabid II.",
+                        link_url=link_target,
+                        category="disposition"
+                    )
+

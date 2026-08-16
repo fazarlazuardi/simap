@@ -197,6 +197,10 @@ def disposition_edit(request, pk):
                 link_url=f"/dispositions/{archive.pk}/create/"
             ).update(status='read')
 
+        # Kirim notifikasi ke Waka 2 & Kabid 2 untuk dokumen bantuan / disposisi Bidang II
+        from services.notifications.notification_service import NotificationService
+        NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
+
         AuditService.log_action(request.user, f"Disposisi Ketua: {dispo.disposition_number}", request)
         messages.success(request, f"Disposisi Ketua berhasil dikirim atas nama: {dispo.sender_label}")
         return redirect('dispositions:list')
@@ -260,6 +264,10 @@ def disposition_waka_edit(request, pk):
             archive.save(update_fields=['status', 'updated_at'])
 
         dispo.save()
+
+        # Kirim notifikasi ke Waka 2 & Kabid 2 untuk dokumen bantuan / disposisi Bidang II
+        from services.notifications.notification_service import NotificationService
+        NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
 
         # Notif WA ke penerima Waka
         try:
