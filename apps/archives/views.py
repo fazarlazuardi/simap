@@ -150,7 +150,15 @@ def archive_upload(request):
     if request.method == 'POST':
         archive_type = request.POST.get('archive_type')
         archive_number_input = request.POST.get('archive_number', '').strip()
-        letter_date = request.POST.get('letter_date')
+        letter_date_raw = request.POST.get('letter_date')
+        
+        # Parse format DD-MM-YYYY -> YYYY-MM-DD jika diperlukan oleh Django DateField
+        letter_date = letter_date_raw
+        if letter_date_raw and '-' in letter_date_raw:
+            parts = letter_date_raw.strip().split('-')
+            if len(parts) == 3 and len(parts[0]) == 2 and len(parts[2]) == 4:
+                letter_date = f"{parts[2]}-{parts[1]}-{parts[0]}"
+
         sender_receiver = request.POST.get('sender_receiver')
         title = request.POST.get('title')
         category_id = request.POST.get('category')

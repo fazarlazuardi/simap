@@ -1241,68 +1241,220 @@
                 });
                 {% endfor %}
             {% endif %}
-    <!-- Flatpickr JS & Bahasa Indonesia Localization -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
-    <script>
-        var fpInstances = {};
+    <!-- MODAL JUMBO CALENDAR SIMAP (0 CDN Dependency, DD-MM-YYYY Format) -->
+    <div class="modal fade" id="jumboCalendarModal" tabindex="-1" aria-hidden="true" style="z-index: 99999;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden; background: #F8FAFC;">
+                <!-- Header Modal -->
+                <div class="p-3 text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #047857 0%, #10B981 100%);">
+                    <div>
+                        <h6 class="mb-0 text-white-50 small fw-semibold">Pilih Tanggal (DD-MM-YYYY)</h6>
+                        <h4 class="mb-0 fw-bold" id="jumboCalHeaderDisplay">-- ------ ----</h4>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
 
-        function initAllDatePickers() {
-            if (typeof flatpickr === 'undefined') return;
-            if (flatpickr.l10ns && flatpickr.l10ns.id) {
-                flatpickr.localize(flatpickr.l10ns.id);
+                <!-- Controls: Month & Year Selector -->
+                <div class="p-3 bg-white border-bottom d-flex align-items-center justify-content-between">
+                    <button type="button" class="btn btn-light rounded-circle shadow-sm" onclick="navJumboCal(-1)"><i class="bi bi-chevron-left"></i></button>
+                    <div class="d-flex align-items-center gap-2">
+                        <select id="jumboCalMonthSelect" class="form-select form-select-sm fw-bold border-0 bg-light" style="font-size: 1rem; width: 140px;" onchange="changeJumboCalMonthYear()">
+                            <option value="0">Januari</option>
+                            <option value="1">Februari</option>
+                            <option value="2">Maret</option>
+                            <option value="3">April</option>
+                            <option value="4">Mei</option>
+                            <option value="5">Juni</option>
+                            <option value="6">Juli</option>
+                            <option value="7">Agustus</option>
+                            <option value="8">September</option>
+                            <option value="9">Oktober</option>
+                            <option value="10">November</option>
+                            <option value="11">Desember</option>
+                        </select>
+                        <select id="jumboCalYearSelect" class="form-select form-select-sm fw-bold border-0 bg-light" style="font-size: 1rem; width: 95px;" onchange="changeJumboCalMonthYear()">
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-light rounded-circle shadow-sm" onclick="navJumboCal(1)"><i class="bi bi-chevron-right"></i></button>
+                </div>
+
+                <!-- Calendar Body: Grid -->
+                <div class="p-3 bg-white">
+                    <div class="d-grid mb-2 text-center text-success fw-bold" style="grid-template-columns: repeat(7, 1fr); font-size: 0.95rem;">
+                        <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+                    </div>
+                    <div id="jumboCalDaysGrid" class="d-grid text-center gap-1" style="grid-template-columns: repeat(7, 1fr);">
+                    </div>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-sm btn-outline-success fw-bold rounded-pill px-3" onclick="selectJumboCalToday()">Hari Ini</button>
+                    <button type="button" class="btn btn-sm btn-secondary fw-bold rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var jumboCurrentInputId = null;
+        var jumboCalDate = new Date();
+        var indonesianMonths = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+        function openJumboCalendar(inputId) {
+            jumboCurrentInputId = inputId;
+            var inputEl = document.getElementById(inputId);
+            if (!inputEl) return;
+
+            var val = inputEl.value.trim();
+            if (val) {
+                var parts;
+                if (val.includes('-')) {
+                    parts = val.split('-');
+                    if (parts[0].length === 4) { // YYYY-MM-DD
+                        jumboCalDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    } else if (parts[2].length === 4) { // DD-MM-YYYY
+                        jumboCalDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                    }
+                }
+            } else {
+                jumboCalDate = new Date();
             }
             
-            document.querySelectorAll("input[type='date'], input[type='datetime-local'], .datepicker-input, .flatpickr-date").forEach(function(el) {
-                if (el.dataset.fpDone) return;
-                el.dataset.fpDone = "true";
-                
-                var initVal = el.value;
-                el.type = 'text';
-                el.setAttribute('autocomplete', 'off');
-                el.style.cursor = 'pointer';
-                
-                var inst = flatpickr(el, {
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "j F Y",
-                    defaultDate: initVal || null,
-                    monthSelectorType: "dropdown",
-                    animate: true,
-                    allowInput: true,
-                    clickOpens: true,
-                    onReady: function(selectedDates, dateStr, instance) {
-                        if (instance.altInput) {
-                            instance.altInput.style.cursor = 'pointer';
-                            instance.altInput.addEventListener('click', function() {
-                                instance.open();
-                            });
-                        }
-                    }
-                });
-
-                if (el.id) {
-                    fpInstances[el.id] = inst;
-                }
-            });
+            populateJumboYears();
+            renderJumboCalendar();
+            
+            var modalEl = document.getElementById('jumboCalendarModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                bsModal.show();
+            }
         }
 
         function openDatePicker(id) {
-            if (fpInstances[id]) {
-                fpInstances[id].open();
-            } else {
-                var el = document.getElementById(id);
-                if (el && el._flatpickr) {
-                    el._flatpickr.open();
-                } else if (el) {
-                    el.click();
-                    el.focus();
-                }
+            openJumboCalendar(id);
+        }
+
+        function populateJumboYears() {
+            var yearSelect = document.getElementById('jumboCalYearSelect');
+            if (!yearSelect) return;
+            var currentYear = new Date().getFullYear();
+            yearSelect.innerHTML = '';
+            for (var y = currentYear - 10; y <= currentYear + 10; y++) {
+                var opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                yearSelect.appendChild(opt);
             }
         }
 
-        document.addEventListener('DOMContentLoaded', initAllDatePickers);
-        window.addEventListener('load', initAllDatePickers);
+        function renderJumboCalendar() {
+            var year = jumboCalDate.getFullYear();
+            var month = jumboCalDate.getMonth();
+            
+            var mSel = document.getElementById('jumboCalMonthSelect');
+            var ySel = document.getElementById('jumboCalYearSelect');
+            if (mSel) mSel.value = month;
+            if (ySel) ySel.value = year;
+            
+            var dayNum = jumboCalDate.getDate();
+            var headerEl = document.getElementById('jumboCalHeaderDisplay');
+            if (headerEl) headerEl.textContent = dayNum + ' ' + indonesianMonths[month] + ' ' + year;
+
+            var grid = document.getElementById('jumboCalDaysGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            var firstDayIndex = new Date(year, month, 1).getDay();
+            var totalDays = new Date(year, month + 1, 0).getDate();
+            var today = new Date();
+
+            for (var i = 0; i < firstDayIndex; i++) {
+                var blank = document.createElement('div');
+                blank.style.height = '46px';
+                grid.appendChild(blank);
+            }
+
+            for (var d = 1; d <= totalDays; d++) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-light fw-bold border-0 rounded-3';
+                btn.style.height = '46px';
+                btn.style.fontSize = '1.1rem';
+                btn.textContent = d;
+
+                var isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+                var isSelected = jumboCalDate.getFullYear() === year && jumboCalDate.getMonth() === month && jumboCalDate.getDate() === d;
+
+                if (isSelected) {
+                    btn.className = 'btn btn-success text-white fw-bold shadow-sm rounded-3';
+                    btn.style.backgroundColor = '#10B981';
+                } else if (isToday) {
+                    btn.className = 'btn btn-outline-success fw-bold rounded-3';
+                }
+
+                (function(dayVal) {
+                    btn.onclick = function() {
+                        setJumboCalValue(dayVal, month, year);
+                    };
+                })(d);
+
+                grid.appendChild(btn);
+            }
+        }
+
+        function navJumboCal(delta) {
+            jumboCalDate.setMonth(jumboCalDate.getMonth() + delta);
+            renderJumboCalendar();
+        }
+
+        function changeJumboCalMonthYear() {
+            var m = parseInt(document.getElementById('jumboCalMonthSelect').value);
+            var y = parseInt(document.getElementById('jumboCalYearSelect').value);
+            jumboCalDate.setMonth(m);
+            jumboCalDate.setFullYear(y);
+            renderJumboCalendar();
+        }
+
+        function selectJumboCalToday() {
+            var today = new Date();
+            setJumboCalValue(today.getDate(), today.getMonth(), today.getFullYear());
+        }
+
+        function setJumboCalValue(day, month, year) {
+            var dd = String(day).padStart(2, '0');
+            var mm = String(month + 1).padStart(2, '0');
+            var yyyy = year;
+            
+            // FORMAT MANDATED BY USER: DD-MM-YYYY (e.g. 16-08-2026)
+            var formattedDate = dd + '-' + mm + '-' + yyyy;
+            
+            if (jumboCurrentInputId) {
+                var targetInput = document.getElementById(jumboCurrentInputId);
+                if (targetInput) {
+                    targetInput.value = formattedDate;
+                    targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+            
+            var modalEl = document.getElementById('jumboCalendarModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                var bsModal = bootstrap.Modal.getInstance(modalEl);
+                if (bsModal) bsModal.hide();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.jumbo-datepicker, input[type="date"]').forEach(function(el) {
+                el.type = 'text';
+                el.setAttribute('placeholder', 'DD-MM-YYYY');
+                el.setAttribute('autocomplete', 'off');
+                el.style.cursor = 'pointer';
+                el.onclick = function() {
+                    openJumboCalendar(el.id);
+                };
+            });
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>
