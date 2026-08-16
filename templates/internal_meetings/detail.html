@@ -240,7 +240,7 @@
                             <i class="bi bi-journal-x display-4 text-muted mb-2"></i>
                             <h6 class="fw-bold text-secondary mb-2">Belum Ada Notulensi Diterbitkan</h6>
                             <p class="small text-muted mb-3">Notulensi rapat belum diisi. Klik tombol di bawah ini untuk menginput risalah rapat.</p>
-                            <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalInputNotulensi">
+                            <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="openDetailNotulensiModal()">
                                 <i class="bi bi-pencil-square me-1"></i> Input Notulensi Rapat
                             </button>
                         </div>
@@ -260,7 +260,7 @@
                         </h6>
                         <span class="badge bg-primary rounded-circle">{{ meeting.participants.count }}</span>
                     </div>
-                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalAttendanceAdjustment">
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" onclick="openAttendanceModal()">
                         <i class="bi bi-person-gear me-1"></i> Sesuaikan Presensi
                     </button>
                 </div>
@@ -279,7 +279,7 @@
                         <div class="text-center text-muted small py-3">
                             <i class="bi bi-person-plus text-primary fs-4 d-block mb-1"></i>
                             Belum ada presensi peserta di-ceklis.<br>
-                            <button type="button" class="btn btn-link btn-sm fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#modalAttendanceAdjustment">
+                            <button type="button" class="btn btn-link btn-sm fw-bold text-decoration-none" onclick="openAttendanceModal()">
                                 Klik di sini untuk menandai peserta yang hadir
                             </button>
                         </div>
@@ -493,11 +493,37 @@ var quillSummary, quillDecision, quillActionItems;
 
 function openDetailNotulensiModal() {
     var modalEl = document.getElementById('modalInputNotulensi');
-    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-    modal.show();
+    if (modalEl) {
+        if (modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+}
+
+function openAttendanceModal() {
+    var modalEl = document.getElementById('modalAttendanceAdjustment');
+    if (modalEl) {
+        if (modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // 1. Pindahkan elemen modal langsung ke document.body agar terbebas dari CSS stacking context container-wrapper
+    var modalNotulensi = document.getElementById('modalInputNotulensi');
+    if (modalNotulensi && modalNotulensi.parentElement !== document.body) {
+        document.body.appendChild(modalNotulensi);
+    }
+    var modalAttendance = document.getElementById('modalAttendanceAdjustment');
+    if (modalAttendance && modalAttendance.parentElement !== document.body) {
+        document.body.appendChild(modalAttendance);
+    }
+
     var toolbarOptions = [
         ['bold', 'italic', 'underline'],
         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
