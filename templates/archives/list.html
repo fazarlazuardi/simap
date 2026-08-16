@@ -245,7 +245,15 @@
                                                 <i class="bi bi-x-lg me-1"></i> Tolak
                                             </button>
                                         {% endif %}
-                                    {% elif archive.status == 'terverifikasi' %}
+                                    {% elif archive.status == 'terverifikasi' or archive.status == 'disposisi_pimpinan' %}
+                                         {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm or request.session.active_pov == 'kabid_4' or request.session.active_pov == 'fo' %}
+                                             <a href="{% url 'dispositions:create' archive.pk %}" class="btn btn-warning btn-sm text-dark rounded-pill px-3 fw-bold shadow-sm me-1" title="Input Catatan & Disposisi Ketua BAZNAS secara Digital (Takeover)">
+                                                 <i class="bi bi-pencil-square me-1"></i> + Disposisi
+                                             </a>
+                                         {% endif %}
+                                     {% endif %}
+                                     
+                                     {% if archive.status == 'terverifikasi' %}
                                         {% if user.is_superuser or user.is_sdm or user.is_kabid %}
                                             <form method="post" action="{% url 'archives:forward_to_ketua' archive.pk %}" class="d-inline">
                                                 {% csrf_token %}

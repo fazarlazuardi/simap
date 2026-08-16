@@ -166,8 +166,10 @@ def disposition_detail(request, pk):
 def disposition_edit(request, pk):
     """Edit disposisi tahap 1 (Ketua) — mengisi forwarded_to, note, instruksi."""
     dispo = get_object_or_404(Disposition.objects.select_related('archive'), pk=pk)
-    if not request.user.is_pimpinan and not request.user.is_kabid and not request.user.is_superadmin:
-        messages.error(request, "Akses ditolak.")
+    active_pov = request.session.get('active_pov')
+    is_kabid_or_fo = active_pov in ['kabid_4', 'sdm', 'fo'] or getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_kabid', False) or getattr(request.user, 'is_sdm', False) or getattr(request.user, 'is_fo', False)
+    if not request.user.is_pimpinan and not request.user.is_superadmin and not is_kabid_or_fo:
+        messages.error(request, "Akses ditolak. Pengisian disposisi memerlukan kewenangan Pimpinan, Kabid IV, atau FO.")
         if hasattr(dispo, 'archive') and dispo.archive:
             return redirect('archives:detail', pk=dispo.archive.pk)
         return redirect('dispositions:list')
@@ -355,9 +357,15 @@ def disposition_verify(request, pk):
 
 
 @login_required
-@pimpinan_required
 def disposition_create(request, archive_pk):
     archive = get_object_or_404(Archive, pk=archive_pk)
+
+    active_pov = request.session.get('active_pov')
+    is_kabid_or_fo = active_pov in ['kabid_4', 'sdm', 'fo'] or getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_kabid', False) or getattr(request.user, 'is_sdm', False) or getattr(request.user, 'is_fo', False)
+    if not request.user.is_pimpinan and not request.user.is_superadmin and not is_kabid_or_fo:
+        messages.error(request, "Akses ditolak. Pengisian disposisi digital memerlukan kewenangan Pimpinan, Kabid IV, atau FO.")
+        return redirect('archives:detail', pk=archive_pk)
+
     existing = Disposition.objects.filter(archive=archive).order_by('-created_at').first()
 
     if existing:
@@ -369,10 +377,13 @@ def disposition_create(request, archive_pk):
         else:
             return redirect('dispositions:edit', pk=existing.pk)
 
-    # Otomatis kunci sender_label Ketua BAZNAS saat pembuatan disposisi baru
+    # Otomatis kunci sender_label Ketua BAZNAS saat pembuatan disposisi baru (atau takeover)
+    from numbering.services import NumberingService
+    dispo_number = NumberingService.generate_number('disposition')
     dispo = Disposition.objects.create(
         archive=archive,
         sender=request.user,
+        disposition_number=dispo_number,
         sender_label=_resolve_sender_label(request.user, 'ketua'),
         disposition_stage='ketua',
         status='baru',
