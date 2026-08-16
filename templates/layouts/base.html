@@ -40,41 +40,59 @@
     <style>
         html, body {
             background-color: #060D12 !important;
-            background-image: url("{% static 'img/simap_bg.png' %}") !important;
-            background-size: 48% auto !important;
-            background-position: center 40% !important;
-            background-attachment: fixed !important;
-            background-repeat: no-repeat !important;
             min-height: 100vh;
         }
-        @media (max-width: 991.98px) {
-            html, body {
-                background-size: 80% auto !important;
-                background-position: center 30% !important;
-            }
-        }
-        body {
-            position: relative;
-        }
-        body::before {
-            content: '';
+
+        /* Frame background yang dibatasi secara presisi di antara Header, Sidebar, dan Footer */
+        #main-content-bg-frame {
             position: fixed;
-            top: 0;
-            left: 0;
+            top: 60px; /* Batas bawah Top Navbar */
+            left: 250px; /* Batas kanan Sidebar */
             right: 0;
-            bottom: 0;
+            bottom: 50px; /* Batas atas Footer */
             pointer-events: none;
             z-index: 0;
-            transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+            background-image: url("{% static 'img/simap_bg.png' %}") !important;
+            background-size: contain !important;
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+            transition: left 0.3s ease;
+        }
+
+        #main-content-bg-overlay {
+            position: fixed;
+            top: 60px;
+            left: 250px;
+            right: 0;
+            bottom: 50px;
+            pointer-events: none;
+            z-index: 0;
             background-color: rgba(248, 250, 252, 0.65);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
+            transition: left 0.3s ease, background-color 0.3s ease;
         }
-        [data-theme="dark"] body::before {
+
+        [data-theme="dark"] #main-content-bg-overlay {
             background-color: rgba(6, 12, 20, 0.50);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
         }
+
+        /* Penyesuaian saat Sidebar di-collapse */
+        #sidebar.collapsed ~ #main-wrapper #main-content-bg-frame,
+        #sidebar.collapsed ~ #main-wrapper #main-content-bg-overlay {
+            left: 80px;
+        }
+
+        /* Penyesuaian Responsif Layar Seluler/Tablet */
+        @media (max-width: 991.98px) {
+            #main-content-bg-frame,
+            #main-content-bg-overlay {
+                left: 0 !important;
+                top: 60px !important;
+                bottom: 50px !important;
+            }
+        }
+
         #sidebar {
             background-color: #0F172A !important;
             background: #0F172A !important;
@@ -1051,6 +1069,10 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- Presisi Bounded Background Image Frame & Overlay -->
+        <div id="main-content-bg-frame"></div>
+        <div id="main-content-bg-overlay"></div>
 
         <!-- Content Area -->
         <main class="content-area">
