@@ -226,12 +226,21 @@
                                 <span class="text-secondary small d-block fw-bold text-uppercase">Notulis Rapat:</span>
                                 <span class="fw-bold text-dark"><i class="bi bi-pen me-1 text-primary"></i>{{ meeting.notulis_name_display }}</span>
                             </div>
-                            {% if meeting.notulensi_file %}
-                            <div class="col-sm-6">
-                                <span class="text-secondary small d-block fw-bold text-uppercase">Dokumen Bukti Notulensi:</span>
-                                <a href="{{ meeting.notulensi_file.url }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3">
-                                    <i class="bi bi-file-earmark-arrow-down me-1"></i> Unduh File Notulensi
-                                </a>
+                            {% if meeting.notulensi_file or meeting.notulensi_attachments.exists %}
+                            <div class="col-12 mt-2">
+                                <span class="text-secondary small d-block fw-bold text-uppercase mb-2"><i class="bi bi-paperclip text-success me-1"></i> Dokumen Bukti & Foto Notulensi:</span>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% if meeting.notulensi_file %}
+                                    <a href="{{ meeting.notulensi_file.url }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold">
+                                        <i class="bi bi-file-earmark-arrow-down me-1"></i> Berkas Utama Notulensi
+                                    </a>
+                                    {% endif %}
+                                    {% for att in meeting.notulensi_attachments.all %}
+                                    <a href="{{ att.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                                        <i class="bi bi-paperclip me-1"></i> {{ att.file_name|default:"Foto / Dokumen Notulensi" }}
+                                    </a>
+                                    {% endfor %}
+                                </div>
                             </div>
                             {% endif %}
                         </div>
@@ -389,8 +398,37 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="{{ notulensi_form.notulensi_file.id_for_label }}" class="form-label fw-bold text-dark">Upload Dokumen / Foto Bukti Notulensi (Opsional)</label>
-                        {{ notulensi_form.notulensi_file }}
+                        <label for="id_notulensi_files" class="form-label fw-bold text-dark">
+                            <i class="bi bi-paperclip text-success me-1"></i> Upload Dokumen Bukti & Foto Notulensi <span class="text-muted fw-normal">(Bisa Pilih Banyak File Sekaligus)</span>
+                        </label>
+                        <input type="file" name="notulensi_files" id="id_notulensi_files" class="form-control custom-input" multiple>
+                        <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i> Anda dapat memilih beberapa foto kegiatan, absensi fisik, PDF, atau dokumen risalah sekaligus dengan menahan tombol <code>Ctrl</code> atau <code>Shift</code> saat memilih file.</div>
+
+                        {% if meeting.notulensi_file or meeting.notulensi_attachments.exists %}
+                        <div class="mt-3 p-3 bg-light rounded-3 border">
+                            <span class="small fw-bold text-secondary d-block mb-2"><i class="bi bi-folder-check me-1"></i> Berkas & Foto Lampiran Tersimpan:</span>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% if meeting.notulensi_file %}
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ meeting.notulensi_file.url }}" target="_blank" class="btn btn-outline-success rounded-pill px-3 fw-bold">
+                                        <i class="bi bi-file-earmark-check me-1"></i> Berkas Utama
+                                    </a>
+                                </div>
+                                {% endif %}
+
+                                {% for att in meeting.notulensi_attachments.all %}
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ att.file.url }}" target="_blank" class="btn btn-outline-primary rounded-start-pill px-3">
+                                        <i class="bi bi-paperclip me-1"></i> {{ att.file_name|default:"Foto/Dokumen" }}
+                                    </a>
+                                    <button type="submit" form="formDeleteAtt_{{ att.id }}" class="btn btn-outline-danger rounded-end-pill px-2" title="Hapus Berkas Ini">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -484,6 +522,12 @@
         </div>
     </div>
 </div>
+
+{% for att in meeting.notulensi_attachments.all %}
+<form id="formDeleteAtt_{{ att.id }}" method="post" action="{% url 'internal_meetings:delete_attachment' att.id %}" class="d-none">
+    {% csrf_token %}
+</form>
+{% endfor %}
 {% endblock %}
 
 {% block extra_js %}

@@ -17,6 +17,7 @@ urlpatterns = [
     path('<int:pk>/notify/', views.meeting_notify, name='notify'),
     path('<int:pk>/update-attendance/', views.meeting_update_attendance, name='update_attendance'),
     path('<int:pk>/delete/', views.meeting_delete, name='delete'),
+    path('attachments/<int:attachment_id>/delete/', views.delete_notulensi_attachment, name='delete_attachment'),
 ]
 
 

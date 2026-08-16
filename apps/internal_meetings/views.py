@@ -9,7 +9,7 @@ import re
 import json
 
 from .forms import InternalMeetingForm, NotulensiForm
-from .models import InternalMeeting, MeetingActionItem
+from .models import InternalMeeting, MeetingActionItem, MeetingNotulensiAttachment
 from users.models import Employee
 from services.audit_logs.audit_service import AuditService
 
@@ -367,6 +367,15 @@ def meeting_notulensi(request, pk):
             meeting_obj.save()
             form.save_m2m()
 
+            # Process Multiple Notulensi Attachment Files
+            uploaded_files = request.FILES.getlist('notulensi_files') or request.FILES.getlist('notulensi_file')
+            for f in uploaded_files:
+                MeetingNotulensiAttachment.objects.create(
+                    meeting=meeting_obj,
+                    file=f,
+                    file_name=f.name
+                )
+
             # Process Dynamic Action Plan Items
             action_titles = request.POST.getlist('action_title[]')
             action_pics = request.POST.getlist('action_pic[]')
@@ -430,6 +439,21 @@ def meeting_notulensi(request, pk):
             messages.error(request, "Terjadi kesalahan saat menyimpan Notulensi Rapat.")
 
     return redirect('internal_meetings:detail', pk=pk)
+
+
+@login_required
+@require_POST
+def delete_notulensi_attachment(request, attachment_id):
+    """
+    Hapus berkas lampiran notulensi rapat tertentu.
+    """
+    attachment = get_object_or_404(MeetingNotulensiAttachment, pk=attachment_id)
+    meeting_pk = attachment.meeting.pk
+    file_name = attachment.file_name or attachment.file.name
+    attachment.delete()
+    AuditService.log_action(request.user, f"Hapus Berkas Notulensi: {file_name}", request)
+    messages.success(request, f"Berkas lampiran '{file_name}' berhasil dihapus.")
+    return redirect('internal_meetings:detail', pk=meeting_pk)
 
 
 @login_required

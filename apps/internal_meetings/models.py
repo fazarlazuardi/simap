@@ -306,3 +306,25 @@ class MeetingActionItem(models.Model):
             return True
         return False
 
+
+class MeetingNotulensiAttachment(models.Model):
+    meeting = models.ForeignKey(
+        InternalMeeting, on_delete=models.CASCADE, related_name='notulensi_attachments',
+        verbose_name="Rapat Internal"
+    )
+    file = models.FileField(
+        upload_to='meetings/notulensi_attachments/%Y/%m/',
+        validators=[validate_file_extension, validate_file_size],
+        verbose_name="Dokumen Bukti / Foto Notulensi"
+    )
+    file_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Nama Berkas")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = "Lampiran Notulensi Rapat"
+        verbose_name_plural = "Daftar Lampiran Notulensi Rapat"
+
+    def __str__(self):
+        return f"{self.file_name or self.file.name} - {self.meeting.title}"
+
