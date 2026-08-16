@@ -183,7 +183,7 @@
                                 {% if dispo.sppd_list.exists %}
                                     {% for sp in dispo.sppd_list.all %}
                                     <a href="{% url 'sppd_service:edit' sp.pk %}" class="badge {% if sp.status == 'selesai' %}bg-success{% elif sp.is_cancelled %}bg-danger{% else %}bg-primary{% endif %} text-white small d-inline-block text-decoration-none mb-1">
-                                        Tahap {{ sp.tahap }}: {{ sp.sppd_number }} ({{ sp.get_status_display }})
+                                        {{ sp.get_sppd_type_display }}: {{ sp.sppd_number }} ({{ sp.get_status_display }})
                                     </a><br>
                                     {% endfor %}
                                 {% else %}
@@ -195,11 +195,11 @@
                                      {% if can_create_sppd %}
                                          {% if dispo.sppd_list.exists %}
                                          <a href="{% url 'sppd_service:create' dispo.pk %}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm">
-                                             <i class="bi bi-plus-lg me-1"></i> Terbitkan SPPD Tahap 2 (Penyaluran)
+                                             <i class="bi bi-plus-lg me-1"></i> Terbitkan SPPD Penyaluran / Lanjutan
                                          </a>
                                          {% else %}
                                          <a href="{% url 'sppd_service:create' dispo.pk %}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm">
-                                             <i class="bi bi-plus-lg me-1"></i> Terbitkan SPPD (Tahap 1)
+                                             <i class="bi bi-plus-lg me-1"></i> Terbitkan SPPD
                                          </a>
                                          {% endif %}
                                      {% else %}
@@ -231,7 +231,7 @@
                         <tr class="text-secondary small text-uppercase">
                             <th class="border-0" style="width: 40px;"><input type="checkbox" id="checkAll"></th>
                             <th class="border-0">No. Dokumen</th>
-                            <th class="border-0">Tahap & No. SPPD</th>
+                            <th class="border-0">Jenis & No. SPPD</th>
                             <th class="border-0">Tanggal Berangkat</th>
                             <th class="border-0">Alat Angkut</th>
                             <th class="border-0">Pegawai Diperintah</th>
@@ -255,7 +255,7 @@
                             </td>
                             <td class="fw-bold">
                                 <span class="badge {% if sppd.sppd_type == 'survei' %}bg-info text-dark{% elif sppd.sppd_type == 'penyaluran' %}bg-purple text-white{% else %}bg-primary text-white{% endif %} rounded-pill px-2 py-1 small mb-1">
-                                    Tahap {{ sppd.tahap }}: {{ sppd.get_sppd_type_display }}
+                                    {{ sppd.get_sppd_type_display }}
                                 </span><br>
                                 {{ sppd.sppd_number }}
                             </td>

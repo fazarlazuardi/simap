@@ -346,7 +346,7 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
         if archive:
             archive.status = 'proses'
             archive.activity_name = activity_text
-            archive.status_note = f'SPPD Tahap {next_tahap} ({sppd_number}) diterbitkan untuk {purpose}.'
+            archive.status_note = f'SPPD ({sppd_number}) diterbitkan untuk {purpose}.'
             archive.save()
 
         if dispo and dispo.status in ['terisi', 'terverifikasi']:
@@ -403,7 +403,7 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
         from services.notifications.notification_service import NotificationService
         threading.Thread(target=NotificationService.send_sppd_notification_auto_by_id, args=(sppd.id,), daemon=True).start()
 
-        messages.success(request, f"SPPD {sppd_number} (Tahap {next_tahap}) berhasil dibuat & Notifikasi WA terkirim.")
+        messages.success(request, f"SPPD {sppd_number} berhasil dibuat & Notifikasi WA terkirim.")
         return redirect('sppd_service:list')
 
     agenda = Agenda.objects.filter(archive=dispo.archive, status='terjadwal').last()
@@ -439,7 +439,7 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
         'default_purpose': default_purpose,
         'default_transportation': default_transportation,
         'default_sppd_number': default_sppd_number,
-        'form_title': f'Buat Surat Perintah Perjalanan Dinas (SPPD Tahap {next_tahap})',
+        'form_title': 'Buat Surat Perintah Perjalanan Dinas (SPPD)',
         'submit_label': 'Simpan SPPD'
     })
 
@@ -488,7 +488,7 @@ def sppd_complete(request, pk):
             sppd.agenda_set.filter(status='terjadwal').update(status='selesai', is_completed=True)
 
         if sppd.sppd_type == 'survei':
-            messages.success(request, f"LHP Survei Tersimpan! Silakan lanjutkan membuat SPPD Penyaluran (Tahap Selanjutnya).")
+            messages.success(request, f"LHP Survei Tersimpan! Lanjutkan tindakan berikutnya (Penyaluran / Laporan Akhir).")
         else:
             messages.success(request, f"LHP Tersimpan! SPPD {sppd.sppd_number} berhasil dinyatakan SELESAI.")
 

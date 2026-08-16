@@ -20,11 +20,11 @@
                 </ol>
             </nav>
             <h5 class="fw-bold m-0" style="color: var(--text-primary);">
-                Disposisi Tahap 2: {% if archive %}{{ archive.archive_number|default:archive.title }}{% else %}{{ dispo.disposition_number|default:"DISPOSISI" }}{% endif %}
+                Disposisi Pelaksana: {% if archive %}{{ archive.archive_number|default:archive.title }}{% else %}{{ dispo.disposition_number|default:"DISPOSISI" }}{% endif %}
             </h5>
             <div class="d-flex gap-2 mt-1 flex-wrap">
                 <span class="badge bg-success text-white px-3 py-2 rounded-pill small fw-bold">
-                    <i class="bi bi-2-circle-fill me-1"></i> TAHAP 2 — DISPOSISI WAKA IV
+                    <i class="bi bi-send-fill me-1"></i> DISPOSISI WAKA IV (PELAKSANA)
                 </span>
                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill small fw-bold">
                     <i class="bi bi-person-badge-fill me-1"></i> Atas Nama: {{ waka_label }}
@@ -52,7 +52,7 @@
     <!-- Info Disposisi Ketua (Tahap 1 - Readonly) -->
     <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px; border-left: 4px solid #0d8a52 !important;">
         <div class="card-body p-3">
-            <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle-fill me-1"></i> Ringkasan Disposisi Tahap 1 (Ketua)</h6>
+            <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle-fill me-1"></i> Ringkasan Disposisi Ketua BAZNAS</h6>
             <div class="row g-2" style="font-size: 0.85rem;">
                 <div class="col-md-3">
                     <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Pengirim (Ketua)</label>
@@ -84,7 +84,7 @@
             <div class="card-header text-white px-3 py-2 d-flex justify-content-between align-items-center" style="background-color: #1a6ca8 !important;">
                 <div class="d-flex align-items-center gap-2">
                     <img src="{% static 'images/logo-baznas.png' %}" alt="Logo BAZNAS" style="height: 30px; width: auto; object-fit: contain;" onerror="this.style.display='none';">
-                    <span class="fw-bold text-uppercase small">Formulir Disposisi Waka IV — Tahap 2</span>
+                    <span class="fw-bold text-uppercase small">Formulir Disposisi Waka IV — Pelaksana</span>
                 </div>
                 <small class="text-white-50">BAZNAS Kab. Tangerang</small>
             </div>

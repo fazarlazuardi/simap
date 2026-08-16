@@ -930,16 +930,16 @@
                     </div>
                     <div>
                         <h6 class="fw-bold mb-1 text-dark">
-                            <i class="bi bi-2-circle-fill text-primary me-1"></i> Perhatian Waka IV: Ada {{ pending_waka4_dispo_count }} Disposisi Dari Ketua Membutuhkan Disposisi Tahap 2!
+                            <i class="bi bi-bell-fill text-primary me-1"></i> Perhatian Waka IV: Ada {{ pending_waka4_dispo_count }} Disposisi Dari Ketua Membutuhkan Disposisi Pelaksana!
                         </h6>
                         <span class="small text-secondary">
-                            Terdapat <strong>{{ pending_waka4_dispo_count }} lembar disposisi</strong> yang telah didisposisikan oleh Ketua BAZNAS dan siap Anda teruskan / disposisikan Tahap 2 ke unit kerja pelaksana.
+                            Terdapat <strong>{{ pending_waka4_dispo_count }} lembar disposisi</strong> yang telah didisposisikan oleh Ketua BAZNAS dan siap Anda teruskan / disposisikan ke unit kerja pelaksana.
                         </span>
                     </div>
                 </div>
                 <div class="ms-3 flex-shrink-0">
                     <a href="{% url 'dispositions:list' %}?status=didisposisi_ketua" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm text-white">
-                        <i class="bi bi-send-check me-1"></i> Disposisikan Tahap 2 Sekarang ({{ pending_waka4_dispo_count }})
+                        <i class="bi bi-send-check me-1"></i> Disposisikan Sekarang ({{ pending_waka4_dispo_count }})
                     </a>
                 </div>
             </div>

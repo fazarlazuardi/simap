@@ -193,16 +193,16 @@
             <div class="col-md-3">
                 {% if surat_tugas_list.count >= 2 %}
                     <a href="{% url 'surat_tugas:detail' latest_st.pk %}" class="btn btn-info text-white w-100 rounded-3 py-2 fw-bold shadow-sm">
-                        <i class="bi bi-file-earmark-check-fill me-1"></i> 3. Riwayat Surat Tugas (2 ST)
+                        <i class="bi bi-file-earmark-check-fill me-1"></i> 3. Riwayat Surat Tugas ({{ surat_tugas_list.count }} ST)
                     </a>
                 {% elif latest_st %}
                     {% if workflow_info.is_bantuan and latest_dispo %}
                     <a href="{% url 'surat_tugas:create_from_disposition' latest_dispo.pk %}" class="btn btn-warning text-dark w-100 rounded-3 py-2 fw-bold shadow-sm">
-                        <i class="bi bi-plus-circle-fill me-1"></i> 3. + Buat ST #2 (Penyaluran Bantuan)
+                        <i class="bi bi-plus-circle-fill me-1"></i> 3. + Buat Surat Tugas Penyaluran
                     </a>
                     {% else %}
                     <a href="{% url 'surat_tugas:detail' latest_st.pk %}" class="btn btn-info text-white w-100 rounded-3 py-2 fw-bold shadow-sm">
-                        <i class="bi bi-file-earmark-text-fill me-1"></i> 3. Surat Tugas Terbit (ST #1)
+                        <i class="bi bi-file-earmark-text-fill me-1"></i> 3. Surat Tugas Terbit
                     </a>
                     {% endif %}
                 {% else %}
