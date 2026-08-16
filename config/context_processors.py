@@ -11,6 +11,10 @@ def notification_context(request):
         'app_config': config,
     }
     if request.user.is_authenticated:
+        # Jika semua arsip dan disposisi telah dihapus bersih di Django Admin -> Hapus notifikasi lama otomatis
+        if not Archive.objects.exists() and not Disposition.objects.exists():
+            Notification.objects.filter(category__in=['disposition', 'archive']).delete()
+
         # Filter disposisi yang sudah diisi agar notifikasi lamanya tidak menumpuk di lonceng
         completed_archive_ids = Disposition.objects.exclude(status='baru').values_list('archive_id', flat=True)
         completed_urls = [f"/dispositions/{aid}/create/" for aid in completed_archive_ids if aid]
