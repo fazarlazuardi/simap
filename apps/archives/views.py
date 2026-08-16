@@ -281,7 +281,7 @@ def archive_print_disposition(request, pk):
             disposition_number=dispo_number,
             status='baru',
             disposition_stage='ketua',
-            note='Lembar Disposisi Fisik dicetak oleh Front Office untuk diisi manual oleh Ketua BAZNAS'
+            note=''
         )
 
     return render(request, 'dispositions/print.html', {
