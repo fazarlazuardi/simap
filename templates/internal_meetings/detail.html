@@ -253,11 +253,16 @@
         <div class="col-lg-4">
             <!-- DAFTAR PESERTA -->
             <div class="card border-0 shadow-sm rounded-4 mb-4" style="background-color: var(--card-bg);">
-                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
-                    <h6 class="fw-bold mb-0 text-dark">
-                        <i class="bi bi-people-fill text-primary me-2"></i>Daftar Peserta Rapat
-                    </h6>
-                    <span class="badge bg-primary rounded-circle">{{ meeting.participants.count }}</span>
+                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-people-fill text-primary me-2"></i>Peserta Rapat Hadir
+                        </h6>
+                        <span class="badge bg-primary rounded-circle">{{ meeting.participants.count }}</span>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalAttendanceAdjustment">
+                        <i class="bi bi-person-gear me-1"></i> Sesuaikan Presensi
+                    </button>
                 </div>
 
                 <div class="card-body p-3">
@@ -271,7 +276,13 @@
                             <i class="bi bi-check-circle-fill text-success"></i>
                         </div>
                         {% empty %}
-                        <div class="text-center text-muted small py-3">Semua Pimpinan & Staff Internal</div>
+                        <div class="text-center text-muted small py-3">
+                            <i class="bi bi-person-plus text-primary fs-4 d-block mb-1"></i>
+                            Belum ada presensi peserta di-ceklis.<br>
+                            <button type="button" class="btn btn-link btn-sm fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#modalAttendanceAdjustment">
+                                Klik di sini untuk menandai peserta yang hadir
+                            </button>
+                        </div>
                         {% endfor %}
                     </div>
                 </div>
@@ -387,6 +398,86 @@
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
                         <i class="bi bi-send-fill me-1"></i> Simpan & Terbitkan Notulensi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PENYESUAIAN PRESENSI PIMPINAN & PESERTA HADIR -->
+<div class="modal fade" id="modalAttendanceAdjustment" tabindex="-1" aria-hidden="true" style="z-index: 1060 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-person-gear me-2"></i>Penyesuaian Presensi Pimpinan & Peserta Hadir
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'internal_meetings:update_attendance' meeting.pk %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0 rounded-3 py-2 px-3 mb-3 small shadow-sm">
+                        <i class="bi bi-info-circle-fill me-1"></i> Tandai Pimpinan Rapat dan daftar Amil yang <strong>benar-benar hadir</strong> dalam rapat ini.
+                    </div>
+
+                    <!-- 1. Pimpinan Rapat -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-1">
+                            <i class="bi bi-person-badge-fill text-primary me-1"></i> Pimpinan Rapat
+                        </label>
+                        <input type="text" id="search_modal_leader" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari pimpinan rapat...">
+                        <div class="p-3 rounded-3 border" style="max-height: 160px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
+                            <div class="row g-2">
+                                {% for emp in employees %}
+                                {% if 'ketua' in emp.position|lower or 'waka' in emp.position|lower or 'kabid' in emp.position|lower or 'kepala' in emp.position|lower %}
+                                <div class="col-md-6 modal-leader-item">
+                                    <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1">
+                                        <input type="checkbox" name="leaders" value="{{ emp.id }}" class="form-check-input" {% if emp in meeting.leaders.all %}checked{% endif %}>
+                                        <span class="small fw-semibold text-dark">{{ emp.full_name }} <span class="text-muted">({{ emp.position|default:"Pimpinan" }})</span></span>
+                                    </label>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Peserta Rapat Hadir -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                            <label class="form-label fw-bold text-dark m-0">
+                                <i class="bi bi-people-fill text-success me-1"></i> Peserta Rapat (Amil Hadir)
+                            </label>
+                        </div>
+                        <input type="text" id="search_modal_participant" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari nama atau jabatan amil...">
+                        <div class="p-3 rounded-3 border" style="max-height: 220px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
+                            <div class="row g-2">
+                                {% for emp in employees %}
+                                <div class="col-md-6 modal-participant-item">
+                                    <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1">
+                                        <input type="checkbox" name="participants" value="{{ emp.id }}" class="form-check-input" {% if emp in meeting.participants.all %}checked{% endif %}>
+                                        <span class="small fw-semibold text-dark">{{ emp.full_name }} <span class="text-muted">({{ emp.position|default:"Staff" }})</span></span>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch p-3 bg-light rounded-3 border">
+                        <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="send_wa_check" name="send_wa" value="on" checked>
+                        <label class="form-check-label fw-bold small text-dark" for="send_wa_check">
+                            <i class="bi bi-whatsapp text-success me-1"></i> Kirim Notifikasi WA Undangan / Pemberitahuan ke HP Peserta Hadir
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light rounded-bottom-4 py-3">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-save me-1"></i> Simpan Presensi & Hadir
                     </button>
                 </div>
             </form>
@@ -519,6 +610,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (modalSearch) {
         modalSearch.addEventListener('input', function() {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('.modal-participant-item').forEach(function(item) {
+                var txt = item.innerText.toLowerCase();
+                item.style.display = txt.includes(q) ? 'block' : 'none';
+            });
+        });
+    }
+
+    var searchModalLeader = document.getElementById('search_modal_leader');
+    if (searchModalLeader) {
+        searchModalLeader.addEventListener('input', function() {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('.modal-leader-item').forEach(function(item) {
+                var txt = item.innerText.toLowerCase();
+                item.style.display = txt.includes(q) ? 'block' : 'none';
+            });
+        });
+    }
+
+    var searchModalParticipant = document.getElementById('search_modal_participant');
+    if (searchModalParticipant) {
+        searchModalParticipant.addEventListener('input', function() {
             var q = this.value.toLowerCase();
             document.querySelectorAll('.modal-participant-item').forEach(function(item) {
                 var txt = item.innerText.toLowerCase();

@@ -508,6 +508,43 @@ def meeting_notify(request, pk):
 
 
 @login_required
+def meeting_update_attendance(request, pk):
+    """
+    Penyesuaian Pimpinan Rapat & Peserta Hadir setelah Jadwal Rapat Diterbitkan.
+    """
+    meeting = get_object_or_404(InternalMeeting, pk=pk)
+    if request.method == 'POST':
+        leader_ids = request.POST.getlist('leaders')
+        participant_ids = request.POST.getlist('participants')
+        
+        leaders = Employee.objects.filter(id__in=leader_ids)
+        participants = Employee.objects.filter(id__in=participant_ids)
+        
+        meeting.leaders.set(leaders)
+        if leaders.exists():
+            meeting.leader = leaders.first()
+        else:
+            meeting.leader = None
+            
+        meeting.participants.set(participants)
+        meeting.save()
+        
+        # Sinkronkan juga ke Agenda Kerja
+        sync_meeting_to_agenda(meeting)
+        
+        # Kirim notifikasi WA Undangan jika diminta
+        if request.POST.get('send_wa') == 'on':
+            send_meeting_wa_notifications(meeting, is_notulensi=False)
+            msg_wa = " & Notifikasi WA Terkirim"
+        else:
+            msg_wa = ""
+            
+        AuditService.log_action(request.user, f"Perbarui Presensi Rapat: {meeting.title}", request)
+        messages.success(request, f"✅ Presensi Pimpinan & Peserta Hadir Rapat '{meeting.title}' berhasil disesuaikan{msg_wa}.")
+    return redirect('internal_meetings:detail', pk=pk)
+
+
+@login_required
 def meeting_delete(request, pk):
     """
     Hapus Agenda Rapat Internal & Agenda Kerja Terkait.

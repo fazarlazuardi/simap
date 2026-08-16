@@ -38,14 +38,14 @@ class InternalMeetingForm(forms.ModelForm):
     leaders = EmployeeChoiceField(
         queryset=Employee.objects.none(),
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        required=True,
-        label="Pimpinan Rapat"
+        required=False,
+        label="Pimpinan Rapat (Dapat Disesuaikan Nanti)"
     )
     participants = EmployeeChoiceField(
         queryset=Employee.objects.none(),
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
         required=False,
-        label="Peserta Rapat (Pegawai / Amil)"
+        label="Peserta Rapat / Amil Hadir (Dapat Disesuaikan Nanti)"
     )
 
     class Meta:
@@ -55,10 +55,10 @@ class InternalMeetingForm(forms.ModelForm):
             'leaders', 'participants', 'agenda_topics', 'attachment'
         ]
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control custom-input', 'placeholder': 'Contoh: Rapat Pleno Evaluation Program Pendistribusian'}),
+            'title': forms.TextInput(attrs={'class': 'form-control custom-input', 'placeholder': 'Contoh: Coffee Morning / Rapat Evaluasi Program'}),
             'meeting_type': forms.Select(attrs={'class': 'form-select custom-input'}),
-            'location': forms.TextInput(attrs={'class': 'form-control custom-input', 'placeholder': 'Contoh: Ruang Rapat Utama BAZNAS / Zoom'}),
-            'agenda_topics': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Tuliskan poin-poin agenda pembahasan...'}),
+            'location': forms.TextInput(attrs={'class': 'form-control custom-input', 'placeholder': 'Contoh: Ruang Rapat Pimpinan BAZNAS / Aula'}),
+            'agenda_topics': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Tuliskan agenda & poin utama pembahasan rapat...'}),
             'attachment': forms.FileInput(attrs={'class': 'form-control custom-input'}),
         }
 
