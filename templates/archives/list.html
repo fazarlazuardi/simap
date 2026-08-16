@@ -245,11 +245,17 @@
                                                 <i class="bi bi-x-lg me-1"></i> Tolak
                                             </button>
                                         {% endif %}
-                                    {% elif archive.status == 'terverifikasi' or archive.status == 'disposisi_pimpinan' %}
-                                         {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm or request.session.active_pov == 'kabid_4' or request.session.active_pov == 'fo' %}
-                                             <a href="{% url 'dispositions:create' archive.pk %}" class="btn btn-warning btn-sm text-dark rounded-pill px-3 fw-bold shadow-sm me-1" title="Input Catatan & Disposisi Ketua BAZNAS secara Digital (Takeover)">
-                                                 <i class="bi bi-pencil-square me-1"></i> + Disposisi
-                                             </a>
+                                     {% elif archive.status == 'terverifikasi' or archive.status == 'disposisi_pimpinan' %}
+                                         {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm or request.session.active_pov == 'kabid_4' or request.session.active_pov == 'fo' or request.session.active_pov == 'ketua' %}
+                                             {% if archive.latest_dispo and archive.latest_dispo.status != 'baru' %}
+                                                 <a href="{% url 'dispositions:detail' archive.latest_dispo.pk %}" class="btn btn-info btn-sm text-white rounded-pill px-3 fw-bold shadow-sm me-1" title="Disposisi Sudah Diisi oleh Kabid IV / Ketua">
+                                                     <i class="bi bi-eye-fill me-1"></i> Lihat Disposisi (Sudah Diisi)
+                                                 </a>
+                                             {% else %}
+                                                 <a href="{% url 'dispositions:create' archive.pk %}" class="btn btn-warning btn-sm text-dark rounded-pill px-3 fw-bold shadow-sm me-1" title="Input Catatan & Disposisi Ketua BAZNAS secara Digital">
+                                                     <i class="bi bi-pencil-square me-1"></i> + Disposisi
+                                                 </a>
+                                             {% endif %}
                                          {% endif %}
                                      {% endif %}
                                      

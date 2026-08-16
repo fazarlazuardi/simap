@@ -283,6 +283,19 @@ def archive_print_disposition(request, pk):
             disposition_stage='ketua',
             note=''
         )
+        
+        # Kirim notifikasi sistem ke Ketua BAZNAS & Pimpinan untuk mengisi disposisi
+        from notifications.models import Notification
+        from django.db.models import Q
+        ketua_users = User.objects.filter(Q(employee__leadership_type='ketua') | Q(role='ketua') | Q(is_superuser=True)).distinct()
+        for k_user in ketua_users:
+            Notification.create_system_notif(
+                user=k_user,
+                title="📋 Disposisi Baru Perlu Diisi",
+                message=f"Dokumen '{archive.title}' telah dicetak FO & siap diisi disposisinya.",
+                link_url=f"/dispositions/{archive.pk}/create/",
+                category="disposition"
+            )
 
     return render(request, 'dispositions/print.html', {
         'dispositions': [dispo],

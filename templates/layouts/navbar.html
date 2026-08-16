@@ -25,9 +25,9 @@
                 <li><hr class="dropdown-divider"></li>
                 {% for notif in global_notifications %}
                 <li>
-                    <a class="dropdown-item p-3 border-bottom" href="#">
-                        <p class="mb-1 small fw-bold">{{ notif.notification_type|upper }}</p>
-                        <p class="mb-0 text-muted small text-wrap">{{ notif.message }}</p>
+                    <a class="dropdown-item p-3 border-bottom" href="{{ notif.link_url|default:'#' }}">
+                        <p class="mb-1 small fw-bold text-primary">{{ notif.title|default:notif.get_category_display }}</p>
+                        <p class="mb-0 text-dark small text-wrap">{{ notif.message }}</p>
                         <span class="text-secondary" style="font-size: 0.65rem;">{{ notif.created_at|timesince }} yang lalu</span>
                     </a>
                 </li>
