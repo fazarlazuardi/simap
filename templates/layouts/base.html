@@ -12,9 +12,6 @@
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
             var isDark = (theme === 'dark');
-            var bg = isDark ? '#090D16' : '#F8FAFC';
-            document.documentElement.style.backgroundColor = bg;
-            if (document.body) document.body.style.backgroundColor = bg;
             
             var icon = document.getElementById('themeIconGlobal');
             var text = document.getElementById('themeTextGlobal');
@@ -38,7 +35,6 @@
             var t = localStorage.getItem('theme');
             var initialTheme = (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', initialTheme);
-            document.documentElement.style.backgroundColor = (initialTheme === 'dark') ? '#090D16' : '#F8FAFC';
         })();
     </script>
     <style>
@@ -221,10 +217,13 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--body-bg);
+            background-image: url("/static/img/simap_bg.png") !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-attachment: fixed !important;
+            background-repeat: no-repeat !important;
             color: var(--text-primary);
             overflow-x: hidden;
-            transition: background-color 0.25s ease, color 0.25s ease;
         }
 
         .top-navbar {
