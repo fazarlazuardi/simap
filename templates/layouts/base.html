@@ -59,30 +59,17 @@
             bottom: 0;
             pointer-events: none;
             z-index: 0;
-            transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
-            background-color: rgba(248, 250, 252, 0.40);
+            transition: background-color 0.3s ease;
+            background-color: rgba(248, 250, 252, 0.35);
         }
         [data-theme="dark"] body::before {
-            background-color: rgba(6, 12, 20, 0.50);
+            background-color: rgba(6, 12, 20, 0.25);
         }
-        #sidebar, #main-wrapper, footer {
+        #sidebar, #main-wrapper, #page-content-wrapper, .content-area, footer {
             position: relative;
             z-index: 1;
             background-color: transparent !important;
-        }
-        .card {
-            background-color: rgba(255, 255, 255, 0.90) !important;
-            backdrop-filter: blur(14px) !important;
-            -webkit-backdrop-filter: blur(14px) !important;
-            border: 1px solid rgba(226, 232, 240, 0.8) !important;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
-        }
-        [data-theme="dark"] .card {
-            background-color: rgba(15, 23, 42, 0.85) !important;
-            backdrop-filter: blur(14px) !important;
-            -webkit-backdrop-filter: blur(14px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35) !important;
+            background: transparent !important;
         }
         html[data-theme="dark"], html[data-theme="dark"] body {
             color: #F8FAFC !important;
@@ -295,7 +282,8 @@
 
 
         .content-area {
-            background-color: var(--body-bg);
+            background-color: transparent !important;
+            background: transparent !important;
             color: var(--text-primary);
             animation: pageFadeIn 0.28s ease both;
         }
@@ -316,9 +304,20 @@
         }
 
         .card {
-            background-color: var(--card-bg) !important;
+            background-color: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
             border-color: var(--border-color) !important;
             color: var(--text-primary);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        [data-theme="dark"] .card {
+            background-color: rgba(15, 23, 42, 0.75) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35) !important;
         }
 
         .table, .table th, .table td, .form-control, .form-select, .form-check-label, .dropdown-menu, .modal-content, .alert,
