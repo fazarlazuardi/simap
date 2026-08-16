@@ -1250,7 +1250,7 @@
                 flatpickr.localize(flatpickr.l10ns.id);
                 
                 // Konversi seluruh input type="date" menjadi text secara otomatis agar kalender kecil bawaan Chrome TIDAK PERNAH MUNCUL
-                document.querySelectorAll("input[type='date'], input[type='datetime-local']").forEach(function(inputEl) {
+                document.querySelectorAll(".flatpickr-date, input[type='date'], input[type='datetime-local']").forEach(function(inputEl) {
                     inputEl.type = 'text';
                     inputEl.setAttribute('autocomplete', 'off');
                     inputEl.style.cursor = 'pointer';
