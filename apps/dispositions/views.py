@@ -60,45 +60,27 @@ def disposition_list(request):
     active_pov = request.session.get('active_pov')
     is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
 
-    if request.user.is_superadmin and not is_waka_or_kabid_2:
-        qs = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to').all()
-    elif request.user.is_pimpinan or request.user.is_kabid or is_waka_or_kabid_2:
-        qs = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to').all()
-        if current_emp and not is_waka_or_kabid_2:
-            qs = Disposition.objects.filter(
-                Q(sender=request.user) | Q(forwarded_to=current_emp) | Q(waka_forwarded_to=current_emp)
-            ).select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to')
+    # SEMUA akun pengguna (FO, Kabid IV, Ketua, Waka IV, Waka II, Kabid II, Pelaksana/Staf, dan Superadmin)
+    # dapat melihat seluruh daftar disposisi yang sedang berjalan di SIMAP.
+    qs = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to').all()
 
-        # Khusus Waka II & Kabid II / POV Waka II: Tampilkan dokumen Bantuan Mustahik terverifikasi ATAU disposisi yang ditujukan langsung ke Waka II/Kabid II
-        if is_waka_or_kabid_2:
-            from services.workflows.workflow_engine import WorkflowEngine
-            qs = qs.filter(
-                Q(archive__verified_by_kabid=True) | ~Q(archive__status='baru')
-            )
-            valid_ids = []
-            for d in qs:
-                if not d.archive:
-                    continue
-                # 1. Jika disposisi ditujukan langsung ke Waka II / Kabid II
-                addressed_to_me = False
-                if current_emp:
-                    if d.forwarded_to.filter(pk=current_emp.pk).exists() or d.waka_forwarded_to.filter(pk=current_emp.pk).exists():
-                        addressed_to_me = True
-                
-                # 2. Atau jika merupakan Dokumen Bantuan Mustahik
-                if addressed_to_me or WorkflowEngine.is_bantuan(d.archive):
-                    valid_ids.append(d.id)
-
+    # Jika pengguna memicu filter spesifik Waka II / Kabid II
+    if is_waka_or_kabid_2 and request.GET.get('filter') == 'bidang2':
+        from services.workflows.workflow_engine import WorkflowEngine
+        valid_ids = []
+        for d in qs:
+            if not d.archive:
+                continue
+            addressed_to_me = False
+            if current_emp:
+                if d.forwarded_to.filter(pk=current_emp.pk).exists() or d.waka_forwarded_to.filter(pk=current_emp.pk).exists():
+                    addressed_to_me = True
+            if addressed_to_me or WorkflowEngine.is_bantuan(d.archive):
+                valid_ids.append(d.id)
+        if valid_ids:
             qs = Disposition.objects.filter(id__in=valid_ids).select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to')
-        qs = qs.distinct()
-    else:
-        qs = Disposition.objects.none()
-        if current_emp:
-            qs = Disposition.objects.filter(
-                Q(forwarded_to=current_emp) | Q(waka_forwarded_to=current_emp)
-            ).select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to')
 
-    qs = qs.order_by('-created_at')
+    qs = qs.distinct().order_by('-created_at')
 
     penerima = request.GET.get('penerima')
     status = request.GET.get('status')
