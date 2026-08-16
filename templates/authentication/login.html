@@ -56,10 +56,13 @@
             height: 100%;
         }
 
-        /* Left Hero Side with Photo Background & Green Overlay */
+        /* Left Hero Side with Photo Background Gedung BAZNAS & Overlay */
         .login-hero {
             flex: 1.2;
-            background: url("{% static 'img/simap_bg.png' %}") center/cover no-repeat;
+            background-image: url("{% static 'img/gedung_baznas_tgn.png' %}");
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -67,6 +70,23 @@
             padding: 60px;
             color: white;
             position: relative;
+        }
+
+        .login-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(6, 78, 59, 0.65) 0%, rgba(14, 159, 110, 0.70) 100%);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            z-index: 0;
+        }
+
+        body[data-theme="dark"] .login-hero::before {
+            background: linear-gradient(135deg, rgba(4, 31, 23, 0.80) 0%, rgba(6, 78, 59, 0.82) 100%);
         }
 
         .hero-content {
