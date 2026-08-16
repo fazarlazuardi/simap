@@ -253,7 +253,7 @@
                                         {% endif %}
                                     {% endif %}
 
-                                     {% if archive.status == 'selesai' or archive.status == 'telah_disalurkan' or archive.latest_report %}
+                                     {% if archive.latest_report or archive.status == 'selesai' %}
                                          {% if archive.latest_report %}
                                              <a href="{% url 'reports:detail' archive.latest_report.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Lihat LHP Selesai">
                                                  <i class="bi bi-file-earmark-check-fill me-1"></i> LHP Selesai
@@ -263,17 +263,27 @@
                                                  <i class="bi bi-check-circle-fill me-1"></i> TELAH DISALURKAN
                                              </span>
                                          {% endif %}
-                                     {% elif archive.status == 'dalam_survei' or 'survei' in archive.activity_name|lower %}
+                                     {% elif archive.latest_sppd %}
                                          {% if archive.latest_dispo and user.is_superuser or archive.latest_dispo and user.is_waka_2 or archive.latest_dispo and user.is_kabid_2 or archive.latest_dispo and request.session.active_pov == 'waka_2' or archive.latest_dispo and request.session.active_pov == 'kabid_2' %}
-                                             <a href="{% url 'reports:create' archive.latest_dispo.pk %}?type=penyaluran" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="Survei Selesai. Klik untuk Input LHP / Penyaluran">
-                                                 <i class="bi bi-box-seam-fill me-1"></i> 🎁 Input LHP / Penyaluran
+                                             <a href="{% url 'reports:create' archive.latest_dispo.pk %}?type=penyaluran" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="SPPD Terbit. Klik untuk Input LHP Hasil Tugas">
+                                                 <i class="bi bi-box-seam-fill me-1"></i> 🎁 Input LHP Penyaluran
                                              </a>
                                          {% else %}
-                                             <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold">
-                                                 <i class="bi bi-geo-alt-fill me-1"></i> DALAM SURVEI LAPANGAN
+                                             <span class="badge bg-primary text-white rounded-pill px-3 py-2 fw-bold">
+                                                 <i class="bi bi-briefcase-fill me-1"></i> SPPD TERBIT
                                              </span>
                                          {% endif %}
-                                     {% elif archive.status in 'terverifikasi,didisposisikan,proses,sudah_ditugaskan' %}
+                                     {% elif archive.latest_st %}
+                                         {% if user.is_superuser or user.is_sdm or user.is_kabid_4 or request.session.active_pov == 'sdm' or request.session.active_pov == 'kabid_4' %}
+                                             <a href="{% url 'sppd_service:create_from_st' archive.latest_st.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Surat Tugas Terbit. Buat SPPD Survei/Dinas">
+                                                 <i class="bi bi-file-earmark-plus-fill me-1"></i> + Buat SPPD
+                                             </a>
+                                         {% else %}
+                                             <span class="badge bg-info text-white rounded-pill px-3 py-2 fw-bold">
+                                                 <i class="bi bi-file-earmark-text-fill me-1"></i> SURAT TUGAS TERBIT
+                                             </span>
+                                         {% endif %}
+                                     {% elif archive.status in 'terverifikasi,didisposisikan,proses,sudah_ditugaskan,dalam_survei' %}
                                          {% if archive.is_proposal_bantuan or archive.archive_type == 'proposal' %}
                                              {% if user.is_superuser or user.is_waka_2 or user.is_kabid_2 or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' %}
                                              <div class="dropdown d-inline-block">
