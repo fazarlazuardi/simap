@@ -91,6 +91,9 @@
                     <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-success btn-sm rounded-pill px-3 py-2 fw-bold shadow-sm">
                         <i class="bi bi-printer-fill me-1"></i> Cetak Tanda Terima
                     </a>
+                    <a href="{% url 'archives:print_disposition' archive.pk %}" target="_blank" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-2 fw-bold shadow-sm" title="Cetak Lembar Disposisi Fisik untuk diisi manual oleh Ketua BAZNAS">
+                        <i class="bi bi-printer-fill me-1"></i> Cetak Disposisi Ketua
+                    </a>
                 {% endif %}
                 {% if workflow_info.is_bantuan %}
                     <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fw-bold rounded-pill">

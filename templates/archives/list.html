@@ -227,10 +227,13 @@
                             <td class="text-end">
                                 <div class="d-flex justify-content-end gap-1 flex-wrap align-items-center">
                                     {% if archive.status != 'ditolak' %}
-                                    <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-outline-success btn-sm rounded-circle border shadow-sm me-1" title="Cetak Tanda Terima Berkas">
-                                        <i class="bi bi-printer-fill text-success"></i>
-                                    </a>
-                                    {% endif %}
+                                     <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-outline-success btn-sm rounded-circle border shadow-sm me-1" title="Cetak Tanda Terima Berkas">
+                                         <i class="bi bi-printer-fill text-success"></i>
+                                     </a>
+                                     <a href="{% url 'archives:print_disposition' archive.pk %}" target="_blank" class="btn btn-outline-warning text-dark btn-sm rounded-circle border shadow-sm me-1" title="Cetak Lembar Disposisi Fisik untuk diisi manual oleh Ketua BAZNAS">
+                                         <i class="bi bi-file-earmark-text-fill text-warning"></i>
+                                     </a>
+                                     {% endif %}
 
                                     {% if archive.status in 'baru,pending,masuk' %}
                                         {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm %}
@@ -362,6 +365,9 @@
                         </div>
                     </div>
                     <div class="modal-footer border-top bg-light py-2" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                        <a href="{% url 'archives:print_disposition' archive.pk %}" target="_blank" class="btn btn-warning text-dark fw-bold rounded-pill px-3 btn-sm me-auto shadow-sm" title="Otomatis Verifikasi dan Cetak Lembar Disposisi Fisik untuk Ketua BAZNAS">
+                            <i class="bi bi-printer-fill me-1"></i> Cetak Disposisi Ketua
+                        </a>
                         <button type="button" class="btn btn-light fw-semibold rounded-pill px-3 btn-sm border" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-success fw-bold px-4 rounded-pill btn-sm shadow-sm">
                             <i class="bi bi-patch-check-fill me-1"></i> Verifikasi Dokumen

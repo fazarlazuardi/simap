@@ -142,10 +142,26 @@
                     <textarea class="form-control" id="description" name="description" rows="3" placeholder="Tambahkan rincian/catatan jika diperlukan..."></textarea>
                 </div>
 
+                <!-- Opsi Verifikasi & Disposisi Fisik Ketua -->
+                <div class="p-3 bg-warning-subtle border border-warning rounded-4 mb-4">
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input me-2" type="checkbox" name="auto_verify" id="autoVerifyCheck" checked style="width: 2.5em; height: 1.25em; cursor: pointer;">
+                        <label class="form-check-label fw-bold text-dark" for="autoVerifyCheck" style="cursor: pointer;">
+                            <i class="bi bi-shield-check text-warning me-1"></i> Otomatis Verifikasi Dokumen & Siapkan Lembar Disposisi Ketua BAZNAS
+                        </label>
+                    </div>
+                    <div class="small text-muted mt-1 ms-4">
+                        Status dokumen otomatis diset <strong>Disposisi Pimpinan / Terverifikasi</strong> sehingga Lembar Disposisi Fisik siap dicetak untuk diisi manual oleh Ketua BAZNAS.
+                    </div>
+                </div>
+
                 <!-- Tombol Aksi -->
-                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top flex-wrap">
                     <a href="{% url 'archives:list' %}" class="btn btn-light px-4 fw-semibold style-btn-cancel">Batal</a>
-                    <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold style-btn-submit">
+                    <button type="submit" name="action_type" value="upload_and_print" class="btn btn-warning text-dark px-4 shadow-sm fw-bold style-btn-submit" title="Simpan Dokumen & Langsung Buka Lembar Disposisi untuk Dicetak">
+                        <i class="bi bi-printer-fill me-2"></i> Simpan & Cetak Disposisi Ketua
+                    </button>
+                    <button type="submit" name="action_type" value="upload_only" class="btn btn-primary px-4 shadow-sm fw-bold style-btn-submit">
                         <i class="bi bi-cloud-upload me-2"></i> Unggah Dokumen
                     </button>
                 </div>

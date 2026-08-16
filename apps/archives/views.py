@@ -202,6 +202,11 @@ def archive_upload(request):
                 }
             )
         
+        auto_verify = request.POST.get('auto_verify') == 'on' or request.POST.get('auto_verify') == 'true' or request.POST.get('action_type') == 'upload_and_print'
+        action_type = request.POST.get('action_type', 'upload_only')
+
+        initial_status = "disposisi_pimpinan" if auto_verify else "baru"
+        
         address = request.POST.get('address', '').strip()
         category = get_object_or_404(Category, id=category_id)
         
@@ -216,12 +221,20 @@ def archive_upload(request):
             description=description,
             uploaded_by=request.user,
             file_path=file,
-            status="baru",
+            status=initial_status,
+            verified_by_kabid=True if auto_verify else False,
         )
 
-        AuditService.log_action(request.user, f"Upload Arsip Baru: {title}", request)
+        AuditService.log_action(request.user, f"Upload Arsip Baru ({initial_status}): {title}", request)
 
-        messages.success(request, "Dokumen berhasil diunggah dengan status BARU.")
+        if action_type == 'upload_and_print':
+            messages.success(request, "Dokumen berhasil diunggah & terverifikasi. Membuka Lembar Disposisi Ketua BAZNAS...")
+            return redirect('archives:print_disposition', pk=archive.pk)
+
+        if auto_verify:
+            messages.success(request, "Dokumen berhasil diunggah & terverifikasi (Siap Disposisi Ketua BAZNAS).")
+        else:
+            messages.success(request, "Dokumen berhasil diunggah dengan status BARU.")
         return redirect('archives:list')
     
     # --- Handling GET Method ---
@@ -241,6 +254,39 @@ def archive_upload(request):
         'selected_type': selected_type,
         'default_archive_number': default_by_type.get(selected_type, ''),
         'default_by_type_json': json.dumps(default_by_type),
+    })
+
+@login_required
+def archive_print_disposition(request, pk):
+    """
+    Mencetak Lembar Disposisi Fisik BAZNAS langsung dari Arsip (Front Office / FO).
+    Otomatis memverifikasi arsip jika masih berstatus 'baru' dan menyiapkan nomor agenda disposisi.
+    """
+    archive = get_object_or_404(Archive, pk=pk)
+
+    # Otomatis verifikasi & teruskan jika masih baru
+    if archive.status in ['baru', 'pending', 'masuk']:
+        archive.status = 'disposisi_pimpinan'
+        archive.verified_by_kabid = True
+        archive.save(update_fields=['status', 'verified_by_kabid', 'updated_at'])
+
+    # Ambil atau buat disposisi draf (agar memiliki Nomor Agenda Resmi)
+    dispo = archive.latest_dispo
+    if not dispo:
+        dispo_number = NumberingService.generate_number('disposition')
+        from dispositions.models import Disposition
+        dispo = Disposition.objects.create(
+            archive=archive,
+            sender=request.user,
+            disposition_number=dispo_number,
+            status='baru',
+            disposition_stage='ketua',
+            note='Lembar Disposisi Fisik dicetak oleh Front Office untuk diisi manual oleh Ketua BAZNAS'
+        )
+
+    return render(request, 'dispositions/print.html', {
+        'dispositions': [dispo],
+        'archive': archive,
     })
 
 @login_required
@@ -367,8 +413,8 @@ def archive_verify(request, pk):
     Verifikasi Dokumen Berjenjang (Kabid IV -> Terverifikasi / Siap Diteruskan ke Ketua BAZNAS).
     BARU -> TERVERIFIKASI
     """
-    if not (request.user.is_pimpinan or request.user.is_kabid or request.user.is_superadmin):
-        messages.error(request, "Akses ditolak. Membutuhkan kewenangan Kabid IV / Pimpinan.")
+    if not (request.user.is_pimpinan or request.user.is_kabid or request.user.is_superadmin or request.user.is_sdm or getattr(request.user, 'is_fo', False) or request.session.get('active_pov') == 'fo'):
+        messages.error(request, "Akses ditolak. Membutuhkan kewenangan Front Office / Kabid IV / Pimpinan.")
         return redirect('archives:list')
 
     if request.method == 'POST':
