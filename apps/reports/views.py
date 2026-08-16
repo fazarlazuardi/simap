@@ -870,6 +870,8 @@ def rekap_bantuan_view(request):
     
     return render(request, 'reports/rekap_bantuan.html', {
         'analytics': bantuan_analytics,
+        'bantuan_records': bantuan_analytics['bantuan_details'],
+        'umum_records': bantuan_analytics['umum_details'],
         'bantuan_chart_labels': bantuan_analytics['bantuan_chart_labels'],
         'bantuan_chart_series': bantuan_analytics['bantuan_chart_series'],
         'umum_chart_labels': bantuan_analytics['umum_chart_labels'],
