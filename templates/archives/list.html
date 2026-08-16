@@ -253,7 +253,7 @@
                                         {% endif %}
                                     {% endif %}
 
-                                     {% if archive.status == 'selesai' or archive.is_disposition_completed %}
+                                     {% if archive.status == 'selesai' or archive.status == 'telah_disalurkan' or archive.latest_report %}
                                          {% if archive.latest_report %}
                                              <a href="{% url 'reports:detail' archive.latest_report.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Lihat LHP Selesai">
                                                  <i class="bi bi-file-earmark-check-fill me-1"></i> LHP Selesai
@@ -263,7 +263,17 @@
                                                  <i class="bi bi-check-circle-fill me-1"></i> TELAH DISALURKAN
                                              </span>
                                          {% endif %}
-                                     {% elif archive.status in 'terverifikasi,didisposisikan,proses' and not archive.is_disposition_completed %}
+                                     {% elif archive.status == 'dalam_survei' or 'survei' in archive.activity_name|lower %}
+                                         {% if archive.latest_dispo and user.is_superuser or archive.latest_dispo and user.is_waka_2 or archive.latest_dispo and user.is_kabid_2 or archive.latest_dispo and request.session.active_pov == 'waka_2' or archive.latest_dispo and request.session.active_pov == 'kabid_2' %}
+                                             <a href="{% url 'reports:create' archive.latest_dispo.pk %}?type=penyaluran" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="Survei Selesai. Klik untuk Input LHP / Penyaluran">
+                                                 <i class="bi bi-box-seam-fill me-1"></i> 🎁 Input LHP / Penyaluran
+                                             </a>
+                                         {% else %}
+                                             <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold">
+                                                 <i class="bi bi-geo-alt-fill me-1"></i> DALAM SURVEI LAPANGAN
+                                             </span>
+                                         {% endif %}
+                                     {% elif archive.status in 'terverifikasi,didisposisikan,proses,sudah_ditugaskan' %}
                                          {% if archive.is_proposal_bantuan or archive.archive_type == 'proposal' %}
                                              {% if user.is_superuser or user.is_waka_2 or user.is_kabid_2 or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' %}
                                              <div class="dropdown d-inline-block">
@@ -280,6 +290,8 @@
                                                      {% endif %}
                                                  </ul>
                                              </div>
+                                             {% else %}
+                                             <span class="badge bg-success text-white rounded-pill px-3 py-2"><i class="bi bi-handbag-fill me-1"></i> PROSES BIDANG II</span>
                                              {% endif %}
                                          {% else %}
                                              <a href="{% url 'dispositions:create' archive.pk %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Buat Disposisi">
