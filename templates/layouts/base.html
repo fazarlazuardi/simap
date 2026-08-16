@@ -1248,12 +1248,21 @@
         document.addEventListener('DOMContentLoaded', function () {
             if (window.flatpickr) {
                 flatpickr.localize(flatpickr.l10ns.id);
-                flatpickr("input[type='date'], input[type='datetime-local']", {
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "j F Y",
-                    allowInput: true,
-                    disableMobile: true,
+                
+                // Konversi seluruh input type="date" menjadi text secara otomatis agar kalender kecil bawaan Chrome TIDAK PERNAH MUNCUL
+                document.querySelectorAll("input[type='date'], input[type='datetime-local']").forEach(function(inputEl) {
+                    inputEl.type = 'text';
+                    inputEl.setAttribute('autocomplete', 'off');
+                    inputEl.style.cursor = 'pointer';
+                    
+                    flatpickr(inputEl, {
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: "j F Y",
+                        allowInput: true,
+                        monthSelectorType: "dropdown",
+                        animate: true
+                    });
                 });
             }
         });
