@@ -11,7 +11,16 @@ def notification_context(request):
         'app_config': config,
     }
     if request.user.is_authenticated:
-        unread_notifications = Notification.objects.filter(user=request.user, status='unread').order_by('-created_at')
+        # Filter disposisi yang sudah diisi agar notifikasi lamanya tidak menumpuk di lonceng
+        completed_archive_ids = Disposition.objects.exclude(status='baru').values_list('archive_id', flat=True)
+        completed_urls = [f"/dispositions/{aid}/create/" for aid in completed_archive_ids if aid]
+
+        unread_notifications = Notification.objects.filter(
+            user=request.user, 
+            status='unread'
+        ).exclude(
+            link_url__in=completed_urls
+        ).order_by('-created_at')
         
         active_pov = request.session.get('active_pov')
         is_kabid_4_active = active_pov in ['kabid_4', 'sdm'] or (not active_pov and (getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_waka_4', False) or getattr(request.user, 'is_sdm', False)))

@@ -206,6 +206,15 @@ def disposition_edit(request, pk):
             archive.save(update_fields=['status', 'updated_at'])
 
         dispo.save()
+
+        # Otomatis tandai notifikasi pengisian disposisi ini sebagai sudah dibaca ('read')
+        from notifications.models import Notification
+        if archive:
+            Notification.objects.filter(
+                category='disposition',
+                link_url=f"/dispositions/{archive.pk}/create/"
+            ).update(status='read')
+
         AuditService.log_action(request.user, f"Disposisi Ketua: {dispo.disposition_number}", request)
         messages.success(request, f"Disposisi Ketua berhasil dikirim atas nama: {dispo.sender_label}")
         return redirect('dispositions:list')
@@ -359,6 +368,10 @@ def disposition_verify(request, pk):
 @login_required
 def disposition_create(request, archive_pk):
     archive = get_object_or_404(Archive, pk=archive_pk)
+
+    # Tandai notifikasi terkait sebagai 'read' untuk user ini saat diakses
+    from notifications.models import Notification
+    Notification.objects.filter(user=request.user, link_url=f"/dispositions/{archive.pk}/create/").update(status='read')
 
     active_pov = request.session.get('active_pov')
     is_kabid_or_fo = active_pov in ['kabid_4', 'sdm', 'fo'] or getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_kabid', False) or getattr(request.user, 'is_sdm', False) or getattr(request.user, 'is_fo', False)
