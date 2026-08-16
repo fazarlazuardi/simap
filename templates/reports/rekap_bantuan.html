@@ -426,10 +426,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-
 {{ bantuan_chart_labels|json_script:"bantuan-labels" }}
 {{ bantuan_chart_series|json_script:"bantuan-series" }}
 {{ umum_chart_labels|json_script:"umum-labels" }}

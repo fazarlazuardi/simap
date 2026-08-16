@@ -3,8 +3,6 @@
 {% block title %}Kalender Kerja - BAZNAS{% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
-<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <style>
     .fc .fc-button-primary { background-color: var(--primary); border-color: var(--primary); padding: 8px 16px; font-weight: 600; color: #fff; }
     .fc .fc-button-primary:hover { background-color: var(--primary-dark); border-color: var(--primary-dark); color: #fff; }
@@ -504,10 +502,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/id.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 <script>
     function getFilterParams() {
         var params = new URLSearchParams(window.location.search);
