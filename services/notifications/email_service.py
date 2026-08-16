@@ -4,6 +4,60 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+def get_custom_email_connection():
+    """Membuka koneksi SMTP dinamis dari konfigurasi SystemSetting atau settings.py."""
+    from django.core.mail import get_connection
+    from users.models import SystemSetting
+    
+    host = SystemSetting.get_value('SMTP_HOST') or getattr(settings, 'EMAIL_HOST', 'smtp.gmail.com')
+    port = int(SystemSetting.get_value('SMTP_PORT') or getattr(settings, 'EMAIL_PORT', 587))
+    use_tls = SystemSetting.get_value('SMTP_USE_TLS') != 'off' if SystemSetting.get_value('SMTP_USE_TLS') else getattr(settings, 'EMAIL_USE_TLS', True)
+    username = SystemSetting.get_value('SMTP_HOST_USER') or SystemSetting.get_value('OFFICE_EMAIL') or getattr(settings, 'EMAIL_HOST_USER', '')
+    password = SystemSetting.get_value('SMTP_HOST_PASSWORD') or getattr(settings, 'EMAIL_HOST_PASSWORD', '')
+
+    return get_connection(
+        host=host,
+        port=port,
+        username=username,
+        password=password,
+        use_tls=use_tls,
+        fail_silently=False
+    )
+
+def send_test_email(to_email):
+    """Mengirimkan email pengujian koneksi SMTP langsung ke alamat penerima."""
+    from django.core.mail import EmailMessage
+    from users.models import SystemSetting
+    
+    from_email = SystemSetting.get_value('SMTP_FROM_EMAIL') or SystemSetting.get_value('OFFICE_EMAIL') or getattr(settings, 'DEFAULT_FROM_EMAIL', 'kabupatenbaznastangerang@gmail.com')
+    
+    connection = get_custom_email_connection()
+    subject = "🏛️ [SIMAP BAZNAS] Pengujian Koneksi Server Email (SMTP) Berhasil"
+    body = f"""Yth. Pengelola Sistem SIMAP BAZNAS Kabupaten Tangerang,
+
+Selamat! Pengujian integrasi Notifikasi Email pada aplikasi SIMAP BAZNAS Kabupaten Tangerang telah BERHASIL DILAKUKAN.
+
+📌 Rincian Server SMTP:
+- Server Host : {connection.host}
+- Port SMTP   : {connection.port}
+- Email Tujuan: {to_email}
+- Status TLS  : {'Aktif (TLS)' if connection.use_tls else 'Non-TLS'}
+
+Sistem SIMAP BAZNAS Anda kini siap mengirimkan notifikasi email secara otomatis.
+
+Terima kasih,
+SIMAP BAZNAS Kabupaten Tangerang
+"""
+    msg = EmailMessage(
+        subject=subject,
+        body=body,
+        from_email=from_email,
+        to=[to_email],
+        connection=connection
+    )
+    msg.send()
+    return True
+
 class PimpinanEmailNotifier:
     """
     Layanan Notifikasi Email Resmi Pimpinan SIMAP & BAZNAS

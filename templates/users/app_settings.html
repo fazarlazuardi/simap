@@ -42,9 +42,57 @@
                     </div>
                     <div class="col-md-12">
                         <label for="office_email" class="form-label fw-bold small">Email Resmi Instansi</label>
-                        <input type="email" class="form-control custom-input" name="office_email" 
+                        <input type="email" class="form-control custom-input" name="office_email" id="office_email_input"
                                value="{{ settings.OFFICE_EMAIL|default:'' }}">
                     </div>
+                </div>
+
+                <hr class="my-5 opacity-5">
+
+                <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-envelope-at-fill me-2"></i> Pengaturan Notifikasi & Server Email (SMTP)</h6>
+                <p class="text-secondary small mb-3">Atur akun pengirim email resmi lembaga untuk mengirim notifikasi disposisi, SPPD, dan laporan backup ke pimpinan dan amil.</p>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-8">
+                        <label for="smtp_host" class="form-label fw-bold small">Server Host SMTP</label>
+                        <input type="text" class="form-control custom-input" name="smtp_host" id="smtp_host"
+                               value="{{ settings.SMTP_HOST|default:'smtp.gmail.com' }}" placeholder="Misal: smtp.gmail.com atau mail.baznas.or.id">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="smtp_port" class="form-label fw-bold small">Port SMTP</label>
+                        <input type="number" class="form-control custom-input" name="smtp_port" id="smtp_port"
+                               value="{{ settings.SMTP_PORT|default:'587' }}" placeholder="587 / 465">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="smtp_host_user" class="form-label fw-bold small">Username / Email Pengirim</label>
+                        <input type="email" class="form-control custom-input" name="smtp_host_user" id="smtp_host_user"
+                               value="{{ settings.SMTP_HOST_USER|default:settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}" placeholder="kabupatenbaznastangerang@gmail.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="smtp_host_password" class="form-label fw-bold small">Password Aplikasi (App Password)</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control custom-input" name="smtp_host_password" id="smtp_host_password"
+                                   value="{{ settings.SMTP_HOST_PASSWORD|default:'' }}" placeholder="Kata sandi aplikasi 16-digit..." style="border-radius: 12px 0 0 12px;">
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleSmtpPassword()" style="border-radius: 0 12px 12px 0;">
+                                <i class="bi bi-eye" id="togglePassIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label for="smtp_from_email" class="form-label fw-bold small">Alamat Header Sender (From Email)</label>
+                        <input type="email" class="form-control custom-input" name="smtp_from_email" id="smtp_from_email"
+                               value="{{ settings.SMTP_FROM_EMAIL|default:settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}">
+                    </div>
+                </div>
+
+                <div class="p-3 border rounded-3 bg-light bg-opacity-50 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <span class="fw-bold small text-dark d-block"><i class="bi bi-send-check-fill text-success me-1"></i> Uji Koneksi Pengiriman Email</span>
+                        <small class="text-secondary">Kirim email pengujian langsung ke: <strong><span id="testTargetEmailDisplay">{{ settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}</span></strong></small>
+                    </div>
+                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="runEmailTest()">
+                        <i class="bi bi-envelope-paper-fill me-1.5"></i> Tes Kirim Email Pengujian
+                    </button>
                 </div>
 
                 <hr class="my-5 opacity-5">
@@ -351,6 +399,59 @@
                 document.getElementById('clearNotifForm').submit();
             }
         });
+    }
+
+    function toggleSmtpPassword() {
+        var input = document.getElementById('smtp_host_password');
+        var icon = document.getElementById('togglePassIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    }
+
+    function runEmailTest() {
+        var targetEmail = document.getElementById('smtp_from_email').value || document.getElementById('smtp_host_user').value || document.getElementById('office_email_input').value || 'kabupatenbaznastangerang@gmail.com';
+        
+        Swal.fire({
+            title: 'Menguji Koneksi Email (SMTP)...',
+            text: 'Sedang mencoba mengirim email pengujian ke ' + targetEmail + ', mohon tunggu...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        fetch("{% url 'users:test_email_connection' %}?email=" + encodeURIComponent(targetEmail))
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(res => {
+                if (res.status === 200 && res.body.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Email Berhasil Terkirim! 🎉',
+                        text: res.body.message,
+                        confirmButtonColor: '#0E9F6E'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Koneksi Email Gagal',
+                        text: res.body.message || 'Gagal mengirim email pengujian. Pastikan host, port, dan password aplikasi SMTP sudah benar.',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Menghubungi Server',
+                    text: 'Terjadi kesalahan sistem saat mencoba mengirim email pengujian.',
+                    confirmButtonColor: '#d33'
+                });
+            });
     }
 </script>
 {% endblock %}

@@ -338,9 +338,16 @@ def app_settings_view(request):
             'OFFICE_ADDRESS': request.POST.get('office_address'),
             'OFFICE_EMAIL': request.POST.get('office_email'),
             'SYSTEM_MAINTENANCE': request.POST.get('maintenance', 'off'),
+            'SMTP_HOST': request.POST.get('smtp_host'),
+            'SMTP_PORT': request.POST.get('smtp_port'),
+            'SMTP_USE_TLS': request.POST.get('smtp_use_tls', 'on'),
+            'SMTP_HOST_USER': request.POST.get('smtp_host_user'),
+            'SMTP_HOST_PASSWORD': request.POST.get('smtp_host_password'),
+            'SMTP_FROM_EMAIL': request.POST.get('smtp_from_email'),
         }
         for key, value in settings_data.items():
-            SystemSetting.objects.update_or_create(key=key, defaults={'value': value})
+            if value is not None:
+                SystemSetting.objects.update_or_create(key=key, defaults={'value': value})
 
         # Save numbering config
         numbering_keys = [
@@ -518,3 +525,23 @@ def employee_position_json(request, pk):
 @login_required
 def ai_assistant_view(request):
     return render(request, 'users/ai_assistant.html')
+
+@login_required
+@user_passes_test(superuser_only)
+def test_email_connection(request):
+    """
+    Endpoint pengujian koneksi email SMTP via AJAX.
+    """
+    from services.notifications.email_service import send_test_email
+    target_email = request.GET.get('email') or SystemSetting.get_value('OFFICE_EMAIL') or 'kabupatenbaznastangerang@gmail.com'
+    try:
+        send_test_email(target_email)
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Email pengujian berhasil dikirim ke {target_email}. Silakan periksa kotak masuk/spam email Anda."
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f"Gagal mengirim email pengujian: {str(e)}"
+        }, status=400)
