@@ -648,9 +648,22 @@ def sppd_cancel(request, pk):
 @login_required
 def sppd_print(request):
     ids = request.GET.getlist('ids')
-    if not ids:
+    if not ids and request.GET.get('id'):
+        ids = [request.GET.get('id')]
+    
+    parsed_ids = []
+    for item in ids:
+        if item:
+            for single_id in str(item).split(','):
+                if single_id.strip().isdigit():
+                    parsed_ids.append(int(single_id.strip()))
+
+    if not parsed_ids:
         messages.error(request, "Pilih SPPD yang ingin dicetak.")
         return redirect('sppd_service:list')
         
-    sppds = SPPD.objects.filter(id__in=ids).select_related('disposition__archive', 'created_by').prefetch_related('assigned_employees', 'followers')
+    sppds = SPPD.objects.filter(id__in=parsed_ids).select_related(
+        'disposition__archive', 'created_by', 'surat_tugas', 'signed_by_ketua'
+    ).prefetch_related('assigned_employees', 'followers')
+    
     return render(request, 'sppd/print_sppd.html', {'sppds': sppds})
