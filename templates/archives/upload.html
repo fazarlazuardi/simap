@@ -58,11 +58,10 @@
                             verifikasi Kabid 4.</div>
                     </div>
                     <div class="col-md-4 mb-4">
-                        <label for="letter_date" class="form-label fw-bold">Tanggal Surat <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="text" class="form-control custom-input jumbo-datepicker fw-bold" id="letter_date" name="letter_date" value="{% now 'd-m-Y' %}" required placeholder="DD-MM-YYYY" readonly style="background-color: #F8FAFC !important; color: #0F172A !important; border-color: #CBD5E1 !important; cursor: pointer; font-size: 1.05rem;" onclick="openJumboCalendar('letter_date', event)">
-                            <button type="button" class="btn btn-light border border-start-0 text-success fs-5 px-3" style="border-color: #CBD5E1 !important; border-top-right-radius: 12px; border-bottom-right-radius: 12px;" onclick="openJumboCalendar('letter_date', event)"><i class="bi bi-calendar-event"></i></button>
-                        </div>
+                        <label for="letter_date" class="form-label fw-bold">Tanggal Surat <span
+                                class="text-danger">*</span></label>
+                        <input type="date" class="form-control custom-input" id="letter_date" name="letter_date"
+                            value="{% now 'Y-m-d' %}" required>
                     </div>
                     {% if letter_date_value %}
                     <script>document.getElementById('letter_date').value = '{{ letter_date_value }}';</script>
@@ -87,10 +86,8 @@
                     </div>
                     <div class="col-md-3 mb-4">
                         <label for="received_date" class="form-label fw-bold">Tanggal Diterima / Dikirim</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control custom-input jumbo-datepicker fw-bold" id="received_date" name="received_date" value="{% now 'd-m-Y' %}" placeholder="DD-MM-YYYY" readonly style="background-color: #F8FAFC !important; color: #0F172A !important; border-color: #CBD5E1 !important; cursor: pointer; font-size: 1.05rem;" onclick="openJumboCalendar('received_date', event)">
-                            <button type="button" class="btn btn-light border border-start-0 text-success fs-5 px-3" style="border-color: #CBD5E1 !important; border-top-right-radius: 12px; border-bottom-right-radius: 12px;" onclick="openJumboCalendar('received_date', event)"><i class="bi bi-calendar-event"></i></button>
-                        </div>
+                        <input type="date" class="form-control custom-input" id="received_date" name="received_date"
+                            value="{% now 'Y-m-d' %}">
                     </div>
                 </div>
 
