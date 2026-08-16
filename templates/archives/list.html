@@ -202,6 +202,8 @@
                             <td class="text-center">
                                 {% if archive.status == 'selesai' %}
                                     <span class="badge bg-success text-white rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> SELESAI</span>
+                                {% elif archive.status == 'dalam_survei' or 'survei' in archive.activity_name|lower %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold"><i class="bi bi-geo-alt-fill me-1"></i> DALAM SURVEI LAPANGAN</span>
                                 {% elif archive.status == 'proses' or archive.latest_dispo.is_stage_waka %}
                                     {% if archive.is_proposal_bantuan %}
                                         <span class="badge bg-success text-white rounded-pill px-3 py-2"><i class="bi bi-handbag-fill me-1"></i> PROSES BIDANG II</span>

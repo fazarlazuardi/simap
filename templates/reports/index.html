@@ -223,6 +223,10 @@
                             <span class="badge bg-danger text-white rounded-pill px-3"><i class="bi bi-x-circle me-1"></i>DITOLAK</span>
                         {% elif arc.status == 'baru' %}
                             <span class="badge badge-pending rounded-pill px-3">PENDING</span>
+                        {% elif arc.status == 'dalam_survei' or 'SURVEI' in arc.activity_name|upper or arc.archive_type == 'proposal' or 'BANTUAN' in arc.category.name|upper %}
+                            <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 shadow-sm">
+                                <i class="bi bi-geo-alt-fill me-1"></i>{% if arc.activity_name %}{{ arc.activity_name|upper }}{% else %}{{ arc.get_status_display|upper }}{% endif %}
+                            </span>
                         {% else %}
                             <span class="badge bg-primary text-white rounded-pill px-3">
                                 {% if arc.activity_name %}{{ arc.activity_name|upper }}{% else %}{{ arc.get_status_display|upper }}{% endif %}

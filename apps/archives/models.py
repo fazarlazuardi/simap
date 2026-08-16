@@ -219,19 +219,19 @@ class Archive(models.Model):
         if sppd:
             s_purp = (sppd.purpose or '').lower()
             if getattr(sppd, 'sppd_type', '') == 'survei' or 'survei' in s_purp:
-                return f"Dalam Survei Lapangan ({sppd.sppd_number})"
+                return "Dalam Survei Lapangan"
             elif getattr(sppd, 'sppd_type', '') == 'penyaluran' or 'penyaluran' in s_purp or 'pentasyarufan' in s_purp:
-                return f"Penyaluran Bantuan ({sppd.sppd_number})"
-            return f"SPPD Terbit ({sppd.sppd_number})"
+                return "Penyaluran Bantuan"
+            return "SPPD Terbit"
 
         st = self.latest_st
         if st:
             st_text = (st.tentang or '').lower()
             if 'survei' in st_text:
-                return f"Survei Lapangan ({st.nomor_surat or 'ST'})"
+                return "Dalam Survei Lapangan"
             elif 'penyaluran' in st_text or 'pentasyarufan' in st_text or 'disalurkan' in st_text:
-                return f"Penyaluran Bantuan ({st.nomor_surat or 'ST'})"
-            return f"Surat Tugas Terbit ({st.nomor_surat or 'ST'})"
+                return "Penyaluran Bantuan"
+            return "Surat Tugas Terbit"
 
         agendas = list(self.agendas.all())
         if agendas:
