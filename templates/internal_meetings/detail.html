@@ -116,6 +116,12 @@
             <a href="{% url 'internal_meetings:print' meeting.pk %}" target="_blank" class="btn btn-outline-primary rounded-pill px-3 fw-bold">
                 <i class="bi bi-printer me-1"></i> Cetak Notulensi
             </a>
+            <form method="post" action="{% url 'internal_meetings:notify' meeting.pk %}" class="d-inline" onsubmit="return confirm('Kirim notifikasi WA Undangan Rapat ke seluruh Pimpinan & Peserta Rapat?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success rounded-pill px-3 fw-bold">
+                    <i class="bi bi-whatsapp me-1"></i> Kirim WA Undangan
+                </button>
+            </form>
             <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="openDetailNotulensiModal()">
                 <i class="bi bi-pencil-square me-1"></i> {% if meeting.is_notulensi_completed %}Edit Notulensi{% else %}Input Notulensi{% endif %}
             </button>

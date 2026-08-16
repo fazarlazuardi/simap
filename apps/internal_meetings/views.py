@@ -495,6 +495,19 @@ def meeting_print_notulensi(request, pk):
 
 
 @login_required
+def meeting_notify(request, pk):
+    """
+    Kirim / Kirim Ulang Notifikasi WA Undangan Rapat Internal.
+    """
+    meeting = get_object_or_404(InternalMeeting, pk=pk)
+    if request.method == 'POST':
+        send_meeting_wa_notifications(meeting, is_notulensi=False)
+        AuditService.log_action(request.user, f"Kirim WA Undangan Rapat: {meeting.title}", request)
+        messages.success(request, f"✅ Notifikasi WA Undangan Rapat '{meeting.title}' berhasil dikirimkan ke seluruh Pimpinan & Peserta Rapat.")
+    return redirect('internal_meetings:detail', pk=pk)
+
+
+@login_required
 def meeting_delete(request, pk):
     """
     Hapus Agenda Rapat Internal & Agenda Kerja Terkait.
