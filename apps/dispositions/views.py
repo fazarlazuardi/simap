@@ -275,12 +275,17 @@ def disposition_waka_edit(request, pk):
             def _send_waka_notif():
                 file_url = request.build_absolute_uri(archive.file_path.url) if archive and archive.file_path else "—"
                 msg = (
-                    f"📄 *DISPOSISI WAKA IV - BAZNAS Kab. Tangerang*\n\n"
-                    f"*No. Disposisi:* {dispo.disposition_number or '—'}\n"
-                    f"*Perihal:* {archive.title if archive else '—'}\n"
-                    f"*Dari:* {waka_label}\n"
-                    f"*Arahan:* {(dispo.waka_note or '—')[:200]}\n\n"
-                    f"🔗 {file_url}\n\nSilakan segera tindak lanjuti."
+                    f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                    f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+                    f"Pemberitahuan arahan disposisi dari Wakil Ketua IV:\n\n"
+                    f"• *No. Disposisi:* {dispo.disposition_number or '—'}\n"
+                    f"• *Perihal:* {archive.title if archive else '—'}\n"
+                    f"• *Pengirim:* {waka_label}\n"
+                    f"• *Arahan Waka IV:* {(dispo.waka_note or '—')[:200]}\n"
+                    f"• *Berkas Digital:* {file_url}\n\n"
+                    f"Mohon untuk dapat segera ditindaklanjuti sesuai petunjuk.\n\n"
+                    f"Terima kasih.\n"
+                    f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
                 )
                 for emp in dispo.waka_forwarded_to.all():
                     WhatsAppService.send_notification(user=getattr(emp, 'user_account', None), message=msg, employee=emp)
@@ -333,13 +338,18 @@ def disposition_verify(request, pk):
             instruksi = "\n".join(inst_list) if inst_list else "—"
             penerima = ', '.join(emp.full_name for emp in dispo.forwarded_to.all()) or "—"
             msg = (
-                f"📄 *DISPOSISI BARU - BAZNAS Kab. Tangerang*\n\n"
-                f"*No. Arsip:* {archive.archive_number or '—'}\n"
-                f"*Perihal:* {archive.title}\n"
-                f"*Dari Pimpinan:* {dispo.sender_label or dispo.display_sender_name}\n"
-                f"*Penerima:* {penerima}\n"
-                f"*Instruksi:*\n{instruksi}\n\n"
-                f"🔗 {file_url}\n\nSilakan segera tindak lanjuti."
+                f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+                f"Pemberitahuan disposisi baru dari Pimpinan BAZNAS:\n\n"
+                f"• *No. Arsip:* {archive.archive_number or '—'}\n"
+                f"• *Perihal:* {archive.title}\n"
+                f"• *Pimpinan:* {dispo.sender_label or dispo.display_sender_name}\n"
+                f"• *Penerima:* {penerima}\n"
+                f"• *Instruksi:* {instruksi}\n"
+                f"• *Berkas Digital:* {file_url}\n\n"
+                f"Silakan login ke sistem SIMAP BAZNAS untuk mempelajari berkas dan menindaklanjuti arahan Pimpinan.\n\n"
+                f"Terima kasih.\n"
+                f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
             )
             forwarded_emps = list(dispo.forwarded_to.all())
             user_map = {u.employee_id: u for u in User.objects.filter(employee__in=forwarded_emps)}

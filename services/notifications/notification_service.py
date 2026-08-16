@@ -54,14 +54,18 @@ class NotificationService:
             penerima_names = ', '.join(emp.full_name for emp in dispo.forwarded_to.all()) or "—"
             
             msg = (
-                f"📄 *REKAP DISPOSISI PIMPIMAN BAZNAS*\n\n"
-                f"*No. Arsip:* {archive.archive_number or '—'}\n"
-                f"*Perihal:* {archive.title}\n"
-                f"*Penerima:* {penerima_names}\n"
-                f"*Prioritas:* {dispo.get_priority_display().upper()}\n"
-                f"*Arahan:* {dispo.note or '—'}\n\n"
-                f"*Instruksi:*\n{instruksi}\n\n"
-                f"Silakan login ke SIMAP BAZNAS untuk menindaklanjuti."
+                f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+                f"Berikut adalah pemberitahuan rekap disposisi Pimpinan yang memerlukan tindak lanjut Anda:\n\n"
+                f"• *No. Arsip:* {archive.archive_number or '—'}\n"
+                f"• *Perihal:* {archive.title}\n"
+                f"• *Penerima:* {penerima_names}\n"
+                f"• *Prioritas:* {dispo.get_priority_display()}\n"
+                f"• *Arahan Pimpinan:* {dispo.note or '—'}\n"
+                f"• *Instruksi:* {instruksi}\n\n"
+                f"Silakan login ke sistem SIMAP BAZNAS untuk melihat detail dan memproses dokumen tersebut.\n\n"
+                f"Atas perhatian dan kerja samanya, kami ucapkan terima kasih.\n"
+                f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
             )
 
             forwarded_emps = list(dispo.forwarded_to.all())
@@ -117,14 +121,18 @@ class NotificationService:
         ret_date = sppd_obj.return_date.strftime('%d/%m/%Y') if hasattr(sppd_obj.return_date, 'strftime') else (str(sppd_obj.return_date) if sppd_obj.return_date else "—")
 
         msg = (
-            f"🚗 *SURAT TUGAS & SPPD TERBIT*\n\n"
-            f"*No. SPPD:* {sppd_obj.sppd_number}\n"
-            f"*Kegiatan:* {archive.title if archive else 'Perjalanan Dinas'}\n"
-            f"*Tujuan:* {sppd_obj.destination}\n"
-            f"*Tgl Berangkat:* {dep_date}\n"
-            f"*Tgl Kembali:* {ret_date}\n"
-            f"*Transportasi:* {sppd_obj.transportation}\n\n"
-            f"Harap melaksanakan tugas dengan penuh tanggung jawab dan mengunggah Laporan SPPD setelah selesai."
+            f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+            f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+            f"Pemberitahuan bahwa Surat Tugas & SPPD Perjalanan Dinas telah resmi diterbitkan:\n\n"
+            f"• *No. SPPD:* {sppd_obj.sppd_number}\n"
+            f"• *Kegiatan:* {archive.title if archive else 'Perjalanan Dinas'}\n"
+            f"• *Tujuan:* {sppd_obj.destination}\n"
+            f"• *Tanggal Keberangkatan:* {dep_date}\n"
+            f"• *Tanggal Kepulangan:* {ret_date}\n"
+            f"• *Transportasi:* {sppd_obj.transportation}\n\n"
+            f"Mohon untuk melaksanakan tugas dengan sebaik-baiknya serta mengunggah Laporan SPPD setelah kegiatan selesai melalui aplikasi SIMAP.\n\n"
+            f"Terima kasih atas dedikasi dan kerja samanya.\n"
+            f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
         )
 
 
@@ -174,14 +182,18 @@ class NotificationService:
             should_send_1h = (timing == 'h_minus_1_hour' and is_today and 0 <= time_diff <= 3600 and agenda.notification_sent_at is None)
 
             if should_send_h1 or should_send_1h or (timing == 'instant' and agenda.notification_sent_at is None):
-                prefix = "🔔 *REMINDER AGENDA HARI INI (1 Jam Lagi)*" if should_send_1h else ("⏰ *REMINDER AGENDA BESOK (H-1)*" if should_send_h1 else "📅 *REMINDER AGENDA KERJA*")
+                timing_str = "HARI INI (1 Jam Lagi)" if should_send_1h else ("BESOK (H-1)" if should_send_h1 else "")
                 
                 msg = (
-                    f"{prefix}\n\n"
-                    f"*Agenda:* {agenda.title}\n"
-                    f"*Waktu:* {agenda.scheduled_at.strftime('%d/%m/%Y jam %H:%M WIB')}\n"
-                    f"*Keterangan:* {agenda.description or '—'}\n\n"
-                    f"Mohon bersiap dan hadir tepat waktu."
+                    f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                    f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+                    f"Pengingat agenda kegiatan dinas BAZNAS {timing_str}:\n\n"
+                    f"• *Agenda:* {agenda.title}\n"
+                    f"• *Waktu:* {agenda.scheduled_at.strftime('%d/%m/%Y jam %H:%M WIB')}\n"
+                    f"• *Keterangan:* {agenda.description or '—'}\n\n"
+                    f"Mohon untuk dapat bersiap dan menghadiri kegiatan tepat waktu.\n\n"
+                    f"Terima kasih.\n"
+                    f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
                 )
 
                 users = list(agenda.assigned_to.all())

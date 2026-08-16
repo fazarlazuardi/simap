@@ -391,8 +391,9 @@ def agenda_edit(request, pk):
                     file_link = f"\n🔗 *Berkas:* {request.build_absolute_uri(archive.file_path.url)}"
                 
                 msg = (
-                    f"📅 *Perubahan Jadwal Agenda - BAZNAS Kab. Tangerang*\n\n"
-                    f"Halo, terdapat perubahan jadwal agenda kerja:\n"
+                    f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                    f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+                    f"Pemberitahuan penyesuaian/perubahan jadwal agenda kegiatan dinas:\n\n"
                     f"• *Kegiatan:* {title}\n"
                     f"• *Jadwal Lama:* {old_scheduled_at.strftime('%d/%m/%Y %H:%M') if old_scheduled_at else '-'} WIB\n"
                     f"• *Jadwal Baru:* {scheduled_at} WIB\n"
@@ -400,7 +401,11 @@ def agenda_edit(request, pk):
                 if description:
                     msg += f"• *Keterangan:* {description}\n"
                 msg += f"{file_link}\n\n" if file_link else "\n"
-                msg += "Silakan menyesuaikan kehadiran sesuai jadwal baru."
+                msg += (
+                    f"Mohon untuk dapat menyesuaikan kehadiran Anda sesuai dengan jadwal baru yang ditetapkan.\n\n"
+                    f"Terima kasih atas perhatian dan pengertiannya.\n"
+                    f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
+                )
                 
                 user_map = {u.employee_id: u for u in User.objects.filter(employee__in=wa_emps)}
                 for emp in wa_emps:
@@ -507,15 +512,20 @@ def agenda_create(request):
                 file_link = f"\n🔗 *Berkas:* {request.build_absolute_uri(archive.file_path.url)}"
             
             msg = (
-                f"📅 *Agenda Kerja Baru - BAZNAS Kab. Tangerang*\n\n"
-                f"Halo, terdapat agenda kerja baru yang dijadwalkan:\n"
+                f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+                f"Pemberitahuan agenda kegiatan dinas baru yang dijadwalkan:\n\n"
                 f"• *Kegiatan:* {title}\n"
                 f"• *Waktu:* {scheduled_at} WIB\n"
             )
             if description:
                 msg += f"• *Keterangan:* {description}\n"
             msg += f"{file_link}\n\n" if file_link else "\n"
-            msg += "Silakan bersiap dan menghadiri kegiatan sesuai waktu yang ditetapkan."
+            msg += (
+                f"Mohon untuk dapat bersiap dan menghadiri kegiatan sesuai waktu yang ditetapkan.\n\n"
+                f"Terima kasih.\n"
+                f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
+            )
             
             user_map = {u.employee_id: u for u in User.objects.filter(employee__in=wa_emps)}
             for emp in wa_emps:
@@ -573,10 +583,11 @@ def agenda_notify(request, pk):
                 tgl_pelaksanaan = dispo.implementation_date.strftime('%d/%m/%Y')
 
         msg = (
-            f"🔔 *Pengingat Agenda Kerja - BAZNAS Kab. Tangerang*\n\n"
-            f"Assalamu'alaikum, pengingat untuk agenda kerja Anda:\n"
+            f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+            f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+            f"Pengingat agenda kegiatan dinas BAZNAS Kabupaten Tangerang:\n\n"
             f"• *Kegiatan:* {agenda.title}\n"
-            f"• *Waktu:* {agenda.scheduled_at.strftime('%d/%m/%Y %H:%M') if agenda.scheduled_at else '-'} WIB\n"
+            f"• *Waktu Agenda:* {agenda.scheduled_at.strftime('%d/%m/%Y %H:%M') if agenda.scheduled_at else '-'} WIB\n"
         )
         if tgl_pelaksanaan != '—':
             msg += f"• *Tanggal Pelaksanaan:* {tgl_pelaksanaan}\n"
@@ -589,7 +600,11 @@ def agenda_notify(request, pk):
                 msg += f"• *Link Berkas:* {request.build_absolute_uri(archive.file_path.url)}\n"
         if agenda.attachment:
             msg += f"• *Lampiran:* {request.build_absolute_uri(agenda.attachment.url)}\n"
-        msg += "\nMohon bersiap dan menghadiri kegiatan tepat waktu."
+        msg += (
+            f"\nMohon untuk dapat bersiap dan menghadiri kegiatan tepat waktu.\n\n"
+            f"Terima kasih.\n"
+            f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
+        )
 
         users = list(agenda.assigned_to.all())
         

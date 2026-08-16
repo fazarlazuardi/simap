@@ -207,14 +207,17 @@ class SuratTugasForm(forms.ModelForm):
         tanggal_format = instance.tanggal_mulai.strftime('%d-%m-%Y') if instance.tanggal_mulai else '-'
         
         msg = (
-            f"📋 *Surat Tugas Baru - BAZNAS Kab. Tangerang*\n\n"
-            f"Halo, terdapat Surat Tugas baru untuk Anda:\n"
+            f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+            f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+            f"Pemberitahuan penugasan Surat Tugas resmi BAZNAS:\n\n"
             f"• *Perihal:* {instance.tentang}\n"
             f"• *No. Surat:* {instance.nomor_surat}\n"
             f"• *Pemberi Tugas:* {instance.pejabat_penandatangan} ({instance.jabatan_penandatangan})\n"
             f"• *Tanggal:* {tanggal_format} ({instance.hari_kegiatan or '-'})\n"
             f"• *Lokasi Tujuan:* {instance.lokasi_tujuan}\n\n"
-            f"Silakan login ke sistem SIMAP BAZNAS untuk melihat detail dan mencetak surat."
+            f"Silakan login ke sistem SIMAP BAZNAS untuk melihat rincian serta mencetak dokumen surat tugas.\n\n"
+            f"Terima kasih atas kerja samanya.\n"
+            f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
         )
 
         for emp in instance.pegawai_ditugaskan.all():
@@ -248,15 +251,18 @@ class SuratTugasForm(forms.ModelForm):
             ).distinct()
             
             msg_fo_kabid4 = (
-                f"📋 *Pemberitahuan Surat Tugas Baru (Siap SPPD)*\n\n"
-                f"Assalamu'alaikum, pemberitahuan untuk tim Bidang IV & Front Office:\n\n"
+                f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                f"Yth. Tim Bidang IV & Front Office BAZNAS Kabupaten Tangerang,\n\n"
+                f"Pemberitahuan penerbitan Surat Tugas baru yang memerlukan pembuatan SPPD:\n\n"
                 f"• *Perihal:* {instance.tentang}\n"
                 f"• *No. Surat:* {instance.nomor_surat}\n"
                 f"• *Dibuat Oleh:* {creator_name}\n"
                 f"• *Penandatangan:* {instance.pejabat_penandatangan}\n"
                 f"• *Tanggal Kegiatan:* {tanggal_format}\n"
                 f"• *Lokasi Tujuan:* {instance.lokasi_tujuan}\n\n"
-                f"Surat Tugas ini telah resmi terbit. Silakan ditindaklanjuti untuk penanganan dan penerbitan SPPD melalui sistem SIMAP BAZNAS."
+                f"Surat Tugas ini telah resmi diterbitkan. Mohon untuk dapat ditindaklanjuti untuk penerbitan SPPD melalui aplikasi SIMAP BAZNAS.\n\n"
+                f"Terima kasih.\n"
+                f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
             )
             
             for f_user in fo_kabid4_superadmin_users:
