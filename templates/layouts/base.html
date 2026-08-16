@@ -87,9 +87,9 @@
             background-position: center 160px !important;
             background-attachment: fixed !important;
             background-repeat: no-repeat !important;
-            filter: blur(1px);
-            -webkit-filter: blur(1px);
-            opacity: 0.95;
+            filter: none !important;
+            -webkit-filter: none !important;
+            opacity: 1.0 !important;
         }
 
         #main-content-bg-overlay {
@@ -100,12 +100,12 @@
             bottom: 0;
             pointer-events: none;
             z-index: 0;
-            background-color: rgba(248, 250, 252, 0.35);
+            background-color: rgba(248, 250, 252, 0.15);
             transition: background-color 0.3s ease;
         }
 
         [data-theme="dark"] #main-content-bg-overlay {
-            background-color: rgba(6, 12, 20, 0.30);
+            background-color: rgba(6, 12, 20, 0.15);
         }
 
         /* Memastikan seluruh tombol, kartu, dan teks di dalam content-area 100% tajam, jernih, dan tidak terhalang blur */
