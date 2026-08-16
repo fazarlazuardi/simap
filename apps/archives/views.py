@@ -11,6 +11,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from openpyxl import Workbook
 
+from users.models import User
 from users.decorators import sdm_required, pimpinan_required
 from .models import Archive, Category
 from dispositions.models import Disposition
@@ -227,6 +228,41 @@ def archive_upload(request):
 
         AuditService.log_action(request.user, f"Upload Arsip Baru ({initial_status}): {title}", request)
 
+        # Buat draf disposisi & Notifikasi ke Ketua BAZNAS jika status terverifikasi/disposisi_pimpinan
+        if initial_status in ['disposisi_pimpinan', 'terverifikasi'] or auto_verify or action_type == 'upload_and_print':
+            dispo = archive.latest_dispo
+            if not dispo:
+                dispo_number = NumberingService.generate_number('disposition')
+                from dispositions.models import Disposition
+                dispo = Disposition.objects.create(
+                    archive=archive,
+                    sender=request.user,
+                    disposition_number=dispo_number,
+                    status='baru',
+                    disposition_stage='ketua',
+                    note=''
+                )
+            
+            # Kirim notifikasi sistem ke Ketua BAZNAS & Pimpinan untuk mengisi disposisi
+            from notifications.models import Notification
+            from django.db.models import Q
+            ketua_users = User.objects.filter(
+                Q(username__icontains='ketua') | 
+                Q(role='ketua') | 
+                Q(employee__position__icontains='ketua') | 
+                Q(employee__leadership_type='ketua') | 
+                Q(role='pimpinan') | 
+                Q(is_superuser=True)
+            ).distinct()
+            for k_user in ketua_users:
+                Notification.create_system_notif(
+                    user=k_user,
+                    title="📋 Disposisi Baru Perlu Diisi",
+                    message=f"Dokumen '{archive.title}' siap diisi disposisinya oleh Ketua BAZNAS.",
+                    link_url=f"/dispositions/{archive.pk}/create/",
+                    category="disposition"
+                )
+
         if action_type == 'upload_and_print':
             messages.success(request, "Dokumen berhasil diunggah & terverifikasi. Membuka Lembar Disposisi Ketua BAZNAS...")
             return redirect(f"/archives/?auto_print={archive.pk}")
@@ -284,15 +320,23 @@ def archive_print_disposition(request, pk):
             note=''
         )
         
-        # Kirim notifikasi sistem ke Ketua BAZNAS & Pimpinan untuk mengisi disposisi
-        from notifications.models import Notification
-        from django.db.models import Q
-        ketua_users = User.objects.filter(Q(employee__leadership_type='ketua') | Q(role='ketua') | Q(is_superuser=True)).distinct()
-        for k_user in ketua_users:
+    # Memastikan notifikasi sistem terkirim ke Ketua BAZNAS & Pimpinan untuk mengisi disposisi
+    from notifications.models import Notification
+    from django.db.models import Q
+    ketua_users = User.objects.filter(
+        Q(username__icontains='ketua') | 
+        Q(role='ketua') | 
+        Q(employee__position__icontains='ketua') | 
+        Q(employee__leadership_type='ketua') | 
+        Q(role='pimpinan') | 
+        Q(is_superuser=True)
+    ).distinct()
+    for k_user in ketua_users:
+        if not Notification.objects.filter(user=k_user, link_url=f"/dispositions/{archive.pk}/create/").exists():
             Notification.create_system_notif(
                 user=k_user,
                 title="📋 Disposisi Baru Perlu Diisi",
-                message=f"Dokumen '{archive.title}' telah dicetak FO & siap diisi disposisinya.",
+                message=f"Dokumen '{archive.title}' siap diisi disposisinya oleh Ketua BAZNAS.",
                 link_url=f"/dispositions/{archive.pk}/create/",
                 category="disposition"
             )
