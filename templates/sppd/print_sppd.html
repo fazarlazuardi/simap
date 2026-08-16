@@ -24,6 +24,7 @@
             padding: 10px;
             background: #555;
         }
+
         .container {
             width: 210mm;
             height: 297mm;
@@ -31,7 +32,7 @@
             max-height: 297mm;
             margin: 0 auto 20px auto;
             background: #fff;
-            padding: 12mm 16mm 12mm 16mm;
+            padding: 10mm 15mm 10mm 15mm;
             box-sizing: border-box;
             position: relative;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
@@ -57,17 +58,32 @@
             text-align: center;
             border-bottom: 2px double #000;
             padding-bottom: 4px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .logo-baznas {
             width: 75px;
             height: auto;
         }
 
+        /* Header Kanan Lembar Ke */
+        .meta-header-box {
+            float: right;
+            width: 220px;
+            font-size: 9pt;
+            margin-bottom: 4px;
+        }
+        .meta-header-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .meta-header-box td {
+            padding: 1px 0;
+        }
+
         /* Judul Surat */
         .judul-surat {
             text-align: center;
-            margin: 6px 0 10px 0;
+            margin: 4px 0 8px 0;
         }
         .judul-surat h4 {
             font-size: 12pt;
@@ -86,22 +102,22 @@
         .sppd-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 6px;
-            margin-bottom: 10px;
+            margin-top: 4px;
+            margin-bottom: 6px;
         }
         .sppd-table td, .sppd-table th {
             border: 1px solid #000;
-            padding: 4px 6px;
+            padding: 3px 5px;
             vertical-align: top;
-            font-size: 10pt;
+            font-size: 9.5pt;
         }
         .col-num {
-            width: 25px;
+            width: 22px;
             text-align: center;
             font-weight: bold;
         }
         .col-label {
-            width: 220px;
+            width: 210px;
         }
 
         /* Sub-tabel Pengikut */
@@ -113,34 +129,49 @@
         .table-sub td, .table-sub th {
             border: 1px solid #000;
             padding: 2px 4px;
-            font-size: 9.5pt;
+            font-size: 9pt;
+        }
+
+        /* Tabel Visum Lembar II */
+        .visum-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+        .visum-table td, .visum-table th {
+            border: 1px solid #000;
+            padding: 5px 7px;
+            vertical-align: top;
+            font-size: 9pt;
+            line-height: 1.25;
         }
 
         /* TTD Box */
         .ttd-container {
             width: 100%;
-            margin-top: 8px;
+            margin-top: 6px;
             page-break-inside: avoid;
             break-inside: avoid;
         }
         .ttd-section {
             float: right;
-            width: 260px;
+            width: 250px;
             text-align: left;
         }
         .ttd-section p {
             margin: 1px 0;
-            font-size: 10pt;
+            font-size: 9.5pt;
         }
         .ttd-flex {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-top: 4px;
+            margin-top: 3px;
         }
         .barcode-box {
-            width: 54px;
-            height: 54px;
+            width: 50px;
+            height: 50px;
             border: 1px solid #ccc;
             padding: 2px;
             background: #fff;
@@ -150,7 +181,7 @@
             position: relative;
         }
         .space-ttd {
-            height: 38px;
+            height: 35px;
         }
         .clearfix::after {
             content: "";
@@ -165,9 +196,9 @@
             font-style: italic;
             font-size: 8pt;
             border-top: 1px solid #bbb;
-            padding-top: 4px;
-            line-height: 1.2;
-            margin-top: 6px;
+            padding-top: 3px;
+            line-height: 1.15;
+            margin-top: 4px;
         }
         .footer-alamat p {
             margin: 0;
@@ -201,7 +232,7 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
-                font-size: 10.5pt !important;
+                font-size: 10pt !important;
             }
             @page {
                 size: A4 portrait;
@@ -214,7 +245,7 @@
                 height: 297mm !important;
                 max-width: 210mm !important;
                 max-height: 297mm !important;
-                padding: 8mm 14mm 8mm 14mm !important;
+                padding: 8mm 12mm 8mm 12mm !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
             }
@@ -227,23 +258,33 @@
 <body onload="generateQRCodes();">
 
     <div class="no-print" style="max-width: 210mm; margin: 15px auto; text-align: center; display: flex; justify-content: center; gap: 12px;">
-        <button class="btn-print" onclick="window.print()">🖨️ Cetak SPPD (Printer)</button>
-        <button class="btn-print" style="background: #0284C7;" onclick="downloadPDF()">📥 Download File PDF</button>
+        <button class="btn-print" onclick="window.print()">🖨️ Cetak SPPD (2 Halaman - Depan & Belakang)</button>
+        <button class="btn-print" style="background: #0284C7;" onclick="downloadPDF()">📥 Download PDF (2 Halaman)</button>
     </div>
 
     {% for sppd in sppds %}
-    <div class="container" id="sppd-page-{{ forloop.counter }}">
+    <!-- ================= LEMBAR I: LEMBAR DEPAN SPPD ================= -->
+    <div class="container" id="sppd-lembar1-{{ forloop.counter }}">
         <div class="main-body">
             <!-- Kop Surat -->
             <div class="kop-surat">
                 <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS" class="logo-baznas">
             </div>
 
+            <!-- Kode Meta Header Kanan -->
+            <div class="meta-header-box">
+                <table>
+                    <tr><td style="width: 80px;">Lembar Ke</td><td>: I / II</td></tr>
+                    <tr><td>Kode No</td><td>: BAZNAS/SPPD/2026</td></tr>
+                    <tr><td>Nomor</td><td>: {{ sppd.sppd_number }}</td></tr>
+                </table>
+            </div>
+            <div class="clearfix"></div>
+
             <!-- Judul Surat -->
             <div class="judul-surat">
                 <h4>SURAT PERINTAH PERJALANAN DINAS</h4>
-                <p><strong>( SPPD )</strong></p>
-                <p style="margin-top: 3px;">Nomor: {{ sppd.sppd_number }}</p>
+                <p><strong>( S P P D )</strong></p>
             </div>
 
             <!-- Tabel Isi SPPD 10 Poin Resmi -->
@@ -260,7 +301,7 @@
                         {% for emp in sppd.assigned_employees.all %}
                         <strong>{{ emp.full_name }}</strong> {% if emp.nip %}(NIP: {{ emp.nip }}){% endif %}{% if not forloop.last %}<br>{% endif %}
                         {% empty %}
-                        <span class="text-muted">-</span>
+                        <span style="color:#777;">-</span>
                         {% endfor %}
                     </td>
                 </tr>
@@ -269,7 +310,7 @@
                     <td class="col-label">a. Pangkat dan Golongan / Jabatan<br>b. Tingkat Biaya Perjalanan Dinas</td>
                     <td>
                         a. {% for emp in sppd.assigned_employees.all %}{{ emp.position|default:"Amil Pelaksana" }}{% if not forloop.last %}, {% endif %}{% empty %}Amil Pelaksana{% endfor %}<br>
-                        b. Biaya Dinas Standar BAZNAS Kab. Tangerang
+                        b. Biaya Perjalanan Dinas Standar BAZNAS
                     </td>
                 </tr>
                 <tr>
@@ -280,7 +321,7 @@
                 <tr>
                     <td class="col-num">5</td>
                     <td class="col-label">Alat Angkutan yang Dipergunakan</td>
-                    <td>{{ sppd.transportation|default:"Mobil Dinas / Umum" }}</td>
+                    <td>{{ sppd.transportation|default:"Mobil Dinas / Kendaraan Perjalanan" }}</td>
                 </tr>
                 <tr>
                     <td class="col-num">6</td>
@@ -307,7 +348,7 @@
                         <table class="table-sub">
                             <thead>
                                 <tr style="background: #f2f2f2;">
-                                    <th style="width: 25px; text-align: center;">No</th>
+                                    <th style="width: 22px; text-align: center;">No</th>
                                     <th>Nama Pengikut</th>
                                     <th>Jabatan / Unit</th>
                                 </tr>
@@ -332,7 +373,7 @@
                     <td class="col-label">Pembebanan Anggaran<br>a. Instansi / Lembaga<br>b. Mata Anggaran / Rekening</td>
                     <td>
                         a. {{ sppd.budget_source|default:"BAZNAS Kabupaten Tangerang" }}<br>
-                        b. Anggaran Operasional / Pendistribusian BAZNAS
+                        b. Anggaran Operasional / Pentasyarufan BAZNAS
                     </td>
                 </tr>
                 <tr>
@@ -350,19 +391,121 @@
                 <div class="ttd-section">
                     <p>Ditetapkan di : Tangerang</p>
                     <p>Pada tanggal : {{ sppd.created_at|date:"d F Y" }}</p>
-                    <p style="margin-top: 3px;"><strong>Ketua BAZNAS Kab. Tangerang,</strong></p>
+                    <p style="margin-top: 2px;"><strong>Ketua BAZNAS Kab. Tangerang,</strong></p>
                     
                     <div class="ttd-flex">
                         <div class="barcode-box">
                             <div id="qrcode-{{ sppd.id }}"></div>
-                            <img src="{% static 'img/logo_baznas.png' %}" style="position: absolute; width: 14px; height: 14px; background: white; padding: 1px; border-radius: 2px;" alt="Logo">
+                            <img src="{% static 'img/logo_baznas.png' %}" style="position: absolute; width: 12px; height: 12px; background: white; padding: 1px; border-radius: 2px;" alt="Logo">
                         </div>
                         <div class="space-ttd"></div>
                     </div>
 
-                    <p style="margin-top: 3px;"><strong><u>{{ sppd.signed_by_ketua.full_name|default:"Drs. H. Achmad Nawawi, M.Si" }}</u></strong></p>
+                    <p style="margin-top: 2px;"><strong><u>{{ sppd.signed_by_ketua.full_name|default:"Drs. H. Achmad Nawawi, M.Si" }}</u></strong></p>
                 </div>
             </div>
+        </div>
+
+        <!-- Footer Alamat -->
+        <div class="footer-alamat">
+            <p>Badan Amil Zakat Nasional (BAZNAS) Kabupaten Tangerang</p>
+            <p>Komplek Gedung Islamic Center, Jl. Islamic Center No. 1, Citra Raya, Desa Ciakar, Kec. Panongan, Kab. Tangerang</p>
+            <p>Website: kabtangerang.baznas.go.id | Email: info@baznas.tangerangkab.go.id</p>
+        </div>
+    </div>
+
+
+    <!-- ================= LEMBAR II: VISUM SPPD (SISI BELAKANG) ================= -->
+    <div class="container" id="sppd-lembar2-{{ forloop.counter }}">
+        <div class="main-body">
+            <!-- Kop Surat Lembar 2 -->
+            <div class="kop-surat">
+                <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS" class="logo-baznas">
+            </div>
+
+            <div style="text-align: center; margin-bottom: 6px;">
+                <h5 style="margin: 0; font-size: 11pt; font-weight: bold; text-decoration: underline;">LEMBAR VISUM KEDATANGAN & KEBERANGKATAN LAPANGAN</h5>
+                <p style="margin: 2px 0 0 0; font-size: 9.5pt;">SPPD Nomor: <strong>{{ sppd.sppd_number }}</strong></p>
+            </div>
+
+            <!-- Tabel Visum Kedatangan & Keberangkatan -->
+            <table class="visum-table">
+                <tr>
+                    <td style="width: 50%;"></td>
+                    <td style="width: 50%;">
+                        SPPD No : <strong>{{ sppd.sppd_number }}</strong><br>
+                        Berangkat dari : {{ sppd.departure_place|default:"Kantor BAZNAS Kab. Tangerang" }}<br>
+                        (Tempat Kedudukan)<br>
+                        Ke : <strong>{{ sppd.destination }}</strong><br>
+                        Pada Tanggal : {{ sppd.departure_date|date:"d F Y" }}<br><br>
+                        <div style="text-align: center;">
+                            <strong>Ketua BAZNAS Kab. Tangerang,</strong><br><br><br><br>
+                            <strong><u>{{ sppd.signed_by_ketua.full_name|default:"Drs. H. Achmad Nawawi, M.Si" }}</u></strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="height: 90px;">
+                        <strong>I. Tiba di</strong> : {{ sppd.destination }}<br>
+                        Pada Tanggal : {{ sppd.departure_date|date:"d F Y" }}<br>
+                        Kepala / Ket. Penerima / Camat / Lurah :<br><br><br><br>
+                        ( ........................................................... )<br>
+                        NIP / NIK:
+                    </td>
+                    <td>
+                        <strong>Berangkat dari</strong> : {{ sppd.destination }}<br>
+                        Ke : Kantor BAZNAS Kab. Tangerang<br>
+                        Pada Tanggal : {{ sppd.return_date|date:"d F Y" }}<br>
+                        Kepala / Ket. Penerima / Camat / Lurah :<br><br><br><br>
+                        ( ........................................................... )<br>
+                        NIP / NIK:
+                    </td>
+                </tr>
+                <tr>
+                    <td style="height: 85px;">
+                        <strong>II. Tiba di</strong> : <br>
+                        Pada Tanggal : <br>
+                        Kepala / Ketua :<br><br><br>
+                        ( ........................................................... )
+                    </td>
+                    <td>
+                        <strong>Berangkat dari</strong> : <br>
+                        Ke : <br>
+                        Pada Tanggal : <br>
+                        Kepala / Ketua :<br><br><br>
+                        ( ........................................................... )
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>III. Tiba di</strong> : Kantor BAZNAS Kab. Tangerang<br>
+                        (Tempat Kedudukan)<br>
+                        Pada Tanggal : {{ sppd.return_date|date:"d F Y" }}<br><br>
+                        <div style="text-align: center;">
+                            <strong>Ketua BAZNAS Kab. Tangerang,</strong><br><br><br><br>
+                            <strong><u>{{ sppd.signed_by_ketua.full_name|default:"Drs. H. Achmad Nawawi, M.Si" }}</u></strong>
+                        </div>
+                    </td>
+                    <td>
+                        Telah diperiksa dengan keterangan bahwa perjalanan tersebut di atas benar dilakukan atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.<br><br>
+                        <div style="text-align: center;">
+                            <strong>Ketua BAZNAS Kab. Tangerang,</strong><br><br><br><br>
+                            <strong><u>{{ sppd.signed_by_ketua.full_name|default:"Drs. H. Achmad Nawawi, M.Si" }}</u></strong>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <strong>IV. CATATAN LAIN-LAIN:</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="font-size: 8pt; background-color: #fafafa;">
+                        <strong>V. PERHATIAN:</strong><br>
+                        Pejabat yang menerbitkan SPPD, pegawai yang melakukan perjalanan dinas, para pejabat yang mengesahkan tanggal berangkat/tiba, serta bendaharawan bertanggung jawab berdasarkan peraturan-peraturan Keuangan Negara apabila negara menderita rugi akibat kesalahan, kelalaian, dan kealpaannya.
+                    </td>
+                </tr>
+            </table>
         </div>
 
         <!-- Footer Alamat -->
@@ -381,8 +524,8 @@
             if (qrElem) {
                 new QRCode(qrElem, {
                     text: "SPPD: {{ sppd.sppd_number }} - BAZNAS Kab. Tangerang",
-                    width: 50,
-                    height: 50,
+                    width: 48,
+                    height: 48,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
