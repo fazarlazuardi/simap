@@ -3,63 +3,55 @@
 {% block title %}Unggah Arsip Baru - BAZNAS{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
+<!-- Header Ringkas -->
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <div>
         <nav aria-label="breadcrumb">
-            <ol class="breadcrumb m-0 bg-transparent p-0">
+            <ol class="breadcrumb m-0 bg-transparent p-0 small">
                 <li class="breadcrumb-item"><a href="{% url 'archives:list' %}" class="text-decoration-none"
                         style="color: var(--primary);">Arsip</a></li>
-                <li class="breadcrumb-item active" aria-current="page" style="color: var(--text-secondary);">Unggah Baru
-                </li>
+                <li class="breadcrumb-item active" aria-current="page" style="color: var(--text-secondary);">Unggah Baru</li>
             </ol>
         </nav>
-        <h4 class="fw-bold mt-2" style="color: var(--text-primary);">Unggah Dokumen Arsip Baru</h4>
-        <p class="text-secondary small mb-0">Pastikan metadata dokumen diisi dengan benar untuk keperluan verifikasi dan
-            penerbitan Tanda Terima Resmi.</p>
+        <h5 class="fw-bold m-0" style="color: var(--text-primary);">Unggah Dokumen Arsip Baru</h5>
+    </div>
+    <div class="text-end d-none d-md-block">
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill small">
+            <i class="bi bi-shield-check me-1"></i> Form Input Presisi BAZNAS
+        </span>
     </div>
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-lg-10">
-        <!-- Banner Informasi Workflow Bidang II & Tanda Terima -->
-        <div class="alert alert-primary alert-dismissible fade show border-0 shadow-sm mb-4" role="alert"
-            style="border-radius: 12px; background-color: #EBF5FF; color: #1E429F;">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
-                <div>
-                    <strong>Sistem Otomasi BAZNAS:</strong> Dokumen berjenis <strong>Proposal Permohonan</strong> akan
-                    otomatis dialokasikan ke <strong>Bidang II (Pendistribusian & Pendayagunaan)</strong>. Setelah
-                    diunggah, Anda dapat mencetak Tanda Terima Resmi.
-                </div>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="col-xl-9 col-lg-10" style="max-width: 940px;">
+        <!-- Banner Informasi Ringkas -->
+        <div class="alert alert-primary border-0 shadow-sm py-2 px-3 mb-2 small" role="alert"
+            style="border-radius: 10px; background-color: #EBF5FF; color: #1E429F;">
+            <i class="bi bi-info-circle-fill me-1 text-primary"></i>
+            Dokumen <strong>Proposal Permohonan</strong> otomatis dialokasikan ke <strong>Bidang II (Pendistribusian)</strong>.
         </div>
 
-        <div class="card border-0 shadow-sm p-4 mb-5" style="border-radius: 16px;">
+        <div class="card border-0 shadow-sm p-3 p-md-3.5 mb-3" style="border-radius: 14px;">
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
 
                 <!-- Baris 1: Tipe, Nomor Arsip, Tanggal Surat -->
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <label for="archive_type" class="form-label fw-bold">Jenis Dokumen <span
-                                class="text-danger">*</span></label>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4">
+                        <label for="archive_type" class="form-label fw-bold small mb-1">Jenis Dokumen <span class="text-danger">*</span></label>
                         <select class="form-select custom-input" id="archive_type" name="archive_type" required>
                             {% for code, name in archive_types %}
                             <option value="{{ code }}" {% if code == selected_type %}selected{% endif %}>{{ name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <label for="archive_number" class="form-label fw-bold">Nomor Arsip / Surat</label>
+                    <div class="col-md-4">
+                        <label for="archive_number" class="form-label fw-bold small mb-1">Nomor Arsip / Surat</label>
                         <input type="text" class="form-control custom-input" id="archive_number" name="archive_number"
                             placeholder="Kosongkan untuk isi nanti" value="{{ default_archive_number }}">
-                        <div id="archive_number_hint" class="form-text small">Biarkan kosong jika nomor akan diisi saat
-                            verifikasi Kabid 4.</div>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <label for="letter_date" class="form-label fw-bold">Tanggal Surat <span
-                                class="text-danger">*</span></label>
+                    <div class="col-md-4">
+                        <label for="letter_date" class="form-label fw-bold small mb-1">Tanggal Surat <span class="text-danger">*</span></label>
                         <input type="date" class="form-control custom-input" id="letter_date" name="letter_date"
                             value="{% now 'Y-m-d' %}" required>
                     </div>
@@ -69,61 +61,34 @@
                 </div>
 
                 <!-- Baris 2: Pengirim/Penerima, Alamat Lengkap & Tanggal Diterima -->
-                <div class="row">
-                    <div class="col-md-5 mb-4">
-                        <label for="sender_receiver" id="sender_receiver_label" class="form-label fw-bold">Pengirim /
-                            Asal Instansi / Mustahik <span class="text-danger">*</span></label>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-5">
+                        <label for="sender_receiver" id="sender_receiver_label" class="form-label fw-bold small mb-1">Pengirim / Instansi <span class="text-danger">*</span></label>
                         <input type="text" class="form-control custom-input" id="sender_receiver" name="sender_receiver"
                             required placeholder="Contoh: Pemkab / BAZNAS RI / Nama Pemohon"
                             value="{{ sender_receiver_value|default:'' }}">
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <label for="address" class="form-label fw-bold"><i
-                                class="bi bi-geo-alt-fill text-danger me-1"></i> Alamat Lengkap Pemohon /
-                            Mustahik</label>
+                    <div class="col-md-4">
+                        <label for="address" class="form-label fw-bold small mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Alamat Pemohon</label>
                         <input type="text" class="form-control custom-input" id="address" name="address"
                             placeholder="Contoh: Ds. Jambe Rt 02/03 Kec. Jambe" value="{{ address_value|default:'' }}">
                     </div>
-                    <div class="col-md-3 mb-4">
-                        <label for="received_date" class="form-label fw-bold">Tanggal Diterima / Dikirim</label>
+                    <div class="col-md-3">
+                        <label for="received_date" class="form-label fw-bold small mb-1">Tanggal Diterima</label>
                         <input type="date" class="form-control custom-input" id="received_date" name="received_date"
                             value="{% now 'Y-m-d' %}">
                     </div>
                 </div>
 
-                <!-- Baris 3: Perihal / Judul Dokumen -->
-                <div class="mb-4">
-                    <label for="title" class="form-label fw-bold">Perihal / Judul Dokumen <span
-                            class="text-danger">*</span></label>
-                    <input type="text" class="form-control custom-input" id="title" name="title" required
-                        placeholder="Contoh: Permohonan Bantuan Biaya Berobat" value="{{ title_value|default:'' }}">
-                </div>
-
-                <!-- Baris 4: Sifat Keamanan & Sifat Urgensi -->
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="security_level" class="form-label fw-bold">Sifat Keamanan</label>
-                        <select class="form-select custom-input" id="security_level" name="security_level">
-                            <option value="biasa" selected>Biasa</option>
-                            <option value="penting">Penting</option>
-                            <option value="rahasia">Rahasia</option>
-                            <option value="sangat_rahasia">Sangat Rahasia</option>
-                        </select>
+                <!-- Baris 3: Perihal & Kategori Bidang -->
+                <div class="row g-2 mb-2">
+                    <div class="col-md-7">
+                        <label for="title" class="form-label fw-bold small mb-1">Perihal / Judul Dokumen <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="title" name="title" required
+                            placeholder="Contoh: Permohonan Bantuan Biaya Berobat" value="{{ title_value|default:'' }}">
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="urgency_level" class="form-label fw-bold">Sifat Urgensi / Tanggapan</label>
-                        <select class="form-select custom-input" id="urgency_level" name="urgency_level">
-                            <option value="biasa" selected>Biasa</option>
-                            <option value="segera">Segera</option>
-                            <option value="amat_segera">Amat Segera / Kilat</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Baris 5: Kategori Bidang & File Berkas -->
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="category" class="form-label fw-bold">Kategori Bidang <span class="text-danger">*</span></label>
+                    <div class="col-md-5">
+                        <label for="category" class="form-label fw-bold small mb-1">Kategori Bidang <span class="text-danger">*</span></label>
                         <select class="form-select custom-input" id="category" name="category" required>
                             <option value="" selected disabled>Pilih Kategori Dokumen...</option>
                             <optgroup label="── 🟢 KATEGORI PERMOHONAN BANTUAN ──">
@@ -141,54 +106,68 @@
                             {% endfor %}
                             </optgroup>
                         </select>
-                        <div id="category_hint" class="form-text text-success small d-none"><i
-                                class="bi bi-check-circle-fill me-1"></i> Dialokasikan otomatis berdasarkan perihal
-                            dokumen.</div>
+                        <div id="category_hint" class="form-text text-success x-small d-none" style="font-size: 0.75rem;"><i class="bi bi-check-circle-fill me-1"></i> Terpilih otomatis.</div>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="file_path" class="form-label fw-bold">Berkas Digital (PDF/Gambar) <span
-                                class="text-danger">*</span></label>
-                        <div class="p-3 text-center border-2 border-dashed rounded-4 bg-light position-relative"
-                            id="dropzone_box" style="border: 2px dashed #CBD5E1; transition: all 0.25s ease;">
-                            <i class="bi bi-cloud-arrow-up fs-2 text-success d-block mb-1"></i>
-                            <span class="small text-secondary fw-semibold">Tarik & Lepas File ke sini, atau <strong
-                                    class="text-success">Pilih Berkas</strong></span>
+                </div>
+
+                <!-- Baris 4: Sifat Keamanan, Sifat Urgensi, & File Upload -->
+                <div class="row g-2 mb-2">
+                    <div class="col-md-3">
+                        <label for="security_level" class="form-label fw-bold small mb-1">Sifat Keamanan</label>
+                        <select class="form-select custom-input" id="security_level" name="security_level">
+                            <option value="biasa" selected>Biasa</option>
+                            <option value="penting">Penting</option>
+                            <option value="rahasia">Rahasia</option>
+                            <option value="sangat_rahasia">Sangat Rahasia</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="urgency_level" class="form-label fw-bold small mb-1">Sifat Urgensi</label>
+                        <select class="form-select custom-input" id="urgency_level" name="urgency_level">
+                            <option value="biasa" selected>Biasa</option>
+                            <option value="segera">Segera</option>
+                            <option value="amat_segera">Amat Segera / Kilat</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="file_path" class="form-label fw-bold small mb-1">Berkas Digital (PDF/Gambar) <span class="text-danger">*</span></label>
+                        <div class="px-3 py-1 text-center border-2 border-dashed rounded-3 bg-light position-relative d-flex align-items-center justify-content-center gap-2"
+                            id="dropzone_box" style="border: 2px dashed #CBD5E1; height: 42px; transition: all 0.25s ease;">
+                            <i class="bi bi-cloud-arrow-up text-success fs-5"></i>
+                            <span class="small text-secondary fw-semibold">Pilih atau Tarik File di sini</span>
                             <input type="file"
                                 class="form-control opacity-0 position-absolute top-0 start-0 w-100 h-100"
                                 id="file_path" name="file_path" required style="cursor: pointer;"
                                 onchange="updateDropzoneFile(this)">
-                            <div id="file_name_preview" class="small text-primary fw-bold mt-2 d-none"></div>
                         </div>
+                        <div id="file_name_preview" class="x-small text-primary fw-bold mt-1 d-none" style="font-size: 0.75rem;"></div>
                     </div>
                 </div>
 
-                <!-- Baris 6: Keterangan Tambahan / Sinopsis -->
-                <div class="mb-4">
-                    <label for="description" class="form-label fw-bold">Keterangan Ringkas / Sinopsis</label>
-                    <textarea class="form-control" id="description" name="description" rows="3"
+                <!-- Baris 5: Keterangan / Sinopsis Ringkas -->
+                <div class="mb-2">
+                    <label for="description" class="form-label fw-bold small mb-1">Keterangan Ringkas / Sinopsis</label>
+                    <textarea class="form-control p-2" id="description" name="description" rows="2" style="font-size: 0.9rem;"
                         placeholder="Tambahkan rincian/catatan jika diperlukan..."></textarea>
                 </div>
 
-                <!-- Opsi Verifikasi & Disposisi Fisik Ketua -->
-                <div class="p-3 rounded-4 mb-4 shadow-sm"
-                    style="background: linear-gradient(135deg, #d2a802 0%, #eebf02 100%); border: 2px solid #F59E0B !important;">
+                <!-- Opsi Verifikasi Ringkas -->
+                <div class="p-2 px-3 rounded-3 mb-2 shadow-sm d-flex align-items-center justify-content-between"
+                    style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1.5px solid #F59E0B !important;">
                     <div class="form-check form-switch m-0 d-flex align-items-center">
-                        <input class="form-check-input me-3" type="checkbox" name="auto_verify" id="autoVerifyCheck"
-                            checked style="width: 2.75em; height: 1.4em; cursor: pointer;">
-                        <label class="form-check-label fw-bold text-dark" for="autoVerifyCheck"
-                            style="cursor: pointer; font-size: 0.95rem;">
-                            <i class="bi bi-shield-check text-warning me-1 fs-5"></i> Otomatis Verifikasi Dokumen &
-                            Siapkan Lembar Disposisi Ketua BAZNAS
+                        <input class="form-check-input me-2" type="checkbox" name="auto_verify" id="autoVerifyCheck"
+                            checked style="width: 2.2em; height: 1.2em; cursor: pointer;">
+                        <label class="form-check-label fw-bold text-dark small" for="autoVerifyCheck" style="cursor: pointer;">
+                            <i class="bi bi-shield-check text-warning me-1"></i> Otomatis Verifikasi Dokumen & Siapkan Disposisi Ketua
                         </label>
                     </div>
-                    <div class="small mt-1 ms-5 fw-semibold" style="color: #78350F !important;">
-                        Status dokumen otomatis diset <strong>Disposisi Pimpinan / Terverifikasi</strong> sehingga
-                        Lembar Disposisi Fisik siap dicetak untuk diisi manual oleh Ketua BAZNAS.
-                    </div>
+                    <span class="x-small fw-semibold text-warning-emphasis d-none d-md-inline" style="font-size: 0.78rem;">
+                        Status: Disposisi Pimpinan
+                    </span>
                 </div>
 
                 <!-- Tombol Aksi -->
-                <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top flex-wrap">
+                <div class="d-flex justify-content-end align-items-center gap-2 mt-2 pt-2 border-top">
                     <a href="{% url 'archives:list' %}"
                         class="btn btn-light px-4 fw-semibold style-btn-cancel">Batal</a>
                     <button type="submit"
@@ -203,33 +182,38 @@
 
 <style>
     .custom-input {
-        height: 50px;
-        border-radius: 12px;
-        border: 1px solid #E5E7EB;
+        height: 42px;
+        border-radius: 10px;
+        border: 1px solid #CBD5E1;
+        font-size: 0.92rem;
+        padding-top: 0.35rem;
+        padding-bottom: 0.35rem;
     }
 
     .custom-input:focus {
         border-color: var(--primary);
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
     }
 
     textarea {
-        border-radius: 12px !important;
-        border: 1px solid #E5E7EB !important;
+        border-radius: 10px !important;
+        border: 1px solid #CBD5E1 !important;
     }
 
     .style-btn-cancel {
-        border-radius: 12px;
-        height: 48px;
+        border-radius: 10px;
+        height: 42px;
         display: inline-flex;
         align-items: center;
+        font-size: 0.92rem;
     }
 
     .style-btn-submit {
-        border-radius: 12px;
-        height: 48px;
+        border-radius: 10px;
+        height: 42px;
         display: inline-flex;
         align-items: center;
+        font-size: 0.92rem;
     }
 </style>
 
@@ -291,14 +275,14 @@
                         if (optText.includes(rule.match)) {
                             categorySelect.selectedIndex = i;
                             categoryHint.classList.remove('d-none');
-                            categoryHint.innerHTML = `<i class="bi bi-magic me-1"></i> Terpilih otomatis presisi: <strong>${opt.text}</strong>`;
+                            categoryHint.innerHTML = `<i class="bi bi-magic me-1"></i> Terpilih otomatis: <strong>${opt.text}</strong>`;
                             return;
                         }
                     }
                 }
             }
 
-            // 2. Pencocokan kata langsung ke nama kategori di database (abaikan kata kunci generik seperti 'bantuan')
+            // 2. Pencocokan kata langsung ke nama kategori di database
             const genericStopWords = ['bantuan', 'permohonan', 'pengajuan', 'surat', 'dokumen', 'laporan', 'dinas', 'khusus', 'lainnya'];
             for (let i = 0; i < categorySelect.options.length; i++) {
                 const opt = categorySelect.options[i];
@@ -308,7 +292,7 @@
                 if (words.some(w => titleVal.includes(w))) {
                     categorySelect.selectedIndex = i;
                     categoryHint.classList.remove('d-none');
-                    categoryHint.innerHTML = `<i class="bi bi-magic me-1"></i> Terpilih otomatis presisi: <strong>${opt.text}</strong>`;
+                    categoryHint.innerHTML = `<i class="bi bi-magic me-1"></i> Terpilih otomatis: <strong>${opt.text}</strong>`;
                     return;
                 }
             }
@@ -316,8 +300,6 @@
 
         function updateFormUI() {
             const val = archiveTypeSelect.value;
-
-            // Format nomor per jenis dokumen
             const now = new Date();
             const romanMonths = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
             const month = romanMonths[now.getMonth()];
@@ -331,38 +313,24 @@
             };
 
             const fmt = formatMap[val] || { preview: `XXX/BZ-IN/${month}/${year}` };
-
-            // Update placeholder menjadi format yang sesuai jenis
             archiveNumInput.placeholder = fmt.preview;
 
-            // Update hint teks di bawah field nomor
-            const numHint = document.getElementById('archive_number_hint');
-            if (numHint) {
-                numHint.innerHTML = `<i class="bi bi-info-circle me-1"></i>Format: <strong>${fmt.preview}</strong> &mdash; Kosongkan jika nomor belum ada.`;
-            }
-
-            // Isi otomatis nomor surat sesuai jenis dokumen dari JSON backend
             if (defaultsByType[val] !== undefined) {
                 archiveNumInput.value = defaultsByType[val];
             }
 
-            // Alih Bahasa Label Sesuai Jenis Dokumen
             if (val === 'surat_keluar' || val === 'sppd') {
-                senderReceiverLabel.innerHTML = 'Penerima / Tujuan Surat <span class="text-danger">*</span>';
+                senderReceiverLabel.innerHTML = 'Penerima / Tujuan <span class="text-danger">*</span>';
             } else {
-                senderReceiverLabel.innerHTML = 'Pengirim / Asal Instansi <span class="text-danger">*</span>';
+                senderReceiverLabel.innerHTML = 'Pengirim / Instansi <span class="text-danger">*</span>';
             }
 
             autoSelectCategoryFromTitle();
         }
 
-        // Event listener saat jenis dokumen diubah
         archiveTypeSelect.addEventListener('change', updateFormUI);
-
-        // Auto Select Kategori Presisi saat mengetik Perihal / Judul Dokumen
         titleInput.addEventListener('input', autoSelectCategoryFromTitle);
 
-        // Update UI Dropzone Box saat file dipilih
         window.updateDropzoneFile = function (input) {
             const preview = document.getElementById('file_name_preview');
             const dropzone = document.getElementById('dropzone_box');
@@ -379,7 +347,6 @@
             }
         };
 
-        // Jalankan saat pertama kali dimuat jika belum diisi
         if (!archiveNumInput.value) {
             updateFormUI();
         }
