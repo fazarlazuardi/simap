@@ -1,102 +1,384 @@
 {% extends 'layouts/base.html' %}
-{% block title %}Kalender Kerja BAZNAS Kabupaten Tangerang{% endblock %}
+{% load static %}
+
+{% block title %}Kalender Kerja & Agenda BAZNAS{% endblock %}
+
+{% block extra_css %}
+<!-- FullCalendar 5 CSS & DataTables CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+<style>
+    /* Styling Visual ala Google Calendar Premium */
+    .fc {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .fc .fc-toolbar {
+        padding: 14px 18px;
+        background-color: var(--surface-alt, #F8FAFC);
+        border: 1px solid var(--border-color, #E2E8F0);
+        border-radius: 14px 14px 0 0;
+        margin-bottom: 0 !important;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--primary, #047857);
+    }
+
+    .fc .fc-button-primary {
+        background-color: var(--primary, #047857) !important;
+        border-color: var(--primary, #047857) !important;
+        color: #FFFFFF !important;
+        font-weight: 600;
+        border-radius: 10px !important;
+        padding: 7px 14px;
+        font-size: 0.88rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+
+    .fc .fc-button-primary:hover {
+        background-color: var(--primary-dark, #064E3B) !important;
+        border-color: var(--primary-dark, #064E3B) !important;
+        transform: translateY(-1px);
+    }
+
+    .fc .fc-button-primary:not(:disabled):active,
+    .fc .fc-button-primary:not(:disabled).fc-button-active {
+        background-color: var(--primary-dark, #064E3B) !important;
+        border-color: var(--primary-dark, #064E3B) !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .fc .fc-col-header-cell {
+        background-color: var(--surface-alt, #F1F5F9);
+        padding: 10px 0;
+        border-color: var(--border-color, #E2E8F0) !important;
+    }
+
+    .fc .fc-col-header-cell-cushion {
+        color: var(--text-primary, #0F172A);
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        text-decoration: none !important;
+    }
+
+    .fc .fc-daygrid-day {
+        border-color: var(--border-color, #E2E8F0) !important;
+    }
+
+    .fc .fc-daygrid-day-number {
+        color: var(--text-primary, #0F172A);
+        font-weight: 600;
+        font-size: 0.88rem;
+        padding: 6px 8px !important;
+        text-decoration: none !important;
+    }
+
+    .fc .fc-daygrid-day.fc-day-today {
+        background-color: rgba(16, 185, 129, 0.12) !important;
+    }
+
+    .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+        background-color: var(--primary, #047857);
+        color: #FFFFFF !important;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 4px;
+        padding: 0 !important;
+        font-weight: 700;
+    }
+
+    .fc-event {
+        cursor: pointer;
+        border-radius: 6px !important;
+        padding: 3px 6px !important;
+        margin-bottom: 3px !important;
+        font-size: 0.8rem !important;
+        border: none !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .fc-event:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .fc .fc-scrollgrid-section-body {
+        background-color: var(--card-bg, #FFFFFF) !important;
+    }
+
+    [data-theme="dark"] .fc .fc-col-header-cell {
+        background-color: #1E293B !important;
+    }
+
+    [data-theme="dark"] .fc .fc-scrollgrid-section-body {
+        background-color: rgba(15, 23, 42, 0.85) !important;
+    }
+
+    [data-theme="dark"] .fc .fc-toolbar {
+        background-color: #1E293B !important;
+        border-color: #334155 !important;
+    }
+
+    .calendar-wrapper-card {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--border-color, #E2E8F0);
+        background-color: var(--card-bg, #FFFFFF);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-3">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid px-3 px-md-4 py-3">
+    <!-- Header Utama -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
-            <h3 class="fw-bold text-success mb-1"><i class="bi bi-calendar-event-fill me-2"></i>Kalender Kerja BAZNAS</h3>
-            <p class="text-muted small mb-0">Pusat Penjadwalan Aktivitas Organisasi, Agenda Kerja & SPPD Perjalanan Dinas</p>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb m-0 bg-transparent p-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'users:dashboard' %}" class="text-decoration-none" style="color: var(--primary);">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Kalender Kerja</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold m-0 mt-1" style="color: var(--text-primary);">
+                <i class="bi bi-calendar-event-fill me-2 text-primary"></i>Kalender Kerja & Agenda BAZNAS
+            </h4>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <a href="{% url 'agendas:create' %}" class="btn btn-success fw-bold rounded-3 px-3 shadow-sm">
-                <i class="bi bi-plus-circle-fill me-1"></i> Buat Agenda Internal / Dadakan
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a href="{% url 'agendas:create' %}" class="btn btn-primary fw-bold rounded-3 px-3 py-2 shadow-sm">
+                <i class="bi bi-calendar-plus me-1.5"></i> Buat Agenda Baru
             </a>
-            <span class="badge bg-primary px-3 py-2"><i class="bi bi-briefcase me-1"></i>SPPD</span>
-            <span class="badge bg-success px-3 py-2"><i class="bi bi-calendar-check me-1"></i>Agenda Selesai</span>
-            <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-clock me-1"></i>Terjadwal</span>
         </div>
-
     </div>
 
-    <!-- Calendar Container -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body p-4">
-            <div id="calendar-container">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-list-stars me-2 text-success"></i>Daftar Kegiatan & Perjalanan Dinas</h5>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-success active" onclick="switchView('all')">Semua Kegiatan</button>
-                        <button type="button" class="btn btn-outline-success" onclick="switchView('sppd')">Khusus SPPD</button>
-                        <button type="button" class="btn btn-outline-success" onclick="switchView('agenda')">Khusus Agenda</button>
-                    </div>
-                </div>
+    <!-- Indicator Legenda Berwarna ala Google Calendar -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 p-3 rounded-3 shadow-sm"
+        style="background: linear-gradient(135deg, var(--surface-alt) 0%, rgba(241, 245, 249, 0.5) 100%); border: 1px solid var(--border-color); font-size: 0.84rem;">
+        <div class="d-flex align-items-center gap-2.5 flex-wrap">
+            <span class="fw-bold" style="color: var(--text-primary);"><i class="bi bi-palette-fill text-primary me-1"></i> Keterangan Warna Kalender:</span>
+            <span class="badge border px-2.5 py-1.5 rounded-2" style="background-color: #0E9F6E; color: #FFFFFF;">
+                <i class="bi bi-calendar-check me-1"></i> Agenda BAZNAS
+            </span>
+            <span class="badge border px-2.5 py-1.5 rounded-2" style="background-color: #2563EB; color: #FFFFFF;">
+                <i class="bi bi-briefcase me-1"></i> Perjalanan Dinas (SPPD)
+            </span>
+            <span class="badge border px-2.5 py-1.5 rounded-2" style="background-color: #8B5CF6; color: #FFFFFF;">
+                <i class="bi bi-people me-1"></i> Rapat Internal
+            </span>
+            <span class="badge border px-2.5 py-1.5 rounded-2" style="background-color: #DC2626; color: #FFFFFF;">
+                <i class="bi bi-flag-fill me-1"></i> Libur Nasional (Google Feed)
+            </span>
+        </div>
+        <span class="small fw-semibold" style="color: var(--text-secondary);">
+            <i class="bi bi-arrow-repeat me-1 text-success"></i> Tampilan Visual Google Calendar Real-Time
+        </span>
+    </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle" id="calendarTable">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Jenis</th>
-                                <th>Tanggal Kegiatan</th>
-                                <th>Judul / Nama Kegiatan</th>
-                                <th>Lokasi / Tujuan</th>
-                                <th>Pegawai Terlibat</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for ev in events %}
-                            <tr class="event-row" data-type="{{ ev.source_type }}">
-                                <td>
-                                    {% if ev.source_type == 'sppd' %}
-                                        <span class="badge bg-primary px-2 py-1"><i class="bi bi-briefcase me-1"></i>SPPD</span>
-                                    {% else %}
-                                        <span class="badge bg-success px-2 py-1"><i class="bi bi-calendar3 me-1"></i>AGENDA</span>
-                                    {% endif %}
-                                </td>
-                                <td class="fw-bold text-dark">
-                                    {{ ev.start }} {% if ev.end != ev.start %} s.d {{ ev.end }}{% endif %}
-                                    {% if ev.time %}<span class="d-block small text-muted"><i class="bi bi-clock me-1"></i>{{ ev.time }} WIB</span>{% endif %}
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-dark">{{ ev.title }}</div>
-                                    {% if ev.sppd_number %}<div class="small text-muted">No. {{ ev.sppd_number }}</div>{% endif %}
-                                </td>
-                                <td><i class="bi bi-geo-alt text-danger me-1"></i>{{ ev.location }}</td>
-                                <td><span class="small fw-semibold text-dark">{{ ev.assigned_to }}</span></td>
-                                <td>
-                                    <span class="badge rounded-pill px-3 py-1" style="background-color: {{ ev.bg_color }}; color: {{ ev.text_color }};">
-                                        {{ ev.status }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">Belum ada kegiatan atau SPPD terjadwal.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    <!-- Visual Interactive Grid Engine ala Google Calendar -->
+    <div class="calendar-wrapper-card shadow-sm p-0 mb-4">
+        <div id="visual-google-calendar"></div>
+    </div>
+
+    <!-- Data Table Rincian Agenda & SPPD -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-3 p-md-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="fw-bold mb-0" style="color: var(--text-primary);">
+                    <i class="bi bi-journal-text me-2 text-primary"></i>Daftar Rincian Agenda & SPPD
+                </h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary active" onclick="filterTableType('all')">Semua</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="filterTableType('agenda')">Agenda Kerja</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="filterTableType('sppd')">Khusus SPPD</button>
                 </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle w-100" id="calendarDataTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Jenis</th>
+                            <th>Tanggal & Waktu</th>
+                            <th>Judul / Nama Kegiatan</th>
+                            <th>Lokasi / Tujuan</th>
+                            <th>Pegawai Terlibat</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ev in events %}
+                        <tr class="event-row-item" data-type="{{ ev.source_type }}">
+                            <td>
+                                {% if ev.source_type == 'sppd' %}
+                                    <span class="badge bg-primary px-2 py-1"><i class="bi bi-briefcase me-1"></i>SPPD</span>
+                                {% else %}
+                                    <span class="badge bg-success px-2 py-1"><i class="bi bi-calendar3 me-1"></i>AGENDA</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold" style="color: var(--text-primary);">
+                                {{ ev.start }} {% if ev.end != ev.start %} s.d {{ ev.end }}{% endif %}
+                                {% if ev.time %}<span class="d-block small text-secondary"><i class="bi bi-clock me-1"></i>{{ ev.time }} WIB</span>{% endif %}
+                            </td>
+                            <td>
+                                <div class="fw-bold" style="color: var(--text-primary);">{{ ev.title }}</div>
+                                {% if ev.sppd_number %}<div class="small text-secondary">No. {{ ev.sppd_number }}</div>{% endif %}
+                            </td>
+                            <td><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ ev.location|default:"-" }}</td>
+                            <td><span class="small fw-semibold" style="color: var(--text-primary);">{{ ev.assigned_to|default:"-" }}</span></td>
+                            <td>
+                                <span class="badge rounded-pill px-3 py-1" style="background-color: {{ ev.bg_color|default:'#10B981' }}; color: #FFFFFF;">
+                                    {{ ev.status|default:"Terjadwal" }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-secondary">Belum ada kegiatan atau SPPD terjadwal.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Modal Detail Event ala Google Calendar -->
+<div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom p-3" style="background-color: var(--surface-alt);">
+                <h6 class="modal-title fw-bold" id="eventModalTitle" style="color: var(--text-primary);">
+                    <i class="bi bi-calendar-event me-2 text-primary"></i>Detail Kegiatan
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge px-3 py-1.5 rounded-pill" id="eventModalBadge" style="font-size: 0.8rem;">Agenda</span>
+                    <span class="small fw-semibold text-secondary" id="eventModalDate"></span>
+                </div>
+                <h5 class="fw-bold mb-3" id="eventModalName" style="color: var(--text-primary);"></h5>
+                
+                <div class="p-3 rounded-3 mb-3" style="background-color: var(--surface-alt); border: 1px solid var(--border-color); font-size: 0.88rem;">
+                    <div class="mb-2">
+                        <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                        <strong>Lokasi / Tujuan:</strong> <span id="eventModalLocation"></span>
+                    </div>
+                    <div class="mb-0">
+                        <i class="bi bi-people-fill text-primary me-2"></i>
+                        <strong>Pegawai / Personel:</strong> <span id="eventModalAssigned"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top p-2 px-3">
+                <button type="button" class="btn btn-light btn-sm fw-semibold" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- FullCalendar 5 JS & DataTables JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/id.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
-function switchView(type) {
-    const rows = document.querySelectorAll('.event-row');
-    rows.forEach(row => {
-        if (type === 'all') {
-            row.style.display = '';
-        } else {
-            if (row.getAttribute('data-type') === type) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inisialisasi Engine Google Calendar menggunakan FullCalendar 5 Grid
+        var calendarEl = document.getElementById('visual-google-calendar');
+        if (calendarEl) {
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'id',
+                height: 650,
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+                },
+                buttonText: {
+                    today: 'Hari Ini',
+                    month: 'Bulan',
+                    week: 'Minggu',
+                    day: 'Hari',
+                    list: 'Daftar'
+                },
+                events: function(info, successCallback, failureCallback) {
+                    // Ambil event dari API Agendas backend
+                    fetch('/agendas/api/events/?start=' + info.startStr + '&end=' + info.endStr)
+                        .then(response => response.json())
+                        .then(data => {
+                            successCallback(data);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching calendar events:', error);
+                            // Fallback jika API backend belum selesai memuat
+                            successCallback([]);
+                        });
+                },
+                eventClick: function(info) {
+                    info.jsEvent.preventDefault();
+                    var ev = info.event;
+                    
+                    document.getElementById('eventModalName').innerText = ev.title;
+                    document.getElementById('eventModalDate').innerText = ev.start ? ev.start.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
+                    document.getElementById('eventModalLocation').innerText = ev.extendedProps.location || ev.extendedProps.lokasi || 'Kantor BAZNAS';
+                    document.getElementById('eventModalAssigned').innerText = ev.extendedProps.assigned_to || ev.extendedProps.personel || 'Internal / Seluruh Pegawai';
+                    
+                    var badge = document.getElementById('eventModalBadge');
+                    badge.innerText = ev.extendedProps.source_type === 'sppd' ? 'Perjalanan Dinas (SPPD)' : 'Agenda Kerja';
+                    badge.style.backgroundColor = ev.backgroundColor || '#0E9F6E';
+                    badge.style.color = '#FFFFFF';
+
+                    var modal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+                    modal.show();
+                }
+            });
+            calendar.render();
+        }
+
+        // Inisialisasi DataTable untuk rincian kegiatan di bawah kalender
+        if (jQuery.fn.DataTable) {
+            $('#calendarDataTable').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
+                },
+                pageLength: 7,
+                ordering: true,
+                searching: true,
+                order: [[1, 'desc']]
+            });
         }
     });
-}
+
+    function filterTableType(type) {
+        const rows = document.querySelectorAll('.event-row-item');
+        rows.forEach(row => {
+            if (type === 'all') {
+                row.style.display = '';
+            } else {
+                if (row.getAttribute('data-type') === type) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+    }
 </script>
 {% endblock %}
