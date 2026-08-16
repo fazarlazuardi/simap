@@ -302,7 +302,7 @@
                                          {% endif %}
                                      {% elif archive.status in 'terverifikasi,didisposisikan,proses,sudah_ditugaskan,dalam_survei' %}
                                          {% if archive.is_proposal_bantuan or archive.archive_type == 'proposal' %}
-                                             {% if user.is_superuser or user.is_waka_2 or user.is_kabid_2 or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' %}
+                                             {% if user.is_waka_2 or user.is_kabid_2 or user.username == 'waka2' or user.username == 'kabid2' or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' or user.is_superuser and not request.session.active_pov %}
                                              <div class="dropdown d-inline-block">
                                                  <button class="btn btn-warning btn-sm rounded-pill px-3 fw-bold dropdown-toggle shadow-sm text-dark" type="button" data-bs-toggle="dropdown">
                                                      <i class="bi bi-handbag-fill me-1"></i> Penanganan Bidang II
