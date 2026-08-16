@@ -53,10 +53,18 @@ class SuratTugas(models.Model):
         super().save(*args, **kwargs)
 
         try:
-            if getattr(self, 'disposition', None) and getattr(self.disposition, 'archive', None):
-                arch = self.disposition.archive
-                if arch and arch.status != 'sudah_ditugaskan':
-                    arch.status = 'sudah_ditugaskan'
+            arch = getattr(self, 'archive', None) or (self.disposition.archive if getattr(self, 'disposition', None) else None)
+            if arch and arch.status != 'selesai':
+                st_text = (self.tentang or '').lower()
+                if 'survei' in st_text:
+                    new_status = 'dalam_survei'
+                elif any(k in st_text for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
+                    new_status = 'telah_disalurkan'
+                else:
+                    new_status = 'sudah_ditugaskan'
+                
+                if arch.status != new_status:
+                    arch.status = new_status
                     arch.save(update_fields=['status', 'updated_at'])
         except Exception as e:
             print('Failed to sync SuratTugas -> Archive status:', e)

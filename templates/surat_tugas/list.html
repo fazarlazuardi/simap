@@ -130,18 +130,18 @@
                                               <a href="{% url 'reports:detail' dispo.report.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Lihat LHP Selesai">
                                                   <i class="bi bi-file-earmark-check-fill me-1"></i> LHP Selesai
                                               </a>
-                                          {% elif dispo.status == 'selesai' or dispo.archive.status == 'selesai' or dispo.is_completed %}
-                                              <span class="badge bg-success text-white rounded-pill px-3 py-2 fw-bold">
-                                                  <i class="bi bi-check-circle-fill me-1"></i> TELAH DISALURKAN
-                                              </span>
                                           {% elif dispo.surat_tugas.count >= 2 %}
                                               <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2 fw-bold">
                                                   <i class="bi bi-journal-check me-1"></i> 2 Surat Tugas Terbit
                                               </span>
                                           {% elif dispo.surat_tugas.count == 1 %}
-                                              <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=penyaluran" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="ST #1 (Survei) sudah terbit. Klik untuk membuat ST #2 (Penyaluran Bantuan)">
-                                                  <i class="bi bi-plus-circle-fill me-1"></i> Buat ST #2 (Penyaluran)
+                                              <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=penyaluran" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="ST (Survei Lapangan) sudah terbit. Klik untuk membuat ST Penyaluran Bantuan">
+                                                  <i class="bi bi-plus-circle-fill me-1"></i> Buat ST Penyaluran
                                               </a>
+                                          {% elif dispo.status == 'selesai' or dispo.archive.status == 'selesai' %}
+                                              <span class="badge bg-success text-white rounded-pill px-3 py-2 fw-bold">
+                                                  <i class="bi bi-check-circle-fill me-1"></i> TELAH DISALURKAN
+                                              </span>
                                           {% else %}
                                               {% if dispo.archive and dispo.archive.archive_type == 'proposal' or dispo.archive and 'bantuan' in dispo.archive.category.name|lower %}
                                                   {% if user.is_superuser or user.is_waka_2 or user.is_kabid_2 or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' %}
