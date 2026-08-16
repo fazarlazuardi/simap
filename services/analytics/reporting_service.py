@@ -106,15 +106,22 @@ class ReportingService:
         umum_completed = 0
 
         for arc in archives.order_by('-created_at'):
-            is_bantuan_doc = WorkflowEngine.is_bantuan(arc)
+            cat_obj = getattr(arc, 'category', None)
+            c_name = cat_obj.name if cat_obj else ''
+            c_lower = c_name.lower()
+
+            if any(kw in c_lower for kw in ['kerjasama', 'kerja sama', 'undangan', 'audiensi', 'surat dinas', 'nota dinas', 'dokumen internal', 'upz', 'vendor']):
+                is_bantuan_doc = False
+            elif any(kw in c_lower for kw in bantuan_cat_keywords):
+                is_bantuan_doc = True
+            else:
+                is_bantuan_doc = WorkflowEngine.is_bantuan(arc)
+
             is_done = arc.status in ['selesai', 'telah_disalurkan']
             if is_done:
                 total_completed += 1
 
-            if arc.category:
-                cat_name = arc.category.name
-            else:
-                cat_name = WorkflowEngine.get_bantuan_subcategory(arc) if is_bantuan_doc else 'Permohonan Umum'
+            cat_name = c_name or (WorkflowEngine.get_bantuan_subcategory(arc) if is_bantuan_doc else 'Permohonan Umum')
 
             if is_bantuan_doc:
                 total_bantuan += 1

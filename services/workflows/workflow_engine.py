@@ -41,22 +41,20 @@ class WorkflowEngine:
         if not archive:
             return False
             
-        text_to_check = f"{archive.title or ''} {archive.description or ''} {archive.sender_receiver or ''}".lower()
-        
-        surat_umum_keywords = [
-            'audiensi', 'undangan', 'kerjasama', 'kerja sama', 'koordinasi',
-            'narasumber', 'kunjungan', 'nota dinas', 'rapat', 'sosialisasi', 'studi banding', 'vendor', 'pengadaan'
-        ]
-        if any(kw in text_to_check for kw in surat_umum_keywords):
-            return False
-
-        if archive.archive_type == 'proposal':
-            if 'vendor' in text_to_check or 'penawaran' in text_to_check or 'pengadaan' in text_to_check:
-                return False
-            return True
-            
         cat_obj = getattr(archive, 'category', None)
         category_name = cat_obj.name.lower() if cat_obj else ''
+
+        # 1. Kategori Kerjasama, Undangan, Audiensi, Surat Dinas, Nota Dinas, Dokumen Internal -> PASTI DOKUMEN UMUM
+        umum_cat_keywords = ['kerjasama', 'kerja sama', 'undangan', 'audiensi', 'surat dinas', 'nota dinas', 'dokumen internal', 'upz', 'vendor']
+        if any(kw in category_name for kw in umum_cat_keywords):
+            return False
+
+        # 2. Pengecekan Kata Kunci Khusus Vendor / Kerjasama / Penawaran / Pengadaan pada perihal/deskripsi -> PASTI DOKUMEN UMUM
+        text_to_check = f"{archive.title or ''} {archive.description or ''} {archive.sender_receiver or ''}".lower()
+        if any(kw in text_to_check for kw in ['vendor', 'kerjasama', 'kerja sama', 'penawaran', 'pengadaan', 'supplier', 'rekanan']):
+            return False
+
+        # 3. Kategori Bantuan Mustahik (Rutilahu, UMKM, Kesehatan, Pendidikan, dll) -> PASTI BANTUAN MUSTAHIK
         bantuan_cat_keywords = [
             'bantuan', 'rutilahu', 'kesehatan', 'gharimin', 'pendidikan',
             'peribadatan', 'meubelair', 'meubellair', 'mebeulair', 'sarpras', 'sarana', 'prasarana',
@@ -66,10 +64,13 @@ class WorkflowEngine:
         ]
         if any(kw in category_name for kw in bantuan_cat_keywords):
             return True
+
+        if archive.archive_type == 'proposal':
+            return True
         
         bantuan_keywords = [
             'bantuan', 'mohon bantuan', 'permohonan bantuan', 'biaya',
-            'berobat', 'kesehatan', 'medis', 'rs', 'rumah sakit', 'gerobak', 'modal',
+            'berobat', 'kesehatan', 'medis', 'rs', 'rumah sakit', 'modal',
             'usaha', 'umkm', 'dagang', 'beasiswa', 'pendidikan', 'spp', 'sekolah',
             'kuliah', 'ijazah', 'rtlh', 'bedah rumah', 'rumah layak', 'santunan',
             'bencana', 'kemanusiaan', 'pelunasan', 'hutang', 'utang', 'gharimin',
