@@ -130,7 +130,7 @@
 {% endif %}
 
 <div class="card border-0 shadow-sm p-4">
-    <div class="table-responsive">
+    <div class="table-responsive table-mobile-cards">
         <table class="table table-hover align-middle" id="dispoTable">
             <thead>
                 <tr class="text-secondary small text-uppercase">
@@ -146,10 +146,10 @@
             <tbody>
                 {% for dispo in dispositions %}
                 <tr>
-                    <td class="small text-nowrap" data-order="{{ dispo.created_at|date:'U' }}">{{ dispo.created_at|date:"d M Y, H:i" }}</td>
+                    <td class="small text-nowrap" data-order="{{ dispo.created_at|date:'U' }}" data-label="Tanggal">{{ dispo.created_at|date:"d M Y, H:i" }}</td>
                     
                     <!-- Kolom Pengirim / Pimpinan Disposisi -->
-                    <td>
+                    <td data-label="Pengirim">
                         <span class="fw-bold text-dark d-block">{{ dispo.sender_label|default:dispo.display_sender_name }}</span>
                         {% if dispo.is_stage_waka or dispo.status == 'proses' or dispo.status == 'selesai' %}
                             <small class="text-primary d-block mt-1" style="font-size: 0.75rem;">
@@ -158,7 +158,7 @@
                         {% endif %}
                     </td>
 
-                    <td>
+                    <td data-label="Penerima">
                         {% if dispo.is_stage_waka %}
                             {% for emp in dispo.waka_forwarded_to.all %}
                             <span class="badge bg-light text-dark border">{{ emp.full_name }}</span>
@@ -173,14 +173,14 @@
                             {% empty %}-{% endfor %}
                         {% endif %}
                     </td>
-                    <td>
+                    <td data-label="Arsip Terkait">
                         <div style="max-width: 200px;">
                             <p class="mb-0 fw-bold small text-truncate">{{ dispo.archive.title }}</p>
                             <span class="text-muted" style="font-size: 0.7rem;">{{ dispo.archive.archive_number|default:"(No Number)" }}</span>
                         </div>
                     </td>
-                    <td><span class="fw-bold text-primary small">{{ dispo.disposition_number|default:"-" }}</span></td>
-                    <td>
+                    <td data-label="No. Disposisi"><span class="fw-bold text-primary small">{{ dispo.disposition_number|default:"-" }}</span></td>
+                    <td data-label="Status">
                         {% if dispo.is_completed or dispo.status == 'selesai' or dispo.archive.status == 'selesai' or dispo.report %}
                             <span class="badge bg-success text-white rounded-pill px-3 py-1 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> SELESAI</span>
                         {% elif dispo.status == 'baru' %}
@@ -193,7 +193,7 @@
                             <span class="badge bg-secondary text-white rounded-pill px-3">{{ dispo.get_status_display }}</span>
                         {% endif %}
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" data-label="Aksi">
                         <div class="d-flex justify-content-end align-items-center gap-1.5">
                             {% if dispo.status == 'baru' %}
                                 {% if user.is_pimpinan or user.is_kabid or user.is_superadmin or user.is_sdm or request.session.active_pov == 'kabid_4' %}

@@ -133,6 +133,51 @@
             .card-body {
                 padding: 1rem !important;
             }
+
+            /* Mobile Stacked Cards Transform */
+            .table-mobile-cards table, 
+            .table-mobile-cards thead, 
+            .table-mobile-cards tbody, 
+            .table-mobile-cards th, 
+            .table-mobile-cards td, 
+            .table-mobile-cards tr {
+                display: block !important;
+            }
+            .table-mobile-cards thead tr {
+                position: absolute !important;
+                top: -9999px !important;
+                left: -9999px !important;
+            }
+            .table-mobile-cards tr {
+                background: var(--card-bg) !important;
+                border: 1px solid var(--border-color) !important;
+                border-radius: var(--radius-card, 16px) !important;
+                margin-bottom: 14px !important;
+                padding: 14px !important;
+                box-shadow: var(--shadow-sm) !important;
+            }
+            .table-mobile-cards td {
+                border: none !important;
+                position: relative !important;
+                text-align: right !important;
+                min-height: 40px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                padding: 8px 0 !important;
+                border-bottom: 1px dashed var(--border-color) !important;
+            }
+            .table-mobile-cards td:last-child {
+                border-bottom: none !important;
+            }
+            .table-mobile-cards td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--text-secondary);
+                font-size: 0.78rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
         }
 
         #sidebar {
@@ -171,6 +216,13 @@
     
     <style>
         :root {
+            --radius-card: 16px;
+            --radius-btn: 12px;
+            --radius-badge: 20px;
+            --btn-height-sm: 36px;
+            --btn-height-md: 46px;
+            --input-height: 48px;
+
             --primary: #047857;
             --primary-dark: #064E3B;
             --primary-light: #10B981;
@@ -396,8 +448,17 @@
             backdrop-filter: blur(14px) !important;
             -webkit-backdrop-filter: blur(14px) !important;
             border-color: var(--border-color) !important;
+            border-radius: var(--radius-card, 16px) !important;
             color: var(--text-primary);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        .badge {
+            border-radius: var(--radius-badge, 20px) !important;
+        }
+
+        .form-control, .form-select {
+            border-radius: var(--radius-btn, 12px) !important;
         }
 
         [data-theme="dark"] .card {
