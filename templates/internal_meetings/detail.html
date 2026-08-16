@@ -302,7 +302,7 @@
 </div>
 
 <!-- MODAL INPUT / EDIT NOTULENSI -->
-<div class="modal fade" id="modalInputNotulensi" tabindex="-1" aria-hidden="true" style="z-index: 1060 !important;">
+<div class="modal fade" id="modalInputNotulensi" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-success text-white rounded-top-4 py-3">
@@ -406,7 +406,7 @@
 </div>
 
 <!-- MODAL PENYESUAIAN PRESENSI PIMPINAN & PESERTA HADIR -->
-<div class="modal fade" id="modalAttendanceAdjustment" tabindex="-1" aria-hidden="true" style="z-index: 1060 !important;">
+<div class="modal fade" id="modalAttendanceAdjustment" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-primary text-white rounded-top-4 py-3">
@@ -493,9 +493,6 @@ var quillSummary, quillDecision, quillActionItems;
 
 function openDetailNotulensiModal() {
     var modalEl = document.getElementById('modalInputNotulensi');
-    if (modalEl && modalEl.parentElement !== document.body) {
-        document.body.appendChild(modalEl);
-    }
     var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
 }

@@ -26,6 +26,20 @@
         margin: 0 2px;
     }
 
+    .notulensi-content ol, .notulensi-content ul { padding-left: 1.5rem; margin-bottom: 0.5rem; }
+    .notulensi-content ul { list-style-type: disc !important; }
+    .notulensi-content ol { list-style-type: decimal; }
+    .notulensi-content li[data-list="bullet"], .notulensi-content ol li[data-list="bullet"], .notulensi-content ul li[data-list="bullet"] { list-style-type: disc !important; }
+    .notulensi-content li[data-list="ordered"], .notulensi-content ol li[data-list="ordered"], .notulensi-content ul li[data-list="ordered"] { list-style-type: decimal !important; }
+    .notulensi-content ol ul, .notulensi-content ul ul, .notulensi-content ol li ul { list-style-type: disc !important; padding-left: 1.5rem; }
+    .notulensi-content ol[type="a"], .notulensi-content ol[type="a" i], .notulensi-content ol.type-a, .notulensi-content ol ol { list-style-type: lower-alpha; }
+    .notulensi-content ol[type="I"], .notulensi-content ol[type="I" i], .notulensi-content ol ol ol { list-style-type: lower-roman; }
+    .notulensi-content li.ql-indent-1, .notulensi-content .ql-indent-1 { padding-left: 1.5em; }
+    .notulensi-content li.ql-indent-2, .notulensi-content .ql-indent-2 { padding-left: 3.0em; }
+    .notulensi-content li.ql-indent-3, .notulensi-content .ql-indent-3 { padding-left: 4.5em; }
+    .notulensi-content p { margin-bottom: 0.35rem; }
+    .notulensi-content p:last-child { margin-bottom: 0; }
+
     .stat-card-icon {
         width: 48px;
         height: 48px;
@@ -244,9 +258,9 @@
                                             <a href="{% url 'internal_meetings:detail' meeting.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-2 py-1" title="Lihat Detail">
                                                 <i class="bi bi-eye"></i> Detail
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-sm" onclick="openNotulensiModal('{{ meeting.pk }}', '{{ meeting.title|escapejs }}')">
+                                            <a href="{% url 'internal_meetings:detail' meeting.pk %}?open_notulensi=1" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-sm">
                                                 <i class="bi bi-pencil-square me-1"></i> Input Notulensi
-                                            </button>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
