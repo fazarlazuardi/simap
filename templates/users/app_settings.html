@@ -262,6 +262,29 @@
                             </tbody>
                         </table>
                     </div>
+        <!-- Pembersihan Notifikasi Lonceng (Seluruh Akun) -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card border-0 shadow-sm p-4 rounded-4" style="background: linear-gradient(135deg, rgba(254, 243, 199, 0.5) 0%, rgba(254, 215, 170, 0.3) 100%); border-left: 5px solid #F59E0B !important;">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                            <h6 class="fw-bold mb-1 text-dark">
+                                <i class="bi bi-bell-slash-fill text-warning me-2 fs-5"></i> Pembersihan Notifikasi Lonceng (Seluruh Akun Pengguna)
+                            </h6>
+                            <p class="text-secondary small mb-0">
+                                Bersihkan seluruh riwayat notifikasi lonceng web dashboard di <strong>semua akun (Ketua, Waka IV, Waka II, Kabid IV, FO, Staff)</strong> sekaligus dengan satu klik tanpa harus menghapus arsip.
+                            </p>
+                        </div>
+                        <div>
+                            <form method="post" action="{% url 'users:app_settings' %}" id="clearNotifForm">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="clear_all_notifications">
+                                <button type="button" class="btn btn-warning btn-sm rounded-pill px-4 py-2.5 fw-bold shadow-sm" onclick="confirmClearNotifications()">
+                                    <i class="bi bi-trash3-fill me-1.5"></i> Hapus Seluruh Notifikasi Lonceng (Semua Akun)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -311,6 +334,23 @@
         document.body.appendChild(modalEl);
         var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
+    }
+
+    function confirmClearNotifications() {
+        Swal.fire({
+            title: 'Hapus Seluruh Notifikasi Lonceng?',
+            text: "Seluruh riwayat notifikasi di lonceng atas pada SEMUA akun pengguna akan dibersihkan tuntas.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus Sekarang!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('clearNotifForm').submit();
+            }
+        });
     }
 </script>
 {% endblock %}

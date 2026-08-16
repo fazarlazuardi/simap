@@ -286,6 +286,13 @@ def profile_view(request):
 def app_settings_view(request):
     config = AppConfig.get_config()
     if request.method == 'POST':
+        if request.POST.get('action') == 'clear_all_notifications' or 'clear_notifications' in request.POST:
+            from notifications.models import Notification
+            count = Notification.objects.count()
+            Notification.objects.all().delete()
+            messages.success(request, f"Berhasil membersihkan total {count} notifikasi lonceng dari seluruh akun pengguna di sistem SIMAP.")
+            return redirect('users:app_settings')
+
         config.app_name = request.POST.get('app_name')
         new_logo = request.FILES.get('app_logo')
         if new_logo: config.app_logo = new_logo
