@@ -113,6 +113,22 @@ class NumberingService:
         else:
             key = f'{doc_type}:{year}'
 
+        # Cek jika seluruh record pada model terkait kosong (semua arsip/disposisi dihapus admin) -> Reset counter ke 0 otomatis
+        model_info = cls._get_model_and_field(doc_type)
+        if model_info:
+            model_class, field_name = model_info
+            qs = model_class.objects.exclude(**{f'{field_name}__isnull': True}).exclude(**{field_name: ''})
+            if extra_filter:
+                qs = qs.filter(**extra_filter)
+            if not qs.exists():
+                try:
+                    counter = SequenceCounter.objects.filter(name=key).first()
+                    if counter and counter.value > 0:
+                        counter.value = 0
+                        counter.save()
+                except Exception:
+                    pass
+
         if save:
             try:
                 return get_next_sequence(key)
