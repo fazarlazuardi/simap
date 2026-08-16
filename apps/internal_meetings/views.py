@@ -81,26 +81,31 @@ def send_meeting_wa_notifications(meeting, is_notulensi=False):
 
         if not is_notulensi:
             msg = (
-                f"*UNDANGAN RAPAT INTERNAL BAZNAS*\n"
-                f"---------------------------------------\n"
-                f"📌 *Judul*: {meeting.title}\n"
-                f"🔢 *No. Risalah*: {meeting.meeting_number or '-'}\n"
-                f"📅 *Waktu*: {meeting.scheduled_at.strftime('%d/%m/%Y %H:%M')} WIB\n"
-                f"📍 *Tempat*: {meeting.location}\n"
-                f"👤 *Pimpinan Rapat*: {meeting.leader_names_display}\n\n"
-                f"*Agenda Pembahasan*:\n{meeting.agenda_topics}\n\n"
-                f"Dimohon kehadirannya tepat waktu. Terima Kasih.\n"
-                f"_SIMAP BAZNAS Kab. Tangerang_"
+                f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+                f"Undangan Rapat Internal BAZNAS Kabupaten Tangerang:\n\n"
+                f"• *Judul Rapat:* {meeting.title}\n"
+                f"• *No. Risalah:* {meeting.meeting_number or '-'}\n"
+                f"• *Waktu:* {meeting.scheduled_at.strftime('%d/%m/%Y %H:%M')} WIB\n"
+                f"• *Tempat:* {meeting.location}\n"
+                f"• *Pimpinan Rapat:* {meeting.leader_names_display}\n\n"
+                f"• *Agenda Pembahasan:*\n{meeting.agenda_topics}\n\n"
+                f"Mohon untuk dapat bersiap dan menghadiri rapat tepat waktu.\n\n"
+                f"Atas perhatian dan kehadirannya, kami ucapkan terima kasih.\n"
+                f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
             )
         else:
             msg = (
-                f"*NOTULENSI RAPAT INTERNAL TERBIT*\n"
-                f"---------------------------------------\n"
-                f"📌 *Judul*: {meeting.title}\n"
-                f"🔢 *No. Risalah*: {meeting.meeting_number or '-'}\n"
-                f"📝 *Notulis*: {meeting.notulis_name_display}\n\n"
-                f"*Kesimpulan & Keputusan Rapat*:\n{meeting.notulensi_decision or meeting.notulensi_summary or '-'}\n\n"
-                f"_Risalah Notulensi Lengkap dapat diakses di SIMAP BAZNAS._"
+                f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+                f"Pemberitahuan bahwa Notulensi/Risalah Rapat Internal telah diselesaikan:\n\n"
+                f"• *Judul Rapat:* {meeting.title}\n"
+                f"• *No. Risalah:* {meeting.meeting_number or '-'}\n"
+                f"• *Notulis:* {meeting.notulis_name_display}\n\n"
+                f"• *Kesimpulan & Keputusan Rapat:*\n{meeting.notulensi_decision or meeting.notulensi_summary or '-'}\n\n"
+                f"Dokumen risalah notulensi lengkap serta lampiran dapat diakses melalui sistem SIMAP BAZNAS.\n\n"
+                f"Terima kasih atas perhatian dan tindak lanjutnya.\n"
+                f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
             )
 
         from django.conf import settings
