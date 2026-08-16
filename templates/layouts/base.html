@@ -43,12 +43,12 @@
     </script>
     <style>
         html, body {
-            background-color: var(--body-bg, #F8FAFC);
-            background-image: url("{% static 'img/simap_bg.png' %}");
-            background-size: cover;
-            background-position: center center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
+            background-color: #081014 !important;
+            background-image: url("/static/img/simap_bg.png") !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-attachment: fixed !important;
+            background-repeat: no-repeat !important;
             min-height: 100vh;
         }
         body {
@@ -64,16 +64,27 @@
             pointer-events: none;
             z-index: 0;
             transition: background-color 0.3s ease;
-            background-color: rgba(248, 250, 252, 0.88);
-            backdrop-filter: blur(4px);
+            background-color: rgba(248, 250, 252, 0.45);
         }
         [data-theme="dark"] body::before {
-            background-color: rgba(9, 13, 22, 0.78);
-            backdrop-filter: blur(6px);
+            background-color: rgba(6, 12, 20, 0.55);
         }
         #sidebar, #main-wrapper, footer {
             position: relative;
             z-index: 1;
+            background-color: transparent !important;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        }
+        [data-theme="dark"] .card {
+            background-color: rgba(15, 23, 42, 0.82) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
         html[data-theme="dark"], html[data-theme="dark"] body {
             color: #F8FAFC !important;
