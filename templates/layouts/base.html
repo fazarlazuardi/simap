@@ -1242,7 +1242,7 @@
                 {% endfor %}
             {% endif %}
     <!-- INLINE FLOATING JUMBO CALENDAR POPUP (0 Modal Backdrop, 0 CDN Dependency, DD-MM-YYYY Format) -->
-    <div id="inlineJumboCalendarPopup" class="shadow-lg border-0 d-none" style="position: absolute; z-index: 999999; width: 380px; border-radius: 20px; overflow: hidden; background: #ffffff; border: 2.5px solid #10B981 !important; box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;">
+    <div id="inlineJumboCalendarPopup" class="shadow-lg border-0 d-none" style="position: absolute; z-index: 9999999; width: 380px; border-radius: 20px; overflow: hidden; background: #ffffff; border: 2.5px solid #10B981 !important; box-shadow: 0 25px 50px rgba(0,0,0,0.35) !important;">
         <!-- Header Popup -->
         <div class="p-3 text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #047857 0%, #10B981 100%);">
             <div>
@@ -1254,9 +1254,9 @@
 
         <!-- Controls: Month & Year Selector -->
         <div class="p-2 bg-light border-bottom d-flex align-items-center justify-content-between">
-            <button type="button" class="btn btn-sm btn-white border shadow-sm rounded-circle px-2" onclick="navInlineJumboCal(-1)"><i class="bi bi-chevron-left"></i></button>
+            <button type="button" class="btn btn-sm btn-white border shadow-sm rounded-circle px-2 text-dark" onclick="navInlineJumboCal(-1)"><i class="bi bi-chevron-left"></i></button>
             <div class="d-flex align-items-center gap-1">
-                <select id="inlineJumboMonthSelect" class="form-select form-select-sm fw-bold border-0 bg-white shadow-sm" style="font-size: 0.95rem; width: 130px;" onchange="changeInlineJumboMonthYear()">
+                <select id="inlineJumboMonthSelect" class="form-select form-select-sm fw-bold border-0 bg-white shadow-sm text-dark" style="font-size: 0.95rem; width: 130px; color: #0F172A !important;" onchange="changeInlineJumboMonthYear()">
                     <option value="0">Januari</option>
                     <option value="1">Februari</option>
                     <option value="2">Maret</option>
@@ -1270,10 +1270,10 @@
                     <option value="10">November</option>
                     <option value="11">Desember</option>
                 </select>
-                <select id="inlineJumboYearSelect" class="form-select form-select-sm fw-bold border-0 bg-white shadow-sm" style="font-size: 0.95rem; width: 90px;" onchange="changeInlineJumboMonthYear()">
+                <select id="inlineJumboYearSelect" class="form-select form-select-sm fw-bold border-0 bg-white shadow-sm text-dark" style="font-size: 0.95rem; width: 90px; color: #0F172A !important;" onchange="changeInlineJumboMonthYear()">
                 </select>
             </div>
-            <button type="button" class="btn btn-sm btn-white border shadow-sm rounded-circle px-2" onclick="navInlineJumboCal(1)"><i class="bi bi-chevron-right"></i></button>
+            <button type="button" class="btn btn-sm btn-white border shadow-sm rounded-circle px-2 text-dark" onclick="navInlineJumboCal(1)"><i class="bi bi-chevron-right"></i></button>
         </div>
 
         <!-- Calendar Body: Grid -->
@@ -1320,13 +1320,20 @@
             var popup = document.getElementById('inlineJumboCalendarPopup');
             if (!popup) return;
 
+            if (popup.parentNode !== document.body) {
+                document.body.appendChild(popup);
+            }
+
             var rect = inputEl.getBoundingClientRect();
             var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
+            popup.style.position = 'absolute';
             popup.style.top = (rect.bottom + scrollTop + 6) + 'px';
             popup.style.left = (rect.left + scrollLeft) + 'px';
+            popup.style.zIndex = '9999999';
             popup.classList.remove('d-none');
+            popup.style.display = 'block';
         }
 
         function openDatePicker(id) {
@@ -1335,7 +1342,10 @@
 
         function closeInlineJumboCalendar() {
             var popup = document.getElementById('inlineJumboCalendarPopup');
-            if (popup) popup.classList.add('d-none');
+            if (popup) {
+                popup.classList.add('d-none');
+                popup.style.display = 'none';
+            }
         }
 
         function populateInlineJumboYears() {
@@ -1380,9 +1390,10 @@
             for (var d = 1; d <= totalDays; d++) {
                 var btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'btn btn-light fw-bold border-0 rounded-3 p-0';
+                btn.className = 'btn btn-light fw-bold border-0 rounded-3 p-0 text-dark';
                 btn.style.height = '42px';
                 btn.style.fontSize = '1.05rem';
+                btn.style.color = '#0F172A';
                 btn.textContent = d;
 
                 var isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
@@ -1391,8 +1402,9 @@
                 if (isSelected) {
                     btn.className = 'btn btn-success text-white fw-bold shadow-sm rounded-3 p-0';
                     btn.style.backgroundColor = '#10B981';
+                    btn.style.color = '#FFFFFF';
                 } else if (isToday) {
-                    btn.className = 'btn btn-outline-success fw-bold rounded-3 p-0';
+                    btn.className = 'btn btn-outline-success fw-bold rounded-3 p-0 text-success';
                 }
 
                 (function(dayVal) {
@@ -1439,7 +1451,7 @@
 
         document.addEventListener('click', function(e) {
             var popup = document.getElementById('inlineJumboCalendarPopup');
-            if (!popup || popup.classList.contains('d-none')) return;
+            if (!popup || popup.classList.contains('d-none') || popup.style.display === 'none') return;
 
             var clickedInsidePopup = popup.contains(e.target);
             var clickedInsideTargetInput = inlineJumboTargetInput && (inlineJumboTargetInput.contains(e.target) || (e.target.closest && e.target.closest('.input-group') && e.target.closest('.input-group').contains(inlineJumboTargetInput)));
@@ -1450,6 +1462,10 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
+            var popup = document.getElementById('inlineJumboCalendarPopup');
+            if (popup && popup.parentNode !== document.body) {
+                document.body.appendChild(popup);
+            }
             document.querySelectorAll('.jumbo-datepicker, input[type="date"]').forEach(function(el) {
                 el.type = 'text';
                 el.setAttribute('placeholder', 'DD-MM-YYYY');
