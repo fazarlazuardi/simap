@@ -1297,7 +1297,10 @@
         var inlineJumboDate = new Date();
         var idMonths = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-        function openJumboCalendar(inputId) {
+        function openJumboCalendar(inputId, evt) {
+            if (evt && evt.stopPropagation) {
+                evt.stopPropagation();
+            }
             var inputEl = document.getElementById(inputId);
             if (!inputEl) return;
             inlineJumboTargetInput = inputEl;
@@ -1336,8 +1339,8 @@
             popup.style.display = 'block';
         }
 
-        function openDatePicker(id) {
-            openJumboCalendar(id);
+        function openDatePicker(id, evt) {
+            openJumboCalendar(id, evt);
         }
 
         function closeInlineJumboCalendar() {
@@ -1453,12 +1456,14 @@
             var popup = document.getElementById('inlineJumboCalendarPopup');
             if (!popup || popup.classList.contains('d-none') || popup.style.display === 'none') return;
 
-            var clickedInsidePopup = popup.contains(e.target);
-            var clickedInsideTargetInput = inlineJumboTargetInput && (inlineJumboTargetInput.contains(e.target) || (e.target.closest && e.target.closest('.input-group') && e.target.closest('.input-group').contains(inlineJumboTargetInput)));
+            if (popup.contains(e.target)) return;
 
-            if (!clickedInsidePopup && !clickedInsideTargetInput) {
-                closeInlineJumboCalendar();
+            if (inlineJumboTargetInput) {
+                if (e.target === inlineJumboTargetInput || inlineJumboTargetInput.contains(e.target)) return;
+                if (e.target.closest && e.target.closest('.input-group') && e.target.closest('.input-group').contains(inlineJumboTargetInput)) return;
             }
+
+            closeInlineJumboCalendar();
         });
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -1472,8 +1477,7 @@
                 el.setAttribute('autocomplete', 'off');
                 el.style.cursor = 'pointer';
                 el.onclick = function(e) {
-                    if (e) e.stopPropagation();
-                    openJumboCalendar(el.id);
+                    openJumboCalendar(el.id, e);
                 };
             });
         });
