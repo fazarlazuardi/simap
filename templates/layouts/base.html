@@ -6,17 +6,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}BAZNAS - Sistem Arsip SDM{% endblock %}</title>
     
-    <!-- Instant Anti-Flicker Dark Mode Script (Blocks White Canvas Paint) -->
+    <!-- Instant Anti-Flicker & Global Dark Mode Script -->
     <script>
+        window.applyTheme = function(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            var isDark = (theme === 'dark');
+            var bg = isDark ? '#090D16' : '#F8FAFC';
+            document.documentElement.style.backgroundColor = bg;
+            if (document.body) document.body.style.backgroundColor = bg;
+            
+            var icon = document.getElementById('themeIconGlobal');
+            var text = document.getElementById('themeTextGlobal');
+            if (icon) {
+                if (isDark) {
+                    icon.className = 'bi bi-sun-fill text-warning fs-6';
+                    if (text) text.textContent = 'Mode Gelap';
+                } else {
+                    icon.className = 'bi bi-moon-stars-fill text-warning fs-6';
+                    if (text) text.textContent = 'Mode Terang';
+                }
+            }
+        };
+
+        window.toggleThemeGlobal = function() {
+            var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            window.applyTheme(cur);
+        };
+
         (function() {
             var t = localStorage.getItem('theme');
-            if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.documentElement.style.backgroundColor = '#090D16';
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-                document.documentElement.style.backgroundColor = '#F8FAFC';
-            }
+            var initialTheme = (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', initialTheme);
+            document.documentElement.style.backgroundColor = (initialTheme === 'dark') ? '#090D16' : '#F8FAFC';
         })();
     </script>
     <style>
@@ -1074,35 +1096,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        function applyTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            if (theme === 'dark') {
-                document.documentElement.style.backgroundColor = '#090D16';
-            } else {
-                document.documentElement.style.backgroundColor = '#F8FAFC';
-            }
-            var icon = document.getElementById('themeIconGlobal');
-            var text = document.getElementById('themeTextGlobal');
-            if (icon) {
-                if (theme === 'dark') {
-                    icon.className = 'bi bi-sun-fill text-warning fs-6';
-                    if (text) text.textContent = 'Mode Gelap';
-                } else {
-                    icon.className = 'bi bi-moon-stars-fill text-warning fs-6';
-                    if (text) text.textContent = 'Mode Terang';
-                }
-            }
-        }
-
-        function toggleThemeGlobal() {
-            var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            applyTheme(cur);
-        }
-
         $(document).ready(function () {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            applyTheme(savedTheme);
+            const savedTheme = localStorage.getItem('theme') || (document.documentElement.getAttribute('data-theme') || 'light');
+            if (window.applyTheme) window.applyTheme(savedTheme);
 
             if ($(window).width() > 991.98 && localStorage.getItem('sidebarCollapsed') === 'true') {
                 $('#sidebar').addClass('collapsed');
@@ -1138,7 +1134,7 @@
 
             $(document).on('click', '#themeToggleGlobal', function (e) {
                 e.preventDefault();
-                toggleThemeGlobal();
+                if (window.toggleThemeGlobal) window.toggleThemeGlobal();
             });
 
             function fixSelect2Colors() {
