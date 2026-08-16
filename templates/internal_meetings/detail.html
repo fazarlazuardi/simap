@@ -397,16 +397,41 @@
                         <div class="d-none">{{ notulensi_form.notulensi_action_items }}</div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="id_notulensi_files" class="form-label fw-bold text-dark">
-                            <i class="bi bi-paperclip text-success me-1"></i> Upload Dokumen Bukti & Foto Notulensi <span class="text-muted fw-normal">(Bisa Pilih Banyak File Sekaligus)</span>
-                        </label>
-                        <input type="file" name="notulensi_files" id="id_notulensi_files" class="form-control custom-input" multiple>
-                        <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i> Anda dapat memilih beberapa foto kegiatan, absensi fisik, PDF, atau dokumen risalah sekaligus dengan menahan tombol <code>Ctrl</code> atau <code>Shift</code> saat memilih file.</div>
+                    <!-- BAGIAN DYNAMIC UPLOAD BERKAS & FOTO NOTULENSI (+ TAMBAH BERKAS) -->
+                    <div class="mb-3 p-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <label class="form-label fw-bold text-dark m-0">
+                                <i class="bi bi-paperclip text-success me-1"></i> Upload Dokumen Bukti & Foto Notulensi <span class="text-muted fw-normal">(Opsional)</span>
+                            </label>
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold shadow-sm" id="btn_add_notulensi_file">
+                                <i class="bi bi-plus-circle-fill me-1"></i> Tambah Berkas / Foto Baru
+                            </button>
+                        </div>
+
+                        <!-- KONTEN DINAMIS DAFTAR FILE INPUT -->
+                        <div id="notulensi_file_inputs_container" class="d-flex flex-column gap-2 mb-2">
+                            <div class="card border p-2 rounded-3 bg-white notulensi-file-row">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-6">
+                                        <input type="file" name="notulensi_files" class="form-control form-control-sm rounded-pill px-3">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input type="text" name="notulensi_file_labels[]" class="form-control form-control-sm rounded-pill px-3" placeholder="Nama / Keterangan Berkas (misal: Foto Suasana Rapat)">
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle btn-remove-notulensi-file d-none" title="Hapus Baris Ini">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i> Klik tombol <strong>+ Tambah Berkas / Foto Baru</strong> di atas jika ingin menambah lebih dari 1 file lampiran.</div>
 
                         {% if meeting.notulensi_file or meeting.notulensi_attachments.exists %}
-                        <div class="mt-3 p-3 bg-light rounded-3 border">
-                            <span class="small fw-bold text-secondary d-block mb-2"><i class="bi bi-folder-check me-1"></i> Berkas & Foto Lampiran Tersimpan:</span>
+                        <div class="mt-3 p-3 bg-white rounded-3 border">
+                            <span class="small fw-bold text-secondary d-block mb-2"><i class="bi bi-folder-check text-primary me-1"></i> Berkas & Foto Lampiran Tersimpan Saat Ini:</span>
                             <div class="d-flex flex-wrap gap-2">
                                 {% if meeting.notulensi_file %}
                                 <div class="btn-group btn-group-sm" role="group">
@@ -419,9 +444,9 @@
                                 {% for att in meeting.notulensi_attachments.all %}
                                 <div class="btn-group btn-group-sm" role="group">
                                     <a href="{{ att.file.url }}" target="_blank" class="btn btn-outline-primary rounded-start-pill px-3">
-                                        <i class="bi bi-paperclip me-1"></i> {{ att.file_name|default:"Foto/Dokumen" }}
+                                        <i class="bi bi-paperclip me-1"></i> {{ att.file_name|default:"Foto / Dokumen" }}
                                     </a>
-                                    <button type="submit" form="formDeleteAtt_{{ att.id }}" class="btn btn-outline-danger rounded-end-pill px-2" title="Hapus Berkas Ini">
+                                    <button type="submit" form="formDeleteAtt_{{ att.id }}" class="btn btn-outline-danger rounded-end-pill px-2" title="Hapus Berkas Ini" onclick="return confirm('Apakah Anda yakin ingin menghapus berkas lampiran ini?');">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -566,6 +591,59 @@ document.addEventListener('DOMContentLoaded', function() {
     var modalAttendance = document.getElementById('modalAttendanceAdjustment');
     if (modalAttendance && modalAttendance.parentElement !== document.body) {
         document.body.appendChild(modalAttendance);
+    }
+
+    // 2. DYNAMIC UPLOAD BERKAS & FOTO NOTULENSI (+ TAMBAH BERKAS)
+    var btnAddFile = document.getElementById('btn_add_notulensi_file');
+    var fileContainer = document.getElementById('notulensi_file_inputs_container');
+
+    if (btnAddFile && fileContainer) {
+        btnAddFile.addEventListener('click', function() {
+            var newRow = document.createElement('div');
+            newRow.className = 'card border p-2 rounded-3 bg-white notulensi-file-row';
+            newRow.innerHTML = `
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-6">
+                        <input type="file" name="notulensi_files" class="form-control form-control-sm rounded-pill px-3">
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="notulensi_file_labels[]" class="form-control form-control-sm rounded-pill px-3" placeholder="Nama / Keterangan Berkas (misal: Foto Absensi Physical)">
+                    </div>
+                    <div class="col-md-1 text-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle btn-remove-notulensi-file" title="Hapus Baris Ini">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            fileContainer.appendChild(newRow);
+            updateRemoveFileButtonsVisibility();
+        });
+
+        fileContainer.addEventListener('click', function(e) {
+            var btnRemove = e.target.closest('.btn-remove-notulensi-file');
+            if (btnRemove) {
+                var row = btnRemove.closest('.notulensi-file-row');
+                if (row) {
+                    row.remove();
+                    updateRemoveFileButtonsVisibility();
+                }
+            }
+        });
+
+        function updateRemoveFileButtonsVisibility() {
+            var rows = fileContainer.querySelectorAll('.notulensi-file-row');
+            rows.forEach(function(row) {
+                var btn = row.querySelector('.btn-remove-notulensi-file');
+                if (btn) {
+                    if (rows.length > 1) {
+                        btn.classList.remove('d-none');
+                    } else {
+                        btn.classList.add('d-none');
+                    }
+                }
+            });
+        }
     }
 
     var toolbarOptions = [

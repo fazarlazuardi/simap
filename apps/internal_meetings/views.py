@@ -368,12 +368,19 @@ def meeting_notulensi(request, pk):
             form.save_m2m()
 
             # Process Multiple Notulensi Attachment Files
-            uploaded_files = request.FILES.getlist('notulensi_files') or request.FILES.getlist('notulensi_file')
-            for f in uploaded_files:
+            uploaded_files = request.FILES.getlist('notulensi_files')
+            single_file = request.FILES.get('notulensi_file')
+            if single_file:
+                uploaded_files.append(single_file)
+
+            uploaded_labels = request.POST.getlist('notulensi_file_labels[]')
+
+            for idx, f in enumerate(uploaded_files):
+                label_val = uploaded_labels[idx].strip() if idx < len(uploaded_labels) and uploaded_labels[idx].strip() else f.name
                 MeetingNotulensiAttachment.objects.create(
                     meeting=meeting_obj,
                     file=f,
-                    file_name=f.name
+                    file_name=label_val
                 )
 
             # Process Dynamic Action Plan Items
