@@ -4,6 +4,28 @@
 
 {% block extra_css %}
 <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<style>
+    .style-btn-dispo {
+        font-size: 0.78rem !important;
+        padding: 5px 12px !important;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+        transition: transform 0.15s ease;
+    }
+    .style-btn-dispo:hover {
+        transform: translateY(-1px);
+    }
+    .action-icon-btn {
+        width: 30px !important;
+        height: 30px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.85rem !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -172,35 +194,35 @@
                         {% endif %}
                     </td>
                     <td class="text-end">
-                        <div class="d-flex justify-content-end gap-1">
+                        <div class="d-flex justify-content-end align-items-center gap-1.5">
                             {% if dispo.status == 'baru' %}
                                 {% if user.is_pimpinan or user.is_kabid or user.is_superadmin or user.is_sdm or request.session.active_pov == 'kabid_4' %}
-                                <a href="{% url 'dispositions:edit' dispo.pk %}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Isi Disposisi Ketua BAZNAS (Dapat di Take-Over Kabid IV)">
-                                    <i class="bi bi-pencil-square me-1"></i> Isi Disposisi Ketua
+                                <a href="{% url 'dispositions:edit' dispo.pk %}" class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm style-btn-dispo" title="Isi Disposisi Ketua BAZNAS">
+                                    <i class="bi bi-pencil-square me-1"></i> Disposisi
                                 </a>
                                 {% endif %}
                             {% endif %}
                             {% if dispo.status == 'didisposisi_ketua' %}
                                 {% if user.is_pimpinan or user.is_kabid or user.is_superadmin or request.session.active_pov == 'kabid_4' or request.session.active_pov == 'waka_4' %}
-                                <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="btn btn-info btn-sm rounded-pill px-3 fw-bold shadow-sm text-white" title="Isi Disposisi Waka IV (Dapat di Take-Over Kabid IV)">
-                                    <i class="bi bi-2-circle me-1"></i> Disposisi Waka IV
+                                <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="btn btn-info btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm text-white style-btn-dispo" title="Isi Disposisi Waka IV">
+                                    <i class="bi bi-2-circle me-1"></i> Disposisi Waka
                                 </a>
                                 {% endif %}
                             {% endif %}
                             {% if dispo.archive and dispo.archive.archive_type == 'proposal' or dispo.archive and 'bantuan' in dispo.archive.category.name|lower %}
                                 {% if dispo.report %}
-                                    <a href="{% url 'reports:detail' dispo.report.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Lihat LHP Selesai">
+                                    <a href="{% url 'reports:detail' dispo.report.pk %}" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-sm style-btn-dispo" title="Lihat LHP Selesai">
                                         <i class="bi bi-file-earmark-check-fill me-1"></i> LHP Selesai
                                     </a>
                                 {% elif dispo.status == 'selesai' or dispo.archive.status == 'selesai' or dispo.is_completed %}
-                                    <span class="badge bg-success text-white rounded-pill px-3 py-2 fw-bold">
-                                        <i class="bi bi-check-circle-fill me-1"></i> TELAH DISALURKAN
+                                    <span class="badge bg-success text-white rounded-pill px-2.5 py-1.5 fw-bold" style="font-size: 0.75rem;">
+                                        <i class="bi bi-check-circle-fill me-1"></i> DISALURKAN
                                     </span>
                                 {% else %}
                                     {% if user.is_waka_2 or user.is_kabid_2 or user.username == 'waka2' or user.username == 'kabid2' or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' or user.is_superuser and not request.session.active_pov %}
                                     <div class="dropdown d-inline-block">
-                                        <button class="btn btn-warning btn-sm rounded-pill px-3 fw-bold dropdown-toggle shadow-sm text-dark" type="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-handbag-fill me-1"></i> Penanganan Bidang II
+                                        <button class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-bold dropdown-toggle shadow-sm text-dark style-btn-dispo" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-handbag-fill me-1"></i> Bidang II
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2" style="z-index: 1080;">
                                             <li><h6 class="dropdown-header fw-bold text-dark mb-0"><i class="bi bi-handbag-fill text-warning me-1"></i>Opsi Penanganan Bantuan</h6></li>
@@ -211,18 +233,18 @@
                                     {% endif %}
                                 {% endif %}
                             {% endif %}
-                            <a href="{% url 'dispositions:detail' dispo.pk %}" class="btn btn-light btn-sm rounded-circle border shadow-sm" title="Lihat Detail">
+                            <a href="{% url 'dispositions:detail' dispo.pk %}" class="btn btn-light btn-sm rounded-circle border shadow-sm action-icon-btn" title="Lihat Detail">
                                 <i class="bi bi-eye"></i>
                             </a>
                             {% if dispo.status != 'baru' %}
-                            <a href="{% url 'dispositions:print' %}?ids={{ dispo.id }}" target="_blank" class="btn btn-light btn-sm rounded-circle border shadow-sm" title="Cetak Lembar Disposisi">
+                            <a href="{% url 'dispositions:print' %}?ids={{ dispo.id }}" target="_blank" class="btn btn-light btn-sm rounded-circle border shadow-sm action-icon-btn" title="Cetak Lembar Disposisi">
                                 <i class="bi bi-printer text-success"></i>
                             </a>
                             {% endif %}
                             {% if request.user.is_superadmin or request.user.is_pimpinan %}
                             <form action="{% url 'dispositions:delete' dispo.pk %}" method="post" class="d-inline" onsubmit="return confirm('Hapus disposisi ini?')">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-light btn-sm rounded-circle border shadow-sm" title="Hapus">
+                                <button type="submit" class="btn btn-light btn-sm rounded-circle border shadow-sm action-icon-btn" title="Hapus">
                                     <i class="bi bi-trash text-danger"></i>
                                 </button>
                             </form>
