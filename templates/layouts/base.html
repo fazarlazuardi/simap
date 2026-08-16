@@ -42,7 +42,7 @@
             background-color: #060D12 !important;
             background-image: url("{% static 'img/simap_bg.png' %}") !important;
             background-size: cover !important;
-            background-position: center center !important;
+            background-position: center top !important;
             background-attachment: fixed !important;
             background-repeat: no-repeat !important;
             min-height: 100vh;
@@ -59,13 +59,17 @@
             bottom: 0;
             pointer-events: none;
             z-index: 0;
-            transition: background-color 0.3s ease;
-            background-color: rgba(248, 250, 252, 0.35);
+            transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+            background-color: rgba(248, 250, 252, 0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
         }
         [data-theme="dark"] body::before {
-            background-color: rgba(6, 12, 20, 0.25);
+            background-color: rgba(6, 12, 20, 0.50);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
         }
-        #sidebar, #main-wrapper, #page-content-wrapper, .content-area, footer {
+        #sidebar, #main-wrapper, #page-content-wrapper, .content-area {
             position: relative;
             z-index: 1;
             background-color: transparent !important;
@@ -216,9 +220,15 @@
         }
 
         .top-navbar {
-            background: linear-gradient(135deg, #003b2b 0%, #003b29 100%) !important;
+            background: #003728 !important;
             color: #FFFFFF !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+            position: relative;
+            z-index: 1030;
+        }
+        [data-theme="dark"] .top-navbar {
+            background: #041f17 !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
 
         .top-navbar > div > .text-muted,
@@ -275,9 +285,14 @@
         }
 
         .main-global-footer {
-            background: linear-gradient(135deg, #003b2b 0%, #003b29 100%) !important;
+            background: #003728 !important;
             color: #FFFFFF !important;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+            position: relative;
+            z-index: 1030;
+        }
+        [data-theme="dark"] .main-global-footer {
+            background: #041f17 !important;
         }
 
 
