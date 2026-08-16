@@ -43,53 +43,75 @@
             min-height: 100vh;
         }
 
-        /* Frame background yang dibatasi secara presisi di antara Header, Sidebar, dan Footer */
+        #main-wrapper {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 1;
+        }
+
+        .content-area {
+            flex: 1 0 auto;
+            position: relative;
+            z-index: 1;
+            background-color: transparent !important;
+            background: transparent !important;
+            color: var(--text-primary);
+            animation: pageFadeIn 0.28s ease both;
+        }
+
+        .main-global-footer {
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1030;
+            background: #003728 !important;
+            color: #FFFFFF !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        [data-theme="dark"] .main-global-footer {
+            background: #041f17 !important;
+        }
+
+        /* Frame background yang dibatasi secara presisi di dalam content-area */
         #main-content-bg-frame {
-            position: fixed;
-            top: 60px; /* Batas bawah Top Navbar */
-            left: 250px; /* Batas kanan Sidebar */
+            position: absolute;
+            top: 0;
+            left: 0;
             right: 0;
-            bottom: 50px; /* Batas atas Footer */
+            bottom: 0;
             pointer-events: none;
             z-index: 0;
             background-image: url("{% static 'img/simap_bg.png' %}") !important;
-            background-size: contain !important;
-            background-position: center center !important;
+            background-size: 50% auto !important;
+            background-position: center 160px !important;
+            background-attachment: fixed !important;
             background-repeat: no-repeat !important;
-            transition: left 0.3s ease;
         }
 
         #main-content-bg-overlay {
-            position: fixed;
-            top: 60px;
-            left: 250px;
+            position: absolute;
+            top: 0;
+            left: 0;
             right: 0;
-            bottom: 50px;
+            bottom: 0;
             pointer-events: none;
             z-index: 0;
             background-color: rgba(248, 250, 252, 0.65);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
-            transition: left 0.3s ease, background-color 0.3s ease;
+            transition: background-color 0.3s ease;
         }
 
         [data-theme="dark"] #main-content-bg-overlay {
             background-color: rgba(6, 12, 20, 0.50);
         }
 
-        /* Penyesuaian saat Sidebar di-collapse */
-        #sidebar.collapsed ~ #main-wrapper #main-content-bg-frame,
-        #sidebar.collapsed ~ #main-wrapper #main-content-bg-overlay {
-            left: 80px;
-        }
-
         /* Penyesuaian Responsif Layar Seluler/Tablet */
         @media (max-width: 991.98px) {
-            #main-content-bg-frame,
-            #main-content-bg-overlay {
-                left: 0 !important;
-                top: 60px !important;
-                bottom: 50px !important;
+            #main-content-bg-frame {
+                background-size: 80% auto !important;
+                background-position: center 120px !important;
             }
         }
 
@@ -103,12 +125,7 @@
             background-color: #0B0F19 !important;
             background: #0B0F19 !important;
         }
-        #main-wrapper, #page-content-wrapper, .content-area {
-            position: relative;
-            z-index: 1;
-            background-color: transparent !important;
-            background: transparent !important;
-        }
+
         html[data-theme="dark"], html[data-theme="dark"] body {
             color: #F8FAFC !important;
         }
@@ -1070,12 +1087,11 @@
         </div>
         {% endif %}
 
-        <!-- Presisi Bounded Background Image Frame & Overlay -->
-        <div id="main-content-bg-frame"></div>
-        <div id="main-content-bg-overlay"></div>
-
         <!-- Content Area -->
         <main class="content-area">
+            <!-- Presisi Bounded Background Image Frame & Overlay -->
+            <div id="main-content-bg-frame"></div>
+            <div id="main-content-bg-overlay"></div>
             {% if is_kabid_4_active and unverified_count > 0 %}
             <div class="alert alert-banner-verify border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown">
                 <div class="d-flex align-items-center">
