@@ -236,6 +236,71 @@ def agenda_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Prefetch InternalMeeting for agendas on current page & build safe notulensi JSON
+    import json
+    meeting_ids = [a.internal_meeting_id for a in page_obj if a.internal_meeting_id]
+    meetings_map = {}
+    if meeting_ids:
+        from internal_meetings.models import InternalMeeting
+        meetings = InternalMeeting.objects.filter(pk__in=meeting_ids).select_related(
+            'notulis', 'leader'
+        ).prefetch_related('participants', 'action_items', 'notulensi_attachments', 'leaders')
+        meetings_map = {m.pk: m for m in meetings}
+
+    for a in page_obj:
+        im = meetings_map.get(a.internal_meeting_id) if a.internal_meeting_id else None
+        if im:
+            a.internal_meeting = im
+
+        att_list = []
+        if im:
+            if im.notulensi_file:
+                att_list.append({'url': im.notulensi_file.url, 'name': 'Berkas Utama Notulensi'})
+            for att in im.notulensi_attachments.all():
+                att_list.append({'url': att.file.url, 'name': att.file_name or 'Dokumen / Foto Notulensi'})
+        elif a.completed_file:
+            att_list.append({'url': a.completed_file.url, 'name': 'Berkas Dokumen Hasil Agenda'})
+
+        action_plan_list = []
+        if im:
+            for item in im.action_items.all():
+                action_plan_list.append({
+                    'id': item.pk,
+                    'title': item.title,
+                    'pic_id': item.pic_id or '',
+                    'due_date': item.due_date.strftime('%Y-%m-%d') if item.due_date else ''
+                })
+
+        p_ids = []
+        if im:
+            p_ids = [p.pk for p in im.participants.all()]
+        else:
+            p_ids = [emp.pk for emp in a.assigned_employees.all()]
+
+        notulensi_data = {
+            'id': a.pk,
+            'meeting_id': im.pk if im else (a.internal_meeting_id or ''),
+            'meeting_number': im.meeting_number if (im and im.meeting_number) else a.title,
+            'title': a.title,
+            'scheduled_at': a.scheduled_at.strftime('%d %b %Y, %H:%M WIB') if a.scheduled_at else '-',
+            'leader_names': im.leader_names_display if im else 'Pimpinan BAZNAS',
+            'leader_id': (im.leader_id if (im and im.leader_id) else '') or '',
+            'notulis_id': im.notulis_id if im else '',
+            'notulis_name': im.notulis_name_display if im else '-',
+            'meeting_type': im.meeting_type if im else 'khusus',
+            'guest_names': (im.guest_names if im else '') or '',
+            'status': a.status,
+            'summary': (im.notulensi_summary if (im and im.notulensi_summary) else a.completed_notes) or '',
+            'decision': (im.notulensi_decision if im else '') or '',
+            'action_items_text': (im.notulensi_action_items if im else '') or '',
+            'has_notulensi': bool((im and im.is_notulensi_completed) or a.completed_notes or a.completed_file),
+            'participants': p_ids,
+            'action_plan_items': action_plan_list,
+            'attachments': att_list,
+            'print_url': f'/rapat-internal/{im.pk}/print/' if im else '#'
+        }
+        a.notulensi_json = json.dumps(notulensi_data)
+
     return render(request, 'agendas/list.html', {
         'page_obj': page_obj,
         'agendas': page_obj,
@@ -606,30 +671,33 @@ def agenda_notify(request, pk):
             f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
         )
 
-        users = list(agenda.assigned_to.all())
-        
-        employees_from_dispo = Employee.objects.filter(
-            received_dispositions__archive=archive, user_account__isnull=True
-        ) if archive else Employee.objects.none()
-        
-        sent = 0
-        for user in users:
-            if WhatsAppService.send_notification(user=user, message=msg, category='agenda', title="Pengingat Agenda"):
-                sent += 1
-        for emp in employees_from_dispo:
-            if WhatsAppService.send_notification(message=msg, employee=emp, category='agenda', title="Pengingat Agenda"):
-                sent += 1
+        # Target penerima notifikasi WA: seluruh Pegawai Ditugaskan & User terkait
+        target_employees = set(agenda.assigned_employees.all())
+        for u in agenda.assigned_to.all():
+            if hasattr(u, 'employee') and u.employee:
+                target_employees.add(u.employee)
 
-        total_target = len(users) + employees_from_dispo.count()
-        if total_target == 0:
-            messages.warning(request, f"Tidak ada pegawai yang terdaftar untuk agenda '{agenda.title}'. Tambahkan penerima melalui edit agenda/disposisi.")
+        if archive:
+            dispo_emps = Employee.objects.filter(received_dispositions__archive=archive)
+            for de in dispo_emps:
+                target_employees.add(de)
+
+        if not target_employees:
+            messages.warning(request, f"Tidak ada pegawai yang ditugaskan untuk agenda '{agenda.title}'. Tambahkan pegawai melalui edit agenda.")
             return redirect('agendas:list')
+
+        sent = 0
+        user_map = {u.employee_id: u for u in User.objects.filter(employee__in=target_employees)}
+        for emp in target_employees:
+            user = user_map.get(emp.pk)
+            if WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='agenda', title="Pengingat Agenda"):
+                sent += 1
 
         agenda.notification_sent_at = timezone.now()
         agenda.save(update_fields=['notification_sent_at'])
 
         AuditService.log_action(request.user, f"Kirim Notifikasi Pengingat Agenda: {agenda.title}", request)
-        messages.success(request, f"Notifikasi WA dikirim ke {sent} dari {total_target} penerima untuk agenda '{agenda.title}'.")
+        messages.success(request, f"Notifikasi WA dikirim ke {sent} dari {len(target_employees)} pegawai ditugaskan untuk agenda '{agenda.title}'.")
     return redirect('agendas:list')
 
 
@@ -640,7 +708,7 @@ def agenda_events(request):
     disposer = request.GET.get('disposer')
     terkait_user = request.GET.get('terkait_user')
     
-    events = Agenda.objects.select_related('archive').all()
+    events = Agenda.objects.select_related('archive').prefetch_related('assigned_to', 'assigned_employees').all()
 
     if start and end:
         events = events.filter(scheduled_at__range=[start, end])
@@ -681,6 +749,8 @@ def agenda_events(request):
         elif event.archive:
             event_url = f'/archives/{event.archive.pk}/'
 
+        src_type = 'sppd' if (event.is_sppd_generated or event.sppd_ref) else ('meeting' if event.internal_meeting_id else 'agenda')
+
         data.append({
             'id': event.id,
             'title': event.title,
@@ -688,7 +758,13 @@ def agenda_events(request):
             'backgroundColor': bg_color,
             'borderColor': bg_color,
             'textColor': text_color,
-            'url': event_url
+            'url': event_url,
+            'extendedProps': {
+                'location': event.location or 'Kantor BAZNAS',
+                'assigned_to': event.assigned_names_display or 'Internal',
+                'source_type': src_type,
+                'status': event.get_status_display()
+            }
         })
 
     holidays_2026 = [
@@ -727,7 +803,13 @@ def agenda_events(request):
             'borderColor': '#B91C1C',
             'textColor': '#FFFFFF',
             'allDay': True,
-            'url': '#'
+            'url': '#',
+            'extendedProps': {
+                'location': 'Nasional / Seluruh Indonesia',
+                'assigned_to': 'Seluruh Amil & Pegawai BAZNAS',
+                'source_type': 'holiday',
+                'status': 'Hari Libur Official'
+            }
         })
 
     return JsonResponse(data, safe=False)
@@ -821,8 +903,10 @@ def agenda_upload_notulensi(request, pk):
         action_items = request.POST.get('notulensi_action_items', '').strip()
         notulis_id = request.POST.get('notulis')
         status_val = request.POST.get('status', 'selesai')
+        participant_ids = request.POST.getlist('participants')
         
-        files = request.FILES.getlist('completed_files') or request.FILES.getlist('completed_file') or request.FILES.getlist('notulensi_file')
+        files = request.FILES.getlist('notulensi_files') or request.FILES.getlist('completed_files') or request.FILES.getlist('completed_file') or request.FILES.getlist('notulensi_file')
+        file_labels = request.POST.getlist('notulensi_file_labels[]')
         single_file = request.FILES.get('notulensi_file') or (files[0] if files else None)
 
         notes_combined = summary
@@ -838,38 +922,133 @@ def agenda_upload_notulensi(request, pk):
         if files:
             from .models import AgendaAttachment
             for idx, uploaded_f in enumerate(files):
+                label = file_labels[idx] if idx < len(file_labels) and file_labels[idx].strip() else f"Dokumentasi #{idx+1} - {agenda.title}"
                 AgendaAttachment.objects.create(
                     agenda=agenda,
                     file=uploaded_f,
-                    description=f"Dokumentasi #{idx+1} - {agenda.title}"
+                    description=label
                 )
 
         agenda.is_completed = True
         agenda.status = status_val if status_val in ['terjadwal', 'berlangsung', 'selesai', 'dibatalkan'] else 'selesai'
         agenda.save()
 
-        # Update synced InternalMeeting if applicable
+        # Update or Create synced InternalMeeting & Action Items
+        from internal_meetings.models import InternalMeeting, MeetingActionItem, MeetingNotulensiAttachment
+        from users.models import Employee
+
+        meeting = None
         if agenda.internal_meeting_id:
+            meeting = InternalMeeting.objects.filter(pk=agenda.internal_meeting_id).first()
+
+        notulis_emp = Employee.objects.filter(pk=int(notulis_id)).first() if (notulis_id and str(notulis_id).isdigit()) else None
+        leader_id = request.POST.get('leader')
+        leader_emp = Employee.objects.filter(pk=int(leader_id)).first() if (leader_id and str(leader_id).isdigit()) else None
+
+        guest_names_val = request.POST.get('guest_names', '').strip()
+        meeting_type_val = request.POST.get('meeting_type', '')
+
+        if not meeting and (summary or decision or request.POST.getlist('action_title[]') or guest_names_val):
             try:
-                from internal_meetings.models import InternalMeeting
-                from users.models import Employee
-                meeting = InternalMeeting.objects.filter(pk=agenda.internal_meeting_id).first()
-                if meeting:
-                    meeting.notulensi_summary = summary
-                    meeting.notulensi_decision = decision
-                    meeting.notulensi_action_items = action_items
-                    if notulis_id and str(notulis_id).isdigit():
-                        notulis_emp = Employee.objects.filter(pk=int(notulis_id)).first()
-                        if notulis_emp:
-                            meeting.notulis = notulis_emp
-                            agenda.assigned_employees.set([notulis_emp])
-                    if single_file:
-                        meeting.notulensi_file = single_file
-                    meeting.status = agenda.status
-                    meeting.notulensi_created_at = timezone.now()
-                    meeting.save()
+                meeting = InternalMeeting.objects.create(
+                    title=agenda.title,
+                    meeting_type=meeting_type_val if meeting_type_val else ('audiensi' if ('audiensi' in agenda.title.lower() or 'tamu' in agenda.title.lower()) else 'khusus'),
+                    scheduled_at=agenda.scheduled_at,
+                    location=agenda.location or 'Kantor BAZNAS',
+                    agenda_topics=agenda.description or agenda.title,
+                    status=agenda.status,
+                    created_by=request.user,
+                    notulensi_summary=summary,
+                    notulensi_decision=decision,
+                    notulensi_action_items=action_items,
+                    guest_names=guest_names_val,
+                    leader=leader_emp,
+                    notulis=notulis_emp,
+                    notulensi_created_at=timezone.now()
+                )
+                if leader_emp:
+                    meeting.leaders.set([leader_emp])
+                elif agenda.assigned_employees.exists():
+                    meeting.leaders.set(agenda.assigned_employees.all())
+
+                agenda.description = f"InternalMeetingID:{meeting.pk}\n\n{agenda.description or ''}"
+                agenda.save(update_fields=['description'])
+            except Exception as e_mtg:
+                print("Error creating InternalMeeting for agenda:", e_mtg)
+
+        if meeting:
+            try:
+                meeting.notulensi_summary = summary
+                meeting.notulensi_decision = decision
+                meeting.notulensi_action_items = action_items
+                meeting.guest_names = guest_names_val
+                if meeting_type_val:
+                    meeting.meeting_type = meeting_type_val
+                if leader_emp:
+                    meeting.leader = leader_emp
+                    meeting.leaders.set([leader_emp])
+                elif not meeting.leaders.exists() and agenda.assigned_employees.exists():
+                    meeting.leaders.set(agenda.assigned_employees.all())
+
+                if notulis_emp:
+                    meeting.notulis = notulis_emp
+                if participant_ids:
+                    p_emps = Employee.objects.filter(pk__in=participant_ids)
+                    meeting.participants.set(p_emps)
+                if single_file:
+                    meeting.notulensi_file = single_file
+                meeting.status = agenda.status
+                meeting.notulensi_created_at = timezone.now()
+                meeting.save()
+
+                if files:
+                    for idx, uploaded_f in enumerate(files):
+                        label = file_labels[idx] if idx < len(file_labels) and file_labels[idx].strip() else f"Lampiran #{idx+1}"
+                        MeetingNotulensiAttachment.objects.create(
+                            meeting=meeting,
+                            file=uploaded_f,
+                            file_name=label
+                        )
+
+                # Process Dynamic Action Plan Items
+                action_titles = request.POST.getlist('action_title[]')
+                action_pics = request.POST.getlist('action_pic[]')
+                action_due_dates = request.POST.getlist('action_due_date[]')
+                action_ids = request.POST.getlist('action_id[]')
+
+                processed_ids = []
+                for i, title in enumerate(action_titles):
+                    title_str = title.strip()
+                    if not title_str:
+                        continue
+
+                    item_id = action_ids[i] if i < len(action_ids) else None
+                    pic_id = action_pics[i] if i < len(action_pics) and action_pics[i] else None
+                    due_date_val = action_due_dates[i] if i < len(action_due_dates) and action_due_dates[i] else None
+                    pic_obj = Employee.objects.filter(pk=pic_id).first() if pic_id else None
+
+                    if item_id and item_id.isdigit():
+                        item = MeetingActionItem.objects.filter(pk=int(item_id), meeting=meeting).first()
+                        if item:
+                            item.title = title_str
+                            item.pic = pic_obj
+                            if due_date_val:
+                                item.due_date = due_date_val
+                            item.save()
+                            processed_ids.append(item.pk)
+                            continue
+
+                    new_item = MeetingActionItem.objects.create(
+                        meeting=meeting,
+                        title=title_str,
+                        pic=pic_obj,
+                        due_date=due_date_val if due_date_val else None,
+                        is_tracked=True
+                    )
+                    processed_ids.append(new_item.pk)
             except Exception as err:
                 print("Error updating InternalMeeting from Agenda notulensi:", err)
+
         agenda.status = 'selesai'
         agenda.save()
 
@@ -924,7 +1103,7 @@ def agenda_upload_notulensi(request, pk):
             logging.getLogger(__name__).warning("Failed to auto sync Agenda Notulensi to Report: %s", e)
 
         AuditService.log_action(request.user, f"Upload Notulensi Agenda: {agenda.title}", request)
-        messages.success(request, f"Notulensi & {len(files)} Berkas Dokumentasi Hasil Agenda '{agenda.title}' berhasil disimpan dan SPPD terkait diselesaikan.")
+        messages.success(request, f"Notulensi & Hasil Agenda '{agenda.title}' berhasil disimpan.")
         return redirect('agendas:list')
 
     return redirect('agendas:list')

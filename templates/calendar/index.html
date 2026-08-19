@@ -310,14 +310,13 @@
                 },
                 events: function(info, successCallback, failureCallback) {
                     // Ambil event dari API Agendas backend
-                    fetch('/agendas/api/events/?start=' + info.startStr + '&end=' + info.endStr)
+                    fetch('/agendas/events/?start=' + info.startStr + '&end=' + info.endStr)
                         .then(response => response.json())
                         .then(data => {
                             successCallback(data);
                         })
                         .catch(error => {
                             console.error('Error fetching calendar events:', error);
-                            // Fallback jika API backend belum selesai memuat
                             successCallback([]);
                         });
                 },
@@ -327,11 +326,20 @@
                     
                     document.getElementById('eventModalName').innerText = ev.title;
                     document.getElementById('eventModalDate').innerText = ev.start ? ev.start.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
-                    document.getElementById('eventModalLocation').innerText = ev.extendedProps.location || ev.extendedProps.lokasi || 'Kantor BAZNAS';
-                    document.getElementById('eventModalAssigned').innerText = ev.extendedProps.assigned_to || ev.extendedProps.personel || 'Internal / Seluruh Pegawai';
+                    document.getElementById('eventModalLocation').innerText = (ev.extendedProps && (ev.extendedProps.location || ev.extendedProps.lokasi)) || 'Kantor BAZNAS';
+                    document.getElementById('eventModalAssigned').innerText = (ev.extendedProps && (ev.extendedProps.assigned_to || ev.extendedProps.personel)) || 'Internal / Seluruh Pegawai';
                     
                     var badge = document.getElementById('eventModalBadge');
-                    badge.innerText = ev.extendedProps.source_type === 'sppd' ? 'Perjalanan Dinas (SPPD)' : 'Agenda Kerja';
+                    var sourceType = ev.extendedProps ? ev.extendedProps.source_type : '';
+                    if (sourceType === 'sppd') {
+                        badge.innerText = 'Perjalanan Dinas (SPPD)';
+                    } else if (sourceType === 'meeting') {
+                        badge.innerText = 'Rapat Internal';
+                    } else if (sourceType === 'holiday') {
+                        badge.innerText = 'Hari Libur Nasional';
+                    } else {
+                        badge.innerText = 'Agenda Kerja';
+                    }
                     badge.style.backgroundColor = ev.backgroundColor || '#0E9F6E';
                     badge.style.color = '#FFFFFF';
 

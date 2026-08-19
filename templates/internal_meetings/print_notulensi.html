@@ -470,39 +470,47 @@
 
                 <!-- JUDUL DOKUMEN -->
                 <div class="document-title">
-                    <h4>NOTULENSI RAPAT INTERNAL</h4>
+                    <h4>{% if is_audiensi or meeting.meeting_type == 'audiensi' %}NOTULENSI AUDIENSI / PENERIMAAN TAMU{% else %}NOTULENSI RAPAT INTERNAL{% endif %}</h4>
                     <p>Nomor: {{ meeting.meeting_number|default:"-" }}</p>
                 </div>
 
-                <!-- RINCIAN INFORMASI RAPAT -->
+                <!-- RINCIAN INFORMASI RAPAT / AUDIENSI -->
                 <table class="gov-table">
                     <colgroup>
-                        <col style="width: 23%;">
-                        <col style="width: 27%;">
+                        <col style="width: 25%;">
+                        <col style="width: 25%;">
                         <col style="width: 20%;">
                         <col style="width: 30%;">
                     </colgroup>
                     <tr>
-                        <td class="lbl-col">Nama Rapat / Perihal</td>
+                        <td class="lbl-col">{% if is_audiensi or meeting.meeting_type == 'audiensi' %}Perihal / Topik Audiensi{% else %}Nama Rapat / Perihal{% endif %}</td>
                         <td style="font-weight: bold;" colspan="3">{{ meeting.title }}</td>
                     </tr>
                     <tr>
-                        <td class="lbl-col">Pimpinan Rapat</td>
+                        <td class="lbl-col">
+                            {% if is_audiensi or meeting.meeting_type == 'audiensi' %}
+                            Petugas Amil / Amil yang Menerima
+                            {% else %}
+                            Pimpinan Rapat
+                            {% endif %}
+                        </td>
                         <td colspan="3">
                             {% if meeting.ordered_leaders %}
                             <ol style="margin: 0; padding-left: 18px;">
                                 {% for l in meeting.ordered_leaders %}
-                                <li><strong>{{ l.full_name }}</strong> ({% if l.position %}{{ l.position }}{% else %}Pimpinan BAZNAS{% endif %})</li>
+                                <li><strong>{{ l.full_name }}</strong> ({% if l.position %}{{ l.position }}{% else %}Amil BAZNAS{% endif %})</li>
                                 {% endfor %}
                             </ol>
+                            {% elif meeting.leader %}
+                            <strong>{{ meeting.leader.full_name }}</strong> ({% if meeting.leader.position %}{{ meeting.leader.position }}{% else %}Amil BAZNAS{% endif %})
                             {% else %}
                             -
                             {% endif %}
                         </td>
                     </tr>
                     <tr>
-                        <td class="lbl-col">Jenis Rapat</td>
-                        <td>{{ meeting.get_meeting_type_display }}</td>
+                        <td class="lbl-col">Jenis Kegiatan</td>
+                        <td>{% if is_audiensi or meeting.meeting_type == 'audiensi' %}Audiensi / Penerimaan Tamu{% else %}{{ meeting.get_meeting_type_display }}{% endif %}</td>
                         <td class="lbl-col">Tempat / Ruang</td>
                         <td>{{ meeting.location }}</td>
                     </tr>
@@ -511,8 +519,14 @@
                         <td colspan="3">{{ meeting.scheduled_at|date:"l, d F Y" }} — Jam {{ meeting.scheduled_at|date:"H:i" }} WIB</td>
                     </tr>
                     <tr>
-                        <td class="lbl-col">Daftar Peserta Hadir</td>
-                        <td colspan="3">Pegawai BAZNAS Kab. Tangerang</td>
+                        <td class="lbl-col">Peserta / Tamu</td>
+                        <td colspan="3">
+                            {% if is_audiensi or meeting.meeting_type == 'audiensi' %}
+                            Tamu / Perwakilan Instansi (Terlampir pada Presensi Tamu)
+                            {% else %}
+                            Pegawai BAZNAS Kab. Tangerang
+                            {% endif %}
+                        </td>
                     </tr>
                 </table>
 
@@ -646,26 +660,28 @@
                 </div>
 
                 <div class="document-title">
-                    <h4>DAFTAR KEHADIRAN / PRESENSI PESERTA RAPAT INTERNAL</h4>
+                    <h4>{% if is_audiensi or meeting.meeting_type == 'audiensi' %}DAFTAR KEHADIRAN / PRESENSI TAMU & AUDIENSI{% else %}DAFTAR KEHADIRAN / PRESENSI PESERTA RAPAT INTERNAL{% endif %}</h4>
                     <p>Agenda: {{ meeting.title }}</p>
                 </div>
 
                 <table class="gov-table">
                     <colgroup>
-                        <col style="width: 22%;">
-                        <col style="width: 38%;">
-                        <col style="width: 18%;">
-                        <col style="width: 22%;">
+                        <col style="width: 25%;">
+                        <col style="width: 35%;">
+                        <col style="width: 15%;">
+                        <col style="width: 25%;">
                     </colgroup>
                     <tr>
-                        <td class="lbl-col">Pimpinan Rapat</td>
+                        <td class="lbl-col">{% if is_audiensi or meeting.meeting_type == 'audiensi' %}Petugas Amil / Amil yang Menerima{% else %}Pimpinan Rapat{% endif %}</td>
                         <td colspan="3">
                             {% if meeting.ordered_leaders %}
                             <ol style="margin: 0; padding-left: 18px;">
                                 {% for l in meeting.ordered_leaders %}
-                                <li><strong>{{ l.full_name }}</strong> ({% if l.position %}{{ l.position }}{% else %}Pimpinan BAZNAS{% endif %})</li>
+                                <li><strong>{{ l.full_name }}</strong> ({% if l.position %}{{ l.position }}{% else %}Amil BAZNAS{% endif %})</li>
                                 {% endfor %}
                             </ol>
+                            {% elif meeting.leader %}
+                            <strong>{{ meeting.leader.full_name }}</strong> ({% if meeting.leader.position %}{{ meeting.leader.position }}{% else %}Amil BAZNAS{% endif %})
                             {% else %}
                             -
                             {% endif %}
@@ -679,7 +695,82 @@
                     </tr>
                 </table>
 
-                <!-- TABEL PESERTA HADIR -->
+                {% if is_audiensi or meeting.meeting_type == 'audiensi' %}
+                <!-- TABEL PRESENSI TAMU (AUDIENSI / PENERIMAAN TAMU / KERJA SAMA) -->
+                <table class="gov-table" style="margin-top: 6px;">
+                    <colgroup>
+                        <col style="width: 8%;">
+                        <col style="width: 35%;">
+                        <col style="width: 35%;">
+                        <col style="width: 22%;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>NO.</th>
+                            <th>NAMA TAMU / PERWAKILAN</th>
+                            <th>INSTANSI / ALAMAT TAMU</th>
+                            <th>TANDA TANGAN / KET.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if meeting.guest_names_list %}
+                            {% for guest_item in meeting.guest_names_list %}
+                            <tr>
+                                <td style="text-align: center;">{{ forloop.counter }}</td>
+                                <td style="font-weight: bold;">{{ guest_item.name }}</td>
+                                <td>{{ guest_item.institution }}</td>
+                                <td style="text-align: center; font-weight: bold;">[ HADIR ]</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <!-- BARIS KOSONG STANDAR UNTUK DIISI MANUAL DENGAN PENA/TANDATANGAN TAMU -->
+                            <tr>
+                                <td style="text-align: center; height: 32px;">1.</td>
+                                <td></td>
+                                <td></td>
+                                <td style="text-align: center; font-size: 8pt; color: #666;">1. ..................</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center; height: 32px;">2.</td>
+                                <td></td>
+                                <td></td>
+                                <td style="text-align: center; font-size: 8pt; color: #666;">2. ..................</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center; height: 32px;">3.</td>
+                                <td></td>
+                                <td></td>
+                                <td style="text-align: center; font-size: 8pt; color: #666;">3. ..................</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center; height: 32px;">4.</td>
+                                <td></td>
+                                <td></td>
+                                <td style="text-align: center; font-size: 8pt; color: #666;">4. ..................</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center; height: 32px;">5.</td>
+                                <td></td>
+                                <td></td>
+                                <td style="text-align: center; font-size: 8pt; color: #666;">5. ..................</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center; height: 32px;">6.</td>
+                                <td></td>
+                                <td></td>
+                                <td style="text-align: center; font-size: 8pt; color: #666;">6. ..................</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center; height: 32px;">7.</td>
+                                <td></td>
+                                <td></td>
+                                <td style="text-align: center; font-size: 8pt; color: #666;">7. ..................</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                {% else %}
+                <!-- TABEL PESERTA HADIR INTERNAL PEGAWAI BAZNAS -->
                 <table class="gov-table" style="margin-top: 6px;">
                     <colgroup>
                         <col style="width: 8%;">
@@ -712,6 +803,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                {% endif %}
             </div>
 
             <div class="sheet-footer">

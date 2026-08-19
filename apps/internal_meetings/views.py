@@ -516,16 +516,31 @@ def toggle_action_item_status(request, pk, item_id):
 @login_required
 def meeting_print_notulensi(request, pk):
     """
-    Format Cetak Risalah Notulensi Rapat Internal Resmi BAZNAS Kabupaten Tangerang.
-    Ukuran Letter 1 Lembar Pas Presisi.
+    Format Cetak Risalah Notulensi Rapat Internal / Audiensi Resmi BAZNAS Kabupaten Tangerang.
     """
     meeting = get_object_or_404(
         InternalMeeting.objects.select_related('leader', 'notulis', 'created_by').prefetch_related('leaders', 'participants'),
         pk=pk
     )
 
+    # Auto-fill fallback jika leader/leaders belum terisi
+    if not meeting.ordered_leaders:
+        from agendas.models import Agenda
+        agenda = Agenda.objects.filter(description__icontains=f"InternalMeetingID:{meeting.pk}").first()
+        if agenda and agenda.assigned_employees.exists():
+            meeting.leaders.set(agenda.assigned_employees.all())
+        elif meeting.notulis:
+            meeting.leader = meeting.notulis
+
+    title_lower = (meeting.title or '').lower()
+    is_audiensi = (
+        meeting.meeting_type == 'audiensi' or
+        any(kw in title_lower for kw in ['audiensi', 'tamu', 'kerja sama', 'kerjasama', 'permohonan', 'kunjungan', 'penerimaan'])
+    )
+
     return render(request, 'internal_meetings/print_notulensi.html', {
         'meeting': meeting,
+        'is_audiensi': is_audiensi,
     })
 
 

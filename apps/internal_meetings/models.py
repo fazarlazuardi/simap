@@ -11,6 +11,7 @@ class InternalMeeting(models.Model):
         ('pleno', 'Rapat Pleno Bidang'),
         ('evaluasi', 'Rapat Evaluasi & Koordinasi'),
         ('khusus', 'Rapat Internal / Khusus'),
+        ('audiensi', 'Audiensi / Penerimaan Tamu / Kerja Sama'),
     ]
 
     STATUS_CHOICES = [
@@ -83,6 +84,9 @@ class InternalMeeting(models.Model):
         validators=[validate_file_extension, validate_file_size],
         verbose_name="Dokumen Bukti / Foto Notulensi"
     )
+    guest_names = models.TextField(
+        blank=True, null=True, verbose_name="Daftar Tamu / Perwakilan Tamu (Ditulis Manual)"
+    )
     notulensi_created_at = models.DateTimeField(
         null=True, blank=True, verbose_name="Waktu Notulensi Disimpan"
     )
@@ -102,6 +106,21 @@ class InternalMeeting(models.Model):
     @property
     def is_notulensi_completed(self):
         return bool(self.status == 'selesai' or self.notulensi_summary or self.notulensi_decision)
+
+    @property
+    def guest_names_list(self):
+        """Mengurai daftar tamu baris per baris untuk cetak presensi audiensi."""
+        if not self.guest_names:
+            return []
+        lines = [l.strip() for l in self.guest_names.split('\n') if l.strip()]
+        result = []
+        for line in lines:
+            parts = line.split('-', 1) if '-' in line else line.split(',', 1)
+            if len(parts) > 1:
+                result.append({'name': parts[0].strip(), 'institution': parts[1].strip()})
+            else:
+                result.append({'name': line, 'institution': '-'})
+        return result
 
     @property
     def ordered_participants(self):

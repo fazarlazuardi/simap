@@ -220,20 +220,6 @@ class Agenda(models.Model):
         verbose_name_plural = "Agenda Kerja BAZNAS"
         ordering = ['-scheduled_at']
 
-    def __str__(self):
-        return f"[{self.get_status_display()}] {self.title}"
-
-
-class AgendaAttachment(models.Model):
-    agenda = models.ForeignKey(Agenda, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to='agendas/attachments/%Y/%m/%d/', validators=[validate_file_extension, validate_file_size])
-    description = models.CharField(max_length=255, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Lampiran Agenda #{self.agenda_id}: {self.description or self.file.name}"
-
-
     @property
     def is_upcoming(self):
         """Mengecek apakah agenda masih di masa depan dan berstatus terjadwal."""
@@ -282,6 +268,7 @@ class AgendaAttachment(models.Model):
                     send_wa_message.delay(p, message, metadata={'agenda_id': self.pk})
         except Exception as e:
             print('Error in Agenda post-save integration:', e)
+
     @property
     def assigned_names_display(self):
         """Mengembalikan daftar nama penerima/staf yang ditugaskan."""
@@ -299,6 +286,16 @@ class AgendaAttachment(models.Model):
                 names.append(emp.full_name)
                 
         return ', '.join(names) if names else '-'
+
+
+class AgendaAttachment(models.Model):
+    agenda = models.ForeignKey(Agenda, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to='agendas/attachments/%Y/%m/%d/', validators=[validate_file_extension, validate_file_size])
+    description = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Lampiran Agenda #{self.agenda_id}: {self.description or self.file.name}"
 
 
 class CalendarEvent(models.Model):
