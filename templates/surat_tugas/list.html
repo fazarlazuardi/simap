@@ -4,41 +4,42 @@
 {% block title %}Daftar Surat Tugas - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <style>
-    .nav-pills .nav-link { color: var(--text-secondary, #64748b); border-radius: 12px; transition: all 0.25s ease; padding: 0.65rem 1.3rem; font-weight: 700; font-size: 0.85rem; }
-    .nav-pills .nav-link.active { background-color: #059669 !important; color: white !important; shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    .nav-pills .nav-link:hover:not(.active) { background-color: rgba(16, 185, 129, 0.1); color: #059669; }
-    table.dataTable thead > tr > th { border-bottom: none !important; }
-    table.dataTable.no-footer { border-bottom: 1px solid var(--border-color, #e2e8f0) !important; }
-    div.dataTables_wrapper div.dataTables_info,
-    div.dataTables_wrapper div.dataTables_paginate { padding-top: 1rem !important; }
-    div.dataTables_wrapper .pagination .page-item.active .page-link {
-        background-color: #059669 !important;
-        border-color: #059669 !important;
-        color: #ffffff !important;
-    }
-    div.dataTables_wrapper .pagination .page-link {
-        color: var(--text-primary, #0f172a);
+    /* Custom DataTables Tailwind Integration Styling */
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
         background-color: var(--card-bg, #ffffff);
-        border-color: var(--border-color, #cbd5e1);
-        border-radius: 8px;
-        margin: 0 2px;
+        border: 1px solid var(--border-color, #cbd5e1);
+        border-radius: 0.75rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+        color: var(--text-primary, #0f172a);
+        outline: none;
     }
-    .badge-pengirim {
-        background-color: var(--surface-alt, #f1f5f9) !important;
-        color: var(--text-primary, #0f172a) !important;
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    }
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.75rem;
+        color: var(--text-secondary, #64748b) !important;
+        padding-top: 1rem !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        border-radius: 0.5rem !important;
         border: 1px solid var(--border-color, #cbd5e1) !important;
-        font-weight: 600;
+        background: var(--card-bg, #ffffff) !important;
+        color: var(--text-primary, #0f172a) !important;
+        font-weight: 700 !important;
+        padding: 0.25rem 0.65rem !important;
+        margin: 0 2px !important;
     }
-    .badge-penerima {
-        background-color: rgba(13, 138, 82, 0.15) !important;
-        color: #10b981 !important;
-        border: 1px solid rgba(16, 185, 129, 0.3) !important;
-        font-weight: 700;
-    }
-    .tab-pane.fade {
-        transition: opacity 0.2s linear;
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: #059669 !important;
+        color: #ffffff !important;
+        border-color: #059669 !important;
     }
 </style>
 {% endblock %}
@@ -46,7 +47,7 @@
 {% block content %}
 <div class="container-fluid py-3">
 
-    <!-- TAILWIND ENTERPRISE HEADER BANNER (SAME FULL WIDTH AS MODUL DISPOSISI) -->
+    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -65,27 +66,23 @@
         </div>
     </div>
 
-    <!-- TAB NAVIGASI UTAMA (BOOTSTRAP NAV PILLS UNIFIED FULL WIDTH) -->
-    <ul class="nav nav-pills p-2 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm gap-2" id="suratTugasTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active d-flex align-items-center gap-2" id="disposition-tab" data-bs-toggle="pill" data-bs-target="#tab-disposition" type="button" role="tab" aria-controls="tab-disposition" aria-selected="true">
-                <i class="bi bi-file-earmark-check"></i>1. Dokumen Siap Surat Tugas (Disposisi)
-                <span class="badge bg-white text-emerald-800 font-mono fw-bold rounded-pill ms-1">{{ dispositions_pending_st|length }}</span>
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link d-flex align-items-center gap-2" id="history-tab" data-bs-toggle="pill" data-bs-target="#tab-history" type="button" role="tab" aria-controls="tab-history" aria-selected="false">
-                <i class="bi bi-journal-text"></i>2. Riwayat Surat Tugas Terbit
-                <span class="badge bg-secondary-subtle text-secondary font-mono fw-bold rounded-pill ms-1">{{ surat_list|length }}</span>
-            </button>
-        </li>
-    </ul>
+    <!-- PURE TAILWIND TAB SWITCHER NAV BAR -->
+    <div class="p-2 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex flex-wrap gap-2" id="stPureTabNav">
+        <button type="button" class="st-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer bg-emerald-600 text-white shadow-sm inline-flex items-center gap-2" data-tab-target="st-pane-disposition">
+            <i class="bi bi-file-earmark-check text-sm"></i> 1. Dokumen Siap Surat Tugas (Disposisi)
+            <span class="px-2 py-0.5 text-[10px] bg-white/20 text-white rounded-full font-mono font-bold">{{ dispositions_pending_st|length }}</span>
+        </button>
+        <button type="button" class="st-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 inline-flex items-center gap-2" data-tab-target="st-pane-history">
+            <i class="bi bi-journal-text text-sm"></i> 2. Riwayat Surat Tugas Terbit
+            <span class="px-2 py-0.5 text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-full font-mono font-bold">{{ surat_list|length }}</span>
+        </button>
+    </div>
 
-    <!-- TAB CONTENT CONTAINER (SMOOTH FADE SINGLE SPOT VIEW) -->
-    <div class="tab-content" id="suratTugasTabContent">
+    <!-- PURE TAILWIND TAB CONTENT CONTAINER -->
+    <div id="stPureTabContent">
 
         <!-- TAB 1: DOKUMEN SIAP SURAT TUGAS -->
-        <div class="tab-pane fade show active" id="tab-disposition" role="tabpanel" aria-labelledby="disposition-tab">
+        <div class="st-tab-pane block" id="st-pane-disposition">
             <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                     <h3 class="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wider mb-0 flex items-center gap-2">
@@ -96,70 +93,72 @@
                     </span>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" id="tableDisposisiPendingST" style="width:100%;">
-                        <thead class="table-light text-uppercase" style="font-size: 0.75rem;">
-                            <tr>
-                                <th class="ps-3 py-3">Tgl. Disposisi</th>
-                                <th class="py-3">No. Dokumen / Arsip</th>
-                                <th class="py-3">Perihal</th>
-                                <th class="py-3">Alur Pengirim ➔ Penerima</th>
-                                <th class="py-3">Arahan Pimpinan</th>
-                                <th class="py-3 text-end pe-3">Aksi</th>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="tableDisposisiPendingST">
+                        <thead>
+                            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                <th class="p-3">Tgl. Disposisi</th>
+                                <th class="p-3">No. Dokumen / Arsip</th>
+                                <th class="p-3">Perihal</th>
+                                <th class="p-3">Alur Disposisi</th>
+                                <th class="p-3">Arahan Pimpinan</th>
+                                <th class="p-3 text-right">Aksi Penerbitan</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs">
                             {% for dispo in dispositions_pending_st %}
-                            <tr>
-                                <td class="ps-3 small text-nowrap" style="color: var(--text-secondary);">{{ dispo.created_at|date:"d/m/Y, H:i" }}</td>
-                                <td class="fw-bold text-success font-mono">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-all">
+                                <td class="p-3 font-mono font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">{{ dispo.created_at|date:"d/m/Y, H:i" }}</td>
+                                <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                                     {{ dispo.archive.archive_number|default:dispo.disposition_number }}
                                 </td>
-                                <td class="fw-semibold" style="color: var(--text-primary);">
+                                <td class="p-3 font-semibold text-slate-900 dark:text-slate-100">
                                     {{ dispo.archive.title|default:dispo.note|truncatechars:40 }}
                                 </td>
-                                <td class="small">
-                                    <span class="badge badge-pengirim px-2 py-1 rounded-pill">
-                                        <i class="bi bi-person-badge me-1"></i>{{ dispo.latest_sender_position }}
-                                    </span>
-                                    <i class="bi bi-arrow-right mx-1 text-muted"></i>
-                                    <span class="badge badge-penerima px-2 py-1 rounded-pill">
-                                        <i class="bi bi-building me-1"></i>{{ dispo.latest_receiver_positions }}
-                                    </span>
+                                <td class="p-3">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                            {{ dispo.latest_sender_position }}
+                                        </span>
+                                        <i class="bi bi-arrow-right text-slate-400"></i>
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                            {{ dispo.latest_receiver_positions }}
+                                        </span>
+                                    </div>
                                 </td>
-                                <td class="small" style="color: var(--text-secondary);">{{ dispo.note|default:"-"|truncatechars:35 }}</td>
-                                <td class="text-end pe-3">
+                                <td class="p-3 text-slate-600 dark:text-slate-400 italic">{{ dispo.note|default:"-"|truncatechars:35 }}</td>
+                                <td class="p-3 text-right whitespace-nowrap">
                                     {% if dispo.report %}
-                                        <a href="{% url 'reports:detail' dispo.report.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Lihat LHP Selesai">
-                                            <i class="bi bi-file-earmark-check-fill me-1"></i> LHP Selesai
+                                        <a href="{% url 'reports:detail' dispo.report.pk %}" class="px-3 py-1.5 rounded-full bg-emerald-600 text-white font-bold text-[11px] shadow-sm hover:bg-emerald-700 text-decoration-none inline-flex items-center gap-1">
+                                            <i class="bi bi-file-earmark-check-fill"></i> LHP Selesai
                                         </a>
                                     {% elif dispo.surat_tugas.count >= 2 %}
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2 fw-bold">
-                                            <i class="bi bi-journal-check me-1"></i> 2 Surat Tugas Terbit
+                                        <span class="px-3 py-1.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 font-bold text-[11px] inline-flex items-center gap-1">
+                                            <i class="bi bi-journal-check"></i> 2 ST Terbit
                                         </span>
                                     {% elif dispo.surat_tugas.count == 1 %}
-                                        <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=penyaluran" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="ST (Survei Lapangan) sudah terbit. Klik untuk membuat ST Penyaluran Bantuan">
-                                            <i class="bi bi-plus-circle-fill me-1"></i> Buat ST Penyaluran
+                                        <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=penyaluran" class="px-3 py-1.5 rounded-full bg-amber-500 text-slate-950 font-bold text-[11px] shadow-sm hover:bg-amber-600 text-decoration-none inline-flex items-center gap-1">
+                                            <i class="bi bi-plus-circle-fill"></i> ST Penyaluran
                                         </a>
                                     {% elif dispo.status == 'selesai' or dispo.archive.status == 'selesai' %}
-                                        <span class="badge bg-success text-white rounded-pill px-3 py-2 fw-bold">
-                                            <i class="bi bi-check-circle-fill me-1"></i> TELAH DISALURKAN
+                                        <span class="px-3 py-1.5 rounded-full bg-emerald-500 text-white font-bold text-[11px] inline-flex items-center gap-1">
+                                            <i class="bi bi-check-circle-fill"></i> Disalurkan
                                         </span>
                                     {% else %}
                                         {% if dispo.archive and dispo.archive.archive_type == 'proposal' or dispo.archive and 'bantuan' in dispo.archive.category.name|lower %}
                                             {% if user.is_superuser or user.is_waka_2 or user.is_kabid_2 or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' %}
-                                            <div class="d-flex justify-content-end gap-1 flex-wrap">
-                                                <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=survei" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold shadow-sm" title="Jadwalkan Survei Lapangan Kelayakan Bantuan Mustahik">
-                                                    <i class="bi bi-geo-alt-fill me-1"></i> 📋 Survei Lapangan
+                                            <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                                                <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=survei" class="px-3 py-1.5 rounded-full bg-amber-500 text-slate-950 font-bold text-[11px] shadow-sm hover:bg-amber-600 text-decoration-none inline-flex items-center gap-1">
+                                                    <i class="bi bi-geo-alt-fill"></i> Survei
                                                 </a>
-                                                <a href="{% url 'reports:create' dispo.pk %}?type=penyaluran" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Input LHP Penyaluran Direct / Langsung Disalurkan">
-                                                    <i class="bi bi-box-seam-fill me-1"></i> 🎁 Langsung Disalurkan (Input LHP)
+                                                <a href="{% url 'reports:create' dispo.pk %}?type=penyaluran" class="px-3 py-1.5 rounded-full bg-emerald-600 text-white font-bold text-[11px] shadow-sm hover:bg-emerald-700 text-decoration-none inline-flex items-center gap-1">
+                                                    <i class="bi bi-box-seam-fill"></i> Direct LHP
                                                 </a>
                                             </div>
                                             {% endif %}
                                         {% else %}
-                                            <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm">
-                                                <i class="bi bi-plus-lg me-1"></i> Buat Surat Tugas
+                                            <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="px-3 py-1.5 rounded-full bg-emerald-600 text-white font-bold text-[11px] shadow-sm hover:bg-emerald-700 text-decoration-none inline-flex items-center gap-1">
+                                                <i class="bi bi-plus-lg"></i> Buat Surat Tugas
                                             </a>
                                         {% endif %}
                                     {% endif %}
@@ -173,7 +172,7 @@
         </div>
 
         <!-- TAB 2: RIWAYAT SURAT TUGAS TERBIT -->
-        <div class="tab-pane fade" id="tab-history" role="tabpanel" aria-labelledby="history-tab">
+        <div class="st-tab-pane hidden" id="st-pane-history">
             <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                     <h3 class="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wider mb-0 flex items-center gap-2">
@@ -184,39 +183,41 @@
                     </span>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" id="tableRiwayatSuratTugas" style="width:100%;">
-                        <thead class="table-light text-uppercase" style="font-size: 0.75rem;">
-                            <tr>
-                                <th class="ps-3 py-3">Nomor Surat</th>
-                                <th class="py-3">Tentang / Perihal</th>
-                                <th class="py-3">Tanggal Pelaksanaan</th>
-                                <th class="py-3">Lokasi Tujuan</th>
-                                <th class="py-3 text-end pe-3">Aksi Penugasan</th>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="tableRiwayatSuratTugas">
+                        <thead>
+                            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                <th class="p-3">Nomor Surat</th>
+                                <th class="p-3">Tentang / Perihal</th>
+                                <th class="p-3">Tanggal Pelaksanaan</th>
+                                <th class="p-3">Lokasi Tujuan</th>
+                                <th class="p-3 text-right">Aksi Opsional</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs">
                             {% for surat in surat_list %}
-                            <tr>
-                                <td class="fw-bold text-success font-mono">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-all">
+                                <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                                     {% if surat.nomor_surat %}
                                         {{ surat.nomor_surat }}
                                     {% else %}
-                                        <span class="badge bg-warning text-dark">Draft</span>
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-600 dark:text-amber-400">Draft</span>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <span class="fw-semibold d-block" style="color: var(--text-primary);">{{ surat.tentang }}</span>
+                                <td class="p-3">
+                                    <span class="fw-semibold d-block font-bold text-slate-900 dark:text-slate-100">{{ surat.tentang }}</span>
                                     {% if surat.disposition %}
-                                    <span class="badge bg-info text-dark" style="font-size: 0.65rem;">Dari Disposisi #{{ surat.disposition.pk }}</span>
+                                    <span class="inline-block mt-0.5 px-2 py-0.5 text-[9px] font-bold rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-mono">Dari Disposisi #{{ surat.disposition.pk }}</span>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <span class="d-block" style="color: var(--text-secondary);">{{ surat.hari_kegiatan }}, {{ surat.tanggal_mulai|date:"d M Y" }}</span>
+                                <td class="p-3 font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                                    {{ surat.hari_kegiatan|default:"" }}, {{ surat.tanggal_mulai|date:"d M Y"|default:"-" }}
                                 </td>
-                                <td style="color: var(--text-secondary);">{{ surat.lokasi_tujuan|default:"-" }}</td>
-                                <td class="text-end pe-3 whitespace-nowrap">
-                                    <div class="d-inline-flex align-items-center gap-1.5 justify-content-end">
+                                <td class="p-3 text-slate-600 dark:text-slate-400">
+                                    {{ surat.lokasi_tujuan|default:"-" }}
+                                </td>
+                                <td class="p-3 text-right whitespace-nowrap">
+                                    <div class="inline-flex items-center gap-1.5 justify-end">
                                         <!-- DETAIL -->
                                         <a href="{% url 'surat_tugas:detail' surat.pk %}" class="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-600 text-sky-600 dark:text-sky-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Lihat Detail Surat Tugas">
                                             <i class="bi bi-eye-fill"></i> Detail
@@ -233,7 +234,7 @@
                                         </a>
 
                                         <!-- HAPUS -->
-                                        <form action="{% url 'surat_tugas:delete' surat.pk %}" method="POST" class="d-inline mb-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Surat Tugas ini?');">
+                                        <form action="{% url 'surat_tugas:delete' surat.pk %}" method="POST" class="inline mb-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Surat Tugas ini?');">
                                             {% csrf_token %}
                                             <button type="submit" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Surat Tugas">
                                                 <i class="bi bi-trash-fill text-xs"></i>
@@ -257,49 +258,91 @@
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 <script>
-    $(document).ready(function() {
-        if ($.fn.DataTable) {
-            if ($('#tableDisposisiPendingST').length) {
-                $('#tableDisposisiPendingST').DataTable({
-                    language: {
-                        search: "Cari Disposisi:",
-                        lengthMenu: "Tampilkan _MENU_ data",
-                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ disposisi",
-                        paginate: { first: "Pertama", previous: "« Prev", next: "Next »", last: "Terakhir" },
-                        emptyTable: "Belum ada lembar disposisi dalam sistem."
-                    },
-                    pageLength: 10,
-                    pagingType: "full_numbers",
-                    ordering: true,
-                    order: [[0, "desc"]],
-                    destroy: true
-                });
-            }
-
-            if ($('#tableRiwayatSuratTugas').length) {
-                $('#tableRiwayatSuratTugas').DataTable({
-                    language: {
-                        search: "Cari Surat Tugas:",
-                        lengthMenu: "Tampilkan _MENU_ data",
-                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ surat tugas",
-                        paginate: { first: "Pertama", previous: "« Prev", next: "Next »", last: "Terakhir" },
-                        emptyTable: "Belum ada data Surat Tugas yang dibuat."
-                    },
-                    pageLength: 10,
-                    pagingType: "full_numbers",
-                    ordering: true,
-                    order: [[0, "desc"]],
-                    destroy: true
-                });
-            }
-
-            // Adjust table columns on tab switch smoothly
-            $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
-                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+document.addEventListener('DOMContentLoaded', function() {
+    // DataTables Core Initialization
+    if (window.jQuery && $.fn.DataTable) {
+        if ($('#tableDisposisiPendingST').length) {
+            $('#tableDisposisiPendingST').DataTable({
+                language: {
+                    search: "Cari Disposisi:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ disposisi",
+                    paginate: { first: "Pertama", previous: "« Prev", next: "Next »", last: "Terakhir" },
+                    emptyTable: "Belum ada lembar disposisi dalam sistem."
+                },
+                pageLength: 10,
+                ordering: true,
+                order: [[0, "desc"]],
+                destroy: true
             });
         }
+
+        if ($('#tableRiwayatSuratTugas').length) {
+            $('#tableRiwayatSuratTugas').DataTable({
+                language: {
+                    search: "Cari Surat Tugas:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ surat tugas",
+                    paginate: { first: "Pertama", previous: "« Prev", next: "Next »", last: "Terakhir" },
+                    emptyTable: "Belum ada data Surat Tugas yang dibuat."
+                },
+                pageLength: 10,
+                ordering: true,
+                order: [[0, "desc"]],
+                destroy: true
+            });
+        }
+    }
+
+    // 100% PURE NATIVE TAILWIND TAB SWITCHER LOGIC
+    const stTabButtons = document.querySelectorAll('#stPureTabNav button');
+    const stTabPanes = document.querySelectorAll('#stPureTabContent .st-tab-pane');
+
+    stTabButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-tab-target');
+
+            // Unhighlight all buttons
+            stTabButtons.forEach(b => {
+                b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
+                b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+                const badge = b.querySelector('span');
+                if (badge) {
+                    badge.classList.remove('bg-white/20', 'text-white');
+                    badge.classList.add('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
+                }
+            });
+
+            // Highlight clicked button
+            this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
+            this.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+            const activeBadge = this.querySelector('span');
+            if (activeBadge) {
+                activeBadge.classList.add('bg-white/20', 'text-white');
+                activeBadge.classList.remove('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
+            }
+
+            // Hide all panes
+            stTabPanes.forEach(pane => {
+                pane.classList.add('hidden');
+                pane.classList.remove('block');
+            });
+
+            // Show target pane
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) {
+                targetPane.classList.remove('hidden');
+                targetPane.classList.add('block');
+            }
+
+            // Adjust DataTables
+            if (window.jQuery && $.fn.DataTable) {
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        });
     });
+});
 </script>
 {% endblock %}

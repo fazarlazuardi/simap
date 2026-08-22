@@ -4,39 +4,42 @@
 {% block title %}Manajemen SPPD & Log Perjalanan - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <style>
-    .nav-pills .nav-link { color: var(--text-secondary, #64748b); border-radius: 12px; transition: all 0.25s ease; padding: 0.65rem 1.3rem; font-weight: 700; font-size: 0.85rem; }
-    .nav-pills .nav-link.active { background-color: #059669 !important; color: white !important; shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    .nav-pills .nav-link:hover:not(.active) { background-color: rgba(16, 185, 129, 0.1); color: #059669; }
-    table.dataTable thead > tr > th { border-bottom: none !important; color: var(--text-primary, #0f172a) !important; font-weight: 700 !important; }
-    table.dataTable.no-footer { border-bottom: 1px solid var(--border-color, #cbd5e1) !important; }
-    div.dataTables_wrapper div.dataTables_info,
-    div.dataTables_wrapper div.dataTables_paginate { padding-top: 1rem !important; color: var(--text-secondary, #64748b) !important; }
-    div.dataTables_wrapper .pagination .page-item.active .page-link {
-        background-color: #059669 !important;
-        border-color: #059669 !important;
+    /* Custom DataTables Tailwind Integration Styling */
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        background-color: var(--card-bg, #ffffff);
+        border: 1px solid var(--border-color, #cbd5e1);
+        border-radius: 0.75rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+        color: var(--text-primary, #0f172a);
+        outline: none;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    }
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.75rem;
+        color: var(--text-secondary, #64748b) !important;
+        padding-top: 1rem !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        border-radius: 0.5rem !important;
+        border: 1px solid var(--border-color, #cbd5e1) !important;
+        background: var(--card-bg, #ffffff) !important;
+        color: var(--text-primary, #0f172a) !important;
+        font-weight: 700 !important;
+        padding: 0.25rem 0.65rem !important;
+        margin: 0 2px !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: #059669 !important;
         color: #ffffff !important;
-    }
-    div.dataTables_wrapper .pagination .page-link {
-        color: #0f172a;
-        background-color: #ffffff;
-        border-color: #cbd5e1;
-        border-radius: 8px;
-        margin: 0 2px;
-    }
-    .badge-employee-tag {
-        background-color: rgba(16, 185, 129, 0.1);
-        color: #059669;
-        border: 1px solid rgba(16, 185, 129, 0.2);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 700;
-        display: inline-block;
-    }
-    .tab-pane.fade {
-        transition: opacity 0.2s linear;
+        border-color: #059669 !important;
     }
 </style>
 {% endblock %}
@@ -95,7 +98,7 @@
     <!-- FILTER PANEL GLASS -->
     <div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
         <form method="get" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-            <input type="hidden" name="tab" value="{{ active_tab }}">
+            <input type="hidden" name="tab" id="filterTabVal" value="{{ active_tab }}">
             <input type="hidden" name="type" value="{{ current_type }}">
             <div class="md:col-span-4">
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5"><i class="bi bi-calendar-range me-1"></i> Periode Perjalanan</label>
@@ -123,7 +126,7 @@
                 </select>
             </div>
             <div class="md:col-span-3 flex gap-2">
-                <button type="submit" class="flex-1 py-2 px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5">
+                <button type="submit" class="flex-1 py-2 px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5 cursor-pointer">
                     <i class="bi bi-funnel-fill"></i> Terapkan Filter
                 </button>
                 <a href="{% url 'sppd_service:list' %}?tab={{ active_tab }}{% if current_type %}&type={{ current_type }}{% endif %}" class="px-3.5 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-all inline-flex items-center justify-center text-decoration-none" title="Reset Filter">
@@ -133,26 +136,22 @@
         </form>
     </div>
 
-    <!-- TAB SWITCHER NAV PILLS (OFFICIAL BOOTSTRAP NAV PILLS) -->
-    <ul class="nav nav-pills p-2 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm gap-2" id="sppdTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab != 'list' %}active{% endif %} d-flex align-items-center gap-2" id="create-tab" data-bs-toggle="pill" data-bs-target="#create" type="button" role="tab" aria-controls="create" aria-selected="{% if active_tab != 'list' %}true{% else %}false{% endif %}">
-                <i class="bi bi-file-earmark-plus-fill"></i> 1. Terbitkan SPPD Dari Disposisi Acuan
-                <span class="badge bg-white text-emerald-800 font-mono fw-bold rounded-pill ms-1">{{ dispositions|length }}</span>
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'list' %}active{% endif %} d-flex align-items-center gap-2" id="list-tab" data-bs-toggle="pill" data-bs-target="#list" type="button" role="tab" aria-controls="list" aria-selected="{% if active_tab == 'list' %}true{% else %}false{% endif %}">
-                <i class="bi bi-card-checklist"></i> 2. Daftar SPPD Terbit & Log Perjalanan
-                <span class="badge bg-white text-emerald-800 font-mono fw-bold rounded-pill ms-1">{{ sppds|length }}</span>
-            </button>
-        </li>
-    </ul>
+    <!-- PURE TAILWIND TAB SWITCHER NAV BAR -->
+    <div class="p-2 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex flex-wrap gap-2" id="sppdPureTabNav">
+        <button type="button" class="sppd-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 {% if active_tab != 'list' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" data-tab-target="tab-pane-create">
+            <i class="bi bi-file-earmark-plus-fill text-sm"></i> 1. Terbitkan SPPD Dari Disposisi Acuan
+            <span class="px-2 py-0.5 text-[10px] {% if active_tab != 'list' %}bg-white/20 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200{% endif %} rounded-full font-mono font-bold">{{ dispositions|length }}</span>
+        </button>
+        <button type="button" class="sppd-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 {% if active_tab == 'list' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" data-tab-target="tab-pane-list">
+            <i class="bi bi-card-checklist text-sm"></i> 2. Daftar SPPD Terbit & Log Perjalanan
+            <span class="px-2 py-0.5 text-[10px] {% if active_tab == 'list' %}bg-white/20 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200{% endif %} rounded-full font-mono font-bold">{{ sppds|length }}</span>
+        </button>
+    </div>
 
-    <!-- TAB CONTENT CONTAINER -->
-    <div class="tab-content" id="sppdTabContent">
+    <!-- PURE TAILWIND TAB CONTENT CONTAINER -->
+    <div id="sppdPureTabContent">
         <!-- TAB 1: BUAT SPPD (DISPOSISI ACUAN) -->
-        <div class="tab-pane fade {% if active_tab != 'list' %}show active{% endif %}" id="create" role="tabpanel" aria-labelledby="create-tab">
+        <div class="sppd-tab-pane {% if active_tab != 'list' %}block{% else %}hidden{% endif %}" id="tab-pane-create">
             <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                     <h3 class="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wider mb-0 flex items-center gap-2">
@@ -163,75 +162,75 @@
                     </span>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle w-100" id="createTable">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="createTable">
                         <thead>
-                            <tr class="text-secondary small text-uppercase">
-                                <th class="border-0">Tanggal Disposisi</th>
-                                <th class="border-0">No. Dokumen / Arsip</th>
-                                <th class="border-0">Perihal / Perjalanan</th>
-                                <th class="border-0">Penerima Disposisi</th>
-                                <th class="border-0">SPPD Diterbitkan</th>
-                                <th class="border-0 text-end">Aksi Penerbitan</th>
+                            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                <th class="p-3">Tanggal Disposisi</th>
+                                <th class="p-3">No. Dokumen / Arsip</th>
+                                <th class="p-3">Perihal / Perjalanan</th>
+                                <th class="p-3">Penerima Disposisi</th>
+                                <th class="p-3">SPPD Diterbitkan</th>
+                                <th class="p-3 text-right">Aksi Penerbitan</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs">
                             {% for dispo in dispositions %}
-                            <tr>
-                                <td class="small text-nowrap fw-semibold text-secondary">{{ dispo.created_at|date:"d/m/Y, H:i" }}</td>
-                                <td class="fw-bold">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-all">
+                                <td class="p-3 font-mono font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">{{ dispo.created_at|date:"d/m/Y, H:i" }}</td>
+                                <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                                     {% if dispo.archive %}
-                                    <a href="{% url 'archives:detail' dispo.archive.pk %}" class="text-decoration-none text-emerald fw-bold">
+                                    <a href="{% url 'archives:detail' dispo.archive.pk %}" class="text-decoration-none text-emerald-600 hover:underline">
                                         {{ dispo.archive.archive_number|default:dispo.disposition_number }}
                                     </a>
                                     {% else %}
-                                    <span class="text-primary font-mono">{{ dispo.disposition_number }}</span>
+                                    <span>{{ dispo.disposition_number }}</span>
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td class="p-3 font-semibold text-slate-900 dark:text-slate-100">
                                     {% if dispo.archive %}
-                                    <span class="fw-bold text-dark d-block">{{ dispo.archive.title|truncatechars:45 }}</span>
-                                    <span class="text-muted small">Asal: {{ dispo.archive.sender_receiver|default:"-" }}</span>
+                                    <span class="block font-bold">{{ dispo.archive.title|truncatechars:45 }}</span>
+                                    <span class="text-slate-400 text-[11px]">Asal: {{ dispo.archive.sender_receiver|default:"-" }}</span>
                                     {% else %}
-                                    <span class="fw-bold text-dark d-block">{{ dispo.note|default:"Disposisi Internal"|truncatechars:45 }}</span>
+                                    <span class="block font-bold">{{ dispo.note|default:"Disposisi Internal"|truncatechars:45 }}</span>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <div class="d-flex flex-wrap gap-1">
+                                <td class="p-3">
+                                    <div class="flex flex-wrap gap-1">
                                         {% for emp in dispo.forwarded_to.all %}
-                                        <span class="badge bg-light text-dark border border-secondary-subtle rounded-pill px-2 py-1 small">
-                                            <i class="bi bi-person-fill me-1 text-emerald"></i>{{ emp.full_name }}
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                            <i class="bi bi-person-fill text-emerald-500 me-1"></i>{{ emp.full_name }}
                                         </span>
                                         {% empty %}
-                                        <span class="text-muted small">-</span>
+                                        <span class="text-slate-400">—</span>
                                         {% endfor %}
                                     </div>
                                 </td>
-                                <td>
+                                <td class="p-3">
                                     {% if dispo.sppd_list.exists %}
                                         {% for sp in dispo.sppd_list.all %}
-                                        <a href="{% url 'sppd_service:edit' sp.pk %}" class="badge {% if sp.status == 'selesai' %}bg-success{% elif sp.is_cancelled %}bg-danger{% else %}badge-node-sppd{% endif %} text-white small d-inline-block text-decoration-none mb-1 shadow-sm px-2.5 py-1">
+                                        <a href="{% url 'sppd_service:edit' sp.pk %}" class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-decoration-none inline-block mb-1">
                                             <i class="bi bi-file-earmark-text me-1"></i>{{ sp.get_sppd_type_display }}: {{ sp.sppd_number }} ({{ sp.get_status_display }})
                                         </a><br>
                                         {% endfor %}
                                     {% else %}
-                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1 small"><i class="bi bi-dash-circle me-1"></i> Belum Diterbitkan</span>
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700"><i class="bi bi-dash-circle me-1"></i> Belum Diterbitkan</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-end">
+                                <td class="p-3 text-right whitespace-nowrap">
                                      {% if can_create_sppd %}
                                          {% if dispo.sppd_list.exists %}
-                                         <a href="{% url 'sppd_service:create' dispo.pk %}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold">
-                                             <i class="bi bi-plus-lg me-1"></i> Tambah Tahap SPPD
+                                         <a href="{% url 'sppd_service:create' dispo.pk %}" class="px-3 py-1.5 rounded-full border border-emerald-600 text-emerald-600 hover:bg-emerald-50 text-[11px] font-bold transition-all text-decoration-none inline-flex items-center gap-1">
+                                             <i class="bi bi-plus-lg"></i> Tambah Tahap SPPD
                                          </a>
                                          {% else %}
-                                         <a href="{% url 'sppd_service:create' dispo.pk %}" class="btn btn-emerald-primary btn-sm rounded-pill px-3 fw-bold text-white shadow-sm">
-                                             <i class="bi bi-file-earmark-plus me-1"></i> Terbitkan SPPD
+                                         <a href="{% url 'sppd_service:create' dispo.pk %}" class="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1">
+                                             <i class="bi bi-file-earmark-plus"></i> Terbitkan SPPD
                                          </a>
                                          {% endif %}
                                      {% else %}
-                                         <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small" title="Memerlukan Surat Tugas terbit terlebih dahulu">
-                                             <i class="bi bi-lock-fill me-1"></i> Butuh Surat Tugas
+                                         <span class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 font-bold text-[11px] inline-flex items-center gap-1" title="Memerlukan Surat Tugas terbit terlebih dahulu">
+                                             <i class="bi bi-lock-fill"></i> Butuh Surat Tugas
                                          </span>
                                      {% endif %}
                                 </td>
@@ -244,7 +243,7 @@
         </div>
 
         <!-- TAB 2: DAFTAR SPPD TERBIT & LOG PERJALANAN -->
-        <div class="tab-pane fade {% if active_tab == 'list' %}show active{% endif %}" id="list" role="tabpanel" aria-labelledby="list-tab">
+        <div class="sppd-tab-pane {% if active_tab == 'list' %}block{% else %}hidden{% endif %}" id="tab-pane-list">
             <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                     <h3 class="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wider mb-0 flex items-center gap-2">
@@ -255,80 +254,80 @@
                     </span>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle w-100" id="sppdTable">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="sppdTable">
                         <thead>
-                            <tr class="text-secondary small text-uppercase">
-                                <th class="border-0" style="width: 40px;"><input type="checkbox" id="checkAll" class="form-check-input"></th>
-                                <th class="border-0">No. Arsip / Dokumen</th>
-                                <th class="border-0">Jenis & No. SPPD</th>
-                                <th class="border-0">Tgl Berangkat</th>
-                                <th class="border-0">Alat Angkut</th>
-                                <th class="border-0">Pegawai Diperintahkan</th>
-                                <th class="border-0">Status SPPD</th>
-                                <th class="border-0 text-end">Aksi Cepat</th>
+                            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                <th class="p-3 w-10"><input type="checkbox" id="checkAll" class="rounded border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500"></th>
+                                <th class="p-3">No. Arsip / Dokumen</th>
+                                <th class="p-3">Jenis & No. SPPD</th>
+                                <th class="p-3">Tgl Berangkat</th>
+                                <th class="p-3">Alat Angkut</th>
+                                <th class="p-3">Pegawai Diperintahkan</th>
+                                <th class="p-3">Status SPPD</th>
+                                <th class="p-3 text-right">Aksi Opsional</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs">
                             {% for sppd in sppds %}
-                            <tr class="{% if sppd.is_cancelled %}table-danger opacity-75{% endif %}">
-                                <td><input type="checkbox" class="sppd-check form-check-input" value="{{ sppd.id }}" {% if sppd.is_cancelled %}disabled{% endif %}></td>
-                                <td class="fw-bold">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-all {% if sppd.is_cancelled %}bg-rose-50/50 opacity-75{% endif %}">
+                                <td class="p-3"><input type="checkbox" class="sppd-check rounded border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500" value="{{ sppd.id }}" {% if sppd.is_cancelled %}disabled{% endif %}></td>
+                                <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                                     {% if sppd.disposition and sppd.disposition.archive %}
-                                    <a href="{% url 'archives:detail' sppd.disposition.archive.pk %}" class="text-decoration-none text-emerald fw-bold">
+                                    <a href="{% url 'archives:detail' sppd.disposition.archive.pk %}" class="text-decoration-none text-emerald-600 hover:underline">
                                         {{ sppd.disposition.archive.archive_number|default:'DRAFT' }}
                                     </a>
-                                    <br><span class="text-secondary fw-semibold small">{{ sppd.disposition.archive.title|truncatechars:35 }}</span>
+                                    <br><span class="text-slate-500 font-semibold text-[11px] truncate block max-w-xs">{{ sppd.disposition.archive.title|truncatechars:35 }}</span>
                                     {% else %}
-                                    <span class="text-muted">{{ sppd.sppd_number }}</span>
+                                    <span class="text-slate-500">{{ sppd.sppd_number }}</span>
                                     {% endif %}
                                 </td>
-                                <td class="fw-bold">
-                                    <span class="badge {% if sppd.sppd_type == 'survei' %}bg-amber-500 text-slate-950{% elif sppd.sppd_type == 'penyaluran' %}bg-emerald-600 text-white{% else %}bg-sky-600 text-white{% endif %} rounded-pill px-2.5 py-1 small mb-1">
+                                <td class="p-3">
+                                    <span class="px-2.5 py-0.5 text-[10px] font-extrabold rounded-full {% if sppd.sppd_type == 'survei' %}bg-amber-500/20 text-amber-700 dark:text-amber-300{% elif sppd.sppd_type == 'penyaluran' %}bg-emerald-500/20 text-emerald-700 dark:text-emerald-300{% else %}bg-sky-500/20 text-sky-700 dark:text-sky-300{% endif %} inline-block mb-1">
                                         <i class="bi bi-tag-fill me-1"></i>{{ sppd.get_sppd_type_display }}
                                     </span><br>
-                                    <span class="font-mono text-primary small">{{ sppd.sppd_number }}</span>
+                                    <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{{ sppd.sppd_number }}</span>
                                 </td>
-                                <td class="small text-nowrap fw-semibold">
-                                    <i class="bi bi-calendar-event me-1 text-emerald"></i>{{ sppd.departure_date|date:"d M Y" }}
+                                <td class="p-3 font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                                    <i class="bi bi-calendar-event me-1 text-emerald-500"></i>{{ sppd.departure_date|date:"d M Y" }}
                                 </td>
-                                <td class="small fw-semibold text-secondary">
-                                    <i class="bi bi-car-front-fill me-1 text-primary"></i>{{ sppd.transportation }}
+                                <td class="p-3 text-slate-600 dark:text-slate-400">
+                                    <i class="bi bi-car-front-fill me-1 text-sky-500"></i>{{ sppd.transportation }}
                                 </td>
-                                <td>
-                                    <div class="d-flex flex-wrap gap-1">
+                                <td class="p-3">
+                                    <div class="flex flex-wrap gap-1">
                                         {% for emp in sppd.assigned_employees.all %}
-                                        <span class="badge-employee-tag"><i class="bi bi-person-fill me-1 text-emerald"></i>{{ emp.full_name }}</span>
+                                        <span class="badge-employee-tag"><i class="bi bi-person-fill me-1 text-emerald-500"></i>{{ emp.full_name }}</span>
                                         {% empty %}
-                                        <span class="text-muted small">-</span>
+                                        <span class="text-slate-400">—</span>
                                         {% endfor %}
                                     </div>
                                 </td>
-                                <td>
+                                <td class="p-3">
                                     {% if sppd.status == 'selesai' %}
-                                        <span class="badge bg-emerald-600 text-white rounded-pill px-3 py-1 fw-bold"><i class="bi bi-check-all me-1"></i> SELESAI</span>
+                                        <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-emerald-600 text-white inline-flex items-center gap-1"><i class="bi bi-check-all"></i> SELESAI</span>
                                     {% elif sppd.is_cancelled %}
-                                        <span class="badge bg-rose-600 text-white rounded-pill px-3 py-1 fw-bold">DIBATALKAN</span>
+                                        <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-rose-600 text-white inline-flex items-center gap-1">DIBATALKAN</span>
                                     {% else %}
-                                        <span class="badge bg-amber-500 text-slate-950 rounded-pill px-3 py-1 fw-bold"><i class="bi bi-clock-history me-1"></i> {{ sppd.get_status_display|upper }}</span>
+                                        <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-amber-500 text-slate-950 inline-flex items-center gap-1"><i class="bi bi-clock-history"></i> {{ sppd.get_status_display|upper }}</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-end whitespace-nowrap">
+                                <td class="p-3 text-right whitespace-nowrap">
                                     {% with has_report=sppd.disposition.archive.latest_report %}
-                                    <div class="d-inline-flex items-center gap-1.5 justify-end">
+                                    <div class="inline-flex items-center gap-1.5 justify-end">
                                         <a href="{% url 'agendas:list' %}?q={{ sppd.sppd_number|urlencode }}" class="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-600 text-sky-600 dark:text-sky-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Lihat di Kalender Kerja">
                                             <i class="bi bi-calendar-event"></i> Agendas
                                         </a>
 
                                         {% if sppd.status != 'selesai' and not sppd.is_cancelled %}
-                                        <div id="notes-{{ sppd.pk }}" class="d-none">{{ sppd.report_notes|default:"" }}</div>
+                                        <div id="notes-{{ sppd.pk }}" class="hidden">{{ sppd.report_notes|default:"" }}</div>
                                         
                                         <button type="button" 
                                                 class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1 shadow-sm"
                                                 data-sppd-pk="{{ sppd.pk }}"
                                                 data-sppd-number="{{ sppd.sppd_number }}"
                                                 data-sppd-tahap="Tahap {{ sppd.tahap }}: {{ sppd.get_sppd_type_display }}"
-                                                onclick="bukaModalSelesai(this)">
+                                                onclick="bukaModalSelesaiPure(this)">
                                             <i class="bi bi-check-lg"></i> Selesai
                                         </button>
                                         {% endif %}
@@ -337,7 +336,7 @@
                                         <a href="{% url 'sppd_service:edit' sppd.pk %}" class="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit SPPD">
                                             <i class="bi bi-pencil-square"></i> Edit
                                         </a>
-                                        <form action="{% url 'sppd_service:cancel' sppd.pk %}" method="post" class="d-inline mb-0" onsubmit="return confirm('Batalkan SPPD {{ sppd.sppd_number|escapejs }}?')">
+                                        <form action="{% url 'sppd_service:cancel' sppd.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Batalkan SPPD {{ sppd.sppd_number|escapejs }}?')">
                                             {% csrf_token %}
                                             <button type="submit" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Batalkan SPPD">
                                                 <i class="bi bi-x-circle-fill text-xs"></i>
@@ -364,74 +363,87 @@
 
 </div>
 
-<!-- MODAL INPUT LHP / SELESAI SPPD -->
-<div class="modal fade" id="modalSelesaiSPPD" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4 border-0 shadow-lg" style="background-color: var(--card-bg);">
-            <div class="modal-header border-bottom py-3 px-4" style="border-color: var(--border-color) !important;">
-                <h5 class="modal-title fw-bold text-emerald flex items-center gap-2">
-                    <i class="bi bi-check-circle-fill text-success"></i> Konfirmasi Selesai SPPD & Upload LHP
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="formSelesaiSPPD" method="post" enctype="multipart/form-data" action="">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <div class="p-3 mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                        <span class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nomor & Tahap SPPD</span>
-                        <h6 class="fw-extrabold text-emerald mb-1" id="sppdModalNum">-</h6>
-                        <span class="badge bg-emerald-600 text-white rounded-pill px-3 py-1 small" id="sppdModalType">-</span>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="modal_report_notes" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                            Catatan Laporan Hasil Perjalanan (LHP) <span class="text-rose-500">*</span>
-                        </label>
-                        <textarea name="report_notes" id="modal_report_notes" class="w-full p-3 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium" rows="4" placeholder="Tuliskan rangkuman hasil perjalanan dinas / survei kelayakan..." required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                            Upload Berkas LHP / Dokumentasi Survei <span class="text-slate-400 font-normal">(Opsional, PDF/JPG/PNG)</span>
-                        </label>
-                        <input type="file" name="report_file" id="modal_report_file" class="w-full p-2.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none">
-                    </div>
-                </div>
-                <div class="modal-footer border-top py-3 px-4" style="border-color: var(--border-color) !important;">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4 font-bold text-xs" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-emerald-primary rounded-pill px-5 font-extrabold text-xs text-white shadow-md">
-                        <i class="bi bi-send-check-fill me-1"></i> Simpan LHP & Selesaikan SPPD
-                    </button>
-                </div>
-            </form>
+<!-- PURE TAILWIND MODAL SELESAI SPPD -->
+<div id="pureModalSelesaiSPPD" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+            <h3 class="font-extrabold text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2 mb-0">
+                <i class="bi bi-check-circle-fill text-emerald-500"></i> Konfirmasi Selesai SPPD & Upload LHP
+            </h3>
+            <button type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-0 bg-transparent cursor-pointer text-lg" onclick="tutupModalSelesaiPure()">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
+
+        <form id="pureFormSelesaiSPPD" method="post" enctype="multipart/form-data" action="">
+            {% csrf_token %}
+            <div class="p-6 space-y-4">
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <span class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Nomor & Tahap SPPD</span>
+                    <h6 class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm mb-1" id="pureSppdModalNum">-</h6>
+                    <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-600 text-white inline-block" id="pureSppdModalType">-</span>
+                </div>
+
+                <div>
+                    <label for="pure_modal_report_notes" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                        Catatan Laporan Hasil Perjalanan (LHP) <span class="text-rose-500">*</span>
+                    </label>
+                    <textarea name="report_notes" id="pure_modal_report_notes" class="w-full p-3 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium" rows="4" placeholder="Tuliskan rangkuman hasil perjalanan dinas / survei kelayakan..." required></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                        Upload Berkas LHP / Dokumentasi Survei <span class="text-slate-400 font-normal">(Opsional, PDF/JPG/PNG)</span>
+                    </label>
+                    <input type="file" name="report_file" id="pure_modal_report_file" class="w-full p-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                <button type="button" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs" onclick="tutupModalSelesaiPure()">Batal</button>
+                <button type="submit" class="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-1.5">
+                    <i class="bi bi-send-check-fill"></i> Simpan LHP & Selesaikan SPPD
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
-    function bukaModalSelesai(btn) {
+    function bukaModalSelesaiPure(btn) {
         var pk = btn.getAttribute('data-sppd-pk');
         var number = btn.getAttribute('data-sppd-number');
         var tahap = btn.getAttribute('data-sppd-tahap');
         var notesElem = document.getElementById('notes-' + pk);
         var existingNotes = notesElem ? notesElem.innerText : '';
 
-        document.getElementById('sppdModalNum').innerText = number;
-        document.getElementById('sppdModalType').innerText = tahap;
-        document.getElementById('modal_report_notes').value = existingNotes;
+        document.getElementById('pureSppdModalNum').innerText = number;
+        document.getElementById('pureSppdModalType').innerText = tahap;
+        document.getElementById('pure_modal_report_notes').value = existingNotes;
 
         var formAction = "/sppd/selesai/" + pk + "/";
-        document.getElementById('formSelesaiSPPD').action = formAction;
+        document.getElementById('pureFormSelesaiSPPD').action = formAction;
 
-        var modal = new bootstrap.Modal(document.getElementById('modalSelesaiSPPD'));
-        modal.show();
+        const modal = document.getElementById('pureModalSelesaiSPPD');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    function tutupModalSelesaiPure() {
+        const modal = document.getElementById('pureModalSelesaiSPPD');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -527,17 +539,65 @@
                 $('.sppd-check:not(:disabled)').prop('checked', $(this).prop('checked'));
                 updatePrintButton();
             });
-
-            $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
-                var target = $(e.target).attr('data-bs-target');
-                var tab = target === '#list' ? 'list' : 'create';
-                $('input[name="tab"]').val(tab);
-                var url = new URL(window.location);
-                url.searchParams.set('tab', tab);
-                window.history.replaceState({}, '', url);
-                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-            });
         }
+
+        // 100% PURE NATIVE TAILWIND TAB SWITCHER LOGIC
+        const tabButtons = document.querySelectorAll('#sppdPureTabNav button');
+        const tabPanes = document.querySelectorAll('#sppdPureTabContent .sppd-tab-pane');
+
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('data-tab-target');
+
+                // Unhighlight all buttons
+                tabButtons.forEach(b => {
+                    b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
+                    b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+                    const badge = b.querySelector('span');
+                    if (badge) {
+                        badge.classList.remove('bg-white/20', 'text-white');
+                        badge.classList.add('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
+                    }
+                });
+
+                // Highlight clicked button
+                this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
+                this.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+                const activeBadge = this.querySelector('span');
+                if (activeBadge) {
+                    activeBadge.classList.add('bg-white/20', 'text-white');
+                    activeBadge.classList.remove('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
+                }
+
+                // Hide all panes
+                tabPanes.forEach(pane => {
+                    pane.classList.add('hidden');
+                    pane.classList.remove('block');
+                });
+
+                // Show target pane
+                const targetPane = document.getElementById(targetId);
+                if (targetPane) {
+                    targetPane.classList.remove('hidden');
+                    targetPane.classList.add('block');
+                }
+
+                // Update URL search parameter
+                var tabName = targetId === 'tab-pane-list' ? 'list' : 'create';
+                const hiddenTabInput = document.getElementById('filterTabVal');
+                if (hiddenTabInput) hiddenTabInput.value = tabName;
+                
+                var url = new URL(window.location);
+                url.searchParams.set('tab', tabName);
+                window.history.replaceState({}, '', url);
+
+                // Adjust DataTables
+                if (window.jQuery && $.fn.DataTable) {
+                    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                }
+            });
+        });
 
         $('#btnPrintBatch').on('click', function() {
             var ids = [];
