@@ -4,30 +4,30 @@
 {% block title %}Beri Disposisi Digital - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-2">
+<div class="max-w-2xl mx-auto py-2">
     <!-- TAILWIND ENTERPRISE HEADER BANNER -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-5 shadow-xl mb-5 border border-slate-700/50">
-        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-                <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-                    <span class="px-2.5 py-0.5 text-[11px] font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1 font-mono">
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-4 shadow-lg mb-4 border border-slate-700/50">
+        <div class="relative z-10 flex items-center justify-between gap-2">
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                    <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1 font-mono">
                         <i class="bi bi-send-fill"></i> DISPOSISI KETUA
                     </span>
-                    <span class="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
                         {{ archive.archive_number|default:"DRAFT" }}
                     </span>
                 </div>
-                <h1 class="text-xl md:text-2xl font-black text-white tracking-tight mb-0.5">Lembar Disposisi Digital</h1>
-                <p class="text-slate-300 text-xs max-w-xl mb-0 truncate">Perihal: <strong class="text-white">{{ archive.title }}</strong> | Pengirim: <strong>{{ archive.sender_receiver|default:"-" }}</strong></p>
+                <h1 class="text-base sm:text-lg font-black text-white tracking-tight mb-0">Lembar Disposisi Digital</h1>
+                <p class="text-slate-300 text-[11px] truncate mb-0">Perihal: <strong class="text-white">{{ archive.title }}</strong></p>
             </div>
 
-            <div class="flex items-center gap-2 flex-shrink-0">
+            <div class="flex items-center gap-1.5 flex-shrink-0">
                 {% if archive.file_path %}
-                <a href="{{ archive.file_path.url }}" target="_blank" class="px-3 py-1.5 rounded-full border border-white/20 text-white hover:bg-white/10 text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-1">
+                <a href="{{ archive.file_path.url }}" target="_blank" class="px-2.5 py-1 rounded-full border border-white/20 text-white hover:bg-white/10 text-[11px] font-bold transition-all text-decoration-none inline-flex items-center gap-1">
                     <i class="bi bi-file-earmark-pdf text-amber-400"></i> PDF
                 </a>
                 {% endif %}
-                <a href="{% url 'archives:detail' archive.pk %}" class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-1">
+                <a href="{% url 'archives:detail' archive.pk %}" class="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold transition-all text-decoration-none inline-flex items-center gap-1">
                     <i class="bi bi-arrow-left"></i> Kembali
                 </a>
             </div>
@@ -37,44 +37,44 @@
     <!-- FORM UTAMA DISPOSISI DIGITAL -->
     <form method="post" action="{% url 'dispositions:create' archive.pk %}" id="formCreateDisposisi">
         {% csrf_token %}
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
             
             <!-- HEADER METADATA DOKUMEN -->
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-700">
-                    <i class="bi bi-file-earmark-text-fill"></i> Rincian Dokumen Terkait
+            <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2.5">
+                <h3 class="font-extrabold text-[11px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1 pb-1.5 border-b border-slate-200 dark:border-slate-700">
+                    <i class="bi bi-file-earmark-text-fill"></i> Rincian Dokumen
                 </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Nomor Disposisi Resmi</label>
-                        <input type="text" name="disposition_number" class="w-full px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 focus:outline-none" value="{{ generated_disp_no }}" readonly>
+                        <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-0.5">No. Disposisi</label>
+                        <input type="text" name="disposition_number" class="w-full px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 focus:outline-none" value="{{ generated_disp_no }}" readonly>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Nomor Surat / Agenda</label>
-                        <input type="text" class="w-full px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-200/60 dark:bg-slate-700/60 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 focus:outline-none" value="{{ archive.archive_number|default:archive.title }}" readonly>
+                        <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-0.5">No. Surat / Agenda</label>
+                        <input type="text" class="w-full px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-200/60 dark:bg-slate-700/60 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 focus:outline-none" value="{{ archive.archive_number|default:archive.title }}" readonly>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Tanggal Surat</label>
-                        <input type="text" class="w-full px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-200/60 dark:bg-slate-700/60 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 focus:outline-none" value="{{ archive.letter_date|date:'d F Y'|default:'-' }}" readonly>
+                        <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-0.5">Tgl. Surat</label>
+                        <input type="text" class="w-full px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-200/60 dark:bg-slate-700/60 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 focus:outline-none" value="{{ archive.letter_date|date:'d F Y'|default:'-' }}" readonly>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/60">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-0.5">Batas Pelaksanaan <small class="text-slate-400 font-normal">(Opsional)</small></label>
+                        <input type="date" name="target_date" class="w-full px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Batas Pelaksanaan <small class="text-slate-400 font-normal">(Opsional)</small></label>
-                        <input type="date" name="target_date" class="w-full px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Sifat Urgensi / Kecepatan</label>
-                        <div class="flex items-center gap-4 pt-1">
-                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-rose-600 dark:text-rose-400">
-                                <input type="radio" name="priority" value="segera" class="text-rose-600 focus:ring-rose-500">
-                                <i class="bi bi-exclamation-octagon-fill"></i> Segera
+                        <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-0.5">Sifat Urgensi</label>
+                        <div class="flex items-center gap-3 pt-1">
+                            <label class="inline-flex items-center gap-1 cursor-pointer text-xs font-bold text-rose-600 dark:text-rose-400 select-none">
+                                <input type="radio" name="priority" value="segera" class="w-3.5 h-3.5 text-rose-600 focus:ring-rose-500"> Segera
                             </label>
-                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-amber-600 dark:text-amber-400">
-                                <input type="radio" name="priority" value="penting" class="text-amber-600 focus:ring-amber-500">
-                                <i class="bi bi-exclamation-triangle-fill"></i> Penting
+                            <label class="inline-flex items-center gap-1 cursor-pointer text-xs font-bold text-amber-600 dark:text-amber-400 select-none">
+                                <input type="radio" name="priority" value="penting" class="w-3.5 h-3.5 text-amber-600 focus:ring-amber-500"> Penting
                             </label>
-                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                                <input type="radio" name="priority" value="biasa" checked class="text-emerald-600 focus:ring-emerald-500">
-                                <i class="bi bi-check-circle-fill"></i> Biasa
+                            <label class="inline-flex items-center gap-1 cursor-pointer text-xs font-bold text-emerald-600 dark:text-emerald-400 select-none">
+                                <input type="radio" name="priority" value="biasa" checked class="w-3.5 h-3.5 text-emerald-600 focus:ring-emerald-500"> Biasa
                             </label>
                         </div>
                     </div>
@@ -82,100 +82,102 @@
             </div>
 
             <!-- MAIN GRID 2 KOLOM (PENERIMA & INSTRUKSI) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <!-- KOLOM KIRI: PENERIMA DISPOSISI -->
-                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                    <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-700">
-                        <i class="bi bi-people-fill"></i> 1. Diteruskan Kepada (Penerima):
-                    </h3>
-                    
-                    <!-- QUICK SELECT JABATAN BUTTONS -->
-                    <div class="p-2.5 mb-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                        <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Pilih Otomatis Berdasarkan Jabatan:</label>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" class="role-filter text-emerald-600 rounded" data-role="ketua"> Ketua</label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" class="role-filter text-emerald-600 rounded" data-role="waka i"> Waka I</label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" class="role-filter text-emerald-600 rounded" data-role="waka ii"> Waka II</label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" class="role-filter text-emerald-600 rounded" data-role="waka iii"> Waka III</label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" class="role-filter text-emerald-600 rounded" data-role="waka iv"> Waka IV</label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" class="role-filter text-emerald-600 rounded" data-role="kabid i"> Kabid I</label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" class="role-filter text-emerald-600 rounded" data-role="kabid ii"> Kabid II</label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" class="role-filter text-emerald-600 rounded" data-role="kabid iii"> Kabid III</label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" class="role-filter text-emerald-600 rounded" data-role="kabid iv"> Kabid IV</label>
-                        </div>
-                    </div>
-
-                    <!-- LIVE SEARCH -->
-                    <div class="mb-2">
-                        <input type="text" id="searchStaff" class="w-full px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="🔍 Cari nama / jabatan pegawai...">
-                    </div>
-
-                    <!-- DAFTAR PEGAWAI CHECKLIST -->
-                    <div class="max-h-48 overflow-y-auto space-y-1 p-1 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                        {% for employee in employees %}
-                        <label class="staff-item flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors">
-                            <div class="flex items-center gap-2 overflow-hidden">
-                                <input class="staff-checkbox flex-shrink-0 text-emerald-600 rounded" 
-                                       type="checkbox" 
-                                       name="forwarded_to" 
-                                       value="{{ employee.pk }}" 
-                                       id="emp_{{ employee.pk }}"
-                                       {% if disposition and employee in disposition.forwarded_to.all %}checked{% endif %}>
-                                <div class="truncate">
-                                    <span class="staff-name font-bold block text-xs text-slate-900 dark:text-slate-100 truncate">{{ employee.full_name }}</span>
-                                    <span class="staff-job text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ employee.position|default:"Pegawai" }}</span>
-                                </div>
+                <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-extrabold text-[11px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1 pb-1 border-b border-slate-200 dark:border-slate-700">
+                            <i class="bi bi-people-fill"></i> 1. Penerima Disposisi:
+                        </h3>
+                        
+                        <!-- QUICK SELECT JABATAN BUTTONS -->
+                        <div class="p-2 mb-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Pilih Otomatis Jabatan:</label>
+                            <div class="grid grid-cols-3 gap-1">
+                                <button type="button" class="role-btn px-1.5 py-1 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="ketua">Ketua</button>
+                                <button type="button" class="role-btn px-1.5 py-1 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka i">Waka I</button>
+                                <button type="button" class="role-btn px-1.5 py-1 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka ii">Waka II</button>
+                                <button type="button" class="role-btn px-1.5 py-1 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka iii">Waka III</button>
+                                <button type="button" class="role-btn px-1.5 py-1 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka iv">Waka IV</button>
+                                <button type="button" class="role-btn px-1.5 py-1 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid i">Kabid I</button>
+                                <button type="button" class="role-btn px-1.5 py-1 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid ii">Kabid II</button>
+                                <button type="button" class="role-btn px-1.5 py-1 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid iii">Kabid III</button>
+                                <button type="button" class="role-btn px-1.5 py-1 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid iv">Kabid IV</button>
                             </div>
-                            <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 flex-shrink-0 ml-1">
-                                {{ employee.position|default:"Pegawai" }}
-                            </span>
-                        </label>
-                        {% empty %}
-                        <div class="p-3 text-center text-slate-400 text-xs">Data pegawai tidak ditemukan.</div>
-                        {% endfor %}
+                        </div>
+
+                        <!-- LIVE SEARCH -->
+                        <div class="mb-2">
+                            <input type="text" id="searchStaff" class="w-full px-2.5 py-1 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="🔍 Cari nama / jabatan pegawai...">
+                        </div>
+
+                        <!-- DAFTAR PEGAWAI CHECKLIST (TOUCH FRIENDLY RESPONSIVE) -->
+                        <div class="max-h-44 overflow-y-auto space-y-1 p-1 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                            {% for employee in employees %}
+                            <label class="staff-item flex items-center justify-between p-2 rounded-lg border border-transparent hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 cursor-pointer transition-all select-none">
+                                <div class="flex items-center gap-2 overflow-hidden">
+                                    <input class="staff-checkbox w-4 h-4 text-emerald-600 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0" 
+                                           type="checkbox" 
+                                           name="forwarded_to" 
+                                           value="{{ employee.pk }}" 
+                                           id="emp_{{ employee.pk }}"
+                                           {% if disposition and employee in disposition.forwarded_to.all %}checked{% endif %}>
+                                    <div class="truncate">
+                                        <span class="staff-name font-bold block text-xs text-slate-900 dark:text-slate-100 truncate">{{ employee.full_name }}</span>
+                                        <span class="staff-job text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ employee.position|default:"Pegawai" }}</span>
+                                    </div>
+                                </div>
+                                <span class="px-1.5 py-0.5 text-[9px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 flex-shrink-0 ml-1">
+                                    {{ employee.position|default:"Pegawai" }}
+                                </span>
+                            </label>
+                            {% empty %}
+                            <div class="p-2 text-center text-slate-400 text-xs">Data pegawai tidak ditemukan.</div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
 
                 <!-- KOLOM KANAN: INSTRUKSI & ARAHAN PIMPINAN -->
-                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between">
+                <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between">
                     <div>
-                        <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-700">
-                            <i class="bi bi-list-check"></i> 2. Isi Instruksi & Arahan Pimpinan:
+                        <h3 class="font-extrabold text-[11px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1 pb-1 border-b border-slate-200 dark:border-slate-700">
+                            <i class="bi bi-list-check"></i> 2. Isi Instruksi Pimpinan:
                         </h3>
                         
-                        <!-- INSTRUKSI GRID CHECKBOXES -->
-                        <div class="grid grid-cols-2 gap-2 mb-3">
-                            <label class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="inst_selesaikan" class="text-emerald-600 rounded">
+                        <!-- INSTRUKSI GRID CHECKBOXES (RESPONSIVE TOUCH CARDS) -->
+                        <div class="grid grid-cols-2 gap-1.5 mb-2.5">
+                            <label class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
+                                <input type="checkbox" name="inst_selesaikan" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
                                 <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Selesaikan / Jawab</span>
                             </label>
-                            <label class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="inst_untuk_diketahui" class="text-emerald-600 rounded">
+                            <label class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
+                                <input type="checkbox" name="inst_untuk_diketahui" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
                                 <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Untuk Diketahui</span>
                             </label>
-                            <label class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="inst_laporkan_hasilnya" class="text-emerald-600 rounded">
+                            <label class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
+                                <input type="checkbox" name="inst_laporkan_hasilnya" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
                                 <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Laporkan Hasilnya</span>
                             </label>
-                            <label class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="inst_koordinasikan" class="text-emerald-600 rounded">
+                            <label class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
+                                <input type="checkbox" name="inst_koordinasikan" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
                                 <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Koordinasikan</span>
                             </label>
                         </div>
 
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Catatan / Arahan Tambahan Ketua:</label>
-                        <textarea name="note" class="w-full p-2.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" rows="3" placeholder="Tuliskan catatan arahan khusus dari Ketua BAZNAS di sini..."></textarea>
+                        <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Catatan Arahan Tambahan:</label>
+                        <textarea name="note" class="w-full p-2 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" rows="2.5" placeholder="Tuliskan catatan arahan khusus di sini..."></textarea>
                     </div>
                 </div>
             </div>
 
             <!-- ACTION BUTTON FOOTER -->
-            <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
-                <a href="{% url 'archives:detail' archive.pk %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-1">
+            <div class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+                <a href="{% url 'archives:detail' archive.pk %}" class="px-3.5 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-1">
                     <i class="bi bi-x-circle"></i> Batal
                 </a>
-                <button type="submit" class="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center gap-1.5">
-                    <i class="bi bi-send-check-fill"></i> Kirim Disposisi Ketua Sekarang
+                <button type="submit" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center gap-1.5 cursor-pointer">
+                    <i class="bi bi-send-check-fill"></i> Kirim Disposisi Sekarang
                 </button>
             </div>
         </div>
@@ -210,13 +212,24 @@ document.addEventListener('DOMContentLoaded', function () {
         'kabid iv': /(kabid|kepala bidang)\s*(iv|4)/i
     };
 
-    document.querySelectorAll('.role-filter').forEach(function(checkbox) {
-        checkbox.addEventListener('change', function() {
+    document.querySelectorAll('.role-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
             const targetRole = this.getAttribute('data-role').toLowerCase().trim();
-            const isChecked = this.checked;
             const regex = roleRules[targetRole];
-
             if (!regex) return;
+
+            // Toggle active visual state
+            const isActive = this.classList.contains('bg-emerald-600');
+            if (isActive) {
+                this.classList.remove('bg-emerald-600', 'text-white', 'border-emerald-600');
+                this.classList.add('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+            } else {
+                this.classList.add('bg-emerald-600', 'text-white', 'border-emerald-600');
+                this.classList.remove('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+            }
+
+            const shouldCheck = !isActive;
 
             document.querySelectorAll('.staff-item').forEach(function(item) {
                 const jobText = item.querySelector('.staff-job').textContent.toLowerCase().trim();
@@ -224,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (regex.test(jobText)) {
                     const staffCheckbox = item.querySelector('.staff-checkbox');
                     if (staffCheckbox) {
-                        staffCheckbox.checked = isChecked;
+                        staffCheckbox.checked = shouldCheck;
                     }
                 }
             });
