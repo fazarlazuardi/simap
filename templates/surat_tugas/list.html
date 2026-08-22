@@ -192,7 +192,7 @@
                                 <th class="py-3">Tentang / Perihal</th>
                                 <th class="py-3">Tanggal Pelaksanaan</th>
                                 <th class="py-3">Lokasi Tujuan</th>
-                                <th class="py-3 text-center">Aksi</th>
+                                <th class="py-3 text-end pe-3">Aksi Penugasan</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -215,21 +215,28 @@
                                     <span class="d-block" style="color: var(--text-secondary);">{{ surat.hari_kegiatan }}, {{ surat.tanggal_mulai|date:"d M Y" }}</span>
                                 </td>
                                 <td style="color: var(--text-secondary);">{{ surat.lokasi_tujuan|default:"-" }}</td>
-                                <td class="text-center">
-                                    <div class="d-inline-flex gap-1">
-                                        <!-- Tombol Lihat Detail -->
-                                        <a href="{% url 'surat_tugas:detail' surat.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 fw-bold" title="Lihat Detail">
-                                            <i class="bi bi-eye me-1"></i> Detail
+                                <td class="text-end pe-3 whitespace-nowrap">
+                                    <div class="d-inline-flex align-items-center gap-1.5 justify-content-end">
+                                        <!-- DETAIL -->
+                                        <a href="{% url 'surat_tugas:detail' surat.pk %}" class="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-600 text-sky-600 dark:text-sky-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Lihat Detail Surat Tugas">
+                                            <i class="bi bi-eye-fill"></i> Detail
                                         </a>
-                                        <!-- Tombol Print -->
-                                        <a href="{% url 'surat_tugas:print' surat.pk %}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fw-bold" title="Cetak Surat">
-                                            <i class="bi bi-printer me-1"></i> Print
+
+                                        <!-- EDIT -->
+                                        <a href="{% url 'surat_tugas:update' surat.pk %}" class="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit Surat Tugas">
+                                            <i class="bi bi-pencil-square"></i> Edit
                                         </a>
-                                        <!-- Tombol Hapus -->
-                                        <form action="{% url 'surat_tugas:delete' surat.pk %}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Surat Tugas ini?');">
+
+                                        <!-- CETAK PDF -->
+                                        <a href="{% url 'surat_tugas:print' surat.pk %}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Cetak PDF Surat Tugas">
+                                            <i class="bi bi-printer-fill"></i> Cetak PDF
+                                        </a>
+
+                                        <!-- HAPUS -->
+                                        <form action="{% url 'surat_tugas:delete' surat.pk %}" method="POST" class="d-inline mb-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Surat Tugas ini?');">
                                             {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 fw-bold" title="Hapus Surat">
-                                                <i class="bi bi-trash me-1"></i> Hapus
+                                            <button type="submit" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Surat Tugas">
+                                                <i class="bi bi-trash-fill text-xs"></i>
                                             </button>
                                         </form>
                                     </div>
