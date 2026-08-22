@@ -1014,10 +1014,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    if (meetingTypeVal === 'pleno') {
-        var targetBidangModal = userBidangModal !== 'all' ? userBidangModal : 'bidang_2';
-        filterModalParticipantsByBidang(targetBidangModal);
-    }
+    // Default to 'all' so employees from ALL Bidangs (1, 2, 3, 4) are visible for presensi
+    filterModalParticipantsByBidang('all');
 
     // Helper untuk load konten awal (HTML / Plain Text legacy)
     function setInitialContent(quillObj, rawVal) {
