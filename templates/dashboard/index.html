@@ -306,38 +306,36 @@
 {% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER ENTERPRISE COMMAND CENTER -->
-<div class="dashboard-header-banner mb-4">
-    <div class="row align-items-center position-relative" style="z-index: 2;">
-        <div class="col-lg-8">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.05em;">
-                    <i class="bi bi-shield-lock-fill me-1"></i> SIMAP ENTERPRISE v2.5 COMMAND CENTER
+<!-- TAILWIND ENTERPRISE HEADER BANNER -->
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-2 flex-wrap">
+                <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 font-mono">
+                    <i class="bi bi-shield-lock-fill"></i> COMMAND CENTER v2.5
                 </span>
-                <span class="badge bg-emerald-subtle text-emerald rounded-pill px-3 py-1 fw-bold border border-emerald-subtle" style="font-size: 0.72rem;">
-                    <span class="pulse-dot bg-success me-1"></span> Live Monitoring Realtime
+                <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 font-mono">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Live Monitoring Realtime
                 </span>
             </div>
-            <h2 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">
+            <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">
                 Selamat Datang Kembali, {{ user.employee.full_name|default:user.username }} 👋
-            </h2>
-            <p class="mb-0 text-white opacity-80 small" style="max-width: 650px;">
+            </h1>
+            <p class="text-slate-300 text-sm mt-1 max-w-2xl mb-0">
                 Pusat Kontrol Operasional Sistem Informasi Manajemen Arsip & Monitoring Disposisi BAZNAS Kabupaten Tangerang.
             </p>
         </div>
-        <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-            <div class="d-inline-flex flex-column align-items-lg-end gap-2">
-                <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 px-4 py-2 rounded-pill small fw-bold shadow-sm backdrop-blur">
-                    <i class="bi bi-calendar3 text-warning me-2"></i> {{ today|date:"l, d F Y" }}
-                </span>
-                <div class="d-flex gap-1">
-                    <a href="{% url 'archives:upload' %}" class="btn btn-light btn-sm rounded-pill px-3 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
-                        <i class="bi bi-plus-lg me-1"></i> Upload Arsip
-                    </a>
-                    <a href="{% url 'agendas:list' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 fw-bold">
-                        <i class="bi bi-calendar-event me-1"></i> Agenda
-                    </a>
-                </div>
+        <div class="flex flex-col lg:items-end gap-2 flex-shrink-0">
+            <span class="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-white text-xs font-bold font-mono shadow-sm inline-flex items-center gap-2">
+                <i class="bi bi-calendar3 text-amber-400"></i> {{ today|date:"l, d F Y" }}
+            </span>
+            <div class="flex gap-2">
+                <a href="{% url 'archives:upload' %}" class="px-3.5 py-1.5 rounded-full bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-extrabold shadow-sm transition-all text-decoration-none inline-flex items-center gap-1">
+                    <i class="bi bi-plus-lg"></i> Upload Arsip
+                </a>
+                <a href="{% url 'agendas:list' %}" class="px-3.5 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition-all text-decoration-none inline-flex items-center gap-1">
+                    <i class="bi bi-calendar-event"></i> Agenda
+                </a>
             </div>
         </div>
     </div>
@@ -345,109 +343,97 @@
 
 {% if user.is_pimpinan or user.is_superadmin %}
 {% if pending_dispositions > 0 %}
-<div class="alert alert-warning border-0 shadow-sm rounded-4 mb-4 p-3 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);">
-    <div class="d-flex align-items-center gap-3">
-        <div class="rounded-circle p-2 bg-warning text-dark">
-            <i class="bi bi-exclamation-circle-fill fs-4"></i>
+<div class="p-4 mb-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-center justify-between flex-wrap gap-4 shadow-sm">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+            <i class="bi bi-exclamation-circle-fill"></i>
         </div>
         <div>
-            <h6 class="fw-bold text-dark mb-0">Ada {{ pending_dispositions }} Dokumen Terverifikasi Kabid IV yang Siap Didisposisikan!</h6>
-            <span class="small text-dark opacity-75">Dokumen telah diverifikasi Kabid IV dan siap untuk Anda berikan instruksi disposisi.</span>
+            <h3 class="font-extrabold text-sm text-slate-900 dark:text-white mb-0.5">Ada {{ pending_dispositions }} Dokumen Terverifikasi Kabid IV yang Siap Didisposisikan!</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mb-0">Dokumen telah diverifikasi Kabid IV dan siap untuk Anda berikan instruksi disposisi.</p>
         </div>
     </div>
-    <a href="{% url 'dispositions:list' %}" class="btn btn-warning btn-sm rounded-pill px-4 fw-bold shadow-sm text-dark border-dark">
-        <i class="bi bi-send-fill me-1"></i> Buka Antrean Disposisi
+    <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-md transition-all text-decoration-none inline-flex items-center gap-1.5">
+        <i class="bi bi-send-fill"></i> Buka Antrean Disposisi
     </a>
 </div>
 {% endif %}
 {% endif %}
 
-<!-- 1. Top Stat Counters (6 Cards) -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-2 col-md-4 col-6">
-        <a href="{% url 'archives:list' %}?type=surat_masuk" class="text-decoration-none">
-            <div class="stat-card-enterprise">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">
-                        <i class="bi bi-envelope-paper-fill"></i>
-                    </div>
-                    <span class="badge-pill-enterprise badge-pill-success"><span class="pulse-dot"></span> Live</span>
+<!-- TOP STAT COUNTERS (6 CARDS GRID) -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+    <a href="{% url 'archives:list' %}?type=surat_masuk" class="text-decoration-none group">
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-500/50 hover:-translate-y-1 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
+                    <i class="bi bi-envelope-paper-fill"></i>
                 </div>
-                <h3 class="fw-bold mb-0 code-num">{{ surat_masuk_count|default:0 }}</h3>
-                <span class="text-muted small fw-semibold">Surat Masuk</span>
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Live</span>
             </div>
-        </a>
-    </div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white font-mono group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-0">{{ surat_masuk_count|default:0 }}</h3>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Surat Masuk</span>
+        </div>
+    </a>
 
-    <div class="col-xl-2 col-md-4 col-6">
-        <a href="{% url 'archives:list' %}?type=proposal" class="text-decoration-none">
-            <div class="stat-card-enterprise">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">
-                        <i class="bi bi-folder-fill"></i>
-                    </div>
+    <a href="{% url 'archives:list' %}?type=proposal" class="text-decoration-none group">
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-blue-500/50 hover:-translate-y-1 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg">
+                    <i class="bi bi-folder-fill"></i>
                 </div>
-                <h3 class="fw-bold mb-0 code-num">{{ proposal_aktif_count|default:0 }}</h3>
-                <span class="text-muted small fw-semibold">Proposal Aktif</span>
             </div>
-        </a>
-    </div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white font-mono group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-0">{{ proposal_aktif_count|default:0 }}</h3>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Proposal Aktif</span>
+        </div>
+    </a>
 
-    <div class="col-xl-2 col-md-4 col-6">
-        <a href="{% url 'agendas:list' %}" class="text-decoration-none">
-            <div class="stat-card-enterprise">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">
-                        <i class="bi bi-calendar-event-fill"></i>
-                    </div>
+    <a href="{% url 'agendas:list' %}" class="text-decoration-none group">
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-purple-500/50 hover:-translate-y-1 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg">
+                    <i class="bi bi-calendar-event-fill"></i>
                 </div>
-                <h3 class="fw-bold mb-0 code-num">{{ today_agendas_count|default:0 }}</h3>
-                <span class="text-muted small fw-semibold">Agenda Hari Ini</span>
             </div>
-        </a>
-    </div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white font-mono group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors mb-0">{{ today_agendas_count|default:0 }}</h3>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Agenda Hari Ini</span>
+        </div>
+    </a>
 
-    <div class="col-xl-2 col-md-4 col-6">
-        <a href="{% url 'sppd_service:list' %}" class="text-decoration-none">
-            <div class="stat-card-enterprise">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
-                        <i class="bi bi-car-front-fill"></i>
-                    </div>
+    <a href="{% url 'sppd_service:list' %}" class="text-decoration-none group">
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-amber-500/50 hover:-translate-y-1 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg">
+                    <i class="bi bi-car-front-fill"></i>
                 </div>
-                <h3 class="fw-bold mb-0 code-num">{{ sppd_berjalan_count|default:0 }}</h3>
-                <span class="text-muted small fw-semibold">SPPD Berjalan</span>
             </div>
-        </a>
-    </div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white font-mono group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors mb-0">{{ sppd_berjalan_count|default:0 }}</h3>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">SPPD Berjalan</span>
+        </div>
+    </a>
 
-    <div class="col-xl-2 col-md-4 col-6">
-        <a href="{% url 'reports:index' %}" class="text-decoration-none">
-            <div class="stat-card-enterprise">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-box" style="background: rgba(234, 179, 8, 0.15); color: #EAB308;">
-                        <i class="bi bi-file-earmark-diff-fill"></i>
-                    </div>
+    <a href="{% url 'reports:index' %}" class="text-decoration-none group">
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-yellow-500/50 hover:-translate-y-1 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 flex items-center justify-center text-lg">
+                    <i class="bi bi-file-earmark-diff-fill"></i>
                 </div>
-                <h3 class="fw-bold mb-0 code-num">{{ menunggu_laporan_count|default:0 }}</h3>
-                <span class="text-muted small fw-semibold">Menunggu Laporan</span>
             </div>
-        </a>
-    </div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white font-mono group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors mb-0">{{ menunggu_laporan_count|default:0 }}</h3>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Menunggu Laporan</span>
+        </div>
+    </a>
 
-    <div class="col-xl-2 col-md-4 col-6">
-        <a href="{% url 'archives:list' %}" class="text-decoration-none">
-            <div class="stat-card-enterprise">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.2); color: #059669;">
-                        <i class="bi bi-check-circle-fill"></i>
-                    </div>
+    <a href="{% url 'archives:list' %}" class="text-decoration-none group">
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-500/50 hover:-translate-y-1 transition-all">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
+                    <i class="bi bi-check-circle-fill"></i>
                 </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ dokumen_selesai_count|default:0 }}</h3>
-                <span class="text-secondary small fw-semibold">Dokumen Selesai</span>
             </div>
-        </a>
-    </div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white font-mono group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-0">{{ dokumen_selesai_count|default:0 }}</h3>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Dokumen Selesai</span>
+        </div>
+    </a>
 </div>
 
 <!-- 2. Main Middle Section Grid (3 Columns) -->
