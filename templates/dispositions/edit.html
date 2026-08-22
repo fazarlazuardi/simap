@@ -215,15 +215,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const roleRules = {
-        'ketua': /ketua(?!\s*(i{1,3}|iv|1|2|3|4|bidang))/i,
-        'waka i': /(waka|wakil ketua|wakil).*?(i\b|1\b|bidang 1|bidang i)/i,
-        'waka ii': /(waka|wakil ketua|wakil).*?(ii\b|2\b|bidang 2|bidang ii)/i,
-        'waka iii': /(waka|wakil ketua|wakil).*?(iii\b|3\b|bidang 3|bidang iii)/i,
-        'waka iv': /(waka|wakil ketua|wakil).*?(iv\b|4\b|bidang 4|bidang iv)/i,
-        'kabid i': /(kabid|kepala bidang).*?(i\b|1\b|bidang 1|bidang i)/i,
-        'kabid ii': /(kabid|kepala bidang).*?(ii\b|2\b|bidang 2|bidang ii)/i,
-        'kabid iii': /(kabid|kepala bidang).*?(iii\b|3\b|bidang 3|bidang iii)/i,
-        'kabid iv': /(kabid|kepala bidang).*?(iv\b|4\b|bidang 4|bidang iv)/i
+        'ketua': /^ketua\b|^(?!.*(wakil|waka)).*ketua/i,
+        'waka i': /^(waka|wakil ketua|wakil)\s*(i\b|1\b|bidang 1\b|bidang i\b)/i,
+        'waka ii': /^(waka|wakil ketua|wakil)\s*(ii\b|2\b|bidang 2\b|bidang ii\b)/i,
+        'waka iii': /^(waka|wakil ketua|wakil)\s*(iii\b|3\b|bidang 3\b|bidang iii\b)/i,
+        'waka iv': /^(waka|wakil ketua|wakil)\s*(iv\b|4\b|bidang 4\b|bidang iv\b)/i,
+        'kabid i': /^(kabid|kepala bidang)\s*(i\b|1\b|bidang 1\b|bidang i\b)/i,
+        'kabid ii': /^(kabid|kepala bidang)\s*(ii\b|2\b|bidang 2\b|bidang ii\b)/i,
+        'kabid iii': /^(kabid|kepala bidang)\s*(iii\b|3\b|bidang 3\b|bidang iii\b)/i,
+        'kabid iv': /^(kabid|kepala bidang)\s*(iv\b|4\b|bidang 4\b|bidang iv\b)/i
     };
 
     function updateRoleButtonsState() {
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             let hasChecked = false;
             document.querySelectorAll('.staff-item').forEach(function(item) {
-                const jobText = (item.querySelector('.staff-job')?.textContent || '') + ' ' + (item.querySelector('.staff-name')?.textContent || '');
+                const jobText = (item.querySelector('.staff-job')?.textContent || '').trim();
                 const cb = item.querySelector('.staff-checkbox');
                 if (cb && cb.checked && regex.test(jobText)) {
                     hasChecked = true;
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const shouldCheck = !isActive;
 
             document.querySelectorAll('.staff-item').forEach(function(item) {
-                const jobText = (item.querySelector('.staff-job')?.textContent || '') + ' ' + (item.querySelector('.staff-name')?.textContent || '');
+                const jobText = (item.querySelector('.staff-job')?.textContent || '').trim();
 
                 if (regex.test(jobText)) {
                     const staffCheckbox = item.querySelector('.staff-checkbox');
