@@ -542,7 +542,7 @@
         <div class="modal-content card-enterprise border-0">
             <div class="modal-header border-bottom py-3">
                 <h5 class="modal-header-title fw-bold text-emerald mb-0" id="gcalModalTitle">Detail Kegiatan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" onclick="closePureAgendaModal()" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 text-start">
                 <div class="p-3 card-enterprise mb-3" style="background-color: var(--surface-hover);">
@@ -565,7 +565,7 @@
                 </div>
             </div>
             <div class="modal-footer border-top">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closePureAgendaModal()">Tutup</button>
                 <a href="#" id="gcalModalActionBtn" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
                     Lihat Detail SIMAP
                 </a>
@@ -584,7 +584,7 @@
                 <h5 class="modal-header-title fw-bold text-emerald mb-0">
                     <i class="bi bi-check-circle-fill me-2 text-success"></i>Selesaikan SPPD & Input Laporan Hasil Lapangan (LHP)
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" onclick="closePureAgendaModal()" aria-label="Close"></button>
             </div>
             <form id="formSelesaiSPPD" method="post" enctype="multipart/form-data" action="">
                 {% csrf_token %}
@@ -616,7 +616,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closePureAgendaModal()">Batal</button>
                     <button type="submit" class="btn btn-enterprise-primary rounded-pill px-5 fw-bold shadow-sm">
                         <i class="bi bi-check-circle-fill me-1"></i> Simpan LHP & Selesaikan
                     </button>
@@ -627,14 +627,14 @@
 </div>
 
 <!-- Modal Pop-Up Notulensi Rapat Internal (Quill.js Rich Text) -->
-<div class="modal fade" id="modalNotulensiRapat" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+<div class="modal fade" id="modalNotulensiRapat" tabindex="-1" aria-hidden="true" >
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
         <div class="modal-content card-enterprise border-0">
             <div class="modal-header border-bottom py-3">
                 <h5 class="modal-header-title fw-bold text-emerald mb-0" id="modalNotulensiHeaderTitle">
                     <i class="bi bi-journal-text me-2 text-success"></i>Notulensi Rapat Internal Pimpinan BAZNAS
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" onclick="closePureAgendaModal()" aria-label="Close"></button>
             </div>
             <form id="formNotulensiRapat" method="post" enctype="multipart/form-data" action="">
                 {% csrf_token %}
@@ -721,7 +721,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closePureAgendaModal()">Batal</button>
                     <button type="submit" class="btn btn-enterprise-primary rounded-pill px-5 fw-bold shadow-sm">
                         <i class="bi bi-check-circle-fill me-1"></i> Simpan Notulensi Rapat
                     </button>
