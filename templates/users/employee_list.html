@@ -232,7 +232,7 @@
                 <h5 class="modal-header-title fw-bold text-emerald mb-0">
                     <i class="bi bi-person-plus-fill me-2"></i> Buat Akun Log In SIMAP
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" onclick="closePureEmployeeModal()" aria-label="Close"></button>
             </div>
             <form id="formCreateAccount" method="post" action="">
                 {% csrf_token %}
@@ -263,7 +263,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top py-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closePureEmployeeModal()">Batal</button>
                     <button type="submit" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
                         <i class="bi bi-check-circle-fill me-1"></i> Terbitkan Akun User
                     </button>
@@ -326,8 +326,16 @@
 
         let modalEl = document.getElementById('modalCreateAccount');
         if (modalEl) {
-            let modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-            modal.show();
+            modalEl.classList.remove('hidden');
+            modalEl.classList.add('show', 'd-block');
+        }
+    }
+
+    function closePureEmployeeModal() {
+        let modalEl = document.getElementById('modalCreateAccount');
+        if (modalEl) {
+            modalEl.classList.add('hidden');
+            modalEl.classList.remove('show', 'd-block');
         }
     }
 </script>

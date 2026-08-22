@@ -148,7 +148,7 @@
             <div class="col-md-3">
                 {% if archive.status == 'baru' %}
                     {% if user.is_pimpinan or user.is_kabid or user.is_superadmin %}
-                    <button type="button" class="btn btn-emerald w-100 rounded-pill py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#verifyModal">
+                    <button type="button" class="btn btn-emerald w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="openArchiveModal('verifyModal')">
                         <i class="bi bi-patch-check-fill me-1"></i> 2. Verifikasi Kabid IV
                     </button>
                     {% else %}
@@ -250,7 +250,7 @@
                 <div class="card-enterprise p-4 mb-3">
                     <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
                         <h5 class="fw-bold mb-0 text-emerald"><i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Pratinjau Berkas Digital</h5>
-                        <button type="button" class="btn btn-sm btn-outline-emerald rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                        <button type="button" class="btn btn-sm btn-outline-emerald rounded-pill px-3 fw-bold" onclick="openArchiveModal('uploadFileModal')">
                             <i class="bi bi-cloud-upload me-1"></i> {% if archive.file_path %}Ganti Berkas{% else %}Upload{% endif %}
                         </button>
                     </div>
@@ -282,7 +282,7 @@
                             <i class="bi bi-file-earmark-x fs-1 text-warning d-block mb-2 opacity-75"></i>
                             <h6 class="fw-bold mb-1" style="color: var(--text-primary) !important;">Berkas PDF / Digital Belum Diunggah</h6>
                             <p class="small mb-3" style="color: var(--text-secondary) !important;">Lampirkan file scan/PDF surat ini agar dapat dipratinjau langsung.</p>
-                            <button type="button" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                            <button type="button" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold shadow-sm" onclick="openArchiveModal('uploadFileModal')">
                                 <i class="bi bi-cloud-upload-fill me-2"></i> Unggah Berkas Sekarang
                             </button>
                         </div>
@@ -325,23 +325,17 @@
         <!-- PANEL KANAN (7 COLS): EXECUTIVE TABBED WORKFLOW HUB -->
         <div class="col-lg-7 mb-4">
             <!-- NAV TABS FUTURISTIC HEADER -->
-            <ul class="nav nav-tabs-futuristic" id="archiveDetailTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="tab-workflow-btn" data-bs-toggle="tab" data-bs-target="#tab-workflow-content" type="button" role="tab">
-                        <i class="bi bi-diagram-3-fill me-1 text-warning"></i> 1. Workflow & Status
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-metadata-btn" data-bs-toggle="tab" data-bs-target="#tab-metadata-content" type="button" role="tab">
-                        <i class="bi bi-info-circle-fill me-1 text-emerald"></i> 2. Metadata Surat
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-audit-btn" data-bs-toggle="tab" data-bs-target="#tab-audit-content" type="button" role="tab">
-                        <i class="bi bi-clock-history me-1 text-primary"></i> 3. Activity System Log
-                    </button>
-                </li>
-            </ul>
+            <div class="p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex flex-wrap gap-2 mb-4" id="archivePureTabNav">
+                <button type="button" class="archive-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-emerald-600 text-white shadow-sm" data-tab-target="tab-workflow-content" id="tab-workflow-btn">
+                    <i class="bi bi-diagram-3-fill text-xs text-amber-300"></i> 1. Workflow & Status
+                </button>
+                <button type="button" class="archive-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-tab-target="tab-metadata-content" id="tab-metadata-btn">
+                    <i class="bi bi-info-circle-fill text-xs text-emerald-400"></i> 2. Metadata Surat
+                </button>
+                <button type="button" class="archive-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-tab-target="tab-audit-content" id="tab-audit-btn">
+                    <i class="bi bi-clock-history text-xs text-sky-400"></i> 3. Activity System Log
+                </button>
+            </div>
 
             <!-- TAB CONTENT PANES -->
             <div class="tab-content" id="archiveDetailTabContent">
@@ -656,7 +650,7 @@
         <div class="modal-content card-enterprise border-0">
             <div class="modal-header border-bottom">
                 <h5 class="modal-header-title fw-bold text-emerald mb-0"><i class="bi bi-patch-check-fill me-2 text-success"></i>Verifikasi Dokumen oleh Kabid IV</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" onclick="closeArchiveModal()" aria-label="Close"></button>
             </div>
             <form method="post" action="{% url 'archives:verify' archive.pk %}">
                 {% csrf_token %}
@@ -668,7 +662,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closeArchiveModal()">Batal</button>
                     <button type="submit" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
                         <i class="bi bi-check-circle-fill me-1"></i> Verifikasi Sekarang
                     </button>
@@ -685,7 +679,7 @@
         <div class="modal-content card-enterprise border-0">
             <div class="modal-header border-bottom">
                 <h5 class="modal-header-title fw-bold text-emerald mb-0"><i class="bi bi-cloud-upload-fill me-2 text-primary"></i>Unggah / Ganti Berkas Digital Dokumen</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" onclick="closeArchiveModal()" aria-label="Close"></button>
             </div>
             <form method="post" action="{% url 'archives:edit' archive.pk %}" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -712,7 +706,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closeArchiveModal()">Batal</button>
                     <button type="submit" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
                         <i class="bi bi-cloud-arrow-up-fill me-1"></i> Simpan Berkas
                     </button>
@@ -787,5 +781,51 @@
             }
         }
     }
+
+    function openArchiveModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('show', 'd-block');
+        }
+    }
+
+    function closeArchiveModal() {
+        document.querySelectorAll('.modal').forEach(m => {
+            m.classList.add('hidden');
+            m.classList.remove('show', 'd-block');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const archiveTabButtons = document.querySelectorAll('#archivePureTabNav button');
+        const archiveTabPanes = document.querySelectorAll('#archiveDetailTabContent .tab-pane');
+
+        archiveTabButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('data-tab-target');
+
+                archiveTabButtons.forEach(b => {
+                    b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
+                    b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+                });
+
+                this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
+                this.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+
+                archiveTabPanes.forEach(pane => {
+                    pane.classList.remove('active', 'show');
+                    pane.classList.add('hidden');
+                });
+
+                const targetPane = document.getElementById(targetId);
+                if (targetPane) {
+                    targetPane.classList.add('active', 'show');
+                    targetPane.classList.remove('hidden');
+                }
+            });
+        });
+    });
 </script>
 {% endblock %}
