@@ -197,3 +197,36 @@ window.playSystemNotifSound = function() {
         console.warn('Notification audio chime playback error:', e);
     }
 };
+
+/**
+ * Global Enterprise Popup Toast Notification (Top-Right Screen Corner)
+ * Displays a sleek toast banner with audio chime on the top-right
+ */
+window.showEnterpriseNotificationToast = function(title, body, icon = 'info', linkUrl = '') {
+    if (window.playSystemNotifSound) {
+        window.playSystemNotifSound();
+    }
+    
+    if (window.Swal) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: title,
+            text: body,
+            showConfirmButton: false,
+            timer: 5000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+                if (linkUrl) {
+                    toast.style.cursor = 'pointer';
+                    toast.addEventListener('click', () => {
+                        window.location.href = linkUrl;
+                    });
+                }
+            }
+        });
+    }
+};

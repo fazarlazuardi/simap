@@ -1365,16 +1365,9 @@
 
             {% if messages %}
                 {% for message in messages %}
-                if (window.playSystemNotifSound) window.playSystemNotifSound();
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: '{{ message.tags }}' === 'debug' ? 'info' : '{{ message.tags }}',
-                    title: '{{ message|escapejs }}',
-                    showConfirmButton: false,
-                    timer: 4000,
-                    timerProgressBar: true,
-                });
+                if (window.showEnterpriseNotificationToast) {
+                    window.showEnterpriseNotificationToast('Notifikasi SIMAP', '{{ message|escapejs }}', '{{ message.tags }}' === 'debug' ? 'info' : '{{ message.tags }}');
+                }
                 {% endfor %}
             {% endif %}
         });
