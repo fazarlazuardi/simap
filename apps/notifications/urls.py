@@ -12,4 +12,9 @@ urlpatterns = [
     # WA Gateway Centralized Outbox & Matrix Control Console
     path('wa-outbox/', views.wa_outbox_list, name='wa_outbox'),
     path('wa-outbox/<int:pk>/resend/', views.resend_wa_notification, name='resend_wa'),
+
+    # Interactive Amil Direct Messaging & Chat Room
+    path('chat/', views.chat_inbox, name='chat_inbox'),
+    path('chat/<int:recipient_id>/', views.chat_inbox, name='chat_inbox_user'),
+    path('chat/send/', views.send_direct_message, name='send_direct_message'),
 ]

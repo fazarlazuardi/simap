@@ -68,6 +68,11 @@
             <span class="sidebar-text">Rapat Internal</span>
         </a>
 
+        <a href="{% url 'notifications:chat_inbox' %}" class="nav-link {% if request.resolver_match.url_name == 'chat_inbox' or request.resolver_match.url_name == 'chat_inbox_user' %}active{% endif %}">
+            <i class="bi bi-chat-dots-fill text-warning"></i>
+            <span class="sidebar-text">Pesan Amil</span>
+        </a>
+
         {% if user.is_superadmin and not request.session.active_pov %}
         <a href="{% url 'users:employee_list' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'list' %}active{% endif %}">
             <i class="bi bi-people-fill"></i>

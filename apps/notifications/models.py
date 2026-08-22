@@ -209,3 +209,30 @@ class Notification(models.Model):
             link_url=link_url,
             status='unread'
         )
+
+
+class DirectMessage(models.Model):
+    """Model Pesan Langsung Interaktif Antar Amil/User SIMAP."""
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_direct_messages',
+        verbose_name="Pengirim Pesan"
+    )
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='received_direct_messages',
+        verbose_name="Penerima Pesan"
+    )
+    body = models.TextField(verbose_name="Isi Pesan Chat")
+    is_read = models.BooleanField(default=False, verbose_name="Sudah Dibaca")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Pesan Direct Amil"
+        verbose_name_plural = "Pesan Direct Amil"
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Pesan dari {self.sender.username} ke {self.recipient.username}: {self.body[:25]}..."

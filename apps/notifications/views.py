@@ -151,3 +151,116 @@ def resend_wa_notification(request, pk):
     else:
         messages.error(request, f"❌ {msg}")
     return redirect(request.META.get('HTTP_REFERER', 'notifications:wa_outbox'))
+
+
+@login_required
+def chat_inbox(request, recipient_id=None):
+    """
+    RUANG CHAT & PESAN INTERNAL AMIL SIMAP
+    Menampilkan obrolan interaktif antarsesama pemegang akun (User/Amil).
+    """
+    from users.models import User
+    from .models import DirectMessage
+    from django.utils import timezone
+
+    all_users = User.objects.filter(is_active=True).exclude(pk=request.user.pk).select_related('employee', 'employee__dept_relation').order_by('username')
+    
+    active_recipient = None
+    if recipient_id:
+        active_recipient = get_object_or_404(User, pk=recipient_id, is_active=True)
+    elif all_users.exists():
+        last_msg = DirectMessage.objects.filter(
+            Q(sender=request.user) | Q(recipient=request.user)
+        ).order_by('-created_at').first()
+        if last_msg:
+            active_recipient = last_msg.recipient if last_msg.sender == request.user else last_msg.sender
+        else:
+            active_recipient = all_users.first()
+
+    messages_list = []
+    if active_recipient:
+        DirectMessage.objects.filter(sender=active_recipient, recipient=request.user, is_read=False).update(is_read=True)
+        messages_list = DirectMessage.objects.filter(
+            (Q(sender=request.user) & Q(recipient=active_recipient)) |
+            (Q(sender=active_recipient) & Q(recipient=request.user))
+        ).order_by('created_at')
+
+    unread_counts = {}
+    unread_qs = DirectMessage.objects.filter(recipient=request.user, is_read=False)
+    for msg in unread_qs:
+        unread_counts[msg.sender_id] = unread_counts.get(msg.sender_id, 0) + 1
+
+    last_messages = {}
+    all_direct_msgs = DirectMessage.objects.filter(
+        Q(sender=request.user) | Q(recipient=request.user)
+    ).order_by('-created_at')
+
+    for msg in all_direct_msgs:
+        other_id = msg.recipient_id if msg.sender_id == request.user.pk else msg.sender_id
+        if other_id not in last_messages:
+            last_messages[other_id] = msg
+
+    user_chat_list = []
+    for u in all_users:
+        user_chat_list.append({
+            'user': u,
+            'unread_count': unread_counts.get(u.pk, 0),
+            'last_message': last_messages.get(u.pk),
+        })
+
+    user_chat_list.sort(key=lambda item: item['last_message'].created_at if item['last_message'] else timezone.now() - timezone.timedelta(days=3650), reverse=True)
+
+    context = {
+        'user_chat_list': user_chat_list,
+        'active_recipient': active_recipient,
+        'messages_list': messages_list,
+        'total_unread_chat': sum(unread_counts.values()),
+    }
+    return render(request, 'notifications/chat_inbox.html', context)
+
+
+@login_required
+@require_POST
+def send_direct_message(request):
+    """Fungsi AJAX/Form untuk mengirim pesan direct amil."""
+    from users.models import User
+    from .models import DirectMessage
+
+    recipient_id = request.POST.get('recipient_id')
+    body = request.POST.get('body', '').strip()
+
+    if not recipient_id or not body:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': 'Pesan tidak boleh kosong.'}, status=400)
+        messages.error(request, "Pesan tidak boleh kosong.")
+        return redirect('notifications:chat_inbox')
+
+    recipient = get_object_or_404(User, pk=recipient_id, is_active=True)
+
+    msg = DirectMessage.objects.create(
+        sender=request.user,
+        recipient=recipient,
+        body=body
+    )
+
+    sender_name = request.user.employee.full_name if hasattr(request.user, 'employee') and request.user.employee else request.user.username
+    Notification.create_system_notif(
+        user=recipient,
+        title=f"💬 Pesan Baru dari {sender_name}",
+        message=f"{body[:50]}..." if len(body) > 50 else body,
+        link_url=f"/notifications/chat/{request.user.pk}/",
+        category="general"
+    )
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message_id': msg.id,
+            'body': msg.body,
+            'created_at': msg.created_at.strftime('%H:%M WIB'),
+            'sender_name': sender_name,
+        })
+
+    messages.success(request, f"Pesan terkirim ke {recipient.username}")
+    return redirect('notifications:chat_inbox_user', recipient_id=recipient.pk)
+
