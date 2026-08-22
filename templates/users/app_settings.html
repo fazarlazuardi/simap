@@ -185,15 +185,22 @@
                 </button>
             </div>
 
-            <!-- CARD MAINTENANCE STATUS -->
+            <!-- CARD MAINTENANCE STATUS WITH INTERACTIVE SWITCH TOGGLE -->
             <div class="p-3 rounded-4 mt-4 border" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important;">
-                <div class="d-flex align-items-center justify-content-between mb-1">
+                <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="fw-bold small text-dark"><i class="bi bi-tools text-warning me-1"></i> Maintenance Mode</span>
-                    <span class="badge {% if settings.SYSTEM_MAINTENANCE == 'on' %}bg-danger{% else %}bg-success{% endif %} text-white rounded-pill px-2 py-0.5 extra-small">
-                        {% if settings.SYSTEM_MAINTENANCE == 'on' %}AKTIF{% else %}NORMAL{% endif %}
+                    <span class="badge {% if settings.SYSTEM_MAINTENANCE == 'on' %}bg-danger{% else %}bg-success{% endif %} text-white rounded-pill px-2 py-0.5 extra-small" id="maintenanceBadgeSidebar">
+                        {% if settings.SYSTEM_MAINTENANCE == 'on' %}🔴 AKTIF{% else %}🟢 NON-AKTIF{% endif %}
                     </span>
                 </div>
-                <small class="text-secondary extra-small d-block">Aktifkan hanya saat perbaikan arsitektur sistem.</small>
+                <div class="form-check form-switch mb-1">
+                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="sidebar_maintenance_switch" form="mainSystemSettingsForm" name="maintenance" value="on" 
+                           {% if settings.SYSTEM_MAINTENANCE == 'on' %}checked{% endif %} onchange="syncMaintenanceSwitches(this)">
+                    <label class="form-check-label fw-bold small text-dark cursor-pointer" for="sidebar_maintenance_switch">
+                        Sakelar Pemeliharaan
+                    </label>
+                </div>
+                <small class="text-secondary extra-small d-block">Aktifkan untuk membatasi akses sementara.</small>
             </div>
         </div>
     </div>
@@ -430,12 +437,19 @@
 
                         <hr class="my-4 opacity-10">
 
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" role="switch" id="maintenance" name="maintenance" value="on" 
-                                   {% if settings.SYSTEM_MAINTENANCE == 'on' %}checked{% endif %}>
-                            <label class="form-check-label fw-bold text-dark small" for="maintenance">
-                                <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Aktifkan Mode Pemeliharaan Sistem (System Maintenance Mode)
-                            </label>
+                        <div class="p-3 border rounded-4 bg-body-tertiary">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <label class="form-check-label fw-bold text-dark small d-block mb-1" for="maintenance">
+                                        <i class="bi bi-tools text-warning me-1.5 fs-5"></i> Mode Pemeliharaan Sistem (System Maintenance Mode)
+                                    </label>
+                                    <small class="text-secondary extra-small d-block">Batasi akses seluruh amil sementara waktu saat terjadi pembaruan atau pemeliharaan server.</small>
+                                </div>
+                                <div class="form-check form-switch m-0 ms-auto">
+                                    <input class="form-check-input cursor-pointer fs-4" type="checkbox" role="switch" id="maintenance" name="maintenance" value="on" 
+                                           {% if settings.SYSTEM_MAINTENANCE == 'on' %}checked{% endif %} onchange="syncMaintenanceSwitches(this)">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -617,6 +631,26 @@
 
 {% block extra_js %}
 <script>
+    function syncMaintenanceSwitches(source) {
+        var isChecked = source.checked;
+        var sidebarSwitch = document.getElementById('sidebar_maintenance_switch');
+        var tabSwitch = document.getElementById('maintenance');
+        var badge = document.getElementById('maintenanceBadgeSidebar');
+        
+        if (sidebarSwitch) sidebarSwitch.checked = isChecked;
+        if (tabSwitch) tabSwitch.checked = isChecked;
+        
+        if (badge) {
+            if (isChecked) {
+                badge.className = 'badge bg-danger text-white rounded-pill px-2 py-0.5 extra-small';
+                badge.innerHTML = '🔴 AKTIF';
+            } else {
+                badge.className = 'badge bg-success text-white rounded-pill px-2 py-0.5 extra-small';
+                badge.innerHTML = '🟢 NON-AKTIF';
+            }
+        }
+    }
+
     function previewUploadedLogo(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
