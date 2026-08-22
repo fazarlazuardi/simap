@@ -63,8 +63,21 @@
         </div>
     </div>
 
-    <!-- FILTER BAR ENTERPRISE -->
-    <div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+    <!-- UNIFIED FILTER & CATEGORY PANEL -->
+    <div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <!-- TABS KATEGORI ARSIP -->
+        <div class="flex gap-2 flex-wrap items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+            <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs me-1 flex items-center gap-1"><i class="bi bi-folder-fill"></i> Filter Kategori:</span>
+            <a href="{% url 'dispositions:list' %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if not current_type %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                <i class="bi bi-grid-3x3-gap me-1"></i> Semua Dokumen
+            </a>
+            {% for code, label in archive_types %}
+            <a href="{% url 'dispositions:list' %}?type={{ code }}{% if penerima %}&penerima={{ penerima }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                {{ label }}
+            </a>
+            {% endfor %}
+        </div>
+
         <form method="get" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-end">
             <div class="md:col-span-3">
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Penerima Disposisi</label>
@@ -101,21 +114,6 @@
                 </a>
             </div>
         </form>
-    </div>
-
-    <!-- TABS KATEGORI ARSIP -->
-    <div class="p-3 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div class="flex gap-2 flex-wrap items-center">
-            <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs me-1 flex items-center gap-1"><i class="bi bi-folder-fill"></i> Filter Kategori:</span>
-            <a href="{% url 'dispositions:list' %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if not current_type %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
-                <i class="bi bi-grid-3x3-gap me-1"></i> Semua Dokumen
-            </a>
-            {% for code, label in archive_types %}
-            <a href="{% url 'dispositions:list' %}?type={{ code }}{% if penerima %}&penerima={{ penerima }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
-                {{ label }}
-            </a>
-            {% endfor %}
-        </div>
     </div>
 <!-- DOKUMEN TERVERIFIKASI BELUM ADA DISPOSISI -->
     {% if archives_verified_no_dispo %}

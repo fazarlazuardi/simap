@@ -43,20 +43,46 @@
         </div>
     </div>
 
-    <!-- STATUS WORKFLOW TABS (4 NAV PILLS) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 p-2 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'perlu_verifikasi' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=perlu_verifikasi{% if current_type %}&type={{ current_type }}{% endif %}">
-            <i class="bi bi-clock-history me-1"></i> Perlu Verifikasi Kabid IV
-        </a>
-        <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'belum_disposition' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=belum_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
-            <i class="bi bi-file-earmark-arrow-up me-1"></i> Belum Disposisi Pimpinan
-        </a>
-        <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'sudah_disposition' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=sudah_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
-            <i class="bi bi-check2-all me-1"></i> Sudah Disposisi / Berjalan
-        </a>
-        <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'all' or not status_filter %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=all{% if current_type %}&type={{ current_type }}{% endif %}">
-            <i class="bi bi-collection me-1"></i> Semua Repositori Arsip
-        </a>
+    <!-- UNIFIED WORKFLOW & FILTER PANEL -->
+    <div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <!-- STATUS WORKFLOW TABS (4 NAV PILLS) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'perlu_verifikasi' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=perlu_verifikasi{% if current_type %}&type={{ current_type }}{% endif %}">
+                <i class="bi bi-clock-history me-1"></i> Perlu Verifikasi Kabid IV
+            </a>
+            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'belum_disposition' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=belum_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
+                <i class="bi bi-file-earmark-arrow-up me-1"></i> Belum Disposisi Pimpinan
+            </a>
+            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'sudah_disposition' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=sudah_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
+                <i class="bi bi-check2-all me-1"></i> Sudah Disposisi / Berjalan
+            </a>
+            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'all' or not status_filter %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=all{% if current_type %}&type={{ current_type }}{% endif %}">
+                <i class="bi bi-collection me-1"></i> Semua Repositori Arsip
+            </a>
+        </div>
+
+        <!-- FILTER TIPE ARSIP & BATCH ACTION -->
+        <div class="flex justify-between items-center flex-wrap gap-3">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-slate-500 dark:text-slate-400 text-xs me-1 flex items-center gap-1"><i class="bi bi-funnel-fill text-emerald-600 dark:text-emerald-400"></i> Filter Tipe:</span>
+                <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if not current_type %}bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                    Semua Tipe
+                </a>
+                {% for code, label in archive_types %}
+                <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}&type={{ code }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                    {{ label }}
+                </a>
+                {% endfor %}
+            </div>
+
+            {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm %}
+            <div x-show="selectedIds.length > 0" x-cloak class="flex items-center gap-2">
+                <button type="submit" form="batchVerificationForm" name="action" value="batch_verify_only" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all border-0 inline-flex items-center gap-1.5">
+                    <i class="bi bi-check-all text-base"></i> Verifikasi Terpilih (<span x-text="selectedIds.length">0</span>)
+                </button>
+            </div>
+            {% endif %}
+        </div>
     </div>
 
     <!-- MAIN DATA GRID TABLE CARD -->
@@ -64,28 +90,6 @@
         {% csrf_token %}
 
         <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
-            <!-- Filter Bar & Search -->
-            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center flex-wrap gap-3 bg-slate-50 dark:bg-slate-900/60">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="font-bold text-slate-500 dark:text-slate-400 text-xs me-1 flex items-center gap-1"><i class="bi bi-funnel-fill text-emerald-600 dark:text-emerald-400"></i> Filter Tipe:</span>
-                    <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if not current_type %}bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
-                        Semua Tipe
-                    </a>
-                    {% for code, label in archive_types %}
-                    <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}&type={{ code }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
-                        {{ label }}
-                    </a>
-                    {% endfor %}
-                </div>
-
-                {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm %}
-                <div x-show="selectedIds.length > 0" x-cloak class="flex items-center gap-2">
-                    <button type="submit" name="action" value="batch_verify_only" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all border-0 inline-flex items-center gap-1.5">
-                        <i class="bi bi-check-all text-base"></i> Verifikasi Terpilih (<span x-text="selectedIds.length">0</span>)
-                    </button>
-                </div>
-                {% endif %}
-            </div>
 <!-- Table Enterprise Container -->
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="archiveEnterpriseTable">
