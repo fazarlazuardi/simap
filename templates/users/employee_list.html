@@ -19,117 +19,105 @@
 {% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
-<div class="glass-banner-enterprise mb-4">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-7">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
-                    <i class="bi bi-person-badge-fill me-1 text-warning"></i> Database SDM & Kepegawaian BAZNAS
-                </span>
-            </div>
-            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Master Data Pegawai & Amil BAZNAS</h3>
-            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 640px;">
+<!-- TAILWIND ENTERPRISE HEADER BANNER -->
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+            <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
+                <i class="bi bi-person-badge-fill"></i> Database SDM & Kepegawaian BAZNAS
+            </span>
+            <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">Master Data Pegawai & Amil BAZNAS</h1>
+            <p class="text-slate-300 text-sm max-w-2xl mb-0">
                 Kelola database identitas pegawai, NIP, jabatan, struktur bidang, status SK kepegawaian, serta penerbitan akun login SIMAP.
             </p>
         </div>
-        <div class="col-lg-5 text-lg-end">
+        <div class="flex items-center gap-2 flex-shrink-0">
             {% if user.is_superadmin and not request.session.active_pov %}
-            <a href="{% url 'users:employee_create' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
-                <i class="bi bi-person-plus-fill me-1"></i> Tambah Pegawai Baru
+            <a href="{% url 'users:employee_create' %}" class="px-4 py-2.5 rounded-full bg-white hover:bg-emerald-50 text-emerald-900 font-extrabold text-xs shadow-md transition-all text-decoration-none inline-flex items-center gap-1.5">
+                <i class="bi bi-person-plus-fill text-base"></i> Tambah Pegawai Baru
             </a>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- KPI SUMMARY STAT CARDS -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-circle p-3 text-emerald bg-emerald-subtle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
-                <i class="bi bi-people-fill fs-4"></i>
-            </div>
-            <div>
-                <span class="text-secondary extra-small text-uppercase fw-bold">Total Pegawai Master</span>
-                <h4 class="fw-extrabold text-primary mb-0">{{ total_employees }}</h4>
-            </div>
+<!-- KPI SUMMARY STAT CARDS (4 CARDS GRID) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">Total Pegawai Master</span>
+            <h3 class="text-xl font-black text-slate-900 dark:text-white font-mono mb-0">{{ total_employees }}</h3>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-circle p-3 text-success bg-success-subtle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
-                <i class="bi bi-person-check-fill fs-4"></i>
-            </div>
-            <div>
-                <span class="text-secondary extra-small text-uppercase fw-bold">Amil Aktif BAZNAS</span>
-                <h4 class="fw-extrabold text-success mb-0">{{ active_employees }}</h4>
-            </div>
+
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+            <i class="bi bi-person-check-fill"></i>
+        </div>
+        <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">Amil Aktif BAZNAS</span>
+            <h3 class="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mb-0">{{ active_employees }}</h3>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-circle p-3 text-purple bg-purple-subtle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
-                <i class="bi bi-key-fill fs-4" style="color: #8B5CF6;"></i>
-            </div>
-            <div>
-                <span class="text-secondary extra-small text-uppercase fw-bold">Sudah Ber-Akun SIMAP</span>
-                <h4 class="fw-extrabold mb-0" style="color: #8B5CF6;">{{ with_account_count }}</h4>
-            </div>
+
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+            <i class="bi bi-key-fill"></i>
+        </div>
+        <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">Sudah Ber-Akun SIMAP</span>
+            <h3 class="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mb-0">{{ with_account_count }}</h3>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-circle p-3 text-warning bg-warning-subtle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
-                <i class="bi bi-person-dash-fill fs-4"></i>
-            </div>
-            <div>
-                <span class="text-secondary extra-small text-uppercase fw-bold">Belum Ada Akun</span>
-                <h4 class="fw-extrabold text-warning mb-0">{{ without_account_count }}</h4>
-            </div>
+
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+            <i class="bi bi-person-dash-fill"></i>
+        </div>
+        <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">Belum Ada Akun</span>
+            <h3 class="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mb-0">{{ without_account_count }}</h3>
         </div>
     </div>
 </div>
 
 <!-- SEARCH & FILTER PANEL -->
-<div class="card-enterprise p-3 mb-4">
-    <form method="get" class="row g-2 align-items-center">
-        <div class="col-lg-5">
-            <div class="input-group">
-                <span class="input-group-text custom-input border-end-0 bg-transparent text-secondary">
-                    <i class="bi bi-search"></i>
-                </span>
-                <input type="text" name="q" value="{{ query }}" class="form-control custom-input border-start-0 ps-0" placeholder="Cari Nama Pegawai, NIP, Jabatan, HP, atau Email...">
-            </div>
+<div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+        <div class="md:col-span-5 relative">
+            <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" name="query" class="w-full pl-10 pr-4 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" placeholder="Cari nama pegawai, NIP, atau NIK..." value="{{ query }}">
         </div>
-        <div class="col-lg-3">
-            <select name="bidang" class="form-select custom-input" onchange="this.form.submit()">
+        <div class="md:col-span-3">
+            <select name="bidang" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" onchange="this.form.submit()">
                 <option value="">Semua Struktur Bidang</option>
                 {% for dept in departments %}
                 <option value="{{ dept.id }}" {% if filters.bidang == dept.id|stringformat:'s' %}selected{% endif %}>{{ dept.name }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-lg-2">
-            <select name="akun" class="form-select custom-input" onchange="this.form.submit()">
+        <div class="md:col-span-2">
+            <select name="akun" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" onchange="this.form.submit()">
                 <option value="">Status Akun</option>
                 <option value="ya" {% if filters.akun == 'ya' %}selected{% endif %}>Sudah Ada Akun</option>
                 <option value="tidak" {% if filters.akun == 'tidak' %}selected{% endif %}>Belum Ada Akun</option>
             </select>
         </div>
-        <div class="col-lg-2 d-flex gap-2">
-            <button type="submit" class="btn btn-enterprise-primary rounded-pill w-100 fw-bold">
-                <i class="bi bi-funnel-fill me-1"></i> Filter
+        <div class="md:col-span-2 flex gap-2">
+            <button type="submit" class="flex-1 py-2 px-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1">
+                <i class="bi bi-funnel-fill"></i> Filter
             </button>
             {% if query or filters.bidang or filters.akun %}
-            <a href="{% url 'users:employee_list' %}" class="btn btn-outline-secondary rounded-circle" title="Reset Filter">
+            <a href="{% url 'users:employee_list' %}" class="px-3 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-all inline-flex items-center justify-center text-decoration-none" title="Reset">
                 <i class="bi bi-x-lg"></i>
             </a>
             {% endif %}
         </div>
     </form>
 </div>
-
 <!-- TABEL MASTER PEGAWAI -->
 <div class="card-enterprise p-4 mb-5">
     <div class="table-responsive">
