@@ -4,127 +4,98 @@
 {% block title %}Disposisi Tahap 2 — Waka IV BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto py-1">
-    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
-    <div class="relative overflow-hidden rounded-lg bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-3 shadow-md mb-2.5 border border-slate-700/50">
-        <div class="relative z-10 flex items-center justify-between gap-2">
-            <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                    <span class="px-2 py-0.5 text-[9px] font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1 font-mono">
-                        <i class="bi bi-2-circle-fill"></i> TAHAP 2: DISPOSISI WAKA IV (PELAKSANA)
-                    </span>
-                    <span class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
-                        {{ dispo.disposition_number|default:"—" }}
-                    </span>
+<div class="max-w-md mx-auto py-1">
+    <!-- FORM DISPOSISI WAKA IV (KOTAK KARTU PRESISI FIT-SCREEN MAX-W-MD) -->
+    <form method="post" action="{% url 'dispositions:waka_edit' dispo.pk %}" id="formWakaDisposisi">
+        {% csrf_token %}
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl space-y-3">
+            
+            <!-- HEADER MODAL -->
+            <div class="flex items-center justify-between pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5 mb-0.5">
+                        <span class="px-2 py-0.5 text-[9px] font-bold uppercase rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 font-mono">
+                            <i class="bi bi-2-circle-fill"></i> DISPOSISI WAKA IV
+                        </span>
+                        <span class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-mono">
+                            {{ dispo.disposition_number|default:"—" }}
+                        </span>
+                    </div>
+                    <h1 class="text-sm font-black text-slate-900 dark:text-white tracking-tight mb-0 truncate">Disposisi Pelaksana Waka IV</h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-[10px] truncate mb-0">Waka IV: {{ waka_label }}</p>
                 </div>
-                <h1 class="text-sm sm:text-base font-black text-white tracking-tight mb-0 truncate">Disposisi Pelaksana Waka IV</h1>
-                <p class="text-slate-300 text-[10px] truncate mb-0">Waka IV: <strong class="text-white">{{ waka_label }}</strong> | Status: <strong>{{ dispo.get_status_display }}</strong></p>
-            </div>
 
-            <div class="flex items-center gap-1 flex-shrink-0">
-                {% if archive and archive.file_path %}
-                <a href="{{ archive.file_path.url }}" target="_blank" class="px-2 py-1 rounded-full border border-white/20 text-white hover:bg-white/10 text-[10px] font-bold transition-all text-decoration-none inline-flex items-center gap-1">
-                    <i class="bi bi-file-earmark-pdf text-amber-400"></i> Berkas
-                </a>
-                {% endif %}
-                <a href="{% url 'dispositions:list' %}" class="px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold transition-all text-decoration-none inline-flex items-center gap-1">
-                    <i class="bi bi-arrow-left"></i> Kembali
+                <a href="{% url 'dispositions:list' %}" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs transition-all text-decoration-none flex-shrink-0" title="Kembali">
+                    <i class="bi bi-x-lg"></i>
                 </a>
             </div>
-        </div>
-    </div>
 
-    {% if request.session.active_pov == 'kabid_4' or is_kabid_4_active %}
-    <div class="p-2 mb-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-center gap-2 shadow-sm">
-        <div class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs flex-shrink-0 font-bold">
-            <i class="bi bi-shield-lock-fill"></i>
-        </div>
-        <div>
-            <h3 class="font-extrabold text-[10px] text-slate-900 dark:text-white mb-0"><i class="bi bi-lightning-charge-fill text-amber-500 me-0.5"></i> Mode Take-Over Disposisi Waka IV</h3>
-            <p class="text-[9px] text-slate-600 dark:text-slate-300 mb-0">Sebagai Kabid IV, Anda dapat mengisi disposisi Waka IV ini untuk melanjutkan alur penugasan dokumen.</p>
-        </div>
-    </div>
-    {% endif %}
+            {% if request.session.active_pov == 'kabid_4' or is_kabid_4_active %}
+            <div class="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-center gap-2">
+                <i class="bi bi-shield-lock-fill text-amber-500 text-sm flex-shrink-0"></i>
+                <p class="text-[10px] text-slate-700 dark:text-slate-300 mb-0 font-medium">Mode Take-Over Disposisi Waka IV (Kabid IV / SDM)</p>
+            </div>
+            {% endif %}
 
-    <!-- RINGKASAN DISPOSISI KETUA BAZNAS (TAHAP 1 READONLY) -->
-    <div class="p-2.5 mb-2.5 rounded-lg bg-white dark:bg-slate-900 border-l-4 border-l-emerald-500 border-y border-r border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
-        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1">
-            <h3 class="font-extrabold text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-0 flex items-center gap-1">
-                <i class="bi bi-check-circle-fill text-emerald-500"></i> Ringkasan Disposisi Ketua BAZNAS
-            </h3>
-            <span class="px-2 py-0.2 text-[8px] font-bold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono">Tahap 1 Selesai</span>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[10px]">
-            <div>
-                <label class="block text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Pengirim</label>
-                <span class="font-mono font-bold text-slate-900 dark:text-slate-100">{{ dispo.sender_label|default:"—" }}</span>
+            <!-- RINGKASAN DISPOSISI KETUA BAZNAS (TAHAP 1 READONLY) -->
+            <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border-l-4 border-l-emerald-500 border-y border-r border-slate-200 dark:border-slate-700/60 space-y-1">
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700/60 pb-1">
+                    <span class="font-extrabold text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                        <i class="bi bi-check-circle-fill"></i> Ringkasan Tahap 1 (Ketua)
+                    </span>
+                    <span class="px-1.5 py-0.2 text-[8px] font-bold rounded bg-emerald-500/10 text-emerald-600 font-mono">Selesai</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+                    <div>
+                        <span class="text-slate-400 block text-[8px] uppercase font-bold">Diteruskan Kepada</span>
+                        <div class="flex flex-wrap gap-0.5">
+                            {% for emp in dispo.forwarded_to.all %}
+                                <span class="px-1 py-0.2 text-[8px] font-bold rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">{{ emp.full_name }}</span>
+                            {% empty %}
+                                <span class="text-slate-400">—</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[8px] uppercase font-bold">Arahan Ketua</span>
+                        <span class="text-slate-700 dark:text-slate-300 italic truncate block">"{{ dispo.note|default:"—" }}"</span>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label class="block text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">No. Disposisi</label>
-                <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">{{ dispo.disposition_number|default:"—" }}</span>
-            </div>
-            <div>
-                <label class="block text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Diteruskan Kepada</label>
-                <div class="flex flex-wrap gap-1">
-                    {% for emp in dispo.forwarded_to.all %}
-                        <span class="px-1 py-0.2 text-[8px] font-bold rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">{{ emp.full_name }}</span>
-                    {% empty %}
-                        <span class="text-slate-400">—</span>
+
+            <!-- SECTION: AMIL PELAKSANA -->
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1.5">
+                <h3 class="font-extrabold text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                    <i class="bi bi-send-plus-fill"></i> Pilih Amil Pelaksana:
+                </h3>
+                <div class="max-h-24 overflow-y-auto space-y-0.5 p-1 bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">
+                    {% for emp in employees %}
+                    <label class="flex items-center justify-between p-1 rounded border border-transparent hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 cursor-pointer transition-all select-none">
+                        <div class="flex items-center gap-1.5 overflow-hidden">
+                            <input class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0" type="checkbox" name="waka_forwarded_to" value="{{ emp.pk }}" {% if emp in dispo.waka_forwarded_to.all %}checked{% endif %}>
+                            <div class="truncate">
+                                <span class="font-bold block text-[10px] text-slate-900 dark:text-slate-100 truncate">{{ emp.full_name }}</span>
+                                <span class="text-[8px] text-slate-500 dark:text-slate-400 block truncate">{{ emp.position|default:"Pegawai" }}</span>
+                            </div>
+                        </div>
+                    </label>
                     {% endfor %}
                 </div>
             </div>
-            <div>
-                <label class="block text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Arahan Ketua</label>
-                <span class="text-slate-600 dark:text-slate-300 italic truncate d-block">"{{ dispo.note|default:"—" }}"</span>
-            </div>
-        </div>
-    </div>
 
-    <!-- FORM DISPOSISI WAKA IV (TAHAP 2) -->
-    <form method="post" action="{% url 'dispositions:waka_edit' dispo.pk %}" id="formWakaDisposisi">
-        {% csrf_token %}
-        <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2.5">
-            
-            <h3 class="font-extrabold text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1.5 flex items-center gap-1 pb-1 border-b border-slate-200 dark:border-slate-700">
-                <i class="bi bi-send-plus-fill"></i> Penugasan Amil Pelaksana (Waka IV)
-            </h3>
-
-            <!-- GRID PENERIMA PELAKSANA & CATATAN WAKA IV -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                <!-- KOLOM KIRI: PILIH AMIL PELAKSANA -->
-                <div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                    <label class="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Pilih Amil Pelaksana:</label>
-                    <div class="max-h-28 overflow-y-auto space-y-0.5 p-1 bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">
-                        {% for emp in employees %}
-                        <label class="flex items-center justify-between p-1 rounded border border-transparent hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 cursor-pointer transition-all select-none">
-                            <div class="flex items-center gap-1.5 overflow-hidden">
-                                <input class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0" type="checkbox" name="waka_forwarded_to" value="{{ emp.pk }}" {% if emp in dispo.waka_forwarded_to.all %}checked{% endif %}>
-                                <div class="truncate">
-                                    <span class="font-bold block text-[11px] text-slate-900 dark:text-slate-100 truncate">{{ emp.full_name }}</span>
-                                    <span class="text-[9px] text-slate-500 dark:text-slate-400 block truncate">{{ emp.position|default:"Pegawai" }}</span>
-                                </div>
-                            </div>
-                        </label>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- KOLOM KANAN: ARAHAN TAMBAHAN WAKA IV -->
-                <div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between">
-                    <div>
-                        <label class="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Arahan / Catatan Waka IV:</label>
-                        <textarea name="waka_note" class="w-full p-1.5 rounded text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-emerald-500 focus:outline-none" rows="3" placeholder="Tuliskan petunjuk teknis / instruksi penugasan di sini...">{{ dispo.waka_note|default:"" }}</textarea>
-                    </div>
-                </div>
+            <!-- SECTION: CATATAN WAKA IV -->
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
+                <label class="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Arahan / Catatan Waka IV:</label>
+                <textarea name="waka_note" class="w-full p-1.5 rounded text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-emerald-500 focus:outline-none" rows="2" placeholder="Petunjuk teknis penugasan...">{{ dispo.waka_note|default:"" }}</textarea>
             </div>
 
             <!-- ACTION BUTTON FOOTER -->
             <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
                 <a href="{% url 'dispositions:list' %}" class="px-3 py-1 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-bold transition-all text-decoration-none inline-flex items-center gap-1">
-                    <i class="bi bi-x-circle"></i> Batal
+                    Batal
                 </a>
-                <button type="submit" class="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-md transition-all border-0 inline-flex items-center gap-1 cursor-pointer">
-                    <i class="bi bi-send-check-fill"></i> Simpan Disposisi Waka IV
+                <button type="submit" class="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-md transition-all border-0 inline-flex items-center gap-1 cursor-pointer">
+                    <i class="bi bi-send-check-fill"></i> Simpan Waka IV
                 </button>
             </div>
         </div>
