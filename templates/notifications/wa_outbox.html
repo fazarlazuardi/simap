@@ -210,20 +210,29 @@
                         {% endif %}
                     </td>
                     <td class="text-end text-nowrap">
-                        {% if log.wa_direct_link %}
-                        <a href="{{ log.wa_direct_link }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs me-1" title="Kirim Langsung via WA Web/Mobile">
-                            <i class="bi bi-whatsapp me-1"></i> Kirim WA
-                        </a>
-                        {% endif %}
+                        <div class="inline-flex items-center gap-1.5 justify-end">
+                            {% if log.wa_direct_link %}
+                            <a href="{{ log.wa_direct_link }}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Kirim Langsung via WA Web/Mobile">
+                                <i class="bi bi-whatsapp"></i> Kirim WA
+                            </a>
+                            {% endif %}
 
-                        {% if log.status == 'failed' or log.status == 'draft_manual' %}
-                        <form action="{% url 'notifications:resend_wa' log.pk %}" method="post" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-primary rounded-circle shadow-xs" title="Coba Kirim Ulang via Gateway">
-                                <i class="bi bi-arrow-repeat"></i>
-                            </button>
-                        </form>
-                        {% endif %}
+                            {% if log.status == 'failed' or log.status == 'draft_manual' %}
+                            <form action="{% url 'notifications:resend_wa' log.pk %}" method="post" class="inline mb-0">
+                                {% csrf_token %}
+                                <button type="submit" class="p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-600 text-sky-600 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Coba Kirim Ulang via Gateway">
+                                    <i class="bi bi-arrow-repeat text-xs"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            <form action="{% url 'notifications:delete_wa' log.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus log notifikasi WA ini?');">
+                                {% csrf_token %}
+                                <button type="submit" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Log Notifikasi WA">
+                                    <i class="bi bi-trash-fill text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

@@ -152,6 +152,18 @@ def resend_wa_notification(request, pk):
         messages.error(request, f"❌ {msg}")
     return redirect(request.META.get('HTTP_REFERER', 'notifications:wa_outbox'))
 
+@login_required
+@user_passes_test(superuser_only)
+@require_POST
+def delete_wa_notification(request, pk):
+    """Hapus entri log notifikasi outbox WA dari konsol pemantauan."""
+    notif = get_object_or_404(Notification, pk=pk, notification_type='whatsapp')
+    title = notif.title
+    notif.delete()
+    messages.success(request, f"🗑️ Log Notifikasi WA '{title}' berhasil dihapus dari Outbox.")
+    return redirect(request.META.get('HTTP_REFERER', 'notifications:wa_outbox'))
+
+
 
 @login_required
 def chat_inbox(request, recipient_id=None):
