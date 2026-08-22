@@ -4,38 +4,38 @@
 {% block title %}Emergency Takeover Disposisi - SIMAP BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto py-1">
-    <!-- FORM EMERGENCY TAKEOVER (KOTAK KARTU PRESISI FIT-SCREEN MAX-W-MD) -->
+<div class="max-w-xl mx-auto py-2">
+    <!-- FORM EMERGENCY TAKEOVER (PROPORSIONAL GOLDEN MIDDLE MAX-W-XL) -->
     <form method="post">
         {% csrf_token %}
-        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl space-y-3">
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
             
-            <!-- HEADER MODAL TAKEOVER -->
-            <div class="flex items-center justify-between pb-2.5 border-b border-slate-200 dark:border-slate-800">
+            <!-- HEADER FORM -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                 <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-1.5 mb-0.5">
-                        <span class="px-2 py-0.5 text-[9px] font-bold uppercase rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 font-mono">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="px-2.5 py-0.5 text-xs font-bold uppercase rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 font-mono">
                             <i class="bi bi-shield-exclamation"></i> EMERGENCY TAKEOVER
                         </span>
-                        <span class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono">
+                        <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono">
                             {{ archive.archive_number|default:"DRAFT" }}
                         </span>
                     </div>
-                    <h1 class="text-sm font-black text-slate-900 dark:text-white tracking-tight mb-0 truncate">Emergency Takeover Disposisi</h1>
-                    <p class="text-slate-500 dark:text-slate-400 text-[10px] truncate mb-0">{{ archive.title }}</p>
+                    <h1 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight mb-0">Emergency Takeover Disposisi</h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-xs truncate mb-0">{{ archive.title }}</p>
                 </div>
 
-                <a href="{% url 'dispositions:list' %}" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs transition-all text-decoration-none flex-shrink-0" title="Batal">
+                <a href="{% url 'dispositions:list' %}" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-sm transition-all text-decoration-none flex-shrink-0" title="Batal">
                     <i class="bi bi-x-lg"></i>
                 </a>
             </div>
 
             <!-- ALASAN EMERGENCY TAKEOVER -->
-            <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 space-y-1">
-                <label for="takeover_reason" class="block text-[9px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider mb-0.5">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Alasan Takeover <span class="text-rose-600">*</span>
+            <div class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 space-y-1.5">
+                <label for="takeover_reason" class="block text-xs font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider mb-1">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Alasan Emergency Takeover <span class="text-rose-600">*</span>
                 </label>
-                <select name="takeover_reason" id="takeover_reason" class="w-full px-2 py-1 rounded text-[11px] bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-800 text-slate-900 dark:text-slate-100 focus:outline-none font-medium" required>
+                <select name="takeover_reason" id="takeover_reason" class="w-full px-3 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-800 text-slate-900 dark:text-slate-100 focus:outline-none font-medium" required>
                     <option value="Ketua & Waka IV Tugas Luar / Kegiatan Lapangan BAZNAS" selected>Ketua & Waka IV Tugas Luar / Kegiatan Lapangan BAZNAS</option>
                     <option value="Disposisi Darurat Terkait Penyaluran Bantuan Bencana/Mustahik Critical">Disposisi Darurat Terkait Penyaluran Bantuan Bencana/Mustahik Critical</option>
                     <option value="Surat Masuk Undangan Berbatas Waktu Sangat Segera">Surat Masuk Undangan Berbatas Waktu Sangat Segera</option>
@@ -43,16 +43,16 @@
             </div>
 
             <!-- DAFTAR AMIL PELAKSANA -->
-            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
-                <label class="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Diteruskan Langsung Ke Amil Pelaksana <span class="text-rose-500">*</span></label>
-                <div class="max-h-28 overflow-y-auto space-y-0.5 p-1 bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">
+            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Diteruskan Langsung Ke Amil Pelaksana <span class="text-rose-500">*</span></label>
+                <div class="max-h-32 overflow-y-auto space-y-1 p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
                     {% for emp in employees %}
-                    <label class="flex items-center justify-between p-1 rounded border border-transparent hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 cursor-pointer transition-all select-none">
-                        <div class="flex items-center gap-1.5 overflow-hidden">
-                            <input class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0" type="checkbox" name="waka_forwarded_to" value="{{ emp.id }}" id="emp_{{ emp.id }}">
+                    <label class="flex items-center justify-between p-1.5 rounded-lg border border-transparent hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 cursor-pointer transition-all select-none">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <input class="w-4 h-4 text-emerald-600 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0" type="checkbox" name="waka_forwarded_to" value="{{ emp.id }}" id="emp_{{ emp.id }}">
                             <div class="truncate">
-                                <span class="font-bold block text-[10px] text-slate-900 dark:text-slate-100 truncate">{{ emp.full_name }}</span>
-                                <span class="text-[8px] text-slate-500 dark:text-slate-400 block truncate">{{ emp.position }}</span>
+                                <span class="font-bold block text-xs text-slate-900 dark:text-slate-100 truncate">{{ emp.full_name }}</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ emp.position }}</span>
                             </div>
                         </div>
                     </label>
@@ -61,17 +61,17 @@
             </div>
 
             <!-- CATATAN INSTRUKSI OPERASIONAL -->
-            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
-                <label for="note" class="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Catatan Instruksi Operasional</label>
-                <textarea name="note" id="note" class="w-full p-1.5 rounded text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-emerald-500 focus:outline-none" rows="2" placeholder="Masukkan arahan/petunjuk khusus..."></textarea>
+            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1.5">
+                <label for="note" class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Catatan Instruksi Operasional</label>
+                <textarea name="note" id="note" class="w-full p-2.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" rows="2.5" placeholder="Masukkan arahan/petunjuk khusus..."></textarea>
             </div>
 
             <!-- ACTION FOOTER -->
-            <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
-                <a href="{% url 'dispositions:list' %}" class="px-3 py-1 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-bold transition-all text-decoration-none inline-flex items-center gap-1">
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-200 dark:border-slate-800">
+                <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-1">
                     Batal
                 </a>
-                <button type="submit" class="px-4 py-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] shadow-md transition-all border-0 inline-flex items-center gap-1 cursor-pointer">
+                <button type="submit" class="px-5 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center gap-1.5 cursor-pointer">
                     <i class="bi bi-shield-check"></i> Eksekusi Emergency Takeover
                 </button>
             </div>
