@@ -4,151 +4,198 @@
 {% block title %}Edit Disposisi Ketua BAZNAS - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto py-2">
-    <!-- FORM EDIT DISPOSISI (PROPORSIONAL GOLDEN MIDDLE MAX-W-XL) -->
-    <form method="post" action="{% if dispo and dispo.pk %}{% url 'dispositions:edit' dispo.pk %}{% elif archive %}{% url 'dispositions:create' archive.pk %}{% endif %}" id="formCreateDisposisi">
-        {% csrf_token %}
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
-            
-            <!-- HEADER FORM -->
-            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 mb-1 flex-wrap">
-                        <span class="px-2.5 py-0.5 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 font-mono">
-                            <i class="bi bi-pencil-square"></i> DISPOSISI KETUA
-                        </span>
-                        <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-mono">
-                            {{ dispo.disposition_number|default:generated_disp_no }}
-                        </span>
-                    </div>
-                    <h1 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight mb-0">Formulir Disposisi Ketua BAZNAS</h1>
-                    <p class="text-slate-500 dark:text-slate-400 text-xs truncate mb-0">Status: <strong>{{ dispo.get_status_display }}</strong></p>
-                </div>
+<div class="container-fluid py-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-11" style="max-width: 1200px;">
 
-                <a href="{% url 'dispositions:list' %}" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-sm transition-all text-decoration-none flex-shrink-0" title="Kembali">
-                    <i class="bi bi-x-lg"></i>
-                </a>
+            <!-- TAILWIND ENTERPRISE HEADER BANNER -->
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2 flex-wrap">
+                            <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono">
+                                <i class="bi bi-pencil-square"></i> DISPOSISI KETUA BAZNAS
+                            </span>
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                                {{ dispo.disposition_number|default:generated_disp_no }}
+                            </span>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Formulir Disposisi Ketua BAZNAS</h1>
+                        <p class="text-slate-300 text-sm max-w-2xl mb-0">Status Disposisi: <strong>{{ dispo.get_status_display }}</strong></p>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-2">
+                            <i class="bi bi-arrow-left"></i> Kembali
+                        </a>
+                    </div>
+                </div>
             </div>
 
             {% if request.session.active_pov == 'kabid_4' or is_kabid_4_active %}
-            <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-center gap-2">
-                <i class="bi bi-shield-lock-fill text-amber-500 text-base flex-shrink-0"></i>
-                <p class="text-xs text-slate-700 dark:text-slate-300 mb-0 font-medium">Mode Take-Over Disposisi (Kabid IV / SDM)</p>
+            <div class="p-4 mb-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-center gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0.5"><i class="bi bi-lightning-charge-fill text-amber-500 me-1"></i> Mode Take-Over Disposisi (Kabid IV / SDM)</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mb-0">Sebagai Kabid IV, Anda dapat mengedit lembar disposisi ini untuk menjaga kelancaran alur penanganan dokumen jika Ketua berhalangan.</p>
+                </div>
             </div>
             {% endif %}
 
-            <!-- SECTION 1: METADATA & URGENSI -->
-            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2.5">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Batas Pelaksanaan</label>
-                        <input type="date" name="target_date" class="w-full px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none" value="{{ dispo.target_date|date:'Y-m-d' }}">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Sifat Urgensi</label>
-                        <div class="flex items-center gap-3 pt-1">
-                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-rose-600 dark:text-rose-400 select-none">
-                                <input type="radio" name="priority" value="segera" class="w-3.5 h-3.5 text-rose-600 focus:ring-rose-500" {% if dispo.priority == 'segera' %}checked{% endif %}> Segera
-                            </label>
-                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-amber-600 dark:text-amber-400 select-none">
-                                <input type="radio" name="priority" value="penting" class="w-3.5 h-3.5 text-amber-600 focus:ring-amber-500" {% if dispo.priority == 'penting' %}checked{% endif %}> Penting
-                            </label>
-                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-emerald-600 dark:text-emerald-400 select-none">
-                                <input type="radio" name="priority" value="biasa" class="w-3.5 h-3.5 text-emerald-600 focus:ring-emerald-500" {% if not dispo or dispo.priority == 'biasa' %}checked{% endif %}> Biasa
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- CARD FORM EDIT DISPOSISI -->
+            <div class="p-6 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <form method="post" action="{% if dispo and dispo.pk %}{% url 'dispositions:edit' dispo.pk %}{% elif archive %}{% url 'dispositions:create' archive.pk %}{% endif %}" id="formCreateDisposisi">
+                    {% csrf_token %}
 
-            <!-- SECTION 2: PENERIMA DISPOSISI -->
-            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
-                <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="bi bi-people-fill"></i> 1. Diteruskan Kepada (Penerima):
-                </h3>
-                
-                <!-- QUICK SELECT JABATAN BUTTONS -->
-                <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
-                    <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="ketua">Ketua</button>
-                    <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka i">Waka I</button>
-                    <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka ii">Waka II</button>
-                    <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka iii">Waka III</button>
-                    <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka iv">Waka IV</button>
-                    <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid i">Kabid I</button>
-                    <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid ii">Kabid II</button>
-                    <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid iii">Kabid III</button>
-                    <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid iv">Kabid IV</button>
-                </div>
-
-                <!-- LIVE SEARCH -->
-                <input type="text" id="searchStaff" class="w-full px-3 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="🔍 Cari nama / jabatan pegawai...">
-
-                <!-- DAFTAR PEGAWAI CHECKLIST -->
-                <div class="max-h-32 overflow-y-auto space-y-1 p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
-                    {% for employee in employees %}
-                    <label class="staff-item flex items-center justify-between p-1.5 rounded-lg border border-transparent hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 cursor-pointer transition-all select-none">
-                        <div class="flex items-center gap-2 overflow-hidden">
-                            <input class="staff-checkbox w-4 h-4 text-emerald-600 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0" 
-                                   type="checkbox" 
-                                   name="forwarded_to" 
-                                   value="{{ employee.pk }}" 
-                                   id="emp_{{ employee.pk }}"
-                                   {% if dispo and employee in dispo.forwarded_to.all %}checked{% endif %}>
-                            <div class="truncate">
-                                <span class="staff-name font-bold block text-xs text-slate-900 dark:text-slate-100 truncate">{{ employee.full_name }}</span>
-                                <span class="staff-job text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ employee.position|default:"Pegawai" }}</span>
+                    <!-- BARIS 1: RINCIAN METADATA DOKUMEN -->
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 mb-6">
+                        <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-4 flex items-center gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-700">
+                            <i class="bi bi-file-earmark-text-fill"></i> Rincian Dokumen Terkait
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Nomor Disposisi Resmi</label>
+                                <input type="text" name="disposition_number" class="w-full px-3 py-2 rounded-xl text-xs font-mono font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 focus:outline-none" value="{{ dispo.disposition_number|default:generated_disp_no }}" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Nomor Surat / Agenda</label>
+                                <input type="text" class="w-full px-3 py-2 rounded-xl text-xs font-mono font-bold bg-slate-200/60 dark:bg-slate-700/60 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 focus:outline-none" value="{% if archive %}{{ archive.archive_number|default:archive.title }}{% else %}-{% endif %}" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Tanggal Surat</label>
+                                <input type="text" class="w-full px-3 py-2 rounded-xl text-xs font-mono font-bold bg-slate-200/60 dark:bg-slate-700/60 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 focus:outline-none" value="{% if archive %}{{ archive.letter_date|date:'d F Y'|default:'-' }}{% else %}-{% endif %}" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Batas Pelaksanaan <small class="text-slate-400 font-normal">(Opsional)</small></label>
+                                <input type="date" name="target_date" class="w-full px-3 py-2 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none" value="{{ dispo.target_date|date:'Y-m-d' }}">
                             </div>
                         </div>
-                        <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 flex-shrink-0 ml-1">
-                            {{ employee.position|default:"Pegawai" }}
-                        </span>
-                    </label>
-                    {% empty %}
-                    <div class="p-2 text-center text-slate-400 text-xs">Data pegawai tidak ditemukan.</div>
-                    {% endfor %}
-                </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Sifat Urgensi / Kecepatan Penanganan</label>
+                            <div class="flex items-center gap-6 pt-1">
+                                <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-rose-600 dark:text-rose-400 select-none">
+                                    <input type="radio" name="priority" value="segera" class="w-4 h-4 text-rose-600 focus:ring-rose-500" {% if dispo.priority == 'segera' %}checked{% endif %}>
+                                    <i class="bi bi-exclamation-octagon-fill text-sm"></i> Segera
+                                </label>
+                                <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-amber-600 dark:text-amber-400 select-none">
+                                    <input type="radio" name="priority" value="penting" class="w-4 h-4 text-amber-600 focus:ring-amber-500" {% if dispo.priority == 'penting' %}checked{% endif %}>
+                                    <i class="bi bi-exclamation-triangle-fill text-sm"></i> Penting
+                                </label>
+                                <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-600 dark:text-emerald-400 select-none">
+                                    <input type="radio" name="priority" value="biasa" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500" {% if not dispo or dispo.priority == 'biasa' %}checked{% endif %}>
+                                    <i class="bi bi-check-circle-fill text-sm"></i> Biasa
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BARIS 2: GRID 2 KOLOM -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- KOLOM KIRI: PENERIMA DISPOSISI -->
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-700">
+                                    <i class="bi bi-people-fill"></i> 1. Diteruskan Kepada (Penerima):
+                                </h3>
+                                
+                                <!-- QUICK SELECT JABATAN BUTTONS -->
+                                <div class="p-3 mb-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Pilih Otomatis Berdasarkan Jabatan:</label>
+                                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                                        <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="ketua">Ketua</button>
+                                        <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka i">Waka I</button>
+                                        <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka ii">Waka II</button>
+                                        <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka iii">Waka III</button>
+                                        <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka iv">Waka IV</button>
+                                        <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid i">Kabid I</button>
+                                        <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid ii">Kabid II</button>
+                                        <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid iii">Kabid III</button>
+                                        <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid iv">Kabid IV</button>
+                                    </div>
+                                </div>
+
+                                <!-- LIVE SEARCH -->
+                                <div class="mb-3">
+                                    <input type="text" id="searchStaff" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="🔍 Cari nama / jabatan pegawai...">
+                                </div>
+
+                                <!-- DAFTAR PEGAWAI CHECKLIST -->
+                                <div class="max-h-48 overflow-y-auto space-y-1 p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    {% for employee in employees %}
+                                    <label class="staff-item flex items-center justify-between p-2 rounded-lg border border-transparent hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 cursor-pointer transition-all select-none">
+                                        <div class="flex items-center gap-2 overflow-hidden">
+                                            <input class="staff-checkbox w-4 h-4 text-emerald-600 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0" 
+                                                   type="checkbox" 
+                                                   name="forwarded_to" 
+                                                   value="{{ employee.pk }}" 
+                                                   id="emp_{{ employee.pk }}"
+                                                   {% if dispo and employee in dispo.forwarded_to.all %}checked{% endif %}>
+                                            <div class="truncate">
+                                                <span class="staff-name font-bold block text-xs text-slate-900 dark:text-slate-100 truncate">{{ employee.full_name }}</span>
+                                                <span class="staff-job text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ employee.position|default:"Pegawai" }}</span>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 flex-shrink-0 ml-1">
+                                            {{ employee.position|default:"Pegawai" }}
+                                        </span>
+                                    </label>
+                                    {% empty %}
+                                    <div class="p-3 text-center text-slate-400 text-xs">Data pegawai tidak ditemukan.</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KOLOM KANAN: INSTRUKSI PIMPINAN & ARAHAN -->
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-700">
+                                    <i class="bi bi-list-check"></i> 2. Isi Instruksi & Arahan Pimpinan:
+                                </h3>
+                                
+                                <!-- INSTRUKSI GRID CHECKBOXES -->
+                                <div class="grid grid-cols-2 gap-2 mb-4">
+                                    <label class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
+                                        <input type="checkbox" name="inst_selesaikan" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" {% if dispo.inst_selesaikan %}checked{% endif %}>
+                                        <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Selesaikan / Jawab</span>
+                                    </label>
+                                    <label class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
+                                        <input type="checkbox" name="inst_untuk_diketahui" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" {% if dispo.inst_untuk_diketahui %}checked{% endif %}>
+                                        <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Untuk Diketahui</span>
+                                    </label>
+                                    <label class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
+                                        <input type="checkbox" name="inst_laporkan_hasilnya" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" {% if dispo.inst_laporkan_hasilnya %}checked{% endif %}>
+                                        <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Laporkan Hasilnya</span>
+                                    </label>
+                                    <label class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
+                                        <input type="checkbox" name="inst_koordinasikan" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" {% if dispo.inst_koordinasikan %}checked{% endif %}>
+                                        <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Koordinasikan</span>
+                                    </label>
+                                </div>
+
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Catatan Arahan Tambahan Ketua:</label>
+                                <textarea name="note" class="w-full p-3 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" rows="3" placeholder="Catatan arahan khusus...">{{ dispo.note|default:"" }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTION BUTTON FOOTER -->
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+                        <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-2">
+                            <i class="bi bi-x-circle"></i> Batal & Kembali
+                        </a>
+                        <button type="submit" class="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center gap-2 cursor-pointer">
+                            <i class="bi bi-send-check-fill text-base"></i> Simpan Perubahan Disposisi
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <!-- SECTION 3: INSTRUKSI PIMPINAN & ARAHAN -->
-            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
-                <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="bi bi-list-check"></i> 2. Isi Instruksi & Arahan:
-                </h3>
-                
-                <!-- INSTRUKSI GRID CHECKBOXES -->
-                <div class="grid grid-cols-2 gap-1.5">
-                    <label class="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
-                        <input type="checkbox" name="inst_selesaikan" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" {% if dispo.inst_selesaikan %}checked{% endif %}>
-                        <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Selesaikan / Jawab</span>
-                    </label>
-                    <label class="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
-                        <input type="checkbox" name="inst_untuk_diketahui" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" {% if dispo.inst_untuk_diketahui %}checked{% endif %}>
-                        <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Untuk Diketahui</span>
-                    </label>
-                    <label class="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
-                        <input type="checkbox" name="inst_laporkan_hasilnya" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" {% if dispo.inst_laporkan_hasilnya %}checked{% endif %}>
-                        <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Laporkan Hasilnya</span>
-                    </label>
-                    <label class="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/30 flex items-center gap-2 cursor-pointer select-none transition-all">
-                        <input type="checkbox" name="inst_koordinasikan" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500" {% if dispo.inst_koordinasikan %}checked{% endif %}>
-                        <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Koordinasikan</span>
-                    </label>
-                </div>
-
-                <textarea name="note" class="w-full p-2.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" rows="2" placeholder="Catatan arahan khusus...">{{ dispo.note|default:"" }}</textarea>
-            </div>
-
-            <!-- ACTION BUTTON FOOTER -->
-            <div class="flex items-center justify-between pt-2.5 border-t border-slate-200 dark:border-slate-800">
-                <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-1">
-                    Batal
-                </a>
-                <button type="submit" class="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center gap-1.5 cursor-pointer">
-                    <i class="bi bi-send-check-fill"></i> Simpan Perubahan Disposisi
-                </button>
-            </div>
         </div>
-    </form>
+    </div>
 </div>
 
 <script>
@@ -189,10 +236,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const isActive = this.classList.contains('bg-emerald-600');
             if (isActive) {
                 this.classList.remove('bg-emerald-600', 'text-white', 'border-emerald-600');
-                this.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+                this.classList.add('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
             } else {
                 this.classList.add('bg-emerald-600', 'text-white', 'border-emerald-600');
-                this.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+                this.classList.remove('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
             }
 
             const shouldCheck = !isActive;
