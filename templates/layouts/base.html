@@ -1365,6 +1365,7 @@
 
             {% if messages %}
                 {% for message in messages %}
+                if (window.playSystemNotifSound) window.playSystemNotifSound();
                 Swal.fire({
                     toast: true,
                     position: 'top-end',

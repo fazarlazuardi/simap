@@ -126,3 +126,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+/**
+ * Global Web Audio API Melodic System Notification Chime (C5 -> G5)
+ * Dual-tone audio synthesizer for interactive feedback
+ */
+window.playSystemNotifSound = function() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        
+        const audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        
+        // Tone 1: C5 (523.25 Hz)
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        gain1.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(audioCtx.currentTime);
+        osc1.stop(audioCtx.currentTime + 0.35);
+
+        // Tone 2: G5 (783.99 Hz) - Starts 80ms later
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.08);
+        gain2.gain.setValueAtTime(0.16, audioCtx.currentTime + 0.08);
+        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.55);
+        
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(audioCtx.currentTime + 0.08);
+        osc2.stop(audioCtx.currentTime + 0.55);
+    } catch (e) {
+        console.warn('AudioContext sound prevented by browser policy:', e);
+    }
+};
