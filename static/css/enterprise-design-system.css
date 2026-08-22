@@ -975,20 +975,29 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 4. Chat Messenger Global Height & Responsiveness */
+/* 4. Chat Messenger Global Height & Dynamic Viewport (100dvh for iOS Safari & Android Chrome) */
 .chat-messenger-container {
   height: calc(100vh - 220px);
-  min-height: 520px;
+  height: calc(100dvh - 220px);
+  min-height: 500px;
   width: 100% !important;
   max-width: 100% !important;
   overflow: hidden !important;
+}
+
+.chat-messenger-container .row,
+.chat-messenger-container #contactsSidebarPanel,
+.chat-messenger-container #chatThreadPanel,
+#chatMessagesThread {
+  min-height: 0 !important;
 }
 
 /* Tablet & Mobile Landscape (< 992px) */
 @media (max-width: 991.98px) {
   .chat-messenger-container {
     height: calc(100vh - 180px) !important;
-    min-height: 480px !important;
+    height: calc(100dvh - 180px) !important;
+    min-height: 440px !important;
   }
   
   .glass-banner-enterprise h3 {
@@ -1000,24 +1009,25 @@ html, body {
 @media (max-width: 767.98px) {
   .chat-messenger-container {
     height: calc(100vh - 140px) !important;
-    min-height: 440px !important;
+    height: calc(100dvh - 140px) !important;
+    min-height: 380px !important;
     border-radius: var(--radius-md) !important;
-    margin-bottom: 30px !important;
+    margin-bottom: 20px !important;
   }
   
   .glass-banner-enterprise {
-    padding: 14px 16px !important;
-    margin-bottom: 12px !important;
+    padding: 12px 14px !important;
+    margin-bottom: 10px !important;
   }
 
   .glass-banner-enterprise h3 {
-    font-size: 1.15rem !important;
+    font-size: 1.1rem !important;
   }
 
   .chat-bubble-outgoing, .chat-bubble-incoming {
     max-width: 88% !important;
-    font-size: 0.9rem !important;
-    padding: 10px 14px !important;
+    font-size: 0.88rem !important;
+    padding: 9px 13px !important;
   }
 
   .contact-item {
@@ -1039,14 +1049,15 @@ html, body {
 /* Small Smartphone Screen (< 576px) */
 @media (max-width: 575.98px) {
   .chat-messenger-container {
-    height: calc(100vh - 120px) !important;
-    min-height: 400px !important;
-    margin-bottom: 20px !important;
+    height: calc(100vh - 110px) !important;
+    height: calc(100dvh - 110px) !important;
+    min-height: 350px !important;
+    margin-bottom: 16px !important;
   }
 
   .chat-bubble-outgoing, .chat-bubble-incoming {
     max-width: 92% !important;
-    font-size: 0.86rem !important;
+    font-size: 0.85rem !important;
   }
 
   .btn-chat-send {
