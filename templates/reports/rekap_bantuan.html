@@ -4,7 +4,7 @@
 {% block title %}Rekap Penanganan & Analitik BAZNAS{% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
 <style>
     table.dataTable > thead > tr > th { border-bottom: none !important; color: var(--text-primary) !important; font-weight: 700 !important; }
     table.dataTable.no-footer { border-bottom: 1px solid var(--border-color) !important; }
@@ -347,7 +347,7 @@
 {{ umum_chart_series|json_script:"umum-series" }}
 
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     var idLanguage = {
