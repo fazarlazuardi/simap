@@ -25,10 +25,23 @@
 </div>
 
 <!-- MAIN CHAT MESSENGER CONTAINER (WHATSAPP / TELEGRAM RESPONSIVE MOBILE & DESKTOP) -->
-<div class="card-enterprise p-0 overflow-hidden shadow-xl border-0 mb-4 chat-messenger-container">
-    <div class="row g-0 h-100">
+<div class="card-enterprise p-0 overflow-hidden shadow-xl border-0 mb-4 chat-messenger-container d-flex flex-column">
+    
+    <!-- MOBILE TAB SWITCHER BAR (Strictly visible on smartphones < 768px) -->
+    <div class="d-flex d-md-none bg-body-tertiary border-bottom p-2 gap-2 shadow-xs flex-shrink-0">
+        <button type="button" id="mobileTabBtnContacts" class="btn btn-sm flex-fill rounded-pill fw-bold {% if not active_recipient %}btn-emerald text-white{% else %}btn-outline-secondary{% endif %}" onclick="showMobilePanel('contacts')">
+            <i class="bi bi-people-fill me-1"></i> Kontak Amil {% if total_unread_chat > 0 %}<span class="badge bg-danger rounded-circle ms-1">{{ total_unread_chat }}</span>{% endif %}
+        </button>
+        {% if active_recipient %}
+        <button type="button" id="mobileTabBtnChat" class="btn btn-sm flex-fill rounded-pill fw-bold btn-emerald text-white" onclick="showMobilePanel('chat')">
+            <i class="bi bi-chat-text-fill me-1"></i> Percakapan
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="row g-0 flex-grow-1 h-100 overflow-hidden">
         
-        <!-- SIDEBAR DAFTAR AMIL / CONTACTS (LEFT PANEL - Full Width on Mobile when no active recipient) -->
+        <!-- SIDEBAR DAFTAR AMIL / CONTACTS (LEFT PANEL) -->
         <div class="col-12 col-md-4 col-lg-3 border-end bg-body-tertiary d-flex flex-column h-100 {% if active_recipient %}d-none d-md-flex{% endif %}" id="contactsSidebarPanel">
             <!-- Header Search & Unread Counter -->
             <div class="p-3 border-bottom bg-body shadow-xs">
@@ -354,6 +367,45 @@
 
     function escapeHtml(text) {
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function showMobilePanel(panelName) {
+        var contactsPanel = document.getElementById('contactsSidebarPanel');
+        var chatPanel = document.getElementById('chatThreadPanel');
+        var btnContacts = document.getElementById('mobileTabBtnContacts');
+        var btnChat = document.getElementById('mobileTabBtnChat');
+
+        if (panelName === 'contacts') {
+            if (contactsPanel) {
+                contactsPanel.classList.remove('d-none');
+                contactsPanel.classList.add('d-flex');
+            }
+            if (chatPanel) {
+                chatPanel.classList.remove('d-flex');
+                chatPanel.classList.add('d-none');
+            }
+            if (btnContacts) {
+                btnContacts.className = "btn btn-sm flex-fill rounded-pill fw-bold btn-emerald text-white";
+            }
+            if (btnChat) {
+                btnChat.className = "btn btn-sm flex-fill rounded-pill fw-bold btn-outline-secondary";
+            }
+        } else {
+            if (chatPanel) {
+                chatPanel.classList.remove('d-none');
+                chatPanel.classList.add('d-flex');
+            }
+            if (contactsPanel) {
+                contactsPanel.classList.remove('d-flex');
+                contactsPanel.classList.add('d-none');
+            }
+            if (btnChat) {
+                btnChat.className = "btn btn-sm flex-fill rounded-pill fw-bold btn-emerald text-white";
+            }
+            if (btnContacts) {
+                btnContacts.className = "btn btn-sm flex-fill rounded-pill fw-bold btn-outline-secondary";
+            }
+        }
     }
 </script>
 {% endblock %}
