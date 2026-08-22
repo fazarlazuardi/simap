@@ -941,30 +941,81 @@ html, body {
   color: #0F172A !important;
 }
 
-/* MOBILE RESPONSIVE ADAPTATION FOR CHAT MESSENGER (SMARTPHONE / TABLET / DESKTOP) */
+/* ==========================================================================
+   GLOBAL SYSTEM-WIDE RESPONSIVE & MOBILE ADAPTATION SYSTEM (ALL BREAKPOINTS)
+   ========================================================================== */
+
+/* 1. Global Box-Sizing & Anti-Overflow Guard */
+html, body {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+.container, .container-fluid, .main-content, .content-area {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 2. Global Table Responsive Wrapping */
+.table-responsive {
+  width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* 3. Global Card & Glass Banner Responsiveness */
+.card-enterprise, .card {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.glass-banner-enterprise {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* 4. Chat Messenger Global Height & Responsiveness */
 .chat-messenger-container {
   height: calc(100vh - 220px);
-  min-height: 560px;
+  min-height: 520px;
   width: 100% !important;
   max-width: 100% !important;
   overflow: hidden !important;
 }
 
+/* Tablet & Mobile Landscape (< 992px) */
+@media (max-width: 991.98px) {
+  .chat-messenger-container {
+    height: calc(100vh - 180px) !important;
+    min-height: 480px !important;
+  }
+  
+  .glass-banner-enterprise h3 {
+    font-size: 1.35rem !important;
+  }
+}
+
+/* Smartphone & Narrow Tablet (< 768px) */
 @media (max-width: 767.98px) {
   .chat-messenger-container {
-    height: calc(100vh - 145px) !important;
-    min-height: 480px !important;
+    height: calc(100vh - 140px) !important;
+    min-height: 440px !important;
     border-radius: var(--radius-md) !important;
-    margin-bottom: 70px !important;
+    margin-bottom: 30px !important;
   }
   
   .glass-banner-enterprise {
-    padding: 12px 16px !important;
+    padding: 14px 16px !important;
     margin-bottom: 12px !important;
   }
 
+  .glass-banner-enterprise h3 {
+    font-size: 1.15rem !important;
+  }
+
   .chat-bubble-outgoing, .chat-bubble-incoming {
-    max-width: 86% !important;
+    max-width: 88% !important;
     font-size: 0.9rem !important;
     padding: 10px 14px !important;
   }
@@ -978,11 +1029,29 @@ html, body {
     font-size: 0.88rem !important;
   }
 
-  /* Full Width Mobile Tab Panels */
   #contactsSidebarPanel, #chatThreadPanel {
     width: 100% !important;
     max-width: 100% !important;
     flex: 0 0 100% !important;
+  }
+}
+
+/* Small Smartphone Screen (< 576px) */
+@media (max-width: 575.98px) {
+  .chat-messenger-container {
+    height: calc(100vh - 120px) !important;
+    min-height: 400px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .chat-bubble-outgoing, .chat-bubble-incoming {
+    max-width: 92% !important;
+    font-size: 0.86rem !important;
+  }
+
+  .btn-chat-send {
+    width: 40px !important;
+    height: 40px !important;
   }
 }
 
