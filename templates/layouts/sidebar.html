@@ -73,6 +73,10 @@
             <i class="bi bi-people-fill"></i>
             <span class="sidebar-text">Kelola User</span>
         </a>
+        <a href="{% url 'notifications:wa_outbox' %}" class="nav-link {% if request.resolver_match.url_name == 'wa_outbox' %}active{% endif %}">
+            <i class="bi bi-whatsapp text-success"></i>
+            <span class="sidebar-text">Outbox WA & Matriks</span>
+        </a>
         {% endif %}
 
         <!-- 7. Keluar (Warna Merah) -->

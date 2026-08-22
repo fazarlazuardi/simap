@@ -154,11 +154,19 @@
         </div>
 
         <!-- ACTION BAR FOOTER -->
-        <div class="d-flex justify-content-between align-items-center pt-3 border-top d-print-none">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-3 border-top d-print-none">
             <a href="{% url 'dispositions:list' %}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
                 <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
             </a>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
+                {% for assignee in dispo.waka_forwarded_to.all %}
+                    {% if assignee.phone_number %}
+                    <a href="https://api.whatsapp.com/send?phone=62{{ assignee.phone_number }}&text=Assalamu%27alaikum%20Bpk%2FIbu%20{{ assignee.full_name|urlencode }}%2C%20berikut%20informasi%20Disposisi%20Pimpinan%20Nomor%3A%20{{ dispo.disposition_number|urlencode }}%20mengenai%20Perihal%3A%20{{ dispo.archive.title|urlencode }}." target="_blank" class="btn btn-success rounded-pill px-3 py-1.5 fw-bold shadow-sm" title="Kirim Pesan WA ke {{ assignee.full_name }}">
+                        <i class="bi bi-whatsapp me-1"></i> WA: {{ assignee.full_name }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+
                 {% if dispo.status == 'baru' %}
                     {% if request.session.active_pov == 'ketua' or request.session.active_pov == 'waka_4' or request.session.active_pov == 'kabid_4' or user.is_superadmin and not request.session.active_pov or user.is_ketua and not request.session.active_pov or user.is_waka_4 and not request.session.active_pov or user.is_kabid_4 and not request.session.active_pov %}
                     <a href="{% url 'dispositions:edit' dispo.pk %}" class="btn btn-warning text-dark rounded-pill px-4 fw-bold shadow-sm">

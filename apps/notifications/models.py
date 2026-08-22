@@ -1,6 +1,60 @@
 from django.db import models
 from django.conf import settings
 from users.models import Employee
+import urllib.parse
+
+class WANotificationSetting(models.Model):
+    MODE_CHOICES = [
+        ('auto', '🤖 Otomatis (Auto-Dispatch Queue)'),
+        ('manual', '💬 Manual (1-Click WA Direct Link/Trigger)'),
+        ('disabled', '🚫 Nonaktifkan Notifikasi WA'),
+    ]
+
+    CATEGORY_CHOICES = [
+        ('disposition', 'Disposisi Pimpinan (Stage 1 & 2)'),
+        ('bantuan_survei', 'Penugasan Survei Lapangan Bantuan (Bidang II)'),
+        ('bantuan_penyaluran', 'LHP Penyaluran Direct (Bidang II)'),
+        ('sppd', 'SPPD & Perjalanan Dinas'),
+        ('internal_meeting', 'Risalah & Notulensi Rapat Internal'),
+        ('archive', 'Notifikasi Arsip & Dokumen Baru'),
+    ]
+
+    category = models.CharField(
+        max_length=50, 
+        choices=CATEGORY_CHOICES, 
+        unique=True,
+        verbose_name="Kategori Kejadian Notifikasi"
+    )
+    dispatch_mode = models.CharField(
+        max_length=20, 
+        choices=MODE_CHOICES, 
+        default='auto', 
+        verbose_name="Mode Pengiriman"
+    )
+    description = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        verbose_name="Keterangan Notifikasi"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Pengaturan Mode Notifikasi WA"
+        verbose_name_plural = "Pengaturan Mode Notifikasi WA"
+        ordering = ['category']
+
+    def __str__(self):
+        return f"{self.get_category_display()} [{self.get_dispatch_mode_display()}]"
+
+    @classmethod
+    def get_mode_for_category(cls, category_name):
+        """Helper untuk mengambil mode pengiriman ('auto', 'manual', 'disabled') per kategori."""
+        setting = cls.objects.filter(category=category_name).first()
+        if setting:
+            return setting.dispatch_mode
+        return 'auto'
+
 
 class Notification(models.Model):
     TYPE_CHOICES = [
@@ -14,14 +68,23 @@ class Notification(models.Model):
         ('pending', 'Menunggu Pengiriman'),
         ('sent', 'Terkirim'),
         ('failed', 'Gagal Terkirim'),
+        ('draft_manual', 'Siap Kirim Manual'),
     ]
 
     CATEGORY_CHOICES = [
         ('disposition', 'Disposisi'),
+        ('bantuan_survei', 'Survei Bantuan'),
+        ('bantuan_penyaluran', 'Penyaluran Bantuan'),
         ('sppd', 'SPPD & Surat Tugas'),
+        ('internal_meeting', 'Rapat Internal'),
         ('agenda', 'Agenda Kerja'),
         ('archive', 'Arsip & Dokumen'),
         ('general', 'Umum'),
+    ]
+
+    DISPATCH_MODE_CHOICES = [
+        ('auto', 'Otomatis'),
+        ('manual', 'Manual'),
     ]
 
     # Penerima Notifikasi (User Login atau Pegawai/Amil Fisik)
@@ -48,6 +111,12 @@ class Notification(models.Model):
         default='system', 
         verbose_name="Tipe Notifikasi"
     )
+    dispatch_mode = models.CharField(
+        max_length=20, 
+        choices=DISPATCH_MODE_CHOICES, 
+        default='auto', 
+        verbose_name="Mode Pengiriman WA"
+    )
     category = models.CharField(
         max_length=30, 
         choices=CATEGORY_CHOICES, 
@@ -61,6 +130,17 @@ class Notification(models.Model):
         verbose_name="Judul Notifikasi"
     )
     message = models.TextField(verbose_name="Pesan Notifikasi")
+    recipient_phone = models.CharField(
+        max_length=30, 
+        blank=True, 
+        null=True, 
+        verbose_name="Nomor WA Penerima"
+    )
+    wa_direct_link = models.TextField(
+        blank=True, 
+        null=True, 
+        verbose_name="Direct Link WA Web / App"
+    )
     
     # Tautan Aksi (Misal: /archives/12/ atau /sppd/5/)
     link_url = models.CharField(
@@ -77,6 +157,8 @@ class Notification(models.Model):
         verbose_name="Status Pengiriman/Baca"
     )
     
+    retry_count = models.IntegerField(default=0, verbose_name="Jumlah Percobaan Kirim Ulang")
+
     # Catatan error jika pengiriman WhatsApp gagal
     error_log = models.TextField(
         blank=True, 
@@ -99,6 +181,21 @@ class Notification(models.Model):
     def __str__(self):
         recipient = self.user.username if self.user else (self.employee.full_name if self.employee else 'Anonim')
         return f"[{self.get_notification_type_display()}] Untuk {recipient}: {self.message[:30]}..."
+
+    def generate_wa_direct_link(self):
+        """Membuat direct link WhatsApp (api.whatsapp.com) dengan teks terenkode."""
+        if not self.recipient_phone:
+            return ""
+        clean_phone = ''.join(filter(str.isdigit, str(self.recipient_phone)))
+        if clean_phone.startswith('0'):
+            clean_phone = '62' + clean_phone[1:]
+        encoded_msg = urllib.parse.quote(self.message)
+        return f"https://api.whatsapp.com/send?phone={clean_phone}&text={encoded_msg}"
+
+    def save(self, *args, **kwargs):
+        if self.notification_type == 'whatsapp' and self.recipient_phone:
+            self.wa_direct_link = self.generate_wa_direct_link()
+        super().save(*args, **kwargs)
 
     @classmethod
     def create_system_notif(cls, user, title, message, link_url="", category="general"):
