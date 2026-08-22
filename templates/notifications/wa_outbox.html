@@ -89,6 +89,7 @@
     </div>
 </div>
 
+{% if user.is_superadmin or user.is_superuser %}
 <!-- MATRIKS KONTROL MODE NOTIFIKASI WA (AUTOMATIC VS MANUAL) -->
 <div class="card-enterprise p-4 mb-4">
     <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
@@ -134,6 +135,7 @@
         </div>
     </form>
 </div>
+{% endif %}
 
 <!-- KONSOL TABLE RIWAYAT OUTBOX WA -->
 <div class="card-enterprise p-4">
@@ -211,27 +213,31 @@
                     </td>
                     <td class="text-end text-nowrap">
                         <div class="inline-flex items-center gap-1.5 justify-end">
-                            {% if log.wa_direct_link %}
-                            <a href="{{ log.wa_direct_link }}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Kirim Langsung via WA Web/Mobile">
-                                <i class="bi bi-whatsapp"></i> Kirim WA
-                            </a>
-                            {% endif %}
+                            {% if user.is_superadmin or user.is_superuser %}
+                                {% if log.wa_direct_link %}
+                                <a href="{{ log.wa_direct_link }}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Kirim Langsung via WA Web/Mobile">
+                                    <i class="bi bi-whatsapp"></i> Kirim WA
+                                </a>
+                                {% endif %}
 
-                            {% if log.status == 'failed' or log.status == 'draft_manual' %}
-                            <form action="{% url 'notifications:resend_wa' log.pk %}" method="post" class="inline mb-0">
-                                {% csrf_token %}
-                                <button type="submit" class="p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-600 text-sky-600 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Coba Kirim Ulang via Gateway">
-                                    <i class="bi bi-arrow-repeat text-xs"></i>
-                                </button>
-                            </form>
-                            {% endif %}
+                                {% if log.status == 'failed' or log.status == 'draft_manual' %}
+                                <form action="{% url 'notifications:resend_wa' log.pk %}" method="post" class="inline mb-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-600 text-sky-600 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Coba Kirim Ulang via Gateway">
+                                        <i class="bi bi-arrow-repeat text-xs"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
 
-                            <form action="{% url 'notifications:delete_wa' log.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus log notifikasi WA ini?');">
-                                {% csrf_token %}
-                                <button type="submit" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Log Notifikasi WA">
-                                    <i class="bi bi-trash-fill text-xs"></i>
-                                </button>
-                            </form>
+                                <form action="{% url 'notifications:delete_wa' log.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus log notifikasi WA ini?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Log Notifikasi WA">
+                                        <i class="bi bi-trash-fill text-xs"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="text-slate-400 font-mono text-[10px] italic"><i class="bi bi-lock-fill me-1"></i>Akses Terkunci</span>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
