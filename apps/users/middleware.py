@@ -13,12 +13,12 @@ class ActiveUserMiddleware:
         if request.user.is_authenticated:
             now = timezone.now()
             cache_key = f'user_last_seen_{request.user.pk}'
-            # Cache status aktif selama 180 detik (3 menit)
-            cache.set(cache_key, now, 180)
+            # Cache status aktif presisi 60 detik (1 menit)
+            cache.set(cache_key, now, 60)
 
-            # Simpan ke Database setiap 2 menit sekali agar efisien
+            # Simpan ke Database setiap 30 detik sekali agar akurat
             last_seen_db = getattr(request.user, 'last_seen', None)
-            if not last_seen_db or (now - last_seen_db).total_seconds() > 120:
+            if not last_seen_db or (now - last_seen_db).total_seconds() > 30:
                 User.objects.filter(pk=request.user.pk).update(last_seen=now)
 
         response = self.get_response(request)

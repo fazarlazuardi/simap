@@ -310,3 +310,17 @@ def clear_chat_thread(request, recipient_id):
     return redirect('notifications:chat_inbox_user', recipient_id=recipient.pk)
 
 
+@login_required
+def presence_status_json(request):
+    """API JSON Real-time untuk memantau presensi Online/Offline seluruh amil."""
+    from users.models import User
+    all_users = User.objects.filter(is_active=True).exclude(pk=request.user.pk)
+    presence_map = {}
+    for u in all_users:
+        presence_map[u.pk] = {
+            'is_online': u.is_online,
+            'last_seen_display': u.last_seen_display,
+        }
+    return JsonResponse({'success': True, 'presence': presence_map})
+
+

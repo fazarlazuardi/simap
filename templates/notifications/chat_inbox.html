@@ -58,9 +58,9 @@
                             <img src="https://ui-avatars.com/api/?name={{ item.user.employee.full_name|default:item.user.username|urlencode }}&background={% if active_recipient and active_recipient.pk == item.user.pk %}FFFFFF&color=10B981{% else %}10B981&color=FFFFFF{% endif %}&bold=true" class="rounded-circle shadow-xs" width="42" height="42">
                         {% endif %}
                         {% if item.user.is_online %}
-                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle" title="Online (Akun Aktif)"></span>
+                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle" title="Online (Akun Aktif)"></span>
                         {% else %}
-                            <span class="position-absolute bottom-0 end-0 p-1 bg-secondary border border-white rounded-circle opacity-75" title="{{ item.user.last_seen_display }}"></span>
+                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-secondary border border-white rounded-circle opacity-75" title="{{ item.user.last_seen_display }}"></span>
                         {% endif %}
                     </div>
 
@@ -113,11 +113,13 @@
                     <div>
                         <h6 class="fw-extrabold text-dark mb-0 d-flex align-items-center gap-2">
                             {{ active_recipient.employee.full_name|default:active_recipient.username }}
+                            <span id="active-header-presence-badge">
                             {% if active_recipient.is_online %}
                                 <span class="badge bg-success rounded-pill px-2 py-0.5 extra-small"><i class="bi bi-circle-fill me-1"></i>Online</span>
                             {% else %}
                                 <span class="badge bg-secondary bg-opacity-50 text-white rounded-pill px-2 py-0.5 extra-small"><i class="bi bi-clock-history me-1"></i>{{ active_recipient.last_seen_display }}</span>
                             {% endif %}
+                            </span>
                         </h6>
                         <small class="text-secondary extra-small font-mono d-block mt-0.5">
                             {{ active_recipient.employee.position|default:active_recipient.get_role_display }} 
@@ -242,8 +244,43 @@
         }
     }
 
+    function pollPresenceStatus() {
+        fetch("{% url 'notifications:presence_status' %}")
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.presence) {
+                var activeRecipientId = "{% if active_recipient %}{{ active_recipient.pk }}{% endif %}";
+                for (var uid in data.presence) {
+                    var p = data.presence[uid];
+                    var dot = document.getElementById('online-dot-' + uid);
+                    if (dot) {
+                        if (p.is_online) {
+                            dot.className = "position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle";
+                            dot.title = "Online (Akun Aktif)";
+                        } else {
+                            dot.className = "position-absolute bottom-0 end-0 p-1 bg-secondary border border-white rounded-circle opacity-75";
+                            dot.title = p.last_seen_display;
+                        }
+                    }
+                    if (activeRecipientId && uid === activeRecipientId) {
+                        var badgeContainer = document.getElementById('active-header-presence-badge');
+                        if (badgeContainer) {
+                            if (p.is_online) {
+                                badgeContainer.innerHTML = '<span class="badge bg-success rounded-pill px-2 py-0.5 extra-small"><i class="bi bi-circle-fill me-1"></i>Online</span>';
+                            } else {
+                                badgeContainer.innerHTML = '<span class="badge bg-secondary bg-opacity-50 text-white rounded-pill px-2 py-0.5 extra-small"><i class="bi bi-clock-history me-1"></i>' + escapeHtml(p.last_seen_display) + '</span>';
+                            }
+                        }
+                    }
+                }
+            }
+        }).catch(e => {});
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         scrollToBottom();
+        pollPresenceStatus();
+        setInterval(pollPresenceStatus, 5000);
     });
 
     function filterContacts() {

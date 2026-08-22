@@ -35,3 +35,8 @@ class UsersConfig(AppConfig):
                                 pass
         except Exception:
             pass
+
+        try:
+            import users.signals
+        except Exception:
+            pass

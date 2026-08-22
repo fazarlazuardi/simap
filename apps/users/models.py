@@ -243,7 +243,7 @@ class User(AbstractUser):
 
     @property
     def is_online(self):
-        """Mengecek apakah akun user aktif di sistem dalam 3 menit terakhir."""
+        """Mengecek apakah akun user aktif di sistem dalam 60 detik (1 menit) terakhir."""
         from django.core.cache import cache
         from django.utils import timezone
         last_seen_cache = cache.get(f'user_last_seen_{self.pk}')
@@ -251,7 +251,7 @@ class User(AbstractUser):
             return True
         if self.last_seen:
             now = timezone.now()
-            return (now - self.last_seen).total_seconds() < 180
+            return (now - self.last_seen).total_seconds() < 60
         return False
 
     @property
