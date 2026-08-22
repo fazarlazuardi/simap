@@ -24,12 +24,12 @@
     </div>
 </div>
 
-<!-- MAIN CHAT MESSENGER CONTAINER (WHATSAPP / TELEGRAM DESKTOP STYLE) -->
-<div class="card-enterprise p-0 overflow-hidden shadow-xl border-0 mb-4" style="height: calc(100vh - 230px); min-height: 580px;">
+<!-- MAIN CHAT MESSENGER CONTAINER (WHATSAPP / TELEGRAM RESPONSIVE MOBILE & DESKTOP) -->
+<div class="card-enterprise p-0 overflow-hidden shadow-xl border-0 mb-4 chat-messenger-container">
     <div class="row g-0 h-100">
         
-        <!-- SIDEBAR DAFTAR AMIL / CONTACTS (LEFT 4 COLS) -->
-        <div class="col-md-4 col-lg-3 border-end bg-body-tertiary d-flex flex-column h-100">
+        <!-- SIDEBAR DAFTAR AMIL / CONTACTS (LEFT PANEL - Full Width on Mobile when no active recipient) -->
+        <div class="col-12 col-md-4 col-lg-3 border-end bg-body-tertiary d-flex flex-column h-100 {% if active_recipient %}d-none d-md-flex{% endif %}" id="contactsSidebarPanel">
             <!-- Header Search & Unread Counter -->
             <div class="p-3 border-bottom bg-body shadow-xs">
                 <div class="d-flex align-items-center justify-content-between mb-2.5">
@@ -103,17 +103,22 @@
             </div>
         </div>
 
-        <!-- MAIN CHAT THREAD PANEL (RIGHT 8-9 COLS) -->
-        <div class="col-md-8 col-lg-9 d-flex flex-column h-100 bg-body">
+        <!-- MAIN CHAT THREAD PANEL (RIGHT PANEL - Full Width on Mobile when recipient selected) -->
+        <div class="col-12 col-md-8 col-lg-9 d-flex flex-column h-100 bg-body {% if not active_recipient %}d-none d-md-flex{% endif %}" id="chatThreadPanel">
             {% if active_recipient %}
             <!-- Chat Active Recipient Header Bar -->
             <div class="p-3 border-bottom bg-body-tertiary d-flex align-items-center justify-content-between shadow-xs">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="position-relative">
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <!-- Mobile Back to Contacts Button (Appears strictly on mobile) -->
+                    <a href="{% url 'notifications:chat_inbox' %}" class="btn btn-sm btn-outline-secondary rounded-circle p-1.5 d-md-none me-1 flex-shrink-0" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;" title="Kembali ke Daftar Kontak Amil">
+                        <i class="bi bi-arrow-left fs-5"></i>
+                    </a>
+
+                    <div class="position-relative flex-shrink-0">
                         {% if active_recipient.employee and active_recipient.employee.photo %}
-                            <img src="{{ active_recipient.employee.photo.url }}" class="rounded-circle border border-2 border-white shadow-xs" width="46" height="46" style="object-fit: cover;">
+                            <img src="{{ active_recipient.employee.photo.url }}" class="rounded-circle border border-2 border-white shadow-xs" width="44" height="44" style="object-fit: cover;">
                         {% else %}
-                            <img src="https://ui-avatars.com/api/?name={{ active_recipient.employee.full_name|default:active_recipient.username|urlencode }}&background=10B981&color=FFFFFF&bold=true" class="rounded-circle shadow-xs" width="46" height="46">
+                            <img src="https://ui-avatars.com/api/?name={{ active_recipient.employee.full_name|default:active_recipient.username|urlencode }}&background=10B981&color=FFFFFF&bold=true" class="rounded-circle shadow-xs" width="44" height="44">
                         {% endif %}
                     </div>
                     <div>

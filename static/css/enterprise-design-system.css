@@ -941,3 +941,30 @@ html, body {
   color: #0F172A !important;
 }
 
+/* MOBILE RESPONSIVE ADAPTATION FOR CHAT MESSENGER (SMARTPHONE / TABLET / DESKTOP) */
+.chat-messenger-container {
+  height: calc(100vh - 230px);
+  min-height: 580px;
+}
+
+@media (max-width: 767.98px) {
+  .chat-messenger-container {
+    height: calc(100vh - 120px) !important;
+    min-height: 480px !important;
+    border-radius: var(--radius-md) !important;
+  }
+  
+  .glass-banner-enterprise {
+    padding: 16px !important;
+  }
+
+  .chat-bubble-outgoing, .chat-bubble-incoming {
+    max-width: 88% !important;
+    font-size: 0.92rem !important;
+  }
+
+  .contact-item {
+    padding: 12px 10px !important;
+  }
+}
+
