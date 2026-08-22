@@ -48,7 +48,7 @@
                 {% endif %}
                 
                 {% if drive_backup_enabled %}
-                <button type="button" class="btn btn-warning text-dark rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#backupMonthlyModal">
+                <button type="button" class="btn btn-warning text-dark rounded-pill px-3.5 py-2 fw-bold shadow-sm" onclick="openPureBackupModal()">
                     <i class="bi bi-cloud-arrow-up-fill me-1"></i> Backup Bulanan
                 </button>
                 {% endif %}
@@ -249,14 +249,14 @@
 
 <!-- MODAL BACKUP BULANAN -->
 {% if drive_backup_enabled %}
-<div class="modal fade" id="backupMonthlyModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+<div class="modal fade" id="backupMonthlyModal" tabindex="-1" aria-hidden="true" >
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content card-enterprise border-0">
             <form method="post" action="{% url 'reports:drive_backup_monthly' %}">
                 {% csrf_token %}
                 <div class="modal-header border-bottom">
                     <h5 class="modal-header-title fw-bold text-emerald mb-0"><i class="bi bi-cloud-arrow-up-fill me-2 text-success"></i>Backup Bulanan ke Google Drive</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" onclick="closePureBackupModal()" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <p class="text-secondary small mb-3">Pilih periode bulan dan tahun untuk mengekspor dan membackup data laporan ke Google Sheets.</p>
@@ -317,7 +317,7 @@
                     {% endif %}
                 </div>
                 <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closePureBackupModal()">Batal</button>
                     <button type="submit" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold shadow-sm">
                         <i class="bi bi-cloud-arrow-up-fill me-1"></i> Backup Sekarang
                     </button>

@@ -187,13 +187,13 @@
             <p class="text-secondary small mb-0">Master data permohonan bantuan & dokumen dinas umum terverifikasi.</p>
         </div>
         
-        <div class="nav-tabs-futuristic" role="tablist">
-            <button class="nav-link active" id="bantuan-tab" data-bs-toggle="pill" data-bs-target="#bantuan-pane" type="button">
-                <i class="bi bi-heart-fill text-danger me-1.5"></i> Bantuan Mustahik ({{ analytics.total_bantuan }})
+        <div class="p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex flex-wrap gap-2" id="rekapPureTabNav">
+            <button type="button" class="rekap-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-emerald-600 text-white shadow-sm" data-tab-target="bantuan-pane" id="bantuan-tab">
+                <i class="bi bi-heart-fill text-xs text-rose-300"></i> Bantuan Mustahik ({{ analytics.total_bantuan }})
             </button>
             {% if not is_waka_or_kabid_2 %}
-            <button class="nav-link" id="umum-tab" data-bs-toggle="pill" data-bs-target="#umum-pane" type="button">
-                <i class="bi bi-envelope-paper-fill text-primary me-1.5"></i> Dokumen Umum ({{ analytics.total_umum }})
+            <button type="button" class="rekap-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-tab-target="umum-pane" id="umum-tab">
+                <i class="bi bi-envelope-paper-fill text-xs text-sky-400"></i> Dokumen Umum ({{ analytics.total_umum }})
             </button>
             {% endif %}
         </div>
@@ -375,8 +375,37 @@ document.addEventListener("DOMContentLoaded", function() {
         order: [[0, 'desc']]
     });
 
-    $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function () {
-        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+    const rekapTabButtons = document.querySelectorAll('#rekapPureTabNav button');
+    const rekapTabPanes = document.querySelectorAll('#rekapTabContent .tab-pane');
+
+    rekapTabButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-tab-target');
+
+            rekapTabButtons.forEach(b => {
+                b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
+                b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+            });
+
+            this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
+            this.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+
+            rekapTabPanes.forEach(pane => {
+                pane.classList.remove('active', 'show');
+                pane.classList.add('hidden');
+            });
+
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) {
+                targetPane.classList.add('active', 'show');
+                targetPane.classList.remove('hidden');
+            }
+
+            if (window.jQuery && $.fn.DataTable) {
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        });
     });
 
     var bLabels = JSON.parse(document.getElementById('bantuan-labels').textContent || '[]');
