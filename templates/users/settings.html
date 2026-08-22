@@ -19,24 +19,24 @@
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm p-4">
-            <form method="post">
+            <form method="post" action="{% url 'users:profile' %}">
                 {% csrf_token %}
                 
                 <h6 class="fw-bold mb-4 text-primary"><i class="bi bi-person me-2"></i> Informasi Dasar</h6>
                 <div class="row">
                     <div class="col-md-6 mb-4">
                         <label for="first_name" class="form-label fw-bold">Nama Depan</label>
-                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" value="{{ user_obj.first_name }}">
+                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" value="{{ user.first_name }}">
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="last_name" class="form-label fw-bold">Nama Belakang</label>
-                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" value="{{ user_obj.last_name }}">
+                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" value="{{ user.last_name }}">
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label for="email" class="form-label fw-bold">Alamat Email</label>
-                    <input type="email" class="form-control custom-input" id="email" name="email" value="{{ user_obj.email }}">
+                    <input type="email" class="form-control custom-input" id="email" name="email" value="{{ user.email }}">
                 </div>
 
                 <hr class="my-5 opacity-5">
