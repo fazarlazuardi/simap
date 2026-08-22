@@ -504,21 +504,43 @@
                         </div>
                     </div>
 
-                    <!-- 2. Peserta Rapat Hadir -->
+                    <!-- 2. Peserta Rapat Hadir (Dengan Filter Bidang & Quick Select) -->
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                             <label class="form-label fw-bold text-dark m-0">
                                 <i class="bi bi-people-fill text-success me-1"></i> Peserta Rapat (Amil Hadir)
                             </label>
                         </div>
+
+                        <!-- BAR FILTER BIDANG & QUICK SELECT PRESENSI -->
+                        <div class="p-3 mb-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <div class="p-1 rounded-xl bg-slate-100 dark:bg-slate-800 inline-flex flex-wrap gap-1" id="presensiModalBidangNav">
+                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-extrabold rounded-lg transition-all border-0 cursor-pointer bg-emerald-600 text-white shadow-sm" data-filter="all">Semua Bidang</button>
+                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-bold rounded-lg transition-all border-0 cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-filter="bidang_1">Bidang I</button>
+                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-bold rounded-lg transition-all border-0 cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-filter="bidang_2">Bidang II</button>
+                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-bold rounded-lg transition-all border-0 cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-filter="bidang_3">Bidang III</button>
+                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-bold rounded-lg transition-all border-0 cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-filter="bidang_4">Bidang IV</button>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" class="px-3 py-1.5 text-[11px] font-extrabold rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition-all cursor-pointer inline-flex items-center gap-1" onclick="togglePresensiBidangCheckboxes(true)">
+                                        <i class="bi bi-check-all"></i> Pilih Bidang Ini
+                                    </button>
+                                    <button type="button" class="px-3 py-1.5 text-[11px] font-extrabold rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white border border-rose-200 transition-all cursor-pointer inline-flex items-center gap-1" onclick="togglePresensiBidangCheckboxes(false)">
+                                        <i class="bi bi-x-circle"></i> Batal Bidang Ini
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <input type="text" id="search_modal_participant" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari nama atau jabatan amil...">
-                        <div class="p-3 rounded-3 border" style="max-height: 220px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
-                            <div class="row g-2">
+                        <div class="p-3 rounded-3 border" style="max-height: 240px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
+                            <div class="row g-2" id="presensiModalParticipantContainer">
                                 {% for emp in employees %}
-                                <div class="col-md-6 modal-participant-item">
-                                    <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1">
-                                        <input type="checkbox" name="participants" value="{{ emp.id }}" class="form-check-input" {% if emp in meeting.participants.all %}checked{% endif %}>
-                                        <span class="small fw-semibold text-dark">{{ emp.full_name }} <span class="text-muted">({{ emp.position|default:"Staff" }})</span></span>
+                                <div class="col-md-6 modal-participant-item presensi-participant-card" data-emp-id="{{ emp.id }}">
+                                    <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1.5 px-2 rounded-2 border border-slate-200 dark:border-slate-700 cursor-pointer">
+                                        <input type="checkbox" name="participants" value="{{ emp.id }}" class="form-check-input presensi-emp-checkbox" {% if emp in meeting.participants.all %}checked{% endif %}>
+                                        <span class="small fw-semibold text-dark dark:text-white">{{ emp.full_name }} <span class="text-muted">({{ emp.position|default:"Staff" }})</span></span>
                                     </label>
                                 </div>
                                 {% endfor %}
@@ -1058,6 +1080,52 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.location.search.indexOf('open_notulensi=1') !== -1) {
         openDetailNotulensiModal();
     }
+
+    // Interactive Bidang Filter & Quick Select Controller for Modal Sesuaikan Presensi Hadir
+    const presensiNavBtns = document.querySelectorAll('#presensiModalBidangNav .btn-presensi-bidang');
+    const presensiCards = document.querySelectorAll('.presensi-participant-card');
+
+    // Attach data-bidang to presensi participant cards
+    presensiCards.forEach(card => {
+        const empId = card.getAttribute('data-emp-id');
+        if (empId) {
+            const bCode = empBidangMapModal[empId] || empBidangMapModal[parseInt(empId, 10)] || 'other';
+            card.setAttribute('data-bidang', bCode);
+        }
+    });
+
+    presensiNavBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filterCode = this.getAttribute('data-filter');
+
+            presensiNavBtns.forEach(b => {
+                b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm', 'font-extrabold');
+                b.classList.add('text-slate-600', 'dark:text-slate-300', 'font-bold');
+            });
+
+            this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm', 'font-extrabold');
+            this.classList.remove('text-slate-600', 'dark:text-slate-300', 'font-bold');
+
+            presensiCards.forEach(card => {
+                const cardBidang = card.getAttribute('data-bidang');
+                if (filterCode === 'all' || cardBidang === filterCode || cardBidang === 'other') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
 });
+
+function togglePresensiBidangCheckboxes(shouldCheck) {
+    const visibleCards = document.querySelectorAll('.presensi-participant-card');
+    visibleCards.forEach(card => {
+        if (card.style.display !== 'none') {
+            const checkbox = card.querySelector('.presensi-emp-checkbox');
+            if (checkbox) checkbox.checked = shouldCheck;
+        }
+    });
+}
 </script>
 {% endblock %}
