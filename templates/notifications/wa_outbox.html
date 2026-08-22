@@ -179,7 +179,7 @@
                     </td>
                     <td>
                         <span class="fw-bold text-dark d-block">
-                            {{ log.employee.full_name|default:log.user.get_full_name|default:log.user.username|default:"Penerima Fisik" }}
+                            {% if log.employee %}{{ log.employee.full_name }}{% elif log.user %}{{ log.user.get_full_name|default:log.user.username }}{% else %}Penerima Fisik{% endif %}
                         </span>
                         <span class="font-mono text-emerald extra-small"><i class="bi bi-whatsapp me-1"></i>{{ log.recipient_phone|default:"-" }}</span>
                     </td>
