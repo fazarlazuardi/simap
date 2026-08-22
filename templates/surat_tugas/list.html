@@ -171,47 +171,48 @@
                                 <thead>
                                     <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200 dark:border-slate-700">
                                         <th class="p-3">Nomor Surat</th>
-                                        <th class="p-3">Tgl. Tugas</th>
-                                        <th class="p-3">Maksud / Tugas</th>
-                                        <th class="p-3">Lokasi / Tujuan</th>
-                                        <th class="p-3">Petugas Ditugaskan</th>
+                                        <th class="p-3">Tentang / Perihal</th>
+                                        <th class="p-3">Tanggal Pelaksanaan</th>
+                                        <th class="p-3">Lokasi Tujuan</th>
                                         <th class="p-3 text-right">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs">
-                                    {% for st in surat_list %}
+                                    {% for surat in surat_list %}
                                     <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-all">
                                         <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                                            {{ st.nomor_surat }}
-                                        </td>
-                                        <td class="p-3 font-mono font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                                            {{ st.tanggal_tugas|date:"d/m/Y" }}
-                                        </td>
-                                        <td class="p-3 font-semibold text-slate-900 dark:text-slate-100">
-                                            {{ st.maksud_tugas|truncatechars:45 }}
-                                        </td>
-                                        <td class="p-3 text-slate-600 dark:text-slate-400">
-                                            {{ st.tujuan|default:"-"|truncatechars:30 }}
+                                            {% if surat.nomor_surat %}
+                                                {{ surat.nomor_surat }}
+                                            {% else %}
+                                                <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-600 dark:text-amber-400">Draft</span>
+                                            {% endif %}
                                         </td>
                                         <td class="p-3">
-                                            <div class="flex flex-wrap gap-1">
-                                                {% for emp in st.pegawai_ditugaskan.all %}
-                                                <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                                    {{ emp.full_name }}
-                                                </span>
-                                                {% empty %}
-                                                <span class="text-slate-400">—</span>
-                                                {% endfor %}
-                                            </div>
+                                            <span class="font-bold block text-slate-900 dark:text-slate-100">{{ surat.tentang }}</span>
+                                            {% if surat.disposition %}
+                                            <span class="inline-block mt-0.5 px-2 py-0.5 text-[9px] font-bold rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-mono">Dari Disposisi #{{ surat.disposition.pk }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="p-3 font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                                            {{ surat.hari_kegiatan|default:"" }}, {{ surat.tanggal_mulai|date:"d M Y"|default:"-" }}
+                                        </td>
+                                        <td class="p-3 text-slate-600 dark:text-slate-400">
+                                            {{ surat.lokasi_tujuan|default:"-" }}
                                         </td>
                                         <td class="p-3 text-right whitespace-nowrap">
                                             <div class="flex items-center justify-end gap-1.5">
-                                                <a href="{% url 'surat_tugas:detail' st.pk %}" class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] text-decoration-none inline-flex items-center gap-1">
+                                                <a href="{% url 'surat_tugas:detail' surat.pk %}" class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] text-decoration-none inline-flex items-center gap-1">
                                                     <i class="bi bi-eye"></i> Detail
                                                 </a>
-                                                <a href="{% url 'surat_tugas:print' st.pk %}" target="_blank" class="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-sm text-decoration-none inline-flex items-center gap-1">
-                                                    <i class="bi bi-printer-fill"></i> Cetak PDF
+                                                <a href="{% url 'surat_tugas:print' surat.pk %}" target="_blank" class="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-sm text-decoration-none inline-flex items-center gap-1">
+                                                    <i class="bi bi-printer-fill"></i> Print
                                                 </a>
+                                                <form action="{% url 'surat_tugas:delete' surat.pk %}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Surat Tugas ini?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="px-2.5 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white font-bold text-[11px] transition-all border-0 cursor-pointer" title="Hapus Surat">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
