@@ -16,104 +16,97 @@
 {% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
-<div class="glass-banner-enterprise mb-4">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-7">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
-                    <i class="bi bi-pin-map-fill me-1 text-warning"></i> Perjalanan Dinas & Survei Lapangan
-                </span>
-            </div>
-            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Manajemen SPPD Eksekutif</h3>
-            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 620px;">
+<!-- TAILWIND ENTERPRISE HEADER BANNER -->
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+            <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
+                <i class="bi bi-pin-map-fill"></i> Perjalanan Dinas & Survei Lapangan
+            </span>
+            <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">Manajemen SPPD Eksekutif</h1>
+            <p class="text-slate-300 text-sm max-w-2xl mb-0">
                 Surat Perintah Perjalanan Dinas BAZNAS yang terintegrasi penuh dengan alur disposisi pimpinan, penugasan survei mustahik, dan rekap Laporan Hasil Perjalanan (LHP).
             </p>
         </div>
-        <div class="col-lg-5 text-lg-end">
-            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                <a href="{% url 'reports:rekap_sppd' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
-                    <i class="bi bi-bar-chart-line-fill me-2 text-success"></i> Rekap Ranking SPPD
-                </a>
-                <button id="btnPrintBatch" class="btn btn-warning text-dark rounded-pill px-4 py-2.5 fw-bold shadow-sm d-none">
-                    <i class="bi bi-printer-fill me-2"></i> Cetak Terpilih
-                </button>
-            </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <a href="{% url 'reports:rekap_sppd' %}" class="px-4 py-2.5 rounded-full bg-white hover:bg-emerald-50 text-emerald-900 font-extrabold text-xs shadow-md transition-all text-decoration-none inline-flex items-center gap-2">
+                <i class="bi bi-bar-chart-line-fill text-emerald-600 text-base"></i> Rekap Ranking SPPD
+            </a>
+            <button id="btnPrintBatch" class="px-4 py-2.5 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-md transition-all border-0 hidden inline-flex items-center gap-2">
+                <i class="bi bi-printer-fill text-base"></i> Cetak Terpilih
+            </button>
         </div>
     </div>
 </div>
 
 {% if is_waka_or_kabid_2 %}
-<div class="card-enterprise p-3 border-0 mb-4" style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.1) 0%, rgba(16, 185, 129, 0.08) 100%); border-left: 4px solid #0284C7 !important;">
-    <div class="d-flex align-items-center gap-3">
-        <div class="stat-icon-box bg-info bg-opacity-20 text-info rounded-circle flex-shrink-0">
-            <i class="bi bi-shield-check fs-4"></i>
-        </div>
-        <div>
-            <h6 class="fw-bold text-primary mb-1"><i class="bi bi-eye-fill me-1"></i> Mode Monitoring & Input Hasil Survei (Bidang II)</h6>
-            <span class="small text-secondary">Sebagai Kabid II / Waka II, Anda dapat memantau daftar SPPD, melihat grafik frekuensi perjalanan, serta menginput hasil survei mustahik. Berkas SPPD diterbitkan oleh Front Office & Kabid IV setelah Surat Tugas terbit.</span>
-        </div>
+<div class="p-4 mb-6 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-900 dark:text-sky-200 flex items-center gap-3 shadow-sm">
+    <div class="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center text-xl flex-shrink-0 font-bold">
+        <i class="bi bi-shield-check"></i>
+    </div>
+    <div>
+        <h3 class="font-extrabold text-sm text-slate-900 dark:text-white mb-0.5"><i class="bi bi-eye-fill text-sky-500 me-1"></i> Mode Monitoring & Input Hasil Survei (Bidang II)</h3>
+        <p class="text-xs text-slate-600 dark:text-slate-300 mb-0">Sebagai Kabid II / Waka II, Anda dapat memantau daftar SPPD, melihat grafik frekuensi perjalanan, serta menginput hasil survei mustahik. Berkas SPPD diterbitkan oleh Front Office & Kabid IV setelah Surat Tugas terbit.</p>
     </div>
 </div>
 {% endif %}
 
-<!-- GRAFIK RANGKING SPPD PEGAWAI (BULAN INI) -->
-<div class="card-enterprise mb-4">
-    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+<!-- GRAFIK RANGKING SPPD PEGAWAI -->
+<div class="mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-5">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
         <div>
-            <h6 class="fw-extrabold mb-0 text-emerald"><i class="bi bi-bar-chart-line-fill me-2 text-success"></i>Grafik Rangking Frekuensi SPPD Pegawai (Bulan Ini)</h6>
-            <span class="small text-secondary">Pemantauan frekuensi perjalanan dinas dan survei pegawai secara visual</span>
+            <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2 mb-0">
+                <i class="bi bi-bar-chart-line-fill text-emerald-600 dark:text-emerald-400"></i>Grafik Rangking Frekuensi SPPD Pegawai (Bulan Ini)
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">Pemantauan frekuensi perjalanan dinas dan survei pegawai secara visual</p>
         </div>
-        <a href="{% url 'reports:rekap_sppd' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold">
-            <i class="bi bi-table me-1"></i> Lihat Ranking Full
+        <a href="{% url 'reports:rekap_sppd' %}" class="px-3.5 py-1.5 rounded-full border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-1">
+            <i class="bi bi-table"></i> Lihat Ranking Full
         </a>
     </div>
-    <div class="card-body p-4">
-        <div id="sppdModuleChart" style="min-height: 250px;"></div>
-    </div>
+    <div id="sppdModuleChart" style="min-height: 250px;"></div>
 </div>
 
 <!-- FILTER PANEL GLASS -->
-<div class="card-enterprise p-4 mb-4">
-    <form method="get" class="row g-3 align-items-end">
+<div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
         <input type="hidden" name="tab" value="{{ active_tab }}">
         <input type="hidden" name="type" value="{{ current_type }}">
-        <div class="col-md-4">
-            <label class="form-label small fw-semibold text-secondary mb-1"><i class="bi bi-calendar-range me-1"></i> Periode Perjalanan</label>
-            <div class="d-flex gap-2">
-                <input type="date" name="date_from" class="form-control custom-input" value="{{ filters.date_from }}" placeholder="Dari">
-                <input type="date" name="date_to" class="form-control custom-input" value="{{ filters.date_to }}" placeholder="Sampai">
+        <div class="md:col-span-4">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5"><i class="bi bi-calendar-range me-1"></i> Periode Perjalanan</label>
+            <div class="flex gap-2">
+                <input type="date" name="date_from" class="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ filters.date_from }}" placeholder="Dari">
+                <input type="date" name="date_to" class="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ filters.date_to }}" placeholder="Sampai">
             </div>
         </div>
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold text-secondary mb-1"><i class="bi bi-person me-1"></i> Pegawai Diperintahkan</label>
-            <select name="pegawai" class="form-select custom-input">
+        <div class="md:col-span-3">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5"><i class="bi bi-person me-1"></i> Pegawai Diperintahkan</label>
+            <select name="pegawai" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
                 <option value="">Semua Pegawai</option>
                 {% for emp in employees %}
                 <option value="{{ emp.id }}" {% if filters.pegawai == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.full_name }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-2">
-            <label class="form-label small fw-semibold text-secondary mb-1"><i class="bi bi-flag me-1"></i> Status SPPD</label>
-            <select name="status" class="form-select custom-input">
+        <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5"><i class="bi bi-flag me-1"></i> Status SPPD</label>
+            <select name="status" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
                 <option value="">Semua Status</option>
                 {% for code, label in status_choices %}
                 <option value="{{ code }}" {% if filters.status == code %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-enterprise-primary w-100 rounded-pill shadow-sm">
-                <i class="bi bi-funnel-fill me-1"></i> Terapkan Filter
+        <div class="md:col-span-3 flex gap-2">
+            <button type="submit" class="flex-1 py-2 px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5">
+                <i class="bi bi-funnel-fill"></i> Terapkan Filter
             </button>
-            <a href="{% url 'sppd_service:list' %}?tab={{ active_tab }}{% if current_type %}&type={{ current_type }}{% endif %}" class="btn btn-outline-secondary rounded-pill px-3">
+            <a href="{% url 'sppd_service:list' %}?tab={{ active_tab }}{% if current_type %}&type={{ current_type }}{% endif %}" class="px-3.5 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-all inline-flex items-center justify-center text-decoration-none" title="Reset Filter">
                 <i class="bi bi-arrow-counterclockwise"></i>
             </a>
         </div>
     </form>
 </div>
-
 <!-- KATEGORI PILLS -->
 <div class="card-enterprise p-3 mb-4">
     <div class="d-flex gap-2 flex-wrap align-items-center">
