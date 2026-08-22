@@ -1189,8 +1189,8 @@
 
     {% include 'layouts/sidebar.html' %}
 
-    <!-- Main Wrapper -->
-    <div id="main-wrapper">
+    <!-- Main Wrapper with HTMX Ultra-Smooth Boost Navigation -->
+    <div id="main-wrapper" hx-boost="true" hx-select="#main-wrapper" hx-target="#main-wrapper" hx-swap="outerHTML show:window:top">
         {% include 'layouts/navbar.html' %}
 
         {% if user.is_superadmin and request.session.active_pov %}
