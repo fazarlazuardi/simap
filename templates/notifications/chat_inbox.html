@@ -33,7 +33,7 @@
             <!-- Header Search & Unread Counter -->
             <div class="p-3 border-bottom bg-body shadow-xs">
                 <div class="d-flex align-items-center justify-content-between mb-2.5">
-                    <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <h6 class="fw-extrabold text-body mb-0 d-flex align-items-center gap-2">
                         <i class="bi bi-chat-text-fill text-emerald fs-5"></i>
                         <span>Obrolan Amil</span>
                     </h6>
@@ -43,7 +43,7 @@
                 </div>
 
                 <div class="position-relative">
-                    <input type="text" id="contactSearchInput" class="form-control form-control-sm custom-input ps-4 rounded-pill bg-body-tertiary" placeholder="Cari nama amil / bidang..." onkeyup="filterContacts()">
+                    <input type="text" id="contactSearchInput" class="form-control form-control-sm custom-input ps-4 rounded-pill bg-body" placeholder="Cari nama amil / bidang..." onkeyup="filterContacts()">
                     <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2.5 text-muted extra-small"></i>
                 </div>
             </div>
@@ -52,7 +52,7 @@
             <div class="flex-grow-1 overflow-auto p-2" id="contactsListContainer">
                 {% for item in user_chat_list %}
                 <a href="{% url 'notifications:chat_inbox_user' item.user.pk %}" 
-                   class="contact-item d-flex align-items-center gap-3 p-2.5 rounded-3 text-decoration-none mb-1 transition-all {% if active_recipient and active_recipient.pk == item.user.pk %}contact-item-active shadow-xs{% else %}text-dark hover-bg-light{% endif %}"
+                   class="contact-item d-flex align-items-center gap-3 p-2.5 rounded-3 text-decoration-none mb-1 transition-all {% if active_recipient and active_recipient.pk == item.user.pk %}contact-item-active shadow-xs{% else %}text-body hover-bg-light{% endif %}"
                    data-name="{{ item.user.employee.full_name|default:item.user.username|lower }}">
                     
                     <div class="position-relative flex-shrink-0">
@@ -70,7 +70,7 @@
 
                     <div class="flex-grow-1 overflow-hidden">
                         <div class="d-flex align-items-center justify-content-between mb-0.5">
-                            <h6 class="mb-0 fw-bold small text-truncate" style="max-width: 125px;">
+                            <h6 class="mb-0 fw-bold small text-truncate text-body" style="max-width: 125px;">
                                 {{ item.user.employee.full_name|default:item.user.username }}
                             </h6>
                             {% if item.last_message %}
@@ -83,7 +83,7 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <small class="text-secondary extra-small text-truncate d-block" style="max-width: 135px;">
                                 {% if item.last_message %}
-                                    {% if item.last_message.sender == request.user %}<span class="text-emerald font-mono">Anda:</span> {% endif %}{{ item.last_message.body }}
+                                    {% if item.last_message.sender == request.user %}<span class="text-emerald font-mono fw-bold">Anda:</span> {% endif %}{{ item.last_message.body }}
                                 {% else %}
                                     <em class="opacity-75">Mulai obrolan baru</em>
                                 {% endif %}
@@ -117,7 +117,7 @@
                         {% endif %}
                     </div>
                     <div>
-                        <h6 class="fw-extrabold text-dark mb-0 d-flex align-items-center gap-2">
+                        <h6 class="fw-extrabold text-body mb-0 d-flex align-items-center gap-2">
                             {{ active_recipient.employee.full_name|default:active_recipient.username }}
                             <span id="active-header-presence-badge">
                             {% if active_recipient.is_online %}
@@ -209,7 +209,7 @@
                     <div class="avatar-lg bg-emerald-subtle rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
                         <i class="bi bi-chat-heart-fill fs-2 text-emerald"></i>
                     </div>
-                    <h6 class="fw-bold text-dark mb-1">Belum Ada Riwayat Obrolan</h6>
+                    <h6 class="fw-bold text-body mb-1">Belum Ada Riwayat Obrolan</h6>
                     <p class="small text-secondary mb-0" style="max-width: 360px; margin: 0 auto;">Ketik pesan pada kolom di bawah untuk memulai percakapan dengan {{ active_recipient.employee.full_name|default:active_recipient.username }}.</p>
                 </div>
                 {% endfor %}
@@ -222,9 +222,9 @@
                     <input type="hidden" name="recipient_id" value="{{ active_recipient.pk }}">
                     
                     <div class="d-flex align-items-center gap-2">
-                        <input type="text" id="chatMessageInput" name="body" class="form-control custom-input py-2.5 px-3.5 rounded-pill shadow-xs" placeholder="Ketik pesan untuk {{ active_recipient.employee.full_name|default:active_recipient.username }}..." required autocomplete="off">
-                        <button type="submit" class="btn btn-emerald rounded-circle p-2.5 d-flex align-items-center justify-content-center shadow-md flex-shrink-0" style="width: 44px; height: 44px;" title="Kirim Pesan (Enter)">
-                            <i class="bi bi-send-fill text-white fs-5"></i>
+                        <input type="text" id="chatMessageInput" name="body" class="form-control custom-input py-2.5 px-3.5 rounded-pill shadow-xs bg-body text-body" placeholder="Ketik pesan untuk {{ active_recipient.employee.full_name|default:active_recipient.username }}..." required autocomplete="off">
+                        <button type="submit" class="btn btn-chat-send rounded-circle p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;" title="Kirim Pesan (Enter)">
+                            <i class="bi bi-send-fill fs-5"></i>
                         </button>
                     </div>
                 </form>
@@ -235,7 +235,7 @@
                 <div class="avatar-xl bg-emerald-subtle rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
                     <i class="bi bi-chat-square-dots-fill fs-1 text-emerald"></i>
                 </div>
-                <h5 class="fw-extrabold text-dark mb-1">Ruang Pesan SIMAP BAZNAS</h5>
+                <h5 class="fw-extrabold text-body mb-1">Ruang Pesan SIMAP BAZNAS</h5>
                 <p class="small text-secondary mb-0" style="max-width: 420px;">Pilih salah satu kontak amil di panel sebelah kiri untuk memulai atau melanjutkan obrolan langsung.</p>
             </div>
             {% endif %}

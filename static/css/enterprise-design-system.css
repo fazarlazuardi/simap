@@ -875,12 +875,38 @@ html, body {
 }
 
 .contact-item-active {
-  background-color: rgba(16, 185, 129, 0.12) !important;
+  background-color: rgba(16, 185, 129, 0.15) !important;
   border-left: 4px solid #10B981 !important;
 }
 
 [data-theme="dark"] .contact-item-active {
-  background-color: rgba(16, 185, 129, 0.22) !important;
+  background-color: rgba(16, 185, 129, 0.28) !important;
   border-left: 4px solid #34D399 !important;
+}
+
+/* HIGH-CONTRAST CHAT SEND BUTTON FOR LIGHT & DARK MODE */
+.btn-chat-send {
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
+  color: #FFFFFF !important;
+  border: 1px solid #059669 !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-chat-send:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+  transform: scale(1.06) !important;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5) !important;
+}
+
+[data-theme="dark"] .btn-chat-send {
+  background: linear-gradient(135deg, #10B981 0%, #34D399 100%) !important;
+  color: #0F172A !important;
+  border: 1px solid #6EE7B7 !important;
+  box-shadow: 0 4px 18px rgba(52, 211, 153, 0.55) !important;
+}
+
+[data-theme="dark"] .btn-chat-send i {
+  color: #0F172A !important;
 }
 
