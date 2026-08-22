@@ -4,43 +4,47 @@
 {% block title %}Pesan Internal Amil - BAZNAS SIMAP{% endblock %}
 
 {% block content %}
-<!-- GLASS BANNER CHAT AMIL -->
+<!-- GLASS HEADER BANNER -->
 <div class="glass-banner-enterprise mb-4">
     <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
         <div class="col-lg-12">
             <div class="d-flex align-items-center gap-2 mb-2">
                 <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold font-mono" style="letter-spacing: 0.05em; font-size: 0.72rem;">
-                    <i class="bi bi-chat-dots-fill me-1 text-warning"></i> Internal Messaging System
+                    <i class="bi bi-chat-dots-fill me-1 text-warning"></i> Internal Messenger System
                 </span>
                 <span class="badge bg-success bg-opacity-30 text-white rounded-pill px-3 py-1 text-uppercase fw-bold font-mono" style="font-size: 0.72rem;">
-                    <i class="bi bi-shield-lock-fill me-1"></i> SSL Encrypted BAZNAS
+                    <i class="bi bi-shield-lock-fill me-1"></i> Terenkripsi SSL BAZNAS
                 </span>
             </div>
-            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Ruang Pesan & Komunikasi Amil</h3>
+            <h3 class="fw-extrabold text-white mb-1" style="letter-spacing: -0.02em;">Ruang Komunikasi & Direct Messenger Amil</h3>
             <p class="text-white text-opacity-80 mb-0 small" style="max-width: 680px;">
-                Komunikasi interaktif antarsesama amil, waka, ketua, dan pengelola sistem BAZNAS secara *real-time* dan responsif.
+                Komunikasi interaktif antar-pemegang akun BAZNAS (Amil, Kabid, Waka, Ketua) secara *real-time*, aman, dan responsif.
             </p>
         </div>
     </div>
 </div>
 
-<!-- CHAT MESSENGER MAIN CARD -->
-<div class="card-enterprise p-0 overflow-hidden shadow-lg border-0 mb-4" style="height: calc(100vh - 240px); min-height: 550px;">
+<!-- MAIN CHAT MESSENGER CONTAINER (WHATSAPP / TELEGRAM DESKTOP STYLE) -->
+<div class="card-enterprise p-0 overflow-hidden shadow-xl border-0 mb-4" style="height: calc(100vh - 230px); min-height: 580px;">
     <div class="row g-0 h-100">
         
         <!-- SIDEBAR DAFTAR AMIL / CONTACTS (LEFT 4 COLS) -->
         <div class="col-md-4 col-lg-3 border-end bg-body-tertiary d-flex flex-column h-100">
-            <!-- Header Search Contacts -->
+            <!-- Header Search & Unread Counter -->
             <div class="p-3 border-bottom bg-body shadow-xs">
-                <h6 class="fw-bold text-dark mb-2 d-flex align-items-center justify-content-between">
-                    <span><i class="bi bi-people-fill text-emerald me-2"></i>Daftar Amil</span>
+                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                    <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-chat-text-fill text-emerald fs-5"></i>
+                        <span>Obrolan Amil</span>
+                    </h6>
                     {% if total_unread_chat > 0 %}
-                    <span class="badge bg-danger rounded-pill px-2.5 py-1 extra-small">{{ total_unread_chat }} Unread</span>
+                    <span class="badge bg-danger rounded-pill px-2.5 py-1 font-mono extra-small">{{ total_unread_chat }} Unread</span>
                     {% endif %}
-                </h6>
+                </div>
+
                 <div class="position-relative">
-                    <input type="text" id="contactSearchInput" class="form-control form-control-sm custom-input ps-4" placeholder="Cari nama amil / akun..." onkeyup="filterContacts()">
-                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted extra-small"></i>
+                    <input type="text" id="contactSearchInput" class="form-control form-control-sm custom-input ps-4 rounded-pill bg-body-tertiary" placeholder="Cari nama amil / bidang..." onkeyup="filterContacts()">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2.5 text-muted extra-small"></i>
                 </div>
             </div>
 
@@ -48,40 +52,40 @@
             <div class="flex-grow-1 overflow-auto p-2" id="contactsListContainer">
                 {% for item in user_chat_list %}
                 <a href="{% url 'notifications:chat_inbox_user' item.user.pk %}" 
-                   class="contact-item d-flex align-items-center gap-3 p-2.5 rounded-3 text-decoration-none mb-1 transition-all {% if active_recipient and active_recipient.pk == item.user.pk %}bg-emerald text-white shadow-sm{% else %}text-dark hover-bg-light{% endif %}"
+                   class="contact-item d-flex align-items-center gap-3 p-2.5 rounded-3 text-decoration-none mb-1 transition-all {% if active_recipient and active_recipient.pk == item.user.pk %}contact-item-active shadow-xs{% else %}text-dark hover-bg-light{% endif %}"
                    data-name="{{ item.user.employee.full_name|default:item.user.username|lower }}">
                     
                     <div class="position-relative flex-shrink-0">
                         {% if item.user.employee and item.user.employee.photo %}
-                            <img src="{{ item.user.employee.photo.url }}" class="rounded-circle border border-2 border-white shadow-xs" width="42" height="42" style="object-fit: cover;">
+                            <img src="{{ item.user.employee.photo.url }}" class="rounded-circle border border-2 border-white shadow-xs" width="44" height="44" style="object-fit: cover;">
                         {% else %}
-                            <img src="https://ui-avatars.com/api/?name={{ item.user.employee.full_name|default:item.user.username|urlencode }}&background={% if active_recipient and active_recipient.pk == item.user.pk %}FFFFFF&color=10B981{% else %}10B981&color=FFFFFF{% endif %}&bold=true" class="rounded-circle shadow-xs" width="42" height="42">
+                            <img src="https://ui-avatars.com/api/?name={{ item.user.employee.full_name|default:item.user.username|urlencode }}&background={% if active_recipient and active_recipient.pk == item.user.pk %}10B981&color=FFFFFF{% else %}059669&color=FFFFFF{% endif %}&bold=true" class="rounded-circle shadow-xs" width="44" height="44">
                         {% endif %}
                         {% if item.user.is_online %}
-                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle" title="Online (Akun Aktif)"></span>
+                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-success border border-2 border-white rounded-circle" title="Online (Akun Aktif)"></span>
                         {% else %}
-                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-secondary border border-white rounded-circle opacity-75" title="{{ item.user.last_seen_display }}"></span>
+                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-secondary border border-2 border-white rounded-circle opacity-75" title="{{ item.user.last_seen_display }}"></span>
                         {% endif %}
                     </div>
 
                     <div class="flex-grow-1 overflow-hidden">
                         <div class="d-flex align-items-center justify-content-between mb-0.5">
-                            <h6 class="mb-0 fw-bold small text-truncate" style="max-width: 130px;">
+                            <h6 class="mb-0 fw-bold small text-truncate" style="max-width: 125px;">
                                 {{ item.user.employee.full_name|default:item.user.username }}
                             </h6>
                             {% if item.last_message %}
-                            <small class="{% if active_recipient and active_recipient.pk == item.user.pk %}text-white-50{% else %}text-muted{% endif %} extra-small font-mono">
+                            <small class="text-muted extra-small font-mono">
                                 {{ item.last_message.created_at|date:"H:i" }}
                             </small>
                             {% endif %}
                         </div>
 
                         <div class="d-flex align-items-center justify-content-between">
-                            <small class="{% if active_recipient and active_recipient.pk == item.user.pk %}text-white-50{% else %}text-secondary{% endif %} extra-small text-truncate d-block" style="max-width: 140px;">
+                            <small class="text-secondary extra-small text-truncate d-block" style="max-width: 135px;">
                                 {% if item.last_message %}
-                                    {% if item.last_message.sender == request.user %}Anda: {% endif %}{{ item.last_message.body }}
+                                    {% if item.last_message.sender == request.user %}<span class="text-emerald font-mono">Anda:</span> {% endif %}{{ item.last_message.body }}
                                 {% else %}
-                                    <em class="opacity-75">Belum ada percakapan</em>
+                                    <em class="opacity-75">Mulai obrolan baru</em>
                                 {% endif %}
                             </small>
 
@@ -92,45 +96,47 @@
                     </div>
                 </a>
                 {% empty %}
-                <div class="text-center py-4 text-muted extra-small">
-                    <i class="bi bi-people fs-3 d-block mb-1"></i> Tidak ada amil lain ditemukan.
+                <div class="text-center py-5 text-muted extra-small">
+                    <i class="bi bi-people fs-3 d-block mb-1 opacity-50"></i> Tidak ada kontak amil ditemukan.
                 </div>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- CHAT AREA MAIN (RIGHT 8-9 COLS) -->
+        <!-- MAIN CHAT THREAD PANEL (RIGHT 8-9 COLS) -->
         <div class="col-md-8 col-lg-9 d-flex flex-column h-100 bg-body">
             {% if active_recipient %}
-            <!-- Chat Recipient Header -->
+            <!-- Chat Active Recipient Header Bar -->
             <div class="p-3 border-bottom bg-body-tertiary d-flex align-items-center justify-content-between shadow-xs">
                 <div class="d-flex align-items-center gap-3">
-                    {% if active_recipient.employee and active_recipient.employee.photo %}
-                        <img src="{{ active_recipient.employee.photo.url }}" class="rounded-circle border shadow-xs" width="45" height="45" style="object-fit: cover;">
-                    {% else %}
-                        <img src="https://ui-avatars.com/api/?name={{ active_recipient.employee.full_name|default:active_recipient.username|urlencode }}&background=10B981&color=FFFFFF&bold=true" class="rounded-circle shadow-xs" width="45" height="45">
-                    {% endif %}
+                    <div class="position-relative">
+                        {% if active_recipient.employee and active_recipient.employee.photo %}
+                            <img src="{{ active_recipient.employee.photo.url }}" class="rounded-circle border border-2 border-white shadow-xs" width="46" height="46" style="object-fit: cover;">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ active_recipient.employee.full_name|default:active_recipient.username|urlencode }}&background=10B981&color=FFFFFF&bold=true" class="rounded-circle shadow-xs" width="46" height="46">
+                        {% endif %}
+                    </div>
                     <div>
                         <h6 class="fw-extrabold text-dark mb-0 d-flex align-items-center gap-2">
                             {{ active_recipient.employee.full_name|default:active_recipient.username }}
                             <span id="active-header-presence-badge">
                             {% if active_recipient.is_online %}
-                                <span class="badge bg-success rounded-pill px-2 py-0.5 extra-small"><i class="bi bi-circle-fill me-1"></i>Online</span>
+                                <span class="badge bg-success rounded-pill px-2.5 py-0.5 extra-small"><i class="bi bi-circle-fill me-1"></i>Online</span>
                             {% else %}
-                                <span class="badge bg-secondary bg-opacity-50 text-white rounded-pill px-2 py-0.5 extra-small"><i class="bi bi-clock-history me-1"></i>{{ active_recipient.last_seen_display }}</span>
+                                <span class="badge bg-secondary bg-opacity-50 text-white rounded-pill px-2.5 py-0.5 extra-small"><i class="bi bi-clock-history me-1"></i>{{ active_recipient.last_seen_display }}</span>
                             {% endif %}
                             </span>
                         </h6>
                         <small class="text-secondary extra-small font-mono d-block mt-0.5">
                             {{ active_recipient.employee.position|default:active_recipient.get_role_display }} 
-                            {% if active_recipient.employee.dept_relation %} &bull; {{ active_recipient.employee.dept_relation.name }}{% endif %}
+                            {% if active_recipient.employee.dept_relation %} &bull; <span class="badge {{ active_recipient.employee.department_badge_class }} py-0 px-2 small">{{ active_recipient.employee.dept_relation.name }}</span>{% endif %}
                         </small>
                     </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
                     {% if active_recipient.employee and active_recipient.employee.phone_number %}
-                    <a href="https://api.whatsapp.com/send?phone=62{{ active_recipient.employee.phone_number }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" title="Kirim WA Langsung">
+                    <a href="https://api.whatsapp.com/send?phone=62{{ active_recipient.employee.phone_number }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold shadow-xs" title="Buka WhatsApp Langsung">
                         <i class="bi bi-whatsapp me-1"></i> WA
                     </a>
                     {% endif %}
@@ -138,7 +144,7 @@
                     {% if messages_list %}
                     <form action="{% url 'notifications:clear_chat_thread' active_recipient.pk %}" method="post" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh riwayat obrolan ini?');">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" title="Hapus Seluruh Pesan Percakapan">
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold shadow-xs" title="Hapus Seluruh Pesan Obrolan Ini">
                             <i class="bi bi-trash me-1"></i> Hapus Obrolan
                         </button>
                     </form>
@@ -146,48 +152,48 @@
                 </div>
             </div>
 
-            <!-- Scrollable Messages Body Thread -->
-            <div class="flex-grow-1 p-4 overflow-auto bg-body-tertiary bg-opacity-50" id="chatMessagesThread" style="scroll-behavior: smooth;">
+            <!-- Scrollable Messages Body Thread (WhatsApp Pattern Wallpaper Background) -->
+            <div class="flex-grow-1 p-4 overflow-auto chat-wallpaper" id="chatMessagesThread" style="scroll-behavior: smooth;">
                 <div class="text-center mb-4">
-                    <span class="badge bg-secondary bg-opacity-15 text-secondary rounded-pill px-3 py-1 font-mono extra-small">
-                        <i class="bi bi-shield-check text-success me-1"></i> Percakapan resmi terenkripsi sistem SIMAP BAZNAS
+                    <span class="badge bg-body border shadow-xs text-secondary rounded-pill px-3 py-1.5 font-mono extra-small">
+                        <i class="bi bi-shield-check text-success me-1"></i> Obrolan resmi terenkripsi sistem SIMAP BAZNAS
                     </span>
                 </div>
 
                 {% for msg in messages_list %}
                     {% if msg.sender == request.user %}
-                    <!-- Outgoing Message (Right - Emerald Bubble) -->
+                    <!-- Outgoing Speech Bubble (Mine - Emerald Gradient Right) -->
                     <div class="d-flex flex-column align-items-end mb-3" id="msg-item-{{ msg.pk }}">
-                        <div class="d-flex align-items-center gap-1">
-                            <form action="{% url 'notifications:delete_direct_message' msg.pk %}" method="post" class="d-inline opacity-75 hover-opacity-100 me-1" onsubmit="return confirm('Hapus pesan ini?');">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <form action="{% url 'notifications:delete_direct_message' msg.pk %}" method="post" class="d-inline opacity-50 hover-opacity-100 me-1" onsubmit="return confirm('Hapus pesan ini?');">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-link btn-sm text-danger p-0 border-0" title="Hapus Pesan">
                                     <i class="bi bi-trash extra-small"></i>
                                 </button>
                             </form>
-                            <div class="p-3 rounded-4 chat-bubble-outgoing text-break" style="max-width: 72%; border-bottom-right-radius: 4px !important;">
-                                <p class="mb-0 lh-base">{{ msg.body }}</p>
+                            <div class="p-3 rounded-4 chat-bubble-outgoing text-break" style="max-width: 75%;">
+                                <p class="mb-0 lh-base fs-6">{{ msg.body }}</p>
                             </div>
                         </div>
-                        <small class="text-muted font-mono extra-small mt-1">
-                            {{ msg.created_at|date:"H:i" }} WIB {% if msg.is_read %}<i class="bi bi-check2-all text-primary ms-1" title="Sudah dibaca"></i>{% else %}<i class="bi bi-check2 text-muted ms-1" title="Terkirim"></i>{% endif %}
+                        <small class="text-muted font-mono extra-small mt-1 me-1">
+                            {{ msg.created_at|date:"H:i" }} WIB {% if msg.is_read %}<i class="bi bi-check2-all text-primary ms-1" title="Sudah dibaca oleh {{ active_recipient.username }}"></i>{% else %}<i class="bi bi-check2 text-muted ms-1" title="Terkirim"></i>{% endif %}
                         </small>
                     </div>
                     {% else %}
-                    <!-- Incoming Message (Left - White/Dark Bubble) -->
+                    <!-- Incoming Speech Bubble (Others - Crisp White/Slate Left) -->
                     <div class="d-flex align-items-start gap-2.5 mb-3" id="msg-item-{{ msg.pk }}">
                         {% if active_recipient.employee and active_recipient.employee.photo %}
-                            <img src="{{ active_recipient.employee.photo.url }}" class="rounded-circle flex-shrink-0 mt-1" width="32" height="32" style="object-fit: cover;">
+                            <img src="{{ active_recipient.employee.photo.url }}" class="rounded-circle flex-shrink-0 mt-1 border border-2 border-white shadow-xs" width="34" height="34" style="object-fit: cover;">
                         {% else %}
-                            <img src="https://ui-avatars.com/api/?name={{ active_recipient.employee.full_name|default:active_recipient.username|urlencode }}&background=10B981&color=FFFFFF" class="rounded-circle flex-shrink-0 mt-1" width="32" height="32">
+                            <img src="https://ui-avatars.com/api/?name={{ active_recipient.employee.full_name|default:active_recipient.username|urlencode }}&background=059669&color=FFFFFF" class="rounded-circle flex-shrink-0 mt-1 shadow-xs" width="34" height="34">
                         {% endif %}
 
                         <div class="d-flex flex-column align-items-start">
-                            <div class="d-flex align-items-center gap-1">
-                                <div class="p-3 rounded-4 chat-bubble-incoming text-break" style="max-width: 72%; border-bottom-left-radius: 4px !important;">
-                                    <p class="mb-0 lh-base">{{ msg.body }}</p>
+                            <div class="d-flex align-items-center gap-1.5">
+                                <div class="p-3 rounded-4 chat-bubble-incoming text-break" style="max-width: 75%;">
+                                    <p class="mb-0 lh-base fs-6">{{ msg.body }}</p>
                                 </div>
-                                <form action="{% url 'notifications:delete_direct_message' msg.pk %}" method="post" class="d-inline opacity-75 hover-opacity-100 ms-1" onsubmit="return confirm('Hapus pesan ini?');">
+                                <form action="{% url 'notifications:delete_direct_message' msg.pk %}" method="post" class="d-inline opacity-50 hover-opacity-100 ms-1" onsubmit="return confirm('Hapus pesan ini?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-link btn-sm text-danger p-0 border-0" title="Hapus Pesan">
                                         <i class="bi bi-trash extra-small"></i>
@@ -199,34 +205,38 @@
                     </div>
                     {% endif %}
                 {% empty %}
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-chat-heart fs-1 d-block mb-2 text-emerald opacity-50"></i>
-                    <p class="mb-0 fw-bold">Belum ada riwayat percakapan.</p>
-                    <small class="text-secondary">Ketik pesan di bawah untuk memulai obrolan dengan {{ active_recipient.employee.full_name|default:active_recipient.username }}.</small>
+                <div class="text-center py-5">
+                    <div class="avatar-lg bg-emerald-subtle rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
+                        <i class="bi bi-chat-heart-fill fs-2 text-emerald"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">Belum Ada Riwayat Obrolan</h6>
+                    <p class="small text-secondary mb-0" style="max-width: 360px; margin: 0 auto;">Ketik pesan pada kolom di bawah untuk memulai percakapan dengan {{ active_recipient.employee.full_name|default:active_recipient.username }}.</p>
                 </div>
                 {% endfor %}
             </div>
 
-            <!-- Send Message Input Footer -->
-            <div class="p-3 border-top bg-body shadow-xs">
+            <!-- WhatsApp / Telegram Style Floating Message Composer Footer -->
+            <div class="p-3 border-top bg-body shadow-sm">
                 <form id="sendMessageForm" action="{% url 'notifications:send_direct_message' %}" method="post" onsubmit="submitChatMessage(event)">
                     {% csrf_token %}
                     <input type="hidden" name="recipient_id" value="{{ active_recipient.pk }}">
                     
-                    <div class="input-group">
-                        <input type="text" id="chatMessageInput" name="body" class="form-control custom-input py-2.5" placeholder="Ketik pesan untuk {{ active_recipient.employee.full_name|default:active_recipient.username }}..." required autocomplete="off">
-                        <button type="submit" class="btn btn-emerald px-4 fw-bold shadow-xs">
-                            <i class="bi bi-send-fill me-1"></i> Kirim
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="text" id="chatMessageInput" name="body" class="form-control custom-input py-2.5 px-3.5 rounded-pill shadow-xs" placeholder="Ketik pesan untuk {{ active_recipient.employee.full_name|default:active_recipient.username }}..." required autocomplete="off">
+                        <button type="submit" class="btn btn-emerald rounded-circle p-2.5 d-flex align-items-center justify-content-center shadow-md flex-shrink-0" style="width: 44px; height: 44px;" title="Kirim Pesan (Enter)">
+                            <i class="bi bi-send-fill text-white fs-5"></i>
                         </button>
                     </div>
                 </form>
             </div>
             {% else %}
-            <!-- Blank State (No active recipient) -->
-            <div class="d-flex flex-column align-items-center justify-content-center h-100 text-center p-5 text-muted">
-                <i class="bi bi-chat-square-dots fs-1 d-block mb-3 text-emerald opacity-50"></i>
-                <h5 class="fw-bold text-dark mb-1">Pilih Amil untuk Memulai Obrolan</h5>
-                <p class="small text-secondary mb-0">Klik salah satu kontak di panel kiri untuk membuka ruang obrolan langsung.</p>
+            <!-- Blank Welcome Screen State -->
+            <div class="d-flex flex-column align-items-center justify-content-center h-100 text-center p-5 text-muted chat-wallpaper">
+                <div class="avatar-xl bg-emerald-subtle rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
+                    <i class="bi bi-chat-square-dots-fill fs-1 text-emerald"></i>
+                </div>
+                <h5 class="fw-extrabold text-dark mb-1">Ruang Pesan SIMAP BAZNAS</h5>
+                <p class="small text-secondary mb-0" style="max-width: 420px;">Pilih salah satu kontak amil di panel sebelah kiri untuk memulai atau melanjutkan obrolan langsung.</p>
             </div>
             {% endif %}
         </div>
@@ -255,10 +265,10 @@
                     var dot = document.getElementById('online-dot-' + uid);
                     if (dot) {
                         if (p.is_online) {
-                            dot.className = "position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle";
+                            dot.className = "position-absolute bottom-0 end-0 p-1 bg-success border border-2 border-white rounded-circle";
                             dot.title = "Online (Akun Aktif)";
                         } else {
-                            dot.className = "position-absolute bottom-0 end-0 p-1 bg-secondary border border-white rounded-circle opacity-75";
+                            dot.className = "position-absolute bottom-0 end-0 p-1 bg-secondary border border-2 border-white rounded-circle opacity-75";
                             dot.title = p.last_seen_display;
                         }
                     }
@@ -266,9 +276,9 @@
                         var badgeContainer = document.getElementById('active-header-presence-badge');
                         if (badgeContainer) {
                             if (p.is_online) {
-                                badgeContainer.innerHTML = '<span class="badge bg-success rounded-pill px-2 py-0.5 extra-small"><i class="bi bi-circle-fill me-1"></i>Online</span>';
+                                badgeContainer.innerHTML = '<span class="badge bg-success rounded-pill px-2.5 py-0.5 extra-small"><i class="bi bi-circle-fill me-1"></i>Online</span>';
                             } else {
-                                badgeContainer.innerHTML = '<span class="badge bg-secondary bg-opacity-50 text-white rounded-pill px-2 py-0.5 extra-small"><i class="bi bi-clock-history me-1"></i>' + escapeHtml(p.last_seen_display) + '</span>';
+                                badgeContainer.innerHTML = '<span class="badge bg-secondary bg-opacity-50 text-white rounded-pill px-2.5 py-0.5 extra-small"><i class="bi bi-clock-history me-1"></i>' + escapeHtml(p.last_seen_display) + '</span>';
                             }
                         }
                     }
@@ -315,16 +325,13 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Append new outgoing message bubble for sender (sound & toast strictly for recipient)
-
-                // Append new outgoing message bubble
                 var thread = document.getElementById('chatMessagesThread');
                 var msgHtml = `
                     <div class="d-flex flex-column align-items-end mb-3">
-                        <div class="p-3 rounded-4 chat-bubble-outgoing text-break" style="max-width: 72%; border-bottom-right-radius: 4px !important;">
-                            <p class="mb-0 lh-base">${escapeHtml(data.body)}</p>
+                        <div class="p-3 rounded-4 chat-bubble-outgoing text-break" style="max-width: 75%;">
+                            <p class="mb-0 lh-base fs-6">${escapeHtml(data.body)}</p>
                         </div>
-                        <small class="text-muted font-mono extra-small mt-1">
+                        <small class="text-muted font-mono extra-small mt-1 me-1">
                             ${data.created_at} <i class="bi bi-check2 text-muted ms-1" title="Terkirim"></i>
                         </small>
                     </div>
