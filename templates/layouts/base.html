@@ -710,8 +710,15 @@
 
         #sidebar.collapsed .sidebar-text, 
         #sidebar.collapsed .sidebar-header h3,
-        #sidebar.collapsed .sidebar-header .app-name {
-            display: none;
+        #sidebar.collapsed .sidebar-header .app-name,
+        #sidebar.collapsed .menu-category-title,
+        #sidebar.collapsed .app-sub-text {
+            display: none !important;
+        }
+        #sidebar.collapsed .sidebar-nav-item {
+            justify-content: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
         }
 
         .sidebar-header {

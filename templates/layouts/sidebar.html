@@ -1,93 +1,170 @@
-<!-- Sidebar -->
-<nav id="sidebar">
-    <div class="sidebar-header text-center py-4">
-        {% if app_config.app_logo %}
-        <img src="{{ app_config.app_logo.url }}" alt="Logo" class="img-fluid mb-2" style="max-height: 85px;">
-        <div class="app-name">
-            <span class="mb-0" style="color: #10B981; font-size: 1.15rem; font-weight: 800; line-height: 1.2; display: block;">{{ app_config.app_name|default:'BAZNAS SIMAP' }}</span>
-        </div>
-        {% else %}
-        <h4 class="mb-0 app-name" style="color: #10B981; font-weight: 800;"><i class="bi bi-shield-check me-1"></i> SIMAP BAZNAS</h4>
-        {% endif %}
-    </div>
+<!-- Futuristic Enterprise Tailwind Sidebar -->
+<nav id="sidebar" class="bg-gradient-to-b from-slate-950 via-slate-900 to-emerald-950 border-r border-slate-800/80 shadow-2xl flex flex-col justify-between select-none">
     
-    <div class="sidebar-menu">
-        <!-- 1. Dashboard -->
-        <a href="{% url 'users:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-            <i class="bi bi-grid-1x2-fill"></i>
-            <span class="sidebar-text">Dashboard</span>
-        </a>
+    <div>
+        <!-- BRAND HEADER -->
+        <div class="sidebar-header p-4 border-b border-slate-800/60 text-center relative overflow-hidden">
+            <!-- Background Subtle Glow -->
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            
+            {% if app_config.app_logo %}
+            <div class="flex items-center justify-center mb-2.5">
+                <img src="{{ app_config.app_logo.url }}" alt="Logo SIMAP BAZNAS" class="h-14 w-auto object-contain drop-shadow-md transition-transform hover:scale-105">
+            </div>
+            <div class="app-name">
+                <span class="block text-sm font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 uppercase">
+                    {{ app_config.app_name|default:'BAZNAS SIMAP' }}
+                </span>
+                <span class="app-sub-text text-[10px] font-bold text-slate-400 tracking-wider font-mono">KABUPATEN TANGERANG</span>
+            </div>
+            {% else %}
+            <div class="app-name py-1">
+                <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-600/30 mb-2">
+                    <i class="bi bi-shield-check text-xl"></i>
+                </div>
+                <h4 class="text-base font-black tracking-tight text-white mb-0">
+                    SIMAP <span class="text-emerald-400">BAZNAS</span>
+                </h4>
+                <span class="app-sub-text text-[10px] font-bold text-slate-400 tracking-wider font-mono block">ENTERPRISE SYSTEM</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- SIDEBAR MENU SCROLLABLE CONTAINER -->
+        <div class="sidebar-menu p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)] custom-scrollbar">
+            
+            <!-- CATEGORY 1: NAVIGASI UTAMA -->
+            <div class="menu-category-title px-3 pt-2 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400/80 font-mono">
+                <i class="bi bi-compass me-1"></i> Utama & Operasional
+            </div>
 
-        <!-- 2. Disposisi -->
-        <a href="{% url 'dispositions:list' %}" class="nav-link {% if request.resolver_match.app_name == 'dispositions' %}active{% endif %}">
-            <i class="bi bi-send-fill"></i>
-            <span class="sidebar-text">Disposisi</span>
-        </a>
+            <!-- 1. Dashboard -->
+            <a href="{% url 'users:dashboard' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-grid-1x2-fill text-base {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}text-white{% else %}text-emerald-400 group-hover:text-emerald-300{% endif %}"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </div>
+                {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                {% endif %}
+            </a>
 
-        <!-- 3. Surat Tugas -->
-        <a href="{% url 'surat_tugas:list' %}" class="nav-link {% if request.resolver_match.app_name == 'surat_tugas' %}active{% endif %}">
-            <i class="bi bi-file-earmark-text-fill"></i>
-            <span class="sidebar-text">Surat Tugas</span>
-        </a>
+            <!-- 2. Disposisi -->
+            <a href="{% url 'dispositions:list' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.app_name == 'dispositions' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-send-fill text-base {% if request.resolver_match.app_name == 'dispositions' %}text-white{% else %}text-amber-400 group-hover:text-amber-300{% endif %}"></i>
+                    <span class="sidebar-text">Disposisi Digital</span>
+                </div>
+                {% if request.resolver_match.app_name == 'dispositions' %}
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                {% endif %}
+            </a>
 
-        <!-- 4. SPPD -->
-        <a href="{% url 'sppd_service:list' %}" class="nav-link {% if request.resolver_match.app_name == 'sppd_service' %}active{% endif %}">
-            <i class="bi bi-car-front-fill"></i>
-            <span class="sidebar-text">SPPD</span>
-        </a>
+            <!-- 3. Surat Tugas -->
+            <a href="{% url 'surat_tugas:list' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.app_name == 'surat_tugas' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-file-earmark-text-fill text-base {% if request.resolver_match.app_name == 'surat_tugas' %}text-white{% else %}text-sky-400 group-hover:text-sky-300{% endif %}"></i>
+                    <span class="sidebar-text">Surat Tugas</span>
+                </div>
+                {% if request.resolver_match.app_name == 'surat_tugas' %}
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                {% endif %}
+            </a>
 
-        <!-- 5. Laporan (Trace) -->
-        <a href="{% url 'reports:index' %}" class="nav-link {% if request.resolver_match.app_name == 'reports' and request.resolver_match.url_name == 'index' %}active{% endif %}">
-            <i class="bi bi-diagram-3-fill"></i>
-            <span class="sidebar-text">Laporan (Trace)</span>
-        </a>
+            <!-- 4. SPPD -->
+            <a href="{% url 'sppd_service:list' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.app_name == 'sppd_service' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-car-front-fill text-base {% if request.resolver_match.app_name == 'sppd_service' %}text-white{% else %}text-emerald-400 group-hover:text-emerald-300{% endif %}"></i>
+                    <span class="sidebar-text">SPPD & Log</span>
+                </div>
+                {% if request.resolver_match.app_name == 'sppd_service' %}
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                {% endif %}
+            </a>
 
-        <!-- 6. Rekap Penanganan -->
-        <a href="{% url 'reports:rekap_bantuan' %}" class="nav-link {% if request.resolver_match.url_name == 'rekap_bantuan' %}active{% endif %}">
-            <i class="bi bi-pie-chart-fill"></i>
-            <span class="sidebar-text">Rekap Penanganan</span>
-        </a>
+            <!-- 5. Laporan (Trace) -->
+            <a href="{% url 'reports:index' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.app_name == 'reports' and request.resolver_match.url_name == 'index' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-diagram-3-fill text-base {% if request.resolver_match.app_name == 'reports' and request.resolver_match.url_name == 'index' %}text-white{% else %}text-purple-400 group-hover:text-purple-300{% endif %}"></i>
+                    <span class="sidebar-text">Laporan (Trace)</span>
+                </div>
+            </a>
 
-        <!-- Navigasi Tambahan Dokumen & Kalender -->
-        <div class="sidebar-divider my-2 border-top border-secondary border-opacity-25 ms-3 me-3"></div>
+            <!-- 6. Rekap Penanganan -->
+            <a href="{% url 'reports:rekap_bantuan' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.url_name == 'rekap_bantuan' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-pie-chart-fill text-base {% if request.resolver_match.url_name == 'rekap_bantuan' %}text-white{% else %}text-indigo-400 group-hover:text-indigo-300{% endif %}"></i>
+                    <span class="sidebar-text">Rekap Penanganan</span>
+                </div>
+            </a>
 
-        {% if user.is_sdm or request.user.is_superadmin and not request.session.active_pov or request.session.active_pov == 'waka_4' or request.session.active_pov == 'kabid_4' or request.session.active_pov == 'sdm' %}
-        <a href="{% url 'archives:list' %}" class="nav-link {% if request.resolver_match.app_name == 'archives' %}active{% endif %}">
-            <i class="bi bi-folder2-open"></i>
-            <span class="sidebar-text">Arsip SDM</span>
-        </a>
-        {% endif %}
+            <!-- CATEGORY 2: AGENDA & DOKUMEN -->
+            <div class="menu-category-title px-3 pt-4 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400/80 font-mono border-t border-slate-800/50 mt-2">
+                <i class="bi bi-journal-bookmark me-1"></i> Agenda & Dokumen
+            </div>
 
-        <a href="{% url 'agendas:list' %}" class="nav-link {% if request.resolver_match.app_name == 'agendas' %}active{% endif %}">
-            <i class="bi bi-calendar3"></i>
-            <span class="sidebar-text">Agenda & Kalender</span>
-        </a>
+            {% if user.is_sdm or request.user.is_superadmin and not request.session.active_pov or request.session.active_pov == 'waka_4' or request.session.active_pov == 'kabid_4' or request.session.active_pov == 'sdm' %}
+            <a href="{% url 'archives:list' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.app_name == 'archives' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-folder2-open text-base {% if request.resolver_match.app_name == 'archives' %}text-white{% else %}text-amber-400 group-hover:text-amber-300{% endif %}"></i>
+                    <span class="sidebar-text">Arsip SDM</span>
+                </div>
+            </a>
+            {% endif %}
 
-        <a href="{% url 'internal_meetings:list' %}" class="nav-link {% if request.resolver_match.app_name == 'internal_meetings' %}active{% endif %}">
-            <i class="bi bi-journal-bookmark-fill"></i>
-            <span class="sidebar-text">Rapat Internal</span>
-        </a>
+            <a href="{% url 'agendas:list' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.app_name == 'agendas' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-calendar3 text-base {% if request.resolver_match.app_name == 'agendas' %}text-white{% else %}text-sky-400 group-hover:text-sky-300{% endif %}"></i>
+                    <span class="sidebar-text">Agenda & Kalender</span>
+                </div>
+            </a>
 
-        <a href="{% url 'notifications:chat_inbox' %}" class="nav-link {% if request.resolver_match.url_name == 'chat_inbox' or request.resolver_match.url_name == 'chat_inbox_user' %}active{% endif %}">
-            <i class="bi bi-chat-dots-fill text-warning"></i>
-            <span class="sidebar-text">Pesan Amil</span>
-        </a>
+            <a href="{% url 'internal_meetings:list' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.app_name == 'internal_meetings' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-journal-bookmark-fill text-base {% if request.resolver_match.app_name == 'internal_meetings' %}text-white{% else %}text-emerald-400 group-hover:text-emerald-300{% endif %}"></i>
+                    <span class="sidebar-text">Rapat Internal</span>
+                </div>
+            </a>
 
-        {% if user.is_superadmin and not request.session.active_pov %}
-        <a href="{% url 'users:employee_list' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'list' %}active{% endif %}">
-            <i class="bi bi-people-fill"></i>
-            <span class="sidebar-text">Kelola User</span>
-        </a>
-        <a href="{% url 'notifications:wa_outbox' %}" class="nav-link {% if request.resolver_match.url_name == 'wa_outbox' %}active{% endif %}">
-            <i class="bi bi-whatsapp text-success"></i>
-            <span class="sidebar-text">Outbox WA & Matriks</span>
-        </a>
-        {% endif %}
+            <a href="{% url 'notifications:chat_inbox' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.url_name == 'chat_inbox' or request.resolver_match.url_name == 'chat_inbox_user' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-chat-dots-fill text-base text-amber-400 group-hover:text-amber-300"></i>
+                    <span class="sidebar-text">Pesan Amil</span>
+                </div>
+            </a>
 
-        <!-- 7. Keluar (Warna Merah) -->
-        <a href="{% url 'authentication:logout' %}" class="nav-link text-danger mt-4 fw-bold" style="color: #EF4444 !important; background: rgba(239, 68, 68, 0.1); border-radius: 10px;">
-            <i class="bi bi-box-arrow-right text-danger" style="color: #EF4444 !important;"></i>
-            <span class="sidebar-text text-danger" style="color: #EF4444 !important;">Keluar</span>
-        </a>
+            <!-- CATEGORY 3: SISTEM & AKSES -->
+            {% if user.is_superadmin and not request.session.active_pov %}
+            <div class="menu-category-title px-3 pt-4 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400/80 font-mono border-t border-slate-800/50 mt-2">
+                <i class="bi bi-gear-fill me-1"></i> Administrasi Sistem
+            </div>
+
+            <a href="{% url 'users:employee_list' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'list' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-people-fill text-base text-sky-400 group-hover:text-sky-300"></i>
+                    <span class="sidebar-text">Kelola User</span>
+                </div>
+            </a>
+
+            <a href="{% url 'notifications:wa_outbox' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-xs font-semibold transition-all duration-200 text-decoration-none {% if request.resolver_match.url_name == 'wa_outbox' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-whatsapp text-base text-emerald-400 group-hover:text-emerald-300"></i>
+                    <span class="sidebar-text">Outbox WA & Matriks</span>
+                </div>
+            </a>
+            {% endif %}
+
+            <!-- LOGOUT ITEM -->
+            <div class="pt-4 border-t border-slate-800/50 mt-2">
+                <a href="{% url 'authentication:logout' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/20 transition-all duration-200 text-decoration-none">
+                    <div class="flex items-center gap-3">
+                        <i class="bi bi-box-arrow-right text-base text-rose-400 group-hover:text-white"></i>
+                        <span class="sidebar-text">Keluar Sistem</span>
+                    </div>
+                    <i class="bi bi-arrow-right text-xs opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </a>
+            </div>
+
+        </div>
     </div>
 </nav>
