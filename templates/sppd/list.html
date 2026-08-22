@@ -6,6 +6,9 @@
 {% block extra_css %}
 <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <style>
+    .nav-pills .nav-link { color: var(--text-secondary, #64748b); border-radius: 12px; transition: all 0.25s ease; padding: 0.65rem 1.3rem; font-weight: 700; font-size: 0.85rem; }
+    .nav-pills .nav-link.active { background-color: #059669 !important; color: white !important; shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .nav-pills .nav-link:hover:not(.active) { background-color: rgba(16, 185, 129, 0.1); color: #059669; }
     table.dataTable thead > tr > th { border-bottom: none !important; color: var(--text-primary, #0f172a) !important; font-weight: 700 !important; }
     table.dataTable.no-footer { border-bottom: 1px solid var(--border-color, #cbd5e1) !important; }
     div.dataTables_wrapper div.dataTables_info,
@@ -31,6 +34,9 @@
         font-size: 11px;
         font-weight: 700;
         display: inline-block;
+    }
+    .tab-pane.fade {
+        transition: opacity 0.2s linear;
     }
 </style>
 {% endblock %}
@@ -127,22 +133,26 @@
         </form>
     </div>
 
-    <!-- TAB SWITCHER NAV PILLS (FULLY CLICKABLE) -->
-    <div class="p-2 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex flex-wrap gap-2" id="sppdTab" role="tablist">
-        <button class="sppd-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer {% if active_tab != 'list' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %} inline-flex items-center gap-2" id="create-tab" data-bs-target="#create" type="button" role="tab">
-            <i class="bi bi-file-earmark-plus-fill text-sm"></i> 1. Terbitkan SPPD Dari Disposisi Acuan
-            <span class="px-2 py-0.5 text-[10px] {% if active_tab != 'list' %}bg-white/20 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200{% endif %} rounded-full font-mono font-bold">{{ dispositions|length }}</span>
-        </button>
-        <button class="sppd-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer {% if active_tab == 'list' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %} inline-flex items-center gap-2" id="list-tab" data-bs-target="#list" type="button" role="tab">
-            <i class="bi bi-card-checklist text-sm"></i> 2. Daftar SPPD Terbit & Log Perjalanan
-            <span class="px-2 py-0.5 text-[10px] {% if active_tab == 'list' %}bg-white/20 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200{% endif %} rounded-full font-mono font-bold">{{ sppds|length }}</span>
-        </button>
-    </div>
+    <!-- TAB SWITCHER NAV PILLS (OFFICIAL BOOTSTRAP NAV PILLS) -->
+    <ul class="nav nav-pills p-2 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm gap-2" id="sppdTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab != 'list' %}active{% endif %} d-flex align-items-center gap-2" id="create-tab" data-bs-toggle="pill" data-bs-target="#create" type="button" role="tab" aria-controls="create" aria-selected="{% if active_tab != 'list' %}true{% else %}false{% endif %}">
+                <i class="bi bi-file-earmark-plus-fill"></i> 1. Terbitkan SPPD Dari Disposisi Acuan
+                <span class="badge bg-white text-emerald-800 font-mono fw-bold rounded-pill ms-1">{{ dispositions|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'list' %}active{% endif %} d-flex align-items-center gap-2" id="list-tab" data-bs-toggle="pill" data-bs-target="#list" type="button" role="tab" aria-controls="list" aria-selected="{% if active_tab == 'list' %}true{% else %}false{% endif %}">
+                <i class="bi bi-card-checklist"></i> 2. Daftar SPPD Terbit & Log Perjalanan
+                <span class="badge bg-white text-emerald-800 font-mono fw-bold rounded-pill ms-1">{{ sppds|length }}</span>
+            </button>
+        </li>
+    </ul>
 
     <!-- TAB CONTENT CONTAINER -->
     <div class="tab-content" id="sppdTabContent">
         <!-- TAB 1: BUAT SPPD (DISPOSISI ACUAN) -->
-        <div class="tab-pane {% if active_tab != 'list' %}block{% else %}hidden{% endif %}" id="create" role="tabpanel">
+        <div class="tab-pane fade {% if active_tab != 'list' %}show active{% endif %}" id="create" role="tabpanel" aria-labelledby="create-tab">
             <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                     <h3 class="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wider mb-0 flex items-center gap-2">
@@ -234,7 +244,7 @@
         </div>
 
         <!-- TAB 2: DAFTAR SPPD TERBIT & LOG PERJALANAN -->
-        <div class="tab-pane {% if active_tab == 'list' %}block{% else %}hidden{% endif %}" id="list" role="tabpanel">
+        <div class="tab-pane fade {% if active_tab == 'list' %}show active{% endif %}" id="list" role="tabpanel" aria-labelledby="list-tab">
             <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                     <h3 class="font-extrabold text-sm text-slate-900 dark:text-white uppercase tracking-wider mb-0 flex items-center gap-2">
@@ -517,61 +527,17 @@
                 $('.sppd-check:not(:disabled)').prop('checked', $(this).prop('checked'));
                 updatePrintButton();
             });
-        }
 
-        // BULLETPROOF NATIVE TAB SWITCHER LOGIC FOR SPPD & LOG PERJALANAN
-        const sppdTabs = document.querySelectorAll('#sppdTab button');
-        sppdTabs.forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetSelector = this.getAttribute('data-bs-target');
-
-                // Unhighlight all buttons
-                sppdTabs.forEach(b => {
-                    b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
-                    b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
-                    const badge = b.querySelector('span');
-                    if (badge) {
-                        badge.classList.remove('bg-white/20', 'text-white');
-                        badge.classList.add('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
-                    }
-                });
-
-                // Highlight clicked button
-                this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
-                this.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
-                const activeBadge = this.querySelector('span');
-                if (activeBadge) {
-                    activeBadge.classList.add('bg-white/20', 'text-white');
-                    activeBadge.classList.remove('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
-                }
-
-                // Hide all panes
-                document.querySelectorAll('#sppdTabContent .tab-pane').forEach(pane => {
-                    pane.classList.add('hidden');
-                    pane.classList.remove('block');
-                });
-
-                // Show target pane
-                const targetPane = document.querySelector(targetSelector);
-                if (targetPane) {
-                    targetPane.classList.remove('hidden');
-                    targetPane.classList.add('block');
-                }
-
-                // Update URL search parameter
-                var tabName = targetSelector === '#list' ? 'list' : 'create';
-                $('input[name="tab"]').val(tabName);
+            $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (e) {
+                var target = $(e.target).attr('data-bs-target');
+                var tab = target === '#list' ? 'list' : 'create';
+                $('input[name="tab"]').val(tab);
                 var url = new URL(window.location);
-                url.searchParams.set('tab', tabName);
+                url.searchParams.set('tab', tab);
                 window.history.replaceState({}, '', url);
-
-                // Adjust DataTables
-                if (window.jQuery && $.fn.DataTable) {
-                    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-                }
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
             });
-        });
+        }
 
         $('#btnPrintBatch').on('click', function() {
             var ids = [];
