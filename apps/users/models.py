@@ -233,12 +233,37 @@ class User(AbstractUser):
     )
     is_active_account = models.BooleanField(default=True, verbose_name="Akun Aktif")
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True, verbose_name="Foto Profil")
+    last_seen = models.DateTimeField(null=True, blank=True, verbose_name="Terakhir Dilihat / Aktif")
 
     class Meta:
         app_label = 'users'  # <--- WAJIB DITAMBAHKAN DI SINI
 
     def __str__(self): 
         return f"{self.username} ({self.get_role_display()})"
+
+    @property
+    def is_online(self):
+        """Mengecek apakah akun user aktif di sistem dalam 3 menit terakhir."""
+        from django.core.cache import cache
+        from django.utils import timezone
+        last_seen_cache = cache.get(f'user_last_seen_{self.pk}')
+        if last_seen_cache:
+            return True
+        if self.last_seen:
+            now = timezone.now()
+            return (now - self.last_seen).total_seconds() < 180
+        return False
+
+    @property
+    def last_seen_display(self):
+        """Format keterangan waktu presisi status online / offline."""
+        from django.utils import timezone
+        from django.template.defaultfilters import timesince
+        if self.is_online:
+            return "Online"
+        if self.last_seen:
+            return f"Aktif {timesince(self.last_seen)} lalu"
+        return "Offline"
 
     @property
     def avatar_url(self):
@@ -250,7 +275,6 @@ class User(AbstractUser):
         display_name = emp.full_name if (emp and emp.full_name) else (self.get_full_name() or self.username)
         name_str = display_name.replace(' ', '+')
         return f"https://ui-avatars.com/api/?name={name_str}&background=046C4E&color=fff&size=128&bold=true"
-
 
     @property
     def display_name(self):
