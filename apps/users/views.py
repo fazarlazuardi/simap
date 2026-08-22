@@ -479,7 +479,7 @@ def user_list(request):
     elif status_filter == 'inactive':
         users_qs = users_qs.filter(is_active=False)
 
-    per_page = int(request.GET.get('per_page', 25))
+    per_page = int(request.GET.get('per_page', 10))
     paginator = Paginator(users_qs, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

@@ -15,7 +15,7 @@ def employee_master(request):
         for u in User.objects.filter(employee__isnull=False).select_related('employee')
     }
     
-    per_page = int(request.GET.get('per_page', 25))
+    per_page = int(request.GET.get('per_page', 10))
     paginator = Paginator(employees, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -204,7 +204,7 @@ def employee_list(request):
         for u in User.objects.filter(employee__isnull=False).select_related('employee')
     }
     
-    per_page = int(request.GET.get('per_page', 25))
+    per_page = int(request.GET.get('per_page', 10))
     paginator = Paginator(employees, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
