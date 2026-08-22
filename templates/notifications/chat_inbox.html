@@ -144,7 +144,7 @@
                     {% if msg.sender == request.user %}
                     <!-- Outgoing Message (Right - Emerald Bubble) -->
                     <div class="d-flex flex-column align-items-end mb-3">
-                        <div class="p-3 rounded-4 bg-emerald text-white shadow-xs text-break" style="max-width: 72%; border-bottom-right-radius: 4px !important;">
+                        <div class="p-3 rounded-4 chat-bubble-outgoing text-break" style="max-width: 72%; border-bottom-right-radius: 4px !important;">
                             <p class="mb-0 lh-base">{{ msg.body }}</p>
                         </div>
                         <small class="text-muted font-mono extra-small mt-1">
@@ -152,7 +152,7 @@
                         </small>
                     </div>
                     {% else %}
-                    <!-- Incoming Message (Left - White Bubble) -->
+                    <!-- Incoming Message (Left - White/Dark Bubble) -->
                     <div class="d-flex align-items-start gap-2.5 mb-3">
                         {% if active_recipient.employee and active_recipient.employee.photo %}
                             <img src="{{ active_recipient.employee.photo.url }}" class="rounded-circle flex-shrink-0 mt-1" width="32" height="32" style="object-fit: cover;">
@@ -161,7 +161,7 @@
                         {% endif %}
 
                         <div class="d-flex flex-column align-items-start">
-                            <div class="p-3 rounded-4 bg-body border shadow-xs text-dark text-break" style="max-width: 72%; border-bottom-left-radius: 4px !important;">
+                            <div class="p-3 rounded-4 chat-bubble-incoming text-break" style="max-width: 72%; border-bottom-left-radius: 4px !important;">
                                 <p class="mb-0 lh-base">{{ msg.body }}</p>
                             </div>
                             <small class="text-muted font-mono extra-small mt-1 ms-1">{{ msg.created_at|date:"H:i" }} WIB</small>
@@ -257,7 +257,7 @@
                 var thread = document.getElementById('chatMessagesThread');
                 var msgHtml = `
                     <div class="d-flex flex-column align-items-end mb-3">
-                        <div class="p-3 rounded-4 bg-emerald text-white shadow-xs text-break" style="max-width: 72%; border-bottom-right-radius: 4px !important;">
+                        <div class="p-3 rounded-4 chat-bubble-outgoing text-break" style="max-width: 72%; border-bottom-right-radius: 4px !important;">
                             <p class="mb-0 lh-base">${escapeHtml(data.body)}</p>
                         </div>
                         <small class="text-muted font-mono extra-small mt-1">
