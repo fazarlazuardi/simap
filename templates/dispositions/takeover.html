@@ -67,16 +67,42 @@
 
                     <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 mb-6">
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Diteruskan Langsung Ke Amil Pelaksana <span class="text-rose-500">*</span></label>
+                        
+                        <!-- QUICK SELECT JABATAN BUTTONS -->
+                        <div class="p-3 mb-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                            <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Pilih Otomatis Berdasarkan Jabatan:</label>
+                            <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                                <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="ketua">Ketua</button>
+                                <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka i">Waka I</button>
+                                <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka ii">Waka II</button>
+                                <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka iii">Waka III</button>
+                                <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="waka iv">Waka IV</button>
+                                <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid i">Kabid I</button>
+                                <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid ii">Kabid II</button>
+                                <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid iii">Kabid III</button>
+                                <button type="button" class="role-btn px-2 py-1 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 transition-all select-none" data-role="kabid iv">Kabid IV</button>
+                            </div>
+                        </div>
+
+                        <!-- LIVE SEARCH -->
+                        <div class="mb-3">
+                            <input type="text" id="searchStaff" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="🔍 Cari nama / jabatan pegawai...">
+                        </div>
+
+                        <!-- DAFTAR PEGAWAI CHECKLIST -->
                         <div class="max-h-56 overflow-y-auto space-y-1 p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
                             {% for emp in employees %}
-                            <label class="flex items-center justify-between p-2 rounded-lg border border-transparent hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 cursor-pointer transition-all select-none">
+                            <label class="staff-item flex items-center justify-between p-2 rounded-lg border border-transparent hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 cursor-pointer transition-all select-none">
                                 <div class="flex items-center gap-2 overflow-hidden">
-                                    <input class="w-4 h-4 text-emerald-600 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0" type="checkbox" name="waka_forwarded_to" value="{{ emp.id }}" id="emp_{{ emp.id }}">
+                                    <input class="staff-checkbox w-4 h-4 text-emerald-600 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0" type="checkbox" name="waka_forwarded_to" value="{{ emp.id }}" id="emp_{{ emp.id }}">
                                     <div class="truncate">
-                                        <span class="font-bold block text-xs text-slate-900 dark:text-slate-100 truncate">{{ emp.full_name }}</span>
-                                        <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ emp.position }}</span>
+                                        <span class="staff-name font-bold block text-xs text-slate-900 dark:text-slate-100 truncate">{{ emp.full_name }}</span>
+                                        <span class="staff-job text-[10px] text-slate-500 dark:text-slate-400 block truncate">{{ emp.position }}</span>
                                     </div>
                                 </div>
+                                <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 flex-shrink-0 ml-1">
+                                    {{ emp.position|default:"Pegawai" }}
+                                </span>
                             </label>
                             {% endfor %}
                         </div>
@@ -101,4 +127,90 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('searchStaff');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase().trim();
+            document.querySelectorAll('.staff-item').forEach(function(item) {
+                const name = item.querySelector('.staff-name')?.textContent.toLowerCase() || '';
+                const job = item.querySelector('.staff-job')?.textContent.toLowerCase() || '';
+                const isMatch = name.includes(filter) || job.includes(filter);
+                
+                item.style.display = isMatch ? 'flex' : 'none';
+            });
+        });
+    }
+
+    const roleRules = {
+        'ketua': /^ketua\b|^(?!.*(wakil|waka)).*ketua/i,
+        'waka i': /^(waka|wakil ketua|wakil)\s*(i\b|1\b|bidang 1\b|bidang i\b)/i,
+        'waka ii': /^(waka|wakil ketua|wakil)\s*(ii\b|2\b|bidang 2\b|bidang ii\b)/i,
+        'waka iii': /^(waka|wakil ketua|wakil)\s*(iii\b|3\b|bidang 3\b|bidang iii\b)/i,
+        'waka iv': /^(waka|wakil ketua|wakil)\s*(iv\b|4\b|bidang 4\b|bidang iv\b)/i,
+        'kabid i': /^(kabid|kepala bidang)\s*(i\b|1\b|bidang 1\b|bidang i\b)/i,
+        'kabid ii': /^(kabid|kepala bidang)\s*(ii\b|2\b|bidang 2\b|bidang ii\b)/i,
+        'kabid iii': /^(kabid|kepala bidang)\s*(iii\b|3\b|bidang 3\b|bidang iii\b)/i,
+        'kabid iv': /^(kabid|kepala bidang)\s*(iv\b|4\b|bidang 4\b|bidang iv\b)/i
+    };
+
+    function updateRoleButtonsState() {
+        document.querySelectorAll('.role-btn').forEach(function(btn) {
+            const targetRole = btn.getAttribute('data-role').toLowerCase().trim();
+            const regex = roleRules[targetRole];
+            if (!regex) return;
+
+            let hasChecked = false;
+            document.querySelectorAll('.staff-item').forEach(function(item) {
+                const jobText = (item.querySelector('.staff-job')?.textContent || '').trim();
+                const cb = item.querySelector('.staff-checkbox');
+                if (cb && cb.checked && regex.test(jobText)) {
+                    hasChecked = true;
+                }
+            });
+
+            if (hasChecked) {
+                btn.classList.add('bg-emerald-600', 'text-white', 'border-emerald-600');
+                btn.classList.remove('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+            } else {
+                btn.classList.remove('bg-emerald-600', 'text-white', 'border-emerald-600');
+                btn.classList.add('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+            }
+        });
+    }
+
+    document.querySelectorAll('.role-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetRole = this.getAttribute('data-role').toLowerCase().trim();
+            const regex = roleRules[targetRole];
+            if (!regex) return;
+
+            const isActive = this.classList.contains('bg-emerald-600');
+            const shouldCheck = !isActive;
+
+            document.querySelectorAll('.staff-item').forEach(function(item) {
+                const jobText = (item.querySelector('.staff-job')?.textContent || '').trim();
+
+                if (regex.test(jobText)) {
+                    const staffCheckbox = item.querySelector('.staff-checkbox');
+                    if (staffCheckbox) {
+                        staffCheckbox.checked = shouldCheck;
+                    }
+                }
+            });
+
+            updateRoleButtonsState();
+        });
+    });
+
+    document.querySelectorAll('.staff-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', updateRoleButtonsState);
+    });
+
+    updateRoleButtonsState();
+});
+</script>
 {% endblock %}
