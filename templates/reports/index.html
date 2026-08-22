@@ -340,7 +340,21 @@
 
         if ($('#report-table tbody tr').length > 0 && !$('#report-table tbody tr td').hasClass('text-center')) {
             $('#report-table').DataTable({
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' },
+                pagingType: "full_numbers",
+            language: {
+                search: "🔍 Cari Data:",
+                lengthMenu: "Tampilkan _MENU_ baris",
+                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                infoEmpty: "Menampilkan 0 data",
+                infoFiltered: "(difilter dari _MAX_ total data)",
+                paginate: {
+                    first: "« Pertama",
+                    previous: "‹ Prev",
+                    next: "Next ›",
+                    last: "Terakhir »"
+                },
+                emptyTable: "Belum ada data yang tersedia."
+            },
                 pageLength: 10,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Semua']],
                 order: [[0, 'desc']],

@@ -281,7 +281,21 @@
     $(document).ready(function () {
         if ($('#employee-table').length) {
             $('#employee-table').DataTable({
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' },
+                pagingType: "full_numbers",
+            language: {
+                search: "🔍 Cari Data:",
+                lengthMenu: "Tampilkan _MENU_ baris",
+                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                infoEmpty: "Menampilkan 0 data",
+                infoFiltered: "(difilter dari _MAX_ total data)",
+                paginate: {
+                    first: "« Pertama",
+                    previous: "‹ Prev",
+                    next: "Next ›",
+                    last: "Terakhir »"
+                },
+                emptyTable: "Belum ada data yang tersedia."
+            },
                 paging: false,
                 searching: false,
                 info: false,
