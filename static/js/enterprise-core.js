@@ -230,3 +230,38 @@ window.showEnterpriseNotificationToast = function(title, body, icon = 'info', li
         });
     }
 };
+
+
+// SILKY SMOOTH ENTERPRISE MODULE NAVIGATION INTERCEPTOR
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('module-page-container');
+    if (container) {
+        container.style.opacity = '1';
+    }
+
+    // Intercept internal link clicks for smooth fade
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        const target = link.getAttribute('target');
+
+        // Only intercept standard internal navigation links
+        if (href && href.startsWith('/') && !href.startsWith('//') && target !== '_blank' && !href.includes('#') && !link.hasAttribute('download')) {
+            const container = document.getElementById('module-page-container');
+            const progressBar = document.getElementById('htmx-progress-bar');
+
+            if (progressBar) {
+                progressBar.classList.remove('finished');
+                progressBar.classList.add('loading');
+            }
+
+            if (container) {
+                container.style.transition = 'opacity 120ms ease-out, transform 120ms ease-out';
+                container.style.opacity = '0.7';
+                container.style.transform = 'translateY(2px)';
+            }
+        }
+    });
+});

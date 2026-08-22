@@ -1319,7 +1319,9 @@
                 {% endfor %}
             {% endif %}
 
-            {% block content %}{% endblock %}
+            <div id="module-page-container" class="transition-opacity duration-150 ease-out opacity-100">
+                {% block content %}{% endblock %}
+            </div>
         </main>
 
         <!-- Global Green Corporate Footer -->
