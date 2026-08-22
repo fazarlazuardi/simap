@@ -1,384 +1,198 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
 
-{% block title %}Monitoring & Capaian Action Plan - BAZNAS{% endblock %}
+{% block title %}Monitoring Capaian Action Plan Rapat - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block extra_css %}
+<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <style>
-    .stat-box-futuristic {
-        background: var(--card-bg, #ffffff);
-        border: 1px solid var(--border-color, #E2E8F0);
-        border-radius: 14px;
-        padding: 16px 20px;
+    .stat-box-enterprise {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 18px 22px;
         transition: all 0.2s ease-in-out;
     }
-    .stat-box-futuristic:hover {
+    .stat-box-enterprise:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
     }
+    table.dataTable > thead > tr > th { border-bottom: none !important; color: var(--text-primary) !important; font-weight: 700 !important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2">
-    <!-- HEADER NAVIGASI & AKSI -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb m-0 bg-transparent p-0 small">
-                    <li class="breadcrumb-item"><a href="{% url 'internal_meetings:list' %}" class="text-decoration-none" style="color: var(--primary);">Rapat Internal</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Monitoring Action Plan</li>
-                </ol>
-            </nav>
-            <h4 class="fw-bold m-0 text-dark">
-                <i class="bi bi-pie-chart-fill me-2 text-warning"></i>Monitoring & Capaian Action Plan Rapat
-            </h4>
-        </div>
-        <div class="d-flex gap-2 flex-wrap">
-            <a href="{% url 'internal_meetings:list' %}" class="btn btn-outline-secondary rounded-pill px-3 fw-bold">
-                <i class="bi bi-journal-bookmark me-1"></i> Daftar Rapat Internal
-            </a>
-            <a href="{% url 'internal_meetings:action_plan_print' %}?status={{ selected_status }}&pic={{ selected_pic }}" target="_blank" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                <i class="bi bi-printer me-1"></i> Cetak Tabel Action Plan
-            </a>
-        </div>
-    </div>
-
-    <!-- STAT CARDS RINGKASAN CAPAIAN GLOBAL -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-2-4">
-            <div class="stat-box-futuristic text-center">
-                <span class="text-muted small d-block fw-bold text-uppercase">Total Action Plan</span>
-                <h3 class="fw-bold m-0 text-dark">{{ total_all }}</h3>
-            </div>
-        </div>
-        <div class="col-6 col-md-2-4">
-            <div class="stat-box-futuristic text-center" style="border-left: 4px solid #10B981;">
-                <span class="text-success small d-block fw-bold text-uppercase"><i class="bi bi-check-circle-fill me-1"></i>Selesai</span>
-                <h3 class="fw-bold m-0 text-success">{{ completed_all }}</h3>
-            </div>
-        </div>
-        <div class="col-6 col-md-2-4">
-            <div class="stat-box-futuristic text-center" style="border-left: 4px solid #F59E0B;">
-                <span class="text-warning small d-block fw-bold text-uppercase"><i class="bi bi-arrow-repeat me-1"></i>Diproses</span>
-                <h3 class="fw-bold m-0 text-warning">{{ in_progress_all }}</h3>
-            </div>
-        </div>
-        <div class="col-6 col-md-2-4">
-            <div class="stat-box-futuristic text-center" style="border-left: 4px solid #EF4444;">
-                <span class="text-danger small d-block fw-bold text-uppercase"><i class="bi bi-exclamation-triangle-fill me-1"></i>Terlambat</span>
-                <h3 class="fw-bold m-0 text-danger">{{ overdue_all }}</h3>
-            </div>
-        </div>
-        <div class="col-12 col-md-2-4">
-            <div class="stat-box-futuristic text-center" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #FFFFFF; border: none;">
-                <span class="text-white-50 small d-block fw-bold text-uppercase">Tingkat Capaian</span>
-                <h3 class="fw-bold m-0 text-emerald" style="color: #10B981;">{{ completion_percentage }}%</h3>
-            </div>
-        </div>
-    </div>
-
-    <!-- SEKSI GRAFIK CAPAIAN ANALYTICS -->
-    <div class="row g-4 mb-4">
-        <!-- GRAFIK 1: DONUT CHART REALISASI GLOBAL -->
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm rounded-4 h-100" style="background-color: var(--card-bg);">
-                <div class="card-header bg-white py-3 px-4 rounded-top-4" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
-                    <h6 class="fw-bold mb-0 text-dark">
-                        <i class="bi bi-pie-chart me-2 text-success"></i>Persentase Realisasi Global
-                    </h6>
-                </div>
-                <div class="card-body p-4 d-flex flex-column align-items-center justify-content-center">
-                    <div style="position: relative; height: 210px; width: 100%;">
-                        <canvas id="chartGlobalDonut"></canvas>
-                    </div>
-                    <div class="mt-3 small fw-bold text-secondary text-center">
-                        <span class="text-success me-2"><i class="bi bi-circle-fill me-1"></i>Selesai ({{ completed_all }})</span>
-                        <span class="text-warning me-2"><i class="bi bi-circle-fill me-1"></i>Diproses ({{ in_progress_all }})</span>
-                        <span class="text-secondary"><i class="bi bi-circle-fill me-1"></i>Belum ({{ pending_all }})</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- GRAFIK 2: BAR CHART CAPAIAN PER PIC / BIDANG -->
+<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
         <div class="col-lg-7">
-            <div class="card border-0 shadow-sm rounded-4 h-100" style="background-color: var(--card-bg);">
-                <div class="card-header bg-white py-3 px-4 rounded-top-4" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
-                    <h6 class="fw-bold mb-0 text-dark">
-                        <i class="bi bi-bar-chart-fill me-2 text-primary"></i>Distribusi Capaian Action Plan per PIC / Penanggung Jawab
-                    </h6>
-                </div>
-                <div class="card-body p-4">
-                    <div style="position: relative; height: 220px; width: 100%;">
-                        <canvas id="chartPicBar"></canvas>
-                    </div>
-                </div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                    <i class="bi bi-pie-chart-fill me-1 text-warning"></i> Dashboard Executive Monitoring
+                </span>
+            </div>
+            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Monitoring & Capaian Action Plan Rapat</h3>
+            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 620px;">
+                Pantau progres tindak lanjut hasil rapat pleno pimpinan, tenggat waktu (deadline), penanggung jawab (PIC), serta status penyelesaian task action plan.
+            </p>
+        </div>
+        <div class="col-lg-5 text-lg-end">
+            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                <a href="{% url 'internal_meetings:list' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
+                    <i class="bi bi-journal-bookmark-fill me-1"></i> Daftar Rapat Internal
+                </a>
+                <a href="{% url 'internal_meetings:action_plan_print' %}?status={{ selected_status }}&pic={{ selected_pic }}" target="_blank" class="btn btn-warning text-dark rounded-pill px-4 py-2.5 fw-bold shadow-sm">
+                    <i class="bi bi-printer-fill me-1"></i> Cetak Tabel Action Plan
+                </a>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- CARD TABEL DATA ACTION PLAN & FILTER -->
-    <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
-        <!-- FILTER BAR -->
-        <div class="card-header bg-white py-3 px-4 rounded-top-4" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
-            <form method="get" action="" class="row g-2 align-items-center">
-                <div class="col-md-3">
-                    <input type="text" name="q" class="form-control form-control-sm rounded-pill px-3 custom-input" placeholder="🔍 Cari poin action plan..." value="{{ search_q }}">
-                </div>
-                <div class="col-md-3">
-                    <select name="status" class="form-select form-select-sm rounded-pill custom-input" onchange="this.form.submit()">
-                        <option value="">-- Semua Status --</option>
-                        <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Belum Dimulai</option>
-                        <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>Sedang Diproses</option>
-                        <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Selesai / Terealisasi</option>
-                        <option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Terlambat (Overdue)</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select name="pic" class="form-select form-select-sm rounded-pill custom-input" onchange="this.form.submit()">
-                        <option value="">-- Filter PIC --</option>
-                        {% for emp in employees %}
-                        <option value="{{ emp.id }}" {% if selected_pic == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.full_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold w-100">
-                        <i class="bi bi-funnel me-1"></i> Filter
-                    </button>
-                    <a href="{% url 'internal_meetings:action_plan_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Reset</a>
-                </div>
-            </form>
+<!-- STAT CARDS RINGKASAN CAPAIAN GLOBAL -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-box-enterprise text-center">
+            <span class="text-secondary extra-small fw-bold text-uppercase d-block">Total Action Plan</span>
+            <h3 class="fw-extrabold mb-0 text-primary">{{ total_all }}</h3>
         </div>
-
-        <div class="card-body p-4">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle border rounded-3 overflow-hidden">
-                    <thead class="bg-light text-dark fw-bold small text-uppercase">
-                        <tr>
-                            <th style="width: 45px;" class="text-center">Ceklis</th>
-                            <th>Poin Action Plan Terlacak</th>
-                            <th style="width: 200px;">Rapat Internal</th>
-                            <th style="width: 170px;">PIC Penanggung Jawab</th>
-                            <th style="width: 110px;">Target</th>
-                            <th style="width: 150px;">Status</th>
-                            <th style="width: 160px;" class="text-end">Bukti Hasil / Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in action_items %}
-                        <tr id="action_item_row_{{ item.id }}">
-                            <td class="text-center">
-                                <input type="checkbox" class="form-check-input action-item-checkbox" style="width: 1.25rem; height: 1.25rem; cursor: pointer;" data-item-id="{{ item.id }}" data-meeting-id="{{ item.meeting.id }}" {% if item.status == 'completed' %}checked{% endif %}>
-                            </td>
-                            <td>
-                                <span class="fw-bold d-block text-dark item-title {% if item.status == 'completed' %}text-decoration-line-through text-muted{% endif %}" id="item_title_{{ item.id }}">{{ item.title }}</span>
-                                <div class="small text-muted mt-1 item-notes-container" id="item_notes_box_{{ item.id }}">
-                                    {% if item.notes %}
-                                        <div class="p-1 px-2 rounded bg-light border d-inline-block mt-1 text-dark" style="font-size: 0.8rem;">
-                                            <i class="bi bi-chat-left-text me-1 text-primary"></i><span class="item-notes">{{ item.notes }}</span>
-                                        </div>
-                                    {% endif %}
-                                    {% if item.completed_at %}
-                                        <div class="mt-1" style="font-size: 0.75rem;">
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"><i class="bi bi-check-all me-1"></i>Selesai oleh {{ item.completed_by.get_full_name|default:item.completed_by.username }} ({{ item.completed_at|date:"d/m/Y H:i" }})</span>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td>
-                                <a href="{% url 'internal_meetings:detail' item.meeting.id %}" class="fw-bold text-decoration-none small text-primary d-block">
-                                    {{ item.meeting.title|truncatechars:35 }}
-                                </a>
-                                <span class="text-muted small" style="font-size: 0.75rem;"><i class="bi bi-calendar me-1"></i>{{ item.meeting.scheduled_at|date:"d/m/Y" }}</span>
-                            </td>
-                            <td>
-                                {% if item.pic %}
-                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small"><i class="bi bi-person-fill text-primary me-1"></i>{{ item.pic.full_name }}</span>
-                                {% else %}
-                                    <span class="text-muted small">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if item.due_date %}
-                                    <span class="small fw-semibold {% if item.is_overdue %}text-danger fw-bold{% else %}text-secondary{% endif %}">
-                                        <i class="bi bi-calendar-event me-1"></i>{{ item.due_date|date:"d/m/Y" }}
-                                    </span>
-                                {% else %}
-                                    <span class="text-muted small">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="dropdown d-inline-block">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3 py-1 small item-status-badge" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="badge_status_{{ item.id }}">
-                                        {% if item.status == 'completed' %}
-                                            <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Selesai</span>
-                                        {% elif item.status == 'in_progress' %}
-                                            <span class="text-warning fw-bold"><i class="bi bi-arrow-repeat me-1"></i>Diproses</span>
-                                        {% elif item.is_overdue or item.status == 'overdue' %}
-                                            <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>Terlambat</span>
-                                        {% else %}
-                                            <span class="text-secondary"><i class="bi bi-dash-circle me-1"></i>Belum</span>
-                                        {% endif %}
-                                    </button>
-                                    <ul class="dropdown-menu shadow-sm border-0 rounded-3" style="z-index: 1050;">
-                                        <li><a class="dropdown-item small text-success fw-semibold" href="#" onclick="updateActionItemStatus({{ item.meeting.id }}, {{ item.id }}, 'completed'); return false;"><i class="bi bi-check-circle-fill me-2"></i>Tandai Selesai</a></li>
-                                        <li><a class="dropdown-item small text-warning fw-semibold" href="#" onclick="updateActionItemStatus({{ item.meeting.id }}, {{ item.id }}, 'in_progress'); return false;"><i class="bi bi-arrow-repeat me-2"></i>Sedang Diproses</a></li>
-                                        <li><a class="dropdown-item small text-secondary" href="#" onclick="updateActionItemStatus({{ item.meeting.id }}, {{ item.id }}, 'pending'); return false;"><i class="bi bi-dash-circle me-2"></i>Belum Dimulai</a></li>
-                                    </ul>
-                                </div>
-                            </td>
-                            <td class="text-end">
-                                {% if item.proof_file %}
-                                    <a href="{{ item.proof_file.url }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1 mb-1 me-1" title="Unduh Bukti Realisasi">
-                                        <i class="bi bi-file-earmark-check-fill me-1"></i> Bukti
-                                    </a>
-                                {% endif %}
-                                <button type="button" class="btn btn-sm btn-success rounded-pill px-2 py-1" data-bs-toggle="modal" data-bs-target="#modalUploadProof{{ item.id }}" title="Upload Bukti Hasil">
-                                    <i class="bi bi-upload me-1"></i> Upload
-                                </button>
-
-                                <!-- MODAL UPLOAD BUKTI REALISASI -->
-                                <div class="modal fade text-start" id="modalUploadProof{{ item.id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 shadow-lg rounded-4">
-                                            <div class="modal-header bg-success text-white py-3 rounded-top-4">
-                                                <h6 class="modal-title fw-bold"><i class="bi bi-upload me-2"></i>Upload Bukti Realisasi Action Plan</h6>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <form method="post" action="{% url 'internal_meetings:action_plan_upload_proof' item.id %}" enctype="multipart/form-data">
-                                                {% csrf_token %}
-                                                <div class="modal-body p-4">
-                                                    <div class="mb-3 p-3 bg-light rounded-3 border">
-                                                        <span class="text-muted small d-block">Poin Action Plan:</span>
-                                                        <strong class="text-dark">{{ item.title }}</strong>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold text-dark small">Pilih File Dokumen / Foto Bukti Hasil <span class="text-danger">*</span></label>
-                                                        <input type="file" name="proof_file" class="form-control custom-input" required>
-                                                        <span class="small text-muted" style="font-size: 0.75rem;">Format disarankan: PDF, JPG, PNG, DOCX (Maks 10MB)</span>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-bold text-dark small">Catatan Realisasi (Opsional)</label>
-                                                        <textarea name="notes" class="form-control" rows="3" placeholder="Tuliskan catatan hasil pelaksanaan...">{{ item.notes|default:'' }}</textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer bg-light rounded-bottom-4 py-2">
-                                                    <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
-                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">Simpan & Selesaikan</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                <i class="bi bi-card-checklist display-4 d-block mb-2"></i>
-                                Tidak ada data Action Plan yang ditemukan.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-box-enterprise text-center" style="border-left: 4px solid var(--color-emerald-500);">
+            <span class="text-success extra-small fw-bold text-uppercase d-block"><i class="bi bi-check-circle-fill me-1"></i>Selesai</span>
+            <h3 class="fw-extrabold mb-0 text-success">{{ completed_all }}</h3>
         </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-box-enterprise text-center" style="border-left: 4px solid #F59E0B;">
+            <span class="text-warning extra-small fw-bold text-uppercase d-block"><i class="bi bi-arrow-repeat me-1"></i>Diproses</span>
+            <h3 class="fw-extrabold mb-0 text-warning">{{ in_progress_all }}</h3>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-box-enterprise text-center" style="border-left: 4px solid #EF4444;">
+            <span class="text-danger extra-small fw-bold text-uppercase d-block"><i class="bi bi-exclamation-triangle-fill me-1"></i>Terlambat</span>
+            <h3 class="fw-extrabold mb-0 text-danger">{{ overdue_all }}</h3>
+        </div>
+    </div>
+</div>
+
+<!-- DATA GRID MONITORING TABEL ACTION PLAN -->
+<div class="card-enterprise p-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 border-bottom pb-3">
+        <h5 class="fw-bold mb-0 text-emerald"><i class="bi bi-list-check me-2 text-success"></i>Tabel Tindak Lanjut & Penanggung Jawab (PIC)</h5>
+        
+        <!-- FILTER FORM -->
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+            <select name="status" class="form-select custom-input" onchange="this.form.submit()" style="width: auto;">
+                <option value="">Semua Status</option>
+                <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Belum Dimulai</option>
+                <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>Dalam Proses</option>
+                <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Selesai</option>
+                <option value="overdue" {% if selected_status == 'overdue' %}selected{% endif %}>Terlambat</option>
+            </select>
+
+            <select name="pic" class="form-select custom-input" onchange="this.form.submit()" style="width: auto;">
+                <option value="">Semua PIC</option>
+                {% for p in pics %}
+                <option value="{{ p.id }}" {% if selected_pic == p.id|slugify %}selected{% endif %}>{{ p.full_name }}</option>
+                {% endfor %}
+            </select>
+
+            {% if selected_status or selected_pic %}
+            <a href="{% url 'internal_meetings:action_plan_list' %}" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle w-100 small" id="actionPlanTable">
+            <thead>
+                <tr class="text-secondary small text-uppercase">
+                    <th class="border-0 text-center" style="width: 50px;">No</th>
+                    <th class="border-0" style="min-width: 240px;">Tugas & Agenda Rapat</th>
+                    <th class="border-0" style="min-width: 180px;">PIC (Penanggung Jawab)</th>
+                    <th class="border-0 text-center" style="width: 140px;">Target Deadline</th>
+                    <th class="border-0 text-center" style="width: 140px;">Status Capaian</th>
+                    <th class="border-0 text-end" style="min-width: 160px;">Aksi Cepat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td class="text-center font-mono fw-bold">{{ forloop.counter }}</td>
+                    <td>
+                        <h6 class="fw-bold mb-1 text-primary" style="font-size: 0.88rem;">{{ item.task }}</h6>
+                        {% if item.meeting %}
+                        <a href="{% url 'internal_meetings:detail' item.meeting.pk %}" class="text-decoration-none small text-emerald fw-semibold d-block">
+                            <i class="bi bi-journal-bookmark me-1"></i>{{ item.meeting.title|truncatechars:50 }}
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.pic %}
+                        <span class="badge-employee-tag">
+                            <i class="bi bi-person-fill text-emerald me-1"></i>{{ item.pic.full_name }}
+                        </span>
+                        {% else %}
+                        <span class="small text-muted italic">Tiga Bidang / Bersama</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center" data-order="{{ item.due_date|date:'U' }}">
+                        {% if item.due_date %}
+                        <span class="fw-bold font-mono text-dark">{{ item.due_date|date:"d M Y" }}</span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if item.status == 'completed' %}
+                        <span class="badge badge-node-verified rounded-pill px-3 py-1 fw-bold small">
+                            <i class="bi bi-check-circle-fill me-1"></i>Selesai
+                        </span>
+                        {% elif item.status == 'in_progress' %}
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold small">
+                            <i class="bi bi-arrow-repeat me-1"></i>Diproses
+                        </span>
+                        {% elif item.is_overdue %}
+                        <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold small">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Terlambat
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary rounded-pill px-3 py-1 fw-bold small">
+                            <i class="bi bi-clock me-1"></i>Belum Dimulai
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if item.meeting %}
+                        <a href="{% url 'internal_meetings:detail' item.meeting.pk %}" class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            <i class="bi bi-eye-fill me-1"></i> Detail Rapat
+                        </a>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 <script>
-var chartGlobalDonut, chartPicBar;
-
-function updateActionItemStatus(meetingId, itemId, newStatus) {
-    var csrfToken = '{{ csrf_token }}';
-    var formData = new FormData();
-    formData.append('status', newStatus);
-    formData.append('csrfmiddlewaretoken', csrfToken);
-
-    fetch("/internal-meetings/" + meetingId + "/action-items/" + itemId + "/toggle/", {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            window.location.reload();
-        }
-    })
-    .catch(err => console.error('Error toggling status:', err));
-}
-
-document.addEventListener('change', function(e) {
-    if (e.target && e.target.classList.contains('action-item-checkbox')) {
-        var itemId = e.target.getAttribute('data-item-id');
-        var meetingId = e.target.getAttribute('data-meeting-id');
-        var newStatus = e.target.checked ? 'completed' : 'pending';
-        updateActionItemStatus(meetingId, itemId, newStatus);
-    }
-});
-
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Donut Chart Realisasi Global
-    var donutCtx = document.getElementById('chartGlobalDonut');
-    if (donutCtx) {
-        chartGlobalDonut = new Chart(donutCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Selesai', 'Diproses', 'Belum / Overdue'],
-                datasets: [{
-                    data: [{{ completed_all }}, {{ in_progress_all }}, {{ pending_all }}],
-                    backgroundColor: ['#10B981', '#F59E0B', '#6B7280'],
-                    borderWidth: 2,
-                    hoverOffset: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                cutout: '72%'
-            }
-        });
-    }
-
-    // 2. Bar Chart Capaian per PIC
-    var barCtx = document.getElementById('chartPicBar');
-    if (barCtx) {
-        chartPicBar = new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ chart_pic_labels|safe }},
-                datasets: [
-                    {
-                        label: 'Action Plan Selesai',
-                        data: {{ chart_pic_completed|safe }},
-                        backgroundColor: '#10B981',
-                        borderRadius: 6
-                    },
-                    {
-                        label: 'Total Action Plan',
-                        data: {{ chart_pic_total|safe }},
-                        backgroundColor: '#E2E8F0',
-                        borderRadius: 6
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'top' } },
-                scales: {
-                    x: { ticks: { font: { size: 10 } } },
-                    y: { beginAtZero: true }
-                }
-            }
+    if ($('#actionPlanTable tbody tr').length > 0) {
+        $('#actionPlanTable').DataTable({
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' },
+            pageLength: 15,
+            order: [[3, 'asc']]
         });
     }
 });

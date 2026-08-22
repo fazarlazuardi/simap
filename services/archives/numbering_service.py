@@ -46,6 +46,7 @@ class NumberingService:
                 'surat_masuk': 'IN',
                 'surat_keluar': 'OUT',
                 'proposal': 'PROP',
+                'dokumen_internal': 'INT',
                 'sppd': 'SPPD',
                 'dokumen_lainnya': 'DOC',
             }
@@ -155,6 +156,7 @@ class NumberingService:
             return int(getattr(last, field_name).split('/')[0]) + 1
         except Exception:
             return 1
+
     @classmethod
     def generate_number(cls, doc_type, extra_context=None, save=True):
         """
@@ -200,7 +202,6 @@ class NumberingService:
             return number
 
         return number
-
 
     @staticmethod
     def _save_last_index(doc_type, index):

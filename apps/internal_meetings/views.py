@@ -152,6 +152,8 @@ def sync_meeting_to_agenda(meeting):
         marker = f"InternalMeetingID:{meeting.pk}"
         
         agenda = Agenda.objects.filter(description__icontains=marker).first()
+        if not agenda:
+            agenda = Agenda.objects.filter(internal_meeting_id=meeting.pk).first()
         
         desc_text = (
             f"{marker}\n\n"
@@ -167,20 +169,22 @@ def sync_meeting_to_agenda(meeting):
         if not agenda:
             agenda = Agenda.objects.create(
                 title=agenda_title,
-                location=meeting.location,
+                location=meeting.location or 'Ruang Rapat Utama BAZNAS',
                 description=desc_text,
                 scheduled_at=meeting.scheduled_at,
                 created_by=meeting.created_by,
                 status=status_val,
-                is_completed=is_finished
+                is_completed=is_finished,
+                internal_meeting_id=meeting.pk
             )
         else:
             agenda.title = agenda_title
-            agenda.location = meeting.location
+            agenda.location = meeting.location or 'Ruang Rapat Utama BAZNAS'
             agenda.description = desc_text
             agenda.scheduled_at = meeting.scheduled_at
             agenda.status = status_val
             agenda.is_completed = is_finished
+            agenda.internal_meeting_id = meeting.pk
             
         if meeting.notulensi_summary:
             notes = f"Hasil Notulensi:\n{meeting.notulensi_summary}"
@@ -196,11 +200,24 @@ def sync_meeting_to_agenda(meeting):
 
         agenda.save()
 
-        # Sync assigned employees: khusus Rapat Internal, pegawai yang ditugaskan di tabel agenda adalah Notulis Rapat
+        # Link dua arah ke meeting
+        if hasattr(meeting, 'agenda_id') and not meeting.agenda_id:
+            meeting.agenda_id = agenda.pk
+            meeting.save(update_fields=['agenda'])
+
+        # Sync pegawai yang ditugaskan ke agenda (Notulis, Pimpinan & Peserta)
+        assigned_set = set()
         if meeting.notulis:
-            agenda.assigned_employees.set([meeting.notulis])
-        else:
-            agenda.assigned_employees.clear()
+            assigned_set.add(meeting.notulis)
+        if meeting.leader:
+            assigned_set.add(meeting.leader)
+        for l in meeting.leaders.all():
+            assigned_set.add(l)
+        for p in meeting.participants.all():
+            assigned_set.add(p)
+        
+        if assigned_set:
+            agenda.assigned_employees.set(list(assigned_set))
 
         return agenda
     except Exception as err:
@@ -270,6 +287,8 @@ def meeting_create(request):
         form = InternalMeetingForm()
 
     all_employees = Employee.objects.filter(is_active=True).order_by('full_name')
+    from agendas.models import Agenda
+    agendas = Agenda.objects.all().order_by('-scheduled_at')[:50]
     emp_bidang_map = {str(e.id): resolve_employee_bidang(e) for e in all_employees}
     employee_bidang_json = json.dumps(emp_bidang_map)
     user_bidang = resolve_user_bidang(request)
@@ -277,6 +296,8 @@ def meeting_create(request):
     return render(request, 'internal_meetings/create.html', {
         'form': form,
         'is_edit': False,
+        'employees': all_employees,
+        'agendas': agendas,
         'user_bidang': user_bidang,
         'emp_bidang_map': emp_bidang_map,
         'employee_bidang_json': employee_bidang_json,
@@ -340,6 +361,8 @@ def meeting_edit(request, pk):
         form = InternalMeetingForm(instance=meeting)
 
     all_employees = Employee.objects.filter(is_active=True).order_by('full_name')
+    from agendas.models import Agenda
+    agendas = Agenda.objects.all().order_by('-scheduled_at')[:50]
     emp_bidang_map = {str(e.id): resolve_employee_bidang(e) for e in all_employees}
     employee_bidang_json = json.dumps(emp_bidang_map)
     user_bidang = resolve_user_bidang(request)
@@ -348,6 +371,8 @@ def meeting_edit(request, pk):
         'form': form,
         'meeting': meeting,
         'is_edit': True,
+        'employees': all_employees,
+        'agendas': agendas,
         'user_bidang': user_bidang,
         'emp_bidang_map': emp_bidang_map,
         'employee_bidang_json': employee_bidang_json,

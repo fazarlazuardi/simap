@@ -1,41 +1,58 @@
 {% extends 'layouts/base.html' %}
+{% load static %}
 
-{% block title %}Tambah Pegawai Baru - BAZNAS{% endblock %}
+{% block title %}Tambah Pegawai Baru - BAZNAS Kab. Tangerang{% endblock %}
+
+{% block extra_css %}
+<style>
+    .custom-input { border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-primary); }
+    .custom-input:focus { border-color: var(--color-emerald-600); box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.15); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-1">
-                <li class="breadcrumb-item"><a href="{% url 'users:employee_list' %}" class="text-decoration-none text-primary">Pegawai</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Tambah Pegawai</li>
-            </ol>
-        </nav>
-        <h4 class="fw-bold mb-0" style="color: var(--text-primary);">Input Data Pegawai & SK Kepegawaian</h4>
-        <p class="text-secondary small">Lengkapi data diri amil dan berkas SK pengangkatan resmi BAZNAS.</p>
+<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                    <i class="bi bi-person-plus-fill me-1 text-warning"></i> Form Data Master Pegawai & SK
+                </span>
+            </div>
+            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Input Data Pegawai & SK Kepegawaian</h3>
+            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 620px;">
+                Lengkapi identitas amil, NIP, posisi jabatan, struktur bidang, serta dokumen Surat Keputusan (SK) pengangkatan resmi.
+            </p>
+        </div>
+        <div class="col-lg-5 text-lg-end">
+            <a href="{% url 'users:employee_list' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
+                <i class="bi bi-arrow-left me-1"></i> Kembali ke Master Pegawai
+            </a>
+        </div>
     </div>
 </div>
 
-<div class="row justify-content-center">
+<div class="row justify-content-center mb-5">
     <div class="col-lg-11">
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
             <!-- SEKSI 1: DATA UTAMA & KEPEGAWAIAN -->
-            <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
-                <h5 class="fw-bold text-success border-bottom pb-2 mb-4"><i class="bi bi-briefcase me-2"></i>Data Utama Kepegawaian & Jabatan</h5>
+            <div class="card-enterprise p-4 mb-4">
+                <h6 class="fw-bold text-emerald border-bottom pb-2 mb-4"><i class="bi bi-briefcase-fill me-2 text-success"></i>1. Data Utama Kepegawaian & Jabatan</h6>
                 
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <label for="nip" class="form-label fw-bold">NIP / NIK Amil <span class="text-danger">*</span></label>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label for="nip" class="form-label fw-bold small text-uppercase">NIP / NIK Amil <span class="text-danger">*</span></label>
                         <input type="text" class="form-control custom-input" id="nip" name="nip" required placeholder="Contoh: 19850101202001" value="{{ form_data.nip|default:'' }}">
                     </div>
-                    <div class="col-md-5 mb-4">
-                        <label for="full_name" class="form-label fw-bold">Nama Lengkap & Gelar <span class="text-danger">*</span></label>
+                    <div class="col-md-5">
+                        <label for="full_name" class="form-label fw-bold small text-uppercase">Nama Lengkap & Gelar <span class="text-danger">*</span></label>
                         <input type="text" class="form-control custom-input" id="full_name" name="full_name" required placeholder="Contoh: Drs. H. Ahmad Fulan, M.Si" value="{{ form_data.full_name|default:'' }}">
                     </div>
-                    <div class="col-md-3 mb-4">
-                        <label for="employment_status" class="form-label fw-bold">Status Kepegawaian <span class="text-danger">*</span></label>
+                    <div class="col-md-3">
+                        <label for="employment_status" class="form-label fw-bold small text-uppercase">Status Kepegawaian <span class="text-danger">*</span></label>
                         <select class="form-select custom-input" id="employment_status" name="employment_status" required>
                             {% for code, name in employment_statuses %}
                             <option value="{{ code }}" {% if form_data.employment_status == code %}selected{% endif %}>{{ name }}</option>
@@ -44,13 +61,13 @@
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="position" class="form-label fw-bold">Jabatan Pegawai <span class="text-danger">*</span></label>
+                <div class="row g-3 mb-2">
+                    <div class="col-md-6">
+                        <label for="position" class="form-label fw-bold small text-uppercase">Jabatan Pegawai <span class="text-danger">*</span></label>
                         <input type="text" class="form-control custom-input" id="position" name="position" required placeholder="Contoh: Staf Pelaksana Pendistribusian & Penyaluran" value="{{ form_data.position|default:'' }}">
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="department" class="form-label fw-bold">Bidang / Bagian Utama <span class="text-danger">*</span></label>
+                    <div class="col-md-6">
+                        <label for="department" class="form-label fw-bold small text-uppercase">Bidang / Struktur Utama <span class="text-danger">*</span></label>
                         <select class="form-select custom-input" id="department" name="department" required>
                             <option value="" selected disabled>Pilih Bidang Utama...</option>
                             {% for dept in departments %}
@@ -62,94 +79,90 @@
             </div>
 
             <!-- SEKSI 2: DATA DIRI & IDENTITAS -->
-            <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
-                <h5 class="fw-bold text-primary border-bottom pb-2 mb-4"><i class="bi bi-person-vcard me-2"></i>Data Diri & Identitas Pribadi</h5>
+            <div class="card-enterprise p-4 mb-4">
+                <h6 class="fw-bold text-emerald border-bottom pb-2 mb-4"><i class="bi bi-person-vcard-fill me-2 text-primary"></i>2. Data Diri & Identitas Pribadi</h6>
                 
-                <div class="mb-4">
-                    <label for="photo" class="form-label fw-bold"><i class="bi bi-person-bounding-box text-success me-1"></i> Upload Foto Resmi Pasfoto Pegawai (JPG/PNG)</label>
+                <div class="mb-3">
+                    <label for="photo" class="form-label fw-bold small text-uppercase"><i class="bi bi-person-bounding-box text-success me-1"></i> Upload Pasfoto Resmi Pegawai (JPG/PNG)</label>
                     <input type="file" class="form-control custom-input" id="photo" name="photo" accept="image/*">
                 </div>
 
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <label for="nik_ktp" class="form-label fw-bold">No. NIK KTP (16 Digit)</label>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label for="nik_ktp" class="form-label fw-bold small text-uppercase">No. NIK KTP (16 Digit)</label>
                         <input type="text" class="form-control custom-input" id="nik_ktp" name="nik_ktp" placeholder="Contoh: 3603123456780001" value="{{ form_data.nik_ktp|default:'' }}">
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <label for="place_of_birth" class="form-label fw-bold">Tempat Lahir</label>
+                    <div class="col-md-4">
+                        <label for="place_of_birth" class="form-label fw-bold small text-uppercase">Tempat Lahir</label>
                         <input type="text" class="form-control custom-input" id="place_of_birth" name="place_of_birth" placeholder="Contoh: Tangerang" value="{{ form_data.place_of_birth|default:'' }}">
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <label for="date_of_birth" class="form-label fw-bold">Tanggal Lahir</label>
+                    <div class="col-md-4">
+                        <label for="date_of_birth" class="form-label fw-bold small text-uppercase">Tanggal Lahir</label>
                         <input type="date" class="form-control custom-input" id="date_of_birth" name="date_of_birth" value="{{ form_data.date_of_birth|default:'' }}">
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-3 mb-4">
-                        <label for="gender" class="form-label fw-bold">Jenis Kelamin</label>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <label for="gender" class="form-label fw-bold small text-uppercase">Jenis Kelamin</label>
                         <select class="form-select custom-input" id="gender" name="gender">
                             <option value="L" {% if form_data.gender == 'L' %}selected{% endif %}>Laki-laki</option>
                             <option value="P" {% if form_data.gender == 'P' %}selected{% endif %}>Perempuan</option>
                         </select>
                     </div>
-                    <div class="col-md-3 mb-4">
-                        <label for="last_education" class="form-label fw-bold">Pendidikan Terakhir</label>
-                        <input type="text" class="form-control custom-input" id="last_education" name="last_education" placeholder="Contoh: S1 Ekonomi Syariah / SMA" value="{{ form_data.last_education|default:'' }}">
+                    <div class="col-md-3">
+                        <label for="last_education" class="form-label fw-bold small text-uppercase">Pendidikan Terakhir</label>
+                        <input type="text" class="form-control custom-input" id="last_education" name="last_education" placeholder="Contoh: S1 Ekonomi Syariah" value="{{ form_data.last_education|default:'' }}">
                     </div>
-                    <div class="col-md-3 mb-4">
-                        <label for="phone_number" class="form-label fw-bold">No. WhatsApp / HP</label>
+                    <div class="col-md-3">
+                        <label for="phone_number" class="form-label fw-bold small text-uppercase">No. WhatsApp / HP</label>
                         <input type="text" class="form-control custom-input" id="phone_number" name="phone_number" placeholder="Contoh: 08123456789" value="{{ form_data.phone_number|default:'' }}">
                     </div>
-                    <div class="col-md-3 mb-4">
-                        <label for="email" class="form-label fw-bold">Alamat Email</label>
+                    <div class="col-md-3">
+                        <label for="email" class="form-label fw-bold small text-uppercase">Alamat Email Official</label>
                         <input type="email" class="form-control custom-input" id="email" name="email" placeholder="pegawai@baznas.go.id" value="{{ form_data.email|default:'' }}">
                     </div>
                 </div>
 
                 <div class="mb-2">
-                    <label for="address" class="form-label fw-bold">Alamat Lengkap Tempat Tinggal</label>
-                    <textarea class="form-control" id="address" name="address" rows="3" style="border-radius: 12px;" placeholder="Masukkan alamat lengkap domisili saat ini...">{{ form_data.address|default:'' }}</textarea>
+                    <label for="address" class="form-label fw-bold small text-uppercase">Alamat Lengkap Tempat Tinggal</label>
+                    <textarea class="form-control custom-input" id="address" name="address" rows="3" placeholder="Masukkan alamat lengkap domisili saat ini...">{{ form_data.address|default:'' }}</textarea>
                 </div>
             </div>
 
             <!-- SEKSI 3: DATA SURAT KEPUTUSAN (SK) -->
-            <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
-                <h5 class="fw-bold text-dark border-bottom pb-2 mb-4"><i class="bi bi-file-earmark-check me-2"></i>Dokumen Surat Keputusan (SK Amil)</h5>
+            <div class="card-enterprise p-4 mb-4">
+                <h6 class="fw-bold text-emerald border-bottom pb-2 mb-4"><i class="bi bi-file-earmark-check-fill me-2 text-warning"></i>3. Dokumen Surat Keputusan (SK Amil)</h6>
                 
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <label for="sk_number" class="form-label fw-bold">Nomor SK Pengangkatan</label>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label for="sk_number" class="form-label fw-bold small text-uppercase">Nomor SK Pengangkatan</label>
                         <input type="text" class="form-control custom-input" id="sk_number" name="sk_number" placeholder="Contoh: SK/001/BAZNAS-TGN/2025" value="{{ form_data.sk_number|default:'' }}">
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <label for="sk_date" class="form-label fw-bold">Tanggal SK Terbit</label>
+                    <div class="col-md-4">
+                        <label for="sk_date" class="form-label fw-bold small text-uppercase">Tanggal SK Terbit</label>
                         <input type="date" class="form-control custom-input" id="sk_date" name="sk_date" value="{{ form_data.sk_date|default:'' }}">
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <label for="tmt_date" class="form-label fw-bold">TMT Bergabung / Mulai Bekerja</label>
+                    <div class="col-md-4">
+                        <label for="tmt_date" class="form-label fw-bold small text-uppercase">TMT Bergabung / Mulai Bekerja</label>
                         <input type="date" class="form-control custom-input" id="tmt_date" name="tmt_date" value="{{ form_data.tmt_date|default:'' }}">
                     </div>
                 </div>
 
                 <div>
-                    <label for="sk_file" class="form-label fw-bold"><i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> Upload File Berkas SK (PDF/Gambar)</label>
+                    <label for="sk_file" class="form-label fw-bold small text-uppercase"><i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> Upload File Berkas SK (PDF/Gambar)</label>
                     <input type="file" class="form-control custom-input" id="sk_file" name="sk_file" accept=".pdf,.png,.jpg,.jpeg">
                 </div>
             </div>
 
             <!-- TOMBOL AKSI -->
-            <div class="d-flex justify-content-end gap-3 mb-5">
-                <a href="{% url 'users:employee_list' %}" class="btn btn-light rounded-pill px-4 fw-bold">Batal</a>
-                <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
-                    <i class="bi bi-save-fill me-2"></i> Simpan Data Pegawai & SK
+            <div class="d-flex justify-content-end gap-2 mb-5 border-top pt-3">
+                <a href="{% url 'users:employee_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Batal</a>
+                <button type="submit" class="btn btn-enterprise-primary rounded-pill px-5 fw-bold shadow-sm">
+                    <i class="bi bi-check-circle-fill me-1"></i> Simpan Data Pegawai & SK
                 </button>
             </div>
         </form>
     </div>
 </div>
-
-<style>
-    .custom-input { height: 50px; border-radius: 12px; border: 1px solid #E5E7EB; }
-</style>
 {% endblock %}

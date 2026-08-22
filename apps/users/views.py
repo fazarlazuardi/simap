@@ -449,12 +449,53 @@ def category_delete(request, pk):
 @login_required
 @user_passes_test(superuser_only)
 def user_list(request):
-    users = User.objects.all().select_related('employee').order_by('-date_joined')
+    from django.db.models import Q
+    query = request.GET.get('q', '').strip()
+    role_filter = request.GET.get('role', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
+    users_qs = User.objects.all().select_related('employee').order_by('-date_joined')
+
+    # Total counts for KPI Stat Cards
+    total_users = users_qs.count()
+    active_users = users_qs.filter(is_active=True).count()
+    pimpinan_super_count = users_qs.filter(Q(is_superuser=True) | Q(role__in=['pimpinan', 'waka_1', 'waka_2', 'waka_3', 'waka_4'])).count()
+    inactive_users = users_qs.filter(is_active=False).count()
+
+    if query:
+        users_qs = users_qs.filter(
+            Q(username__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(email__icontains=query) |
+            Q(employee__full_name__icontains=query)
+        )
+
+    if role_filter:
+        users_qs = users_qs.filter(role=role_filter)
+
+    if status_filter == 'active':
+        users_qs = users_qs.filter(is_active=True)
+    elif status_filter == 'inactive':
+        users_qs = users_qs.filter(is_active=False)
+
     per_page = int(request.GET.get('per_page', 25))
-    paginator = Paginator(users, per_page)
+    paginator = Paginator(users_qs, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'users/list.html', {'page_obj': page_obj, 'users_list': page_obj})
+
+    return render(request, 'users/list.html', {
+        'page_obj': page_obj,
+        'users_list': page_obj,
+        'total_users': total_users,
+        'active_users': active_users,
+        'pimpinan_super_count': pimpinan_super_count,
+        'inactive_users': inactive_users,
+        'roles': User.ROLE_CHOICES if hasattr(User, 'ROLE_CHOICES') else [],
+        'query': query,
+        'role_filter': role_filter,
+        'status_filter': status_filter,
+    })
 
 @login_required
 @user_passes_test(superuser_only)

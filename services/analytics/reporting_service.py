@@ -83,7 +83,7 @@ class ReportingService:
             'peribadatan', 'meubelair', 'meubellair', 'mebeulair', 'sarpras', 'sarana', 'prasarana',
             'sekolah', 'pesantren', 'pembangunan',
             'umkm', 'musafir', 'muallaf', 'santunan', 'sembako', 'lpj',
-            'pendistribusian', 'penyaluran', 'rtlh'
+            'pendistribusian', 'penyaluran', 'rtlh', 'bencana', 'tanggap', 'penanggulangan', 'kebakaran', 'banjir', 'longsor', 'gempa'
         ]
 
         for cat in db_categories:

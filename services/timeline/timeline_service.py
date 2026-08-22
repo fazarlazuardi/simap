@@ -6,7 +6,7 @@ from dispositions.models import Disposition
 class TimelineService:
     """
     SIMAP Audit & Timeline Service
-    Menyusun riwayat aktivitas & alur posisi dokumen secara terstruktur
+    Menyusun riwayat aktivitas & alur posisi dokumen secara terstruktur dengan badge kontras tinggi.
     """
 
     @classmethod
@@ -19,15 +19,16 @@ class TimelineService:
         # 1. Registration step
         timeline.append({
             'timestamp': archive.created_at,
-            'actor': archive.uploaded_by.username if archive.uploaded_by else 'Front Office',
+            'actor': archive.uploaded_by.get_full_name() or archive.uploaded_by.username if archive.uploaded_by else 'Front Office',
             'action': 'Registrasi Surat Masuk / Proposal Baru',
             'badge_color': 'bg-primary',
+            'badge_class': 'badge-actor-primary',
             'note': f"No. Arsip: {archive.archive_number or 'DRAFT'}"
         })
 
         # 2. Verification / Dispositions
         for dispo in archive.dispositions.all().order_by('created_at'):
-            sender_name = dispo.sender.employee.full_name if (dispo.sender and hasattr(dispo.sender, 'employee') and dispo.sender.employee) else dispo.sender.username
+            sender_name = dispo.sender.employee.full_name if (dispo.sender and hasattr(dispo.sender, 'employee') and dispo.sender.employee) else (dispo.sender.get_full_name() or dispo.sender.username)
             penerima_names = ', '.join(emp.full_name for emp in dispo.forwarded_to.all()) or '—'
             
             timeline.append({
@@ -35,6 +36,7 @@ class TimelineService:
                 'actor': sender_name,
                 'action': f"Disposisi Diterbitkan ({dispo.get_priority_display()})",
                 'badge_color': 'bg-info',
+                'badge_class': 'badge-actor-info',
                 'note': f"Penerima: {penerima_names} | Catatan: {dispo.note or '—'}"
             })
 
@@ -43,9 +45,10 @@ class TimelineService:
                 sppd = dispo.sppd
                 timeline.append({
                     'timestamp': sppd.created_at,
-                    'actor': sppd.created_by.username if sppd.created_by else 'Sistem',
+                    'actor': sppd.created_by.get_full_name() or sppd.created_by.username if sppd.created_by else 'Sistem',
                     'action': f"Surat Tugas & SPPD Terbit ({sppd.sppd_number})",
                     'badge_color': 'bg-warning',
+                    'badge_class': 'badge-actor-warning',
                     'note': f"Tujuan: {sppd.destination} ({sppd.departure_date} s.d {sppd.return_date})"
                 })
 
@@ -54,9 +57,10 @@ class TimelineService:
                 rep = dispo.report
                 timeline.append({
                     'timestamp': rep.created_at,
-                    'actor': rep.created_by.username if rep.created_by else 'Petugas',
+                    'actor': rep.created_by.get_full_name() or rep.created_by.username if rep.created_by else 'Petugas',
                     'action': f"Upload Laporan Pelaksanaan ({rep.report_number})",
                     'badge_color': 'bg-success',
+                    'badge_class': 'badge-actor-success',
                     'note': f"Judul: {rep.title}"
                 })
 
@@ -66,9 +70,10 @@ class TimelineService:
             for log in logs:
                 timeline.append({
                     'timestamp': log.created_at,
-                    'actor': log.user.username if log.user else 'Sistem',
+                    'actor': log.user.get_full_name() or log.user.username if log.user else 'Sistem',
                     'action': log.action,
                     'badge_color': 'bg-secondary',
+                    'badge_class': 'badge-actor-secondary',
                     'note': f"IP: {log.ip_address or '-'}"
                 })
 

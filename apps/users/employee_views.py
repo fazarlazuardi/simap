@@ -165,15 +165,34 @@ def employee_edit_master(request, pk):
 @login_required
 @superadmin_required
 def employee_list(request):
+    from django.db.models import Q
     bidang = request.GET.get('bidang')
     akun = request.GET.get('akun')
+    query = request.GET.get('q', '').strip()
 
-    employees = Employee.objects.select_related('dept_relation').all().order_by('-created_at')
+    all_employees = Employee.objects.select_related('dept_relation').all().order_by('-created_at')
+
+    # Total KPI Counters
+    total_employees = all_employees.count()
+    active_employees = all_employees.filter(is_active=True).count()
+    user_emp_ids = set(User.objects.filter(employee__isnull=False).values_list('employee_id', flat=True))
+    with_account_count = len(user_emp_ids)
+    without_account_count = total_employees - with_account_count
+
+    employees = all_employees
+
+    if query:
+        employees = employees.filter(
+            Q(nip__icontains=query) |
+            Q(full_name__icontains=query) |
+            Q(position__icontains=query) |
+            Q(phone_number__icontains=query) |
+            Q(email__icontains=query)
+        )
 
     if bidang:
         employees = employees.filter(dept_relation__id=bidang)
         
-    user_emp_ids = User.objects.filter(employee__isnull=False).values_list('employee_id', flat=True)
     if akun == 'ya':
         employees = employees.filter(pk__in=user_emp_ids)
     elif akun == 'tidak':
@@ -197,6 +216,11 @@ def employee_list(request):
         'employee_list': employee_list_ctx,
         'departments': departments,
         'roles': User.ROLE_CHOICES,
+        'total_employees': total_employees,
+        'active_employees': active_employees,
+        'with_account_count': with_account_count,
+        'without_account_count': without_account_count,
+        'query': query,
         'filters': {
             'bidang': bidang or '',
             'akun': akun or '',

@@ -1,0 +1,87 @@
+<!-- Quick Detail Drawer Content Snippet -->
+<div class="quick-detail-drawer-content">
+    <!-- Header Badge Info -->
+    <div class="p-3 mb-4 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between">
+        <div>
+            <span class="badge bg-emerald text-white rounded-pill px-3 py-1 font-mono mb-1" style="font-size: 0.75rem;">
+                {{ archive.archive_number|default:'DRAFT OTOMATIS' }}
+            </span>
+            <h6 class="fw-bold text-dark mb-0">{{ archive.get_archive_type_display }}</h6>
+        </div>
+        <div>
+            {% if archive.verified_by_kabid %}
+                <span class="badge-pill-enterprise badge-pill-success"><span class="pulse-dot"></span> Terverifikasi</span>
+            {% else %}
+                <span class="badge-pill-enterprise badge-pill-warning"><span class="pulse-dot"></span> Perlu Verifikasi</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Metadata Details -->
+    <div class="mb-4">
+        <label class="text-muted small d-block">Judul / Perihal Dokumen:</label>
+        <h6 class="fw-bold text-emerald-700 mb-2">{{ archive.title }}</h6>
+        
+        <div class="row g-2 text-sm mt-2">
+            <div class="col-6">
+                <span class="text-muted small d-block">Pengirim / Instansi:</span>
+                <strong class="text-dark">{{ archive.sender_receiver|default:'-' }}</strong>
+            </div>
+            <div class="col-6">
+                <span class="text-muted small d-block">Tanggal Surat:</span>
+                <strong class="text-dark">{{ archive.letter_date|date:"d F Y"|default:'-' }}</strong>
+            </div>
+            <div class="col-6 mt-2">
+                <span class="text-muted small d-block">Kategori Bidang:</span>
+                <span class="badge bg-secondary bg-opacity-25 text-dark rounded-pill px-2 py-1">{{ archive.category.name|default:'Umum' }}</span>
+            </div>
+            <div class="col-6 mt-2">
+                <span class="text-muted small d-block">Status Alur Kerja:</span>
+                <span class="badge bg-info bg-opacity-25 text-info rounded-pill px-2 py-1 text-uppercase">{{ archive.get_status_display }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Digital Preview -->
+    <div class="p-3 mb-4 rounded-3 border bg-light">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h6 class="fw-bold mb-0 text-dark small"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> Berkas Digital Dokumentasi</h6>
+            {% if archive.file_path %}
+                <a href="{{ archive.file_path.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.75rem;">
+                    <i class="bi bi-download me-1"></i> Unduh File
+                </a>
+            {% endif %}
+        </div>
+        {% if archive.file_path %}
+            <p class="mb-0 text-muted small"><i class="bi bi-paperclip me-1"></i> {{ archive.file_path.name }}</p>
+        {% else %}
+            <p class="mb-0 text-muted small italic">Tidak ada berkas digital terlampir.</p>
+        {% endif %}
+    </div>
+
+    <!-- Timeline Disposisi Ringkas -->
+    <div class="mb-4">
+        <h6 class="fw-bold mb-3 text-dark small"><i class="bi bi-diagram-3 text-emerald me-1"></i> Riwayat Lembar Disposisi</h6>
+        <div class="activity-timeline">
+            {% for dispo in archive.dispositions.all %}
+            <div class="timeline-item-futuristic">
+                <strong class="d-block text-dark small">{{ dispo.sender.get_full_name|default:dispo.sender.username }}</strong>
+                <p class="mb-0 small text-muted">{{ dispo.notes|default:'Tidak ada catatan disposisi.' }}</p>
+                <span class="text-secondary" style="font-size: 0.65rem;">{{ dispo.created_at|date:"d M Y, H:i" }} WIB</span>
+            </div>
+            {% empty %}
+            <p class="text-muted small italic mb-0">Belum ada disposisi pimpinan untuk arsip ini.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick Action Buttons -->
+    <div class="d-flex flex-column gap-2 pt-2 border-top">
+        <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-enterprise-primary w-100 justify-content-center">
+            <i class="bi bi-eye-fill me-1"></i> Buka Halaman Detail Lengkap
+        </a>
+        <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-outline-secondary w-100 btn-sm rounded-pill">
+            <i class="bi bi-printer me-1"></i> Cetak Tanda Terima Resmi
+        </a>
+    </div>
+</div>

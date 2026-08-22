@@ -82,7 +82,15 @@ def report_index(request):
                 queryset=Disposition.objects.select_related('sender').prefetch_related('forwarded_to', 'waka_forwarded_to', 'report')
             ),
             'agendas'
-        ).all().order_by('-updated_at')
+        ).filter(
+            archive_type__in=['surat_masuk', 'proposal', 'surat_keluar']
+        ).exclude(
+            Q(category__name__icontains='internal') | 
+            Q(category__name__icontains='nota dinas') |
+            Q(title__icontains='rapat internal') |
+            Q(title__icontains='risalah rapat') |
+            Q(title__icontains='notulensi rapat')
+        ).order_by('-updated_at')
 
     # Filter khusus Waka II, Kabid II & Staf Bidang II / POV Waka II
     active_pov = request.session.get('active_pov')
@@ -315,7 +323,7 @@ def report_index(request):
         'users': users,
         'status_choices': Archive.STATUS_CHOICES,
         'drive_backup_enabled': drive_backup_enabled,
-        'archive_types': Archive.TYPE_CHOICES,
+        'archive_types': [choice for choice in Archive.TYPE_CHOICES if choice[0] in ['surat_masuk', 'proposal', 'surat_keluar']],
         'current_type': archive_type or '',
         'backup_years': backup_years,
         'now_year': now_year,
@@ -1135,11 +1143,36 @@ def export_rekap_bantuan_excel(request):
 @login_required
 def calendar_work_view(request):
     from services.calendar.calendar_service import CalendarService
-    events = CalendarService.get_calendar_events()
+    from services.integrations.google_calendar_service import GoogleCalendarService
+    from agendas.models import Agenda
     import json
+
+    events = CalendarService.get_calendar_events()
+    google_cal_url = GoogleCalendarService.get_google_calendar_direct_url(request)
+
+    agenda_dates_map = {}
+    for ag in Agenda.objects.all().select_related('archive'):
+        if ag.scheduled_at:
+            local_dt = timezone.localtime(ag.scheduled_at)
+            d_str = local_dt.strftime('%Y-%m-%d')
+            t_str = local_dt.strftime('%H:%M WIB')
+            icon = '👥' if ag.internal_meeting_id else '📅'
+            b_text = f"{icon} {ag.title} ({t_str})"
+            if d_str not in agenda_dates_map:
+                agenda_dates_map[d_str] = []
+            agenda_dates_map[d_str].append({
+                'title': b_text,
+                'type': 'meeting' if ag.internal_meeting_id else 'agenda',
+                'url': f"/rapat-internal/{ag.internal_meeting_id}/" if ag.internal_meeting_id else f"/agenda/"
+            })
+
+    agenda_dates_json = json.dumps(agenda_dates_map)
+
     return render(request, 'calendar/index.html', {
         'events': events,
         'events_json': json.dumps(events),
+        'google_calendar_direct_url': google_cal_url,
+        'agenda_dates_json': agenda_dates_json,
     })
 
 # Alias for compatibility

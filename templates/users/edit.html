@@ -1,67 +1,90 @@
 {% extends 'layouts/base.html' %}
+{% load static %}
 
-{% block title %}Edit Pengguna - BAZNAS{% endblock %}
+{% block title %}Edit Data Pengguna {{ user_obj.username }} - BAZNAS Kab. Tangerang{% endblock %}
+
+{% block extra_css %}
+<style>
+    .custom-input { border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-primary); }
+    .custom-input:focus { border-color: var(--color-emerald-600); box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.15); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'users:list' %}" class="text-decoration-none text-primary">User Management</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Edit Pengguna</li>
-            </ol>
-        </nav>
-        <h4 class="fw-bold">Edit Data: {{ user_obj.username }}</h4>
-        <p class="text-secondary small">Perbarui informasi akun dan hak akses pengguna.</p>
+<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                    <i class="bi bi-pencil-square me-1 text-warning"></i> Form Edit Kredensial Pengguna
+                </span>
+            </div>
+            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Edit Akun Pengguna: {{ user_obj.username }}</h3>
+            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 600px;">
+                Perbarui profil akun, alamat email official, role wewenang akses, dan kata sandi baru.
+            </p>
+        </div>
+        <div class="col-lg-5 text-lg-end">
+            <a href="{% url 'users:list' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
+                <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Pengguna
+            </a>
+        </div>
     </div>
 </div>
 
-<div class="row justify-content-center">
+<div class="row justify-content-center mb-5">
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm p-4">
+        <div class="card-enterprise p-4">
+            <h6 class="fw-bold text-emerald border-bottom pb-2 mb-4">
+                <i class="bi bi-shield-check me-2 text-success"></i>Perbarui Kredensial & Role Akun
+            </h6>
+
             <form method="post">
                 {% csrf_token %}
                 
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="username" name="username" value="{{ user_obj.username }}" required>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="username" class="form-label fw-bold small text-uppercase">Username Log In <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input" id="username" name="username" value="{{ user_obj.username }}" required>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="email" class="form-label">Alamat Email <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ user_obj.email }}" required>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="first_name" class="form-label">Nama Depan</label>
-                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user_obj.first_name }}">
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="last_name" class="form-label">Nama Belakang</label>
-                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user_obj.last_name }}">
+                    <div class="col-md-6">
+                        <label for="email" class="form-label fw-bold small text-uppercase">Alamat Email Official <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control custom-input" id="email" name="email" value="{{ user_obj.email }}" required>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="role" class="form-label">Role Akses <span class="text-danger">*</span></label>
-                        <select class="form-select" id="role" name="role" required style="height: 52px; border-radius: 12px;">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="first_name" class="form-label fw-bold small text-uppercase">Nama Depan</label>
+                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" value="{{ user_obj.first_name }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="last_name" class="form-label fw-bold small text-uppercase">Nama Belakang</label>
+                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" value="{{ user_obj.last_name }}">
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="role" class="form-label fw-bold small text-uppercase">Role / Wewenang Akses <span class="text-danger">*</span></label>
+                        <select class="form-select custom-input" id="role" name="role" required>
                             {% for code, name in roles %}
                             <option value="{{ code }}" {% if user_obj.role == code %}selected{% endif %}>{{ name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="password" class="form-label">Password Baru (Opsional)</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Kosongkan jika tidak ingin ganti">
+                    <div class="col-md-6">
+                        <label for="password" class="form-label fw-bold small text-uppercase">Password Baru (Opsional)</label>
+                        <input type="password" class="form-control custom-input" id="password" name="password" placeholder="Kosongkan jika tidak ingin mengubah password">
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end gap-3 mt-4">
-                    <a href="{% url 'users:list' %}" class="btn btn-light px-4 fw-semibold" style="height: 52px; border-radius: 12px; display: flex; align-items: center;">Batal</a>
-                    <button type="submit" class="btn btn-primary px-5">Simpan Perubahan</button>
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'users:list' %}" class="btn btn-outline-secondary rounded-pill px-4">Batal</a>
+                    <button type="submit" class="btn btn-enterprise-primary rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-check-circle-fill me-1"></i> Simpan Perubahan Akun
+                    </button>
                 </div>
             </form>
         </div>

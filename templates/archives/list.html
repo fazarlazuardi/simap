@@ -1,505 +1,261 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}E-Arsip SDM - BAZNAS{% endblock %}
-
-{% block extra_css %}
-<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-<style>
-    .dataTables_wrapper {
-        position: relative;
-        z-index: 1;
-    }
-    .table-responsive {
-        overflow-x: auto;
-        overflow-y: visible !important;
-    }
-    .dropdown-menu {
-        z-index: 1080 !important;
-    }
-    .nav-pills .nav-link:not(.active) {
-        color: var(--text-body, #495057) !important;
-        background-color: var(--surface-alt, #f8f9fa) !important;
-        border: 1px solid var(--border-color, #dee2e6);
-    }
-    .nav-pills .nav-link:not(.active):hover {
-        color: var(--cyan-primary, #0d6efd) !important;
-    }
-    
-    /* Styling Tambahan untuk Mencegah Teks Tabrakan */
-    #archiveTable td {
-        vertical-align: middle;
-        padding: 12px 10px !important;
-    }
-    .cell-box {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-</style>
-{% endblock %}
+{% block title %}E-Arsip SDM Enterprise - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+<div class="container-fluid py-3" x-data="{ selectedIds: [], searchKeyword: '' }">
+    <!-- 1. Enterprise Emerald Glass Header Banner -->
+    <div class="glass-banner-enterprise mb-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 position-relative" style="z-index: 2;">
+            <div>
+                <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold mb-2" style="font-size: 0.7rem;">DOKUMENTASI DIGITAL SDM</span>
+                <h3 class="fw-bold mb-1 text-white">Manajemen Arsip & Berkas Digital</h3>
+                <p class="mb-0 text-white opacity-75 small">Kelola repositori dokumen masuk, proposal bantuan, laporan, dan surat keluar BAZNAS.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                {% if user.is_superadmin and not request.session.active_pov %}
+                <a href="{% url 'archives:backup_gdrive_email' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold d-flex align-items-center" title="Cadangkan seluruh dokumen ke Google Drive & kirim laporan email">
+                    <i class="bi bi-cloud-arrow-up-fill text-warning me-2 fs-5"></i> Backup GDrive & Email
+                </a>
+                {% endif %}
+                {% if can_upload %}
+                <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="btn btn-success btn-sm px-4 py-2 fw-bold shadow-lg rounded-pill d-flex align-items-center" style="background-color: #059669 !important;">
+                    <i class="bi bi-plus-lg me-2 fs-5"></i> Unggah Arsip Baru
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. System Automation Banner -->
+    <div class="alert alert-banner-sppd border-0 shadow-sm mb-4 d-flex align-items-center rounded-4 p-3">
+        <div class="rounded-circle bg-success text-white p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;">
+            <i class="bi bi-shield-check fs-4"></i>
+        </div>
         <div>
-            <h4 class="fw-bold mb-1" style="color: var(--text-primary);">Manajemen Arsip SDM</h4>
-            <p class="text-secondary small mb-0">Daftar dokumen masuk, proposal, surat permohonan bantuan, laporan, dan surat keluar yang tersimpan dalam sistem.</p>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            {% if user.is_superadmin and not request.session.active_pov %}
-            <a href="{% url 'archives:backup_gdrive_email' %}" class="btn btn-outline-success px-3 py-2 fw-bold shadow-sm rounded-3 d-flex align-items-center" title="Cadangkan seluruh dokumen ke Google Drive & kirim laporan email">
-                <i class="bi bi-cloud-arrow-up-fill me-2 fs-5"></i> Backup GDrive & Email
-            </a>
-            {% endif %}
-            {% if can_upload %}
-            <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-3 d-flex align-items-center">
-                <i class="bi bi-plus-lg me-2 fs-5"></i> Unggah Arsip
-            </a>
-            {% endif %}
+            <strong class="d-block alert-title mb-1">Otomasi Alur Berkas BAZNAS:</strong>
+            <span class="alert-desc small">
+                Seluruh dokumen <strong>Permohonan Bantuan / Proposal</strong> dialokasikan otomatis ke <strong>Bidang II (Pendistribusian)</strong>. Cetak Tanda Terima Resmi tersedia secara instan setelah dokumen terdaftar.
+            </span>
         </div>
     </div>
-</div>
 
-<!-- INFORMASI OTOMASI SISTEM BAZNAS -->
-<div class="alert alert-info border-0 shadow-sm mb-4 d-flex align-items-center rounded-3" style="background-color: #e8f4fd; border-left: 4px solid #0d6efd !important;">
-    <i class="bi bi-info-circle-fill text-primary fs-4 me-3"></i>
-    <div>
-        <strong class="d-block text-primary mb-1">Sistem Otomasi BAZNAS:</strong>
-        <span class="text-dark small">
-            Seluruh dokumen <strong>Permohonan Bantuan / Proposal / Surat Permohonan</strong> akan otomatis dialokasikan ke <strong>Bidang II (Pendistribusian & Pendayagunaan)</strong>. Setelah diunggah, Anda dapat mencetak <strong>Tanda Terima Resmi</strong>.
-        </span>
-    </div>
-</div>
-
-<!-- TAB ALUR STATUS VERIFIKASI & DISPOSISI -->
-<div class="card border-0 shadow-sm mb-3" style="border-radius: 16px;">
-    <div class="card-body py-2 px-3">
+    <!-- 3. Status Workflow Tabs (4 Nav Pills) -->
+    <div class="card-enterprise mb-4 p-2">
         <ul class="nav nav-pills nav-fill gap-2">
             <li class="nav-item">
-                <a class="nav-link py-2 fw-bold {% if status_filter == 'perlu_verifikasi' %}active btn-primary text-white shadow-sm{% endif %}" style="border-radius: 10px;" href="{% url 'archives:list' %}?status=perlu_verifikasi{% if current_type %}&type={{ current_type }}{% endif %}">
-                    <i class="bi bi-clock-history me-1"></i> Perlu Verifikasi
+                <a class="nav-link py-2.5 fw-bold rounded-3 {% if status_filter == 'perlu_verifikasi' %}active btn-enterprise-primary text-white shadow-sm{% else %}text-secondary bg-body-tertiary{% endif %}" href="{% url 'archives:list' %}?status=perlu_verifikasi{% if current_type %}&type={{ current_type }}{% endif %}">
+                    <i class="bi bi-clock-history me-1"></i> Perlu Verifikasi Kabid IV
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link py-2 fw-bold {% if status_filter == 'belum_disposition' %}active btn-primary text-white shadow-sm{% endif %}" style="border-radius: 10px;" href="{% url 'archives:list' %}?status=belum_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
-                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Belum Disposisi
+                <a class="nav-link py-2.5 fw-bold rounded-3 {% if status_filter == 'belum_disposition' %}active btn-enterprise-primary text-white shadow-sm{% else %}text-secondary bg-body-tertiary{% endif %}" href="{% url 'archives:list' %}?status=belum_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Belum Disposisi Pimpinan
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link py-2 fw-bold {% if status_filter == 'sudah_disposition' %}active btn-primary text-white shadow-sm{% endif %}" style="border-radius: 10px;" href="{% url 'archives:list' %}?status=sudah_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
-                    <i class="bi bi-check2-all me-1"></i> Sudah Disposisi
+                <a class="nav-link py-2.5 fw-bold rounded-3 {% if status_filter == 'sudah_disposition' %}active btn-enterprise-primary text-white shadow-sm{% else %}text-secondary bg-body-tertiary{% endif %}" href="{% url 'archives:list' %}?status=sudah_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
+                    <i class="bi bi-check2-all me-1"></i> Sudah Disposisi / Berjalan
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link py-2 fw-bold {% if status_filter == 'all' or not status_filter %}active btn-primary text-white shadow-sm{% endif %}" style="border-radius: 10px;" href="{% url 'archives:list' %}?status=all{% if current_type %}&type={{ current_type }}{% endif %}">
-                    <i class="bi bi-collection me-1"></i> Semua Arsip
+                <a class="nav-link py-2.5 fw-bold rounded-3 {% if status_filter == 'all' or not status_filter %}active btn-enterprise-primary text-white shadow-sm{% else %}text-secondary bg-body-tertiary{% endif %}" href="{% url 'archives:list' %}?status=all{% if current_type %}&type={{ current_type }}{% endif %}">
+                    <i class="bi bi-collection me-1"></i> Semua Repositori Arsip
                 </a>
             </li>
         </ul>
     </div>
-</div>
 
-<form id="batchVerificationForm" method="post" action="{% url 'archives:batch_verify' %}">
-    {% csrf_token %}
+    <!-- 4. Main Data Grid Table Card -->
+    <form id="batchVerificationForm" method="post" action="{% url 'archives:batch_verify' %}">
+        {% csrf_token %}
 
-    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
-        <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background-color: var(--surface-alt); border-top-left-radius: 16px; border-top-right-radius: 16px;">
-            <div class="d-flex gap-2 flex-wrap align-items-center">
-                <span class="fw-semibold me-2 small" style="color: var(--text-primary);"><i class="bi bi-funnel me-1"></i> Filter Type:</span>
-                <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if not current_type %}btn-primary shadow-sm{% else %}btn-light border{% endif %}">
-                    <i class="bi bi-grid-3x3-gap me-1"></i> Semua Type
-                </a>
-                {% for code, label in archive_types %}
-                <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}&type={{ code }}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if current_type == code %}btn-primary shadow-sm{% else %}btn-light border{% endif %}">
-                    {{ label }}
-                </a>
-                {% endfor %}
+        <div class="card-enterprise mb-5">
+            <!-- Filter Bar & Search -->
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3 bg-body-tertiary rounded-top-4">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="fw-bold text-muted small me-1"><i class="bi bi-funnel-fill text-emerald me-1"></i> Filter Tipe:</span>
+                    <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if not current_type %}btn-dark text-white shadow-sm{% else %}btn-outline-secondary{% endif %}">
+                        Semua Tipe
+                    </a>
+                    {% for code, label in archive_types %}
+                    <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}&type={{ code }}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if current_type == code %}btn-emerald text-white shadow-sm{% else %}btn-outline-secondary{% endif %}">
+                        {{ label }}
+                    </a>
+                    {% endfor %}
+                </div>
+
+                <!-- Batch Action Button (Timbul saat checkbox dipilih) -->
+                {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm %}
+                <div x-show="selectedIds.length > 0" x-cloak class="d-flex align-items-center gap-2">
+                    <button type="submit" name="action" value="batch_verify_only" class="btn btn-success btn-sm fw-bold px-3 rounded-pill shadow-sm" style="background-color: #059669 !important;">
+                        <i class="bi bi-check-all me-1"></i> Verifikasi Terpilih (<span x-text="selectedIds.length">0</span>)
+                    </button>
+                </div>
+                {% endif %}
             </div>
 
-            {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm %}
-            <div id="batchActionContainer" class="d-none">
-                <button type="submit" name="action" value="batch_verify_only" class="btn btn-success btn-sm fw-bold px-3 rounded-pill shadow-sm">
-                    <i class="bi bi-check-all me-1"></i> Verifikasi Terpilih (<span id="selectedCount">0</span>)
-                </button>
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="p-4">
+            <!-- Table Enterprise Container -->
             <div class="table-responsive">
-                <table class="table table-hover align-middle" id="archiveTable" style="width:100%;">
-                    <thead>
-                        <tr class="text-secondary small text-uppercase" style="border-bottom: 2px solid var(--border-color);">
-                            <th class="border-0 text-center" style="width: 40px;">
-                                <input type="checkbox" id="selectAllCheckbox" class="form-check-input" title="Pilih Semua di Halaman Ini">
+                <table class="table table-hover align-middle mb-0" id="archiveEnterpriseTable">
+                    <thead class="bg-body-tertiary">
+                        <tr class="text-muted small text-uppercase font-mono" style="border-bottom: 2px solid var(--border-color);">
+                            <th class="py-3 text-center" style="width: 40px;">
+                                <input type="checkbox" 
+                                       @change="if($el.checked){ selectedIds = Array.from(document.querySelectorAll('.archive-checkbox')).map(c => c.value); document.querySelectorAll('.archive-checkbox').forEach(c => c.checked = true); } else { selectedIds = []; document.querySelectorAll('.archive-checkbox').forEach(c => c.checked = false); }" 
+                                       class="form-check-input" title="Pilih Semua">
                             </th>
-                            <th class="border-0" style="min-width: 130px;">No. Arsip</th>
-                            <th class="border-0" style="min-width: 140px;">Jenis & Tanggal</th>
-                            <th class="border-0" style="min-width: 260px;">Judul / Perihal</th>
-                            <th class="border-0" style="min-width: 180px;">Penanggung Jawab</th>
-                            <th class="border-0 text-center" style="min-width: 160px;">Status Workflow</th>
-                            <th class="border-0 text-end" style="min-width: 140px;">Aksi</th>
+                            <th class="py-3" style="min-width: 140px;">No. Arsip / Kode</th>
+                            <th class="py-3" style="min-width: 140px;">Jenis & Tanggal</th>
+                            <th class="py-3" style="min-width: 260px;">Judul / Perihal Dokumen</th>
+                            <th class="py-3" style="min-width: 180px;">Pengirim / Penanggung Jawab</th>
+                            <th class="py-3 text-center" style="min-width: 150px;">Status Workflow</th>
+                            <th class="py-3 text-end" style="min-width: 160px;">Aksi Cepat</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for archive in archives %}
-                        <tr>
+                        <tr class="card-hover-lift">
                             <!-- Checkbox -->
                             <td class="text-center">
                                 {% if archive.status in 'baru,pending,masuk' %}
-                                    <input type="checkbox" name="archive_ids" value="{{ archive.pk }}" class="form-check-input archive-checkbox">
+                                    <input type="checkbox" 
+                                           name="archive_ids" 
+                                           value="{{ archive.pk }}" 
+                                           @change="if($el.checked){ if(!selectedIds.includes('{{ archive.pk }}')) selectedIds.push('{{ archive.pk }}'); } else { selectedIds = selectedIds.filter(id => id !== '{{ archive.pk }}'); }"
+                                           class="form-check-input archive-checkbox">
                                 {% else %}
-                                    <input type="checkbox" class="form-check-input" disabled title="Hanya arsip perlu verifikasi yang dapat dipilih">
+                                    <i class="bi bi-check-circle-fill text-success" title="Dokumen Telah Diverifikasi"></i>
                                 {% endif %}
                             </td>
 
                             <!-- Nomor Arsip -->
                             <td>
-                                <span class="fw-bold text-primary d-block font-monospace">
-                                    {{ archive.archive_number|default:"(DRAFT)" }}
+                                <a href="{% url 'archives:detail' archive.pk %}" class="fw-bold text-emerald text-decoration-none font-mono">
+                                    {{ archive.archive_number|default:'(DRAFT)' }}
+                                </a>
+                                {% if archive.file_path %}
+                                    <a href="{{ archive.file_path.url }}" target="_blank" class="ms-1 text-danger small" title="Unduh Berkas Digital PDF">
+                                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+
+                            <!-- Jenis & Tanggal -->
+                            <td>
+                                <span class="badge bg-secondary bg-opacity-15 text-dark rounded-pill px-2.5 py-1 fw-semibold mb-1" style="font-size: 0.72rem;">
+                                    {{ archive.get_archive_type_display }}
+                                </span>
+                                <div class="text-muted small font-mono">
+                                    <i class="bi bi-calendar3 me-1"></i>{{ archive.letter_date|date:"d/m/Y"|default:'-' }}
+                                </div>
+                            </td>
+
+                            <!-- Judul / Perihal -->
+                            <td>
+                                <a href="{% url 'archives:detail' archive.pk %}" class="fw-semibold text-dark text-decoration-none d-block text-wrap mb-1" style="line-height: 1.35;">
+                                    {{ archive.title }}
+                                </a>
+                                <span class="badge bg-light text-muted border rounded-pill px-2" style="font-size: 0.68rem;">
+                                    Kategori: {{ archive.category.name|default:'Umum' }}
                                 </span>
                             </td>
 
-                            <!-- Jenis Dokumen & Tanggal -->
+                            <!-- Pengirim / Penanggung Jawab -->
                             <td>
-                                <div class="cell-box">
-                                    <span class="fw-bold small text-dark">{{ archive.get_archive_type_display }}</span>
-                                    <span class="text-muted small">
-                                        <i class="bi bi-calendar3 me-1"></i>{{ archive.letter_date|date:"d M Y"|default:"-" }}
-                                    </span>
-                                </div>
-                            </td>
-
-                            <!-- Judul / Perihal & Kategori -->
-                            <td>
-                                <div class="cell-box" style="max-width: 280px;">
-                                    <span class="fw-bold text-dark text-truncate d-block" title="{{ archive.title }}">
-                                        {{ archive.title }}
-                                    </span>
-                                    <div>
-                                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">
-                                            <i class="bi bi-tag-fill me-1 text-primary"></i>{{ archive.category.name|default:"Umum" }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </td>
-                            
-                            <!-- Penanggung Jawab Dinamis -->
-                            <td>
-                                <div class="cell-box">
-                                    <span class="fw-bold text-dark d-block">
-                                        <i class="bi bi-person-circle me-1 text-secondary"></i>{{ archive.current_assignee_names }}
-                                    </span>
-                                    {% if archive.latest_dispo and archive.latest_dispo.is_stage_waka %}
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 small" style="width: fit-content;">
-                                            <i class="bi bi-arrow-return-right me-1"></i>Didisposisikan Waka IV
-                                        </span>
-                                    {% endif %}
-                                </div>
+                                <strong class="d-block text-dark small text-truncate" style="max-width: 180px;">{{ archive.sender_receiver|default:'-' }}</strong>
+                                <span class="text-muted small" style="font-size: 0.7rem;">Oleh: {{ archive.uploaded_by.get_full_name|default:archive.uploaded_by.username }}</span>
                             </td>
 
                             <!-- Status Workflow -->
                             <td class="text-center">
-                                {% if archive.status == 'selesai' %}
-                                    <span class="badge bg-success text-white rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> SELESAI</span>
-                                {% elif archive.status == 'dalam_survei' or 'survei' in archive.activity_name|lower %}
-                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold"><i class="bi bi-geo-alt-fill me-1"></i> DALAM SURVEI LAPANGAN</span>
-                                {% elif archive.status == 'proses' or archive.latest_dispo.is_stage_waka %}
-                                    {% if archive.is_proposal_bantuan %}
-                                        <span class="badge bg-success text-white rounded-pill px-3 py-2"><i class="bi bi-handbag-fill me-1"></i> PROSES BIDANG II</span>
-                                    {% else %}
-                                        <span class="badge bg-primary text-white rounded-pill px-3 py-2"><i class="bi bi-gear-fill me-1"></i> DIPROSES UNIT</span>
-                                    {% endif %}
-                                {% elif archive.status == 'disposisi_pimpinan' %}
-                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-person-badge-fill me-1"></i> MEJA KETUA</span>
-                                {% elif archive.status == 'terverifikasi' %}
-                                    <span class="badge bg-info text-dark rounded-pill px-3 py-2"><i class="bi bi-check2-square me-1"></i> TERVERIFIKASI KABID IV</span>
-                                {% elif archive.status in 'baru,pending,masuk' %}
-                                    <span class="badge bg-secondary text-white rounded-pill px-3 py-2"><i class="bi bi-hourglass-split me-1"></i> MENUNGGU VERIFIKASI KABID IV</span>
-                                {% elif archive.status == 'ditolak' %}
-                                    <span class="badge bg-danger text-white rounded-pill px-3 py-2"><i class="bi bi-x-circle-fill me-1"></i> DITOLAK</span>
+                                {% if archive.verified_by_kabid %}
+                                    <span class="badge-pill-enterprise badge-pill-success"><span class="pulse-dot"></span> Terverifikasi Kabid IV</span>
                                 {% else %}
-                                    <span class="badge bg-light text-secondary border rounded-pill px-3 py-2">{{ archive.status|upper }}</span>
+                                    <span class="badge-pill-enterprise badge-pill-warning"><span class="pulse-dot"></span> Menunggu Verifikasi</span>
                                 {% endif %}
+                                <div class="mt-1">
+                                    <span class="badge bg-info bg-opacity-20 text-info rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
+                                        {{ archive.get_status_display }}
+                                    </span>
+                                </div>
                             </td>
 
-                            <!-- Tombol Aksi -->
+                            <!-- Aksi Cepat -->
                             <td class="text-end">
-                                <div class="d-flex justify-content-end gap-1 flex-wrap align-items-center">
-                                    {% if archive.status != 'ditolak' %}
-                                     <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-outline-success btn-sm rounded-circle border shadow-sm me-1" title="Cetak Tanda Terima Berkas">
-                                         <i class="bi bi-printer-fill text-success"></i>
-                                     </a>
-                                     <a href="{% url 'archives:print_disposition' archive.pk %}" target="_blank" class="btn btn-outline-warning text-dark btn-sm rounded-circle border shadow-sm me-1" title="Cetak Lembar Disposisi Fisik untuk diisi manual oleh Ketua BAZNAS">
-                                         <i class="bi bi-file-earmark-text-fill text-warning"></i>
-                                     </a>
-                                     {% endif %}
+                                <div class="btn-group">
+                                    <!-- Slide-Over Drawer Quick View Trigger (HTMX) -->
+                                    <button type="button" 
+                                            hx-get="{% url 'archives:quick_detail' archive.pk %}"
+                                            hx-target="#drawerBodyContent"
+                                            @click="$store.drawer.open('Detail Arsip {{ archive.archive_number|escapejs }}', '{{ archive.get_archive_type_display|escapejs }}')"
+                                            class="btn btn-sm btn-outline-emerald rounded-start-pill px-2.5" 
+                                            title="Quick View Samping">
+                                        <i class="bi bi-layout-sidebar-reverse"></i>
+                                    </button>
 
-                                    {% if archive.status in 'baru,pending,masuk' %}
-                                        {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm %}
-                                            <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#verifyModalList{{ archive.pk }}">
-                                                <i class="bi bi-patch-check-fill me-1"></i> Verifikasi
-                                            </button>
-
-                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#rejectModal{{ archive.pk }}">
-                                                <i class="bi bi-x-lg me-1"></i> Tolak
-                                            </button>
-                                        {% endif %}
-                                     {% elif archive.status == 'terverifikasi' or archive.status == 'disposisi_pimpinan' %}
-                                         {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm or request.session.active_pov == 'kabid_4' or request.session.active_pov == 'fo' or request.session.active_pov == 'ketua' %}
-                                             {% if archive.latest_dispo and archive.latest_dispo.status != 'baru' %}
-                                                 <a href="{% url 'dispositions:detail' archive.latest_dispo.pk %}" class="btn btn-info btn-sm text-white rounded-pill px-3 fw-bold shadow-sm me-1" title="Disposisi Sudah Diisi oleh Kabid IV / Ketua">
-                                                     <i class="bi bi-eye-fill me-1"></i> Lihat Disposisi (Sudah Diisi)
-                                                 </a>
-                                             {% else %}
-                                                 <a href="{% url 'dispositions:create' archive.pk %}" class="btn btn-warning btn-sm text-dark rounded-pill px-3 fw-bold shadow-sm me-1" title="Input Catatan & Disposisi Ketua BAZNAS secara Digital">
-                                                     <i class="bi bi-pencil-square me-1"></i> + Disposisi
-                                                 </a>
-                                             {% endif %}
-                                         {% endif %}
-                                     {% endif %}
-                                     
-                                     {% if archive.status == 'terverifikasi' %}
-                                        {% if user.is_superuser or user.is_sdm or user.is_kabid %}
-                                            <form method="post" action="{% url 'archives:forward_to_ketua' archive.pk %}" class="d-inline">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Teruskan ke Ketua BAZNAS">
-                                                    <i class="bi bi-arrow-right-circle-fill me-1"></i> Teruskan ke Ketua
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    {% endif %}
-
-                                     {% if archive.latest_report or archive.status == 'selesai' %}
-                                         {% if archive.latest_report %}
-                                             <a href="{% url 'reports:detail' archive.latest_report.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Lihat LHP Selesai">
-                                                 <i class="bi bi-file-earmark-check-fill me-1"></i> LHP Selesai
-                                             </a>
-                                         {% else %}
-                                             <span class="badge bg-success text-white rounded-pill px-3 py-2 fw-bold">
-                                                 <i class="bi bi-check-circle-fill me-1"></i> TELAH DISALURKAN
-                                             </span>
-                                         {% endif %}
-                                     {% elif archive.latest_sppd %}
-                                         {% if archive.latest_dispo and user.is_superuser or archive.latest_dispo and user.is_waka_2 or archive.latest_dispo and user.is_kabid_2 or archive.latest_dispo and request.session.active_pov == 'waka_2' or archive.latest_dispo and request.session.active_pov == 'kabid_2' %}
-                                             <a href="{% url 'reports:create' archive.latest_dispo.pk %}?type=penyaluran" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="SPPD Terbit. Klik untuk Input LHP Hasil Tugas">
-                                                 <i class="bi bi-box-seam-fill me-1"></i> 🎁 Input LHP Penyaluran
-                                             </a>
-                                         {% else %}
-                                             <span class="badge bg-primary text-white rounded-pill px-3 py-2 fw-bold">
-                                                 <i class="bi bi-briefcase-fill me-1"></i> SPPD TERBIT
-                                             </span>
-                                         {% endif %}
-                                     {% elif archive.latest_st %}
-                                         {% if user.is_superuser or user.is_sdm or user.is_kabid_4 or request.session.active_pov == 'sdm' or request.session.active_pov == 'kabid_4' %}
-                                             <a href="{% url 'sppd_service:create_from_st' archive.latest_st.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" title="Surat Tugas Terbit. Buat SPPD Survei/Dinas">
-                                                 <i class="bi bi-file-earmark-plus-fill me-1"></i> + Buat SPPD
-                                             </a>
-                                         {% else %}
-                                             <span class="badge bg-info text-white rounded-pill px-3 py-2 fw-bold">
-                                                 <i class="bi bi-file-earmark-text-fill me-1"></i> SURAT TUGAS TERBIT
-                                             </span>
-                                         {% endif %}
-                                     {% elif archive.status in 'terverifikasi,didisposisikan,proses,sudah_ditugaskan,dalam_survei' %}
-                                         {% if archive.is_proposal_bantuan or archive.archive_type == 'proposal' %}
-                                             {% if user.is_waka_2 or user.is_kabid_2 or user.username == 'waka2' or user.username == 'kabid2' or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' or user.is_superuser and not request.session.active_pov %}
-                                             <div class="dropdown d-inline-block">
-                                                 <button class="btn btn-warning btn-sm rounded-pill px-3 fw-bold dropdown-toggle shadow-sm text-dark" type="button" data-bs-toggle="dropdown">
-                                                     <i class="bi bi-handbag-fill me-1"></i> Penanganan Bidang II
-                                                 </button>
-                                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2" style="z-index: 1080;">
-                                                     <li><h6 class="dropdown-header fw-bold text-dark mb-0"><i class="bi bi-gift-fill text-success me-1"></i>Opsi Penanganan Bantuan</h6></li>
-                                                     <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'surat_tugas:create_from_archive' archive.pk %}?st_type=survei"><i class="bi bi-geo-alt-fill text-warning me-2"></i>📋 1. Survei Lapangan (Buat ST/SPPD)</a></li>
-                                                     {% if archive.latest_dispo %}
-                                                         <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'reports:create' archive.latest_dispo.pk %}?type=penyaluran"><i class="bi bi-box-seam-fill text-success me-2"></i>🎁 2. Langsung Disalurkan (Input LHP Penyaluran)</a></li>
-                                                     {% else %}
-                                                         <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'dispositions:create' archive.pk %}"><i class="bi bi-box-seam-fill text-success me-2"></i>🎁 2. Langsung Disalurkan (Buat Disposisi Bidang II)</a></li>
-                                                     {% endif %}
-                                                 </ul>
-                                             </div>
-                                             {% else %}
-                                             <span class="badge bg-success text-white rounded-pill px-3 py-2"><i class="bi bi-handbag-fill me-1"></i> PROSES BIDANG II</span>
-                                             {% endif %}
-                                         {% else %}
-                                             <a href="{% url 'dispositions:create' archive.pk %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Buat Disposisi">
-                                                 <i class="bi bi-send-fill me-1"></i> + Disposisi
-                                             </a>
-                                         {% endif %}
-                                     {% endif %}
-
-                                    {% if user.is_superuser or archive.status in 'baru,pending,masuk' %}
-                                    <a href="{% url 'archives:edit' archive.pk %}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm text-dark" title="Edit">
-                                        <i class="bi bi-pencil me-1"></i> Edit
-                                    </a>
-                                    {% endif %}
-                                    
-                                    <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-light btn-sm rounded-circle border shadow-sm" title="Lihat Detail">
+                                    <!-- Detail Halaman Lengkap -->
+                                    <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-sm btn-outline-secondary px-2.5" title="Buka Detail Halaman">
                                         <i class="bi bi-eye"></i>
                                     </a>
+
+                                    <!-- Tanda Terima -->
+                                    <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-end-pill px-2.5" title="Cetak Tanda Terima">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
                                 </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-folder-x fs-1 d-block text-secondary opacity-50 mb-3"></i>
+                                <h5 class="fw-bold">Tidak Ada Arsip Dokumen</h5>
+                                <p class="small text-muted mb-0">Belum ada dokumen yang sesuai dengan filter atau kriteria pencarian saat ini.</p>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
-</form>
 
-{% for archive in archives %}
-    <div class="modal fade text-start" id="verifyModalList{{ archive.pk }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-                <form method="post" action="{% url 'archives:verify' archive.pk %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="verify_only">
-                    <div class="modal-header bg-success text-white border-0 py-3" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
-                        <h5 class="modal-title fw-bold fs-6">
-                            <i class="bi bi-patch-check-fill me-2"></i>Dokumen Telah Diverifikasi Siap Didisposisikan
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body p-4 text-start">
-                        <div class="text-center mb-3">
-                            <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle p-3 mb-2" style="width: 60px; height: 60px;">
-                                <i class="bi bi-patch-check-fill fs-2 text-success"></i>
-                            </div>
-                            <h6 class="fw-bold text-dark mb-1">Konfirmasi Verifikasi Dokumen</h6>
-                            <p class="text-secondary small mb-0">Dokumen akan diverifikasi dan disiapkan untuk disposisi Pimpinan BAZNAS.</p>
-                        </div>
-                        <div class="p-3 bg-light rounded-3 border mb-3">
-                            <span class="text-secondary d-block small fw-bold text-uppercase">Informasi Dokumen:</span>
-                            <strong class="text-primary d-block">{{ archive.archive_number|default:"Arsip Baru (Draft)" }}</strong>
-                            <span class="text-dark small d-block mt-1">{{ archive.title }}</span>
-                        </div>
-                        <div class="mb-2">
-                            <label for="v_note_{{ archive.pk }}" class="form-label fw-semibold small text-dark">Catatan Verifikasi (Opsional):</label>
-                            <textarea name="verification_note" id="v_note_{{ archive.pk }}" rows="2" class="form-control form-control-sm rounded-3" placeholder="Tuliskan catatan verifikasi jika ada..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-top bg-light py-2" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
-                        <a href="{% url 'archives:print_disposition' archive.pk %}" target="_blank" class="btn btn-warning text-dark fw-bold rounded-pill px-3 btn-sm me-auto shadow-sm" title="Otomatis Verifikasi dan Cetak Lembar Disposisi Fisik untuk Ketua BAZNAS">
-                            <i class="bi bi-printer-fill me-1"></i> Cetak Disposisi Ketua
-                        </a>
-                        <button type="button" class="btn btn-light fw-semibold rounded-pill px-3 btn-sm border" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success fw-bold px-4 rounded-pill btn-sm shadow-sm">
-                            <i class="bi bi-patch-check-fill me-1"></i> Verifikasi Dokumen
-                        </button>
-                    </div>
-                </form>
+            <!-- Pagination Bar -->
+            {% if page_obj.has_other_pages %}
+            <div class="p-3 border-top bg-body-tertiary d-flex justify-content-between align-items-center flex-wrap gap-2 rounded-bottom-4">
+                <span class="text-muted small">
+                    Menampilkan {{ page_obj.start_index }} s.d. {{ page_obj.end_index }} dari {{ page_obj.paginator.count }} dokumen arsip.
+                </span>
+
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0 gap-1">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link rounded-circle px-2" href="?page={{ page_obj.previous_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}&status={{ status_filter|default:'all' }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link rounded-circle px-3 bg-emerald border-emerald">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link rounded-circle px-3 text-dark" href="?page={{ num }}{% if current_type %}&type={{ current_type }}{% endif %}&status={{ status_filter|default:'all' }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link rounded-circle px-2" href="?page={{ page_obj.next_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}&status={{ status_filter|default:'all' }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
             </div>
+            {% endif %}
         </div>
-    </div>
-
-    <div class="modal fade" id="rejectModal{{ archive.pk }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-                <form method="post" action="{% url 'archives:reject' archive.pk %}">
-                    {% csrf_token %}
-                    <div class="modal-header border-bottom">
-                        <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Tolak Dokumen</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body py-3 text-start">
-                        <p class="text-secondary small mb-3">Dokumen: <strong>{{ archive.archive_number|default:archive.title }}</strong></p>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Alasan Penolakan <span class="text-danger">*</span></label>
-                            <textarea name="rejection_note" class="form-control" rows="4" required placeholder="Jelaskan alasan mengapa dokumen ditolak..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-top">
-                        <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger fw-bold px-4 rounded-3">
-                            <i class="bi bi-x-lg me-1"></i> Ya, Tolak Dokumen
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-{% endfor %}
-
-{% endblock %}
-
-{% block extra_js %}
-{% if request.GET.auto_print %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var printUrl = "{% url 'archives:print_disposition' request.GET.auto_print %}";
-        window.open(printUrl, "_blank");
-    });
-</script>
-{% endif %}
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        if (typeof jQuery !== 'undefined') {
-            $(document).ready(function () {
-                $.fn.dataTable.ext.errMode = 'none';
-
-                var idLanguage = {
-                    "emptyTable": "Tidak ada data yang tersedia pada tabel ini",
-                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-                    "infoEmpty": "Menampilkan 0 sampai 0 dari 0 entri",
-                    "infoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
-                    "lengthMenu": "Tampilkan _MENU_ entri",
-                    "loadingRecords": "Sedang memuat...",
-                    "processing": "Sedang memproses...",
-                    "search": "Cari:",
-                    "zeroRecords": "Tidak ditemukan data yang sesuai",
-                    "paginate": {
-                        "first": "Pertama",
-                        "last": "Terakhir",
-                        "next": "Selanjutnya",
-                        "previous": "Sebelumnya"
-                    }
-                };
-
-                if ($('#archiveTable').length > 0 && !$.fn.DataTable.isDataTable('#archiveTable')) {
-                    var table = $('#archiveTable').DataTable({
-                        language: idLanguage,
-                        pageLength: 10,
-                        ordering: true,
-                        order: [], 
-                        columnDefs: [
-                            { orderable: false, targets: [0, -1] } 
-                        ]
-                    });
-
-                    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-                    const batchActionContainer = document.getElementById('batchActionContainer');
-                    const selectedCountSpan = document.getElementById('selectedCount');
-
-                    function updateBatchUI() {
-                        const checkedCount = table.$('.archive-checkbox:checked').length;
-                        if(selectedCountSpan) selectedCountSpan.textContent = checkedCount;
-                        if (batchActionContainer) {
-                            if (checkedCount > 0) {
-                                batchActionContainer.classList.remove('d-none');
-                            } else {
-                                batchActionContainer.classList.add('d-none');
-                            }
-                        }
-                    }
-
-                    if (selectAllCheckbox) {
-                        selectAllCheckbox.addEventListener('change', function() {
-                            const isChecked = this.checked;
-                            table.$('.archive-checkbox').each(function() {
-                                this.checked = isChecked;
-                            });
-                            updateBatchUI();
-                        });
-                    }
-
-                    $('#archiveTable tbody').on('change', '.archive-checkbox', function() {
-                        updateBatchUI();
-                    });
-                }
-            });
-        }
-    });
-</script>
+    </form>
+</div>
 {% endblock %}

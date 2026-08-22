@@ -1,111 +1,151 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Detail SPPD - BAZNAS{% endblock %}
+{% block title %}Detail SPPD {{ sppd.sppd_number }} - BAZNAS{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'sppd_service:list' %}" class="text-decoration-none text-primary">SPPD</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Detail</li>
-            </ol>
-        </nav>
-        <h4 class="fw-bold">Detail SPPD</h4>
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'sppd_service:list' %}" class="text-white text-opacity-75 text-decoration-none"><i class="bi bi-pin-map me-1"></i>SPPD</a></li>
+                    <li class="breadcrumb-item text-white active" aria-current="page">Detail Lembar SPPD</li>
+                </ol>
+            </nav>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                    <i class="bi bi-file-earmark-text-fill me-1 text-warning"></i> Surat Perintah Perjalanan Dinas
+                </span>
+                {% if sppd.status == 'selesai' %}
+                    <span class="badge badge-node-verified rounded-pill px-3 py-1 fw-bold"><i class="bi bi-check-all me-1"></i> SELESAI & TEREKAP</span>
+                {% elif sppd.is_cancelled %}
+                    <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold">DIBATALKAN</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold"><i class="bi bi-clock-history me-1"></i> {{ sppd.get_status_display|upper }}</span>
+                {% endif %}
+            </div>
+            <h3 class="fw-extrabold text-white mb-1 font-mono" style="letter-spacing: -0.02em;">{{ sppd.sppd_number }}</h3>
+            <p class="text-white text-opacity-80 mb-0 small">
+                Tujuan: <strong>{{ sppd.destination }}</strong> | Jenis: <strong>{{ sppd.get_sppd_type_display }}</strong>
+            </p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                {% if not sppd.is_cancelled %}
+                <a href="{% url 'sppd_service:print' %}?ids={{ sppd.id }}" target="_blank" class="btn btn-warning text-dark rounded-pill px-4 py-2.5 fw-bold shadow-sm">
+                    <i class="bi bi-printer-fill me-2"></i> Cetak SPPD Resmi
+                </a>
+                {% endif %}
+                <a href="{% url 'sppd_service:list' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row justify-content-center">
+<div class="row g-4 justify-content-center mb-5">
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm p-4">
-            <table class="table table-borderless mb-4">
-                <tr>
-                    <td class="text-secondary fw-semibold" style="width: 180px;">Nomor SPPD</td>
-                    <td class="fw-bold">{{ sppd.sppd_number }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Tempat Tujuan</td>
-                    <td>{{ sppd.destination }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Tanggal Berangkat</td>
-                    <td>{{ sppd.departure_date|date:"d/m/Y" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Tanggal Kembali</td>
-                    <td>{{ sppd.return_date|date:"d/m/Y" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Alat Angkut</td>
-                    <td>{{ sppd.transportation }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Pegawai yang Diperintahkan</td>
-                    <td>
-                        {% for emp in sppd.assigned_employees.all %}
-                        <span class="badge bg-secondary me-1">{{ emp.full_name }}</span>
-                        {% empty %}
-                        <span class="text-muted">-</span>
-                        {% endfor %}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Pengikut</td>
-                    <td>
-                        {% for emp in sppd.followers.all %}
-                        <span class="badge bg-info me-1">{{ emp.full_name }}</span>
-                        {% empty %}
-                        <span class="text-muted">-</span>
-                        {% endfor %}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Dibuat oleh</td>
-                    <td>{{ sppd.created_by.username|default:"-" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-secondary fw-semibold">Surat Tugas</td>
-                    <td>
-                        {% if sppd.surat_tugas %}
-                        <a href="#" class="text-decoration-none fw-bold text-primary">
-                            {{ sppd.surat_tugas.nomor_surat }}
-                        </a>
-                        <br><small class="text-muted">{{ sppd.surat_tugas.tentang }}</small>
-                        {% else %}
-                        <span class="text-muted">-</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% if sppd.is_cancelled %}
-                <tr>
-                    <td class="text-secondary fw-semibold">Status</td>
-                    <td><span class="badge bg-danger text-white rounded-pill px-3">DIBATALKAN</span></td>
-                </tr>
-                {% endif %}
-            </table>
+        <div class="card-enterprise p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                <h5 class="fw-bold text-emerald mb-0"><i class="bi bi-file-earmark-person-fill me-2 text-success"></i>Informasi Lembar Penugasan SPPD</h5>
+                <span class="badge badge-node-st rounded-pill px-3 py-1.5 fw-bold">Tahap {{ sppd.tahap }}</span>
+            </div>
+
+            <div class="table-responsive mb-4">
+                <table class="table table-hover align-middle mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-secondary fw-semibold py-3" style="width: 200px;"><i class="bi bi-hash me-2 text-primary"></i>Nomor SPPD Resmi</td>
+                            <td class="fw-bold font-mono text-emerald fs-6 py-3">{{ sppd.sppd_number }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-geo-alt-fill me-2 text-danger"></i>Tempat / Lokasi Tujuan</td>
+                            <td class="fw-bold py-3">{{ sppd.destination }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-journal-text me-2 text-info"></i>Maksud / Perjalanan Dinas</td>
+                            <td class="py-3" style="white-space: pre-wrap;">{{ sppd.purpose }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-calendar-event me-2 text-warning"></i>Jadwal Pelaksanaan</td>
+                            <td class="py-3 fw-semibold">
+                                <i class="bi bi-calendar-check me-1 text-emerald"></i>{{ sppd.departure_date|date:"d F Y" }} 
+                                <span class="text-secondary mx-2">s.d.</span> 
+                                <i class="bi bi-calendar-x me-1 text-danger"></i>{{ sppd.return_date|date:"d F Y" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-car-front-fill me-2 text-primary"></i>Alat Transportasi</td>
+                            <td class="py-3 fw-semibold">{{ sppd.transportation }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-people-fill me-2 text-success"></i>Pegawai Diperintahkan</td>
+                            <td class="py-3">
+                                <div class="d-flex flex-wrap gap-1.5">
+                                    {% for emp in sppd.assigned_employees.all %}
+                                    <span class="badge-employee-tag"><i class="bi bi-person-fill me-1 text-emerald"></i>{{ emp.full_name }}</span>
+                                    {% empty %}
+                                    <span class="text-muted small">-</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-person-plus me-2 text-secondary"></i>Pengikut Lapangan</td>
+                            <td class="py-3">
+                                <div class="d-flex flex-wrap gap-1.5">
+                                    {% for emp in sppd.followers.all %}
+                                    <span class="badge bg-secondary text-white rounded-pill px-3 py-1 small fw-bold">{{ emp.full_name }}</span>
+                                    {% empty %}
+                                    <span class="text-muted small">Tidak ada pengikut</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-file-earmark-word me-2 text-primary"></i>Referensi Surat Tugas</td>
+                            <td class="py-3">
+                                {% if sppd.surat_tugas %}
+                                <a href="#" class="text-decoration-none fw-bold text-emerald">
+                                    <i class="bi bi-file-earmark-check me-1"></i>{{ sppd.surat_tugas.nomor_surat }}
+                                </a>
+                                <br><small class="text-secondary">{{ sppd.surat_tugas.tentang }}</small>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-person-circle me-2 text-secondary"></i>Diterbitkan Oleh</td>
+                            <td class="py-3 fw-bold">{{ sppd.created_by.username|default:"Front Office BAZNAS" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             {% if sppd.disposition and sppd.disposition.archive and sppd.disposition.archive.latest_report %}
             {% with rep=sppd.disposition.archive.latest_report %}
-            <div class="mt-4 p-4 rounded-4 bg-success bg-opacity-10 border border-success">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold text-success mb-0"><i class="bi bi-file-earmark-check-fill me-2"></i>Rekap Data Laporan Hasil SPPD (Selesai)</h6>
-                    <span class="badge bg-success text-white rounded-pill px-3 py-1">LHP SELESAI</span>
+            <div class="card-enterprise p-4 mb-4" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.05) 100%); border-left: 4px solid var(--color-emerald-600) !important;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-emerald mb-0"><i class="bi bi-file-earmark-check-fill me-2 text-success"></i>Rekap Laporan Hasil Pelaksanaan (LHP Selesai)</h6>
+                    <span class="badge badge-node-verified rounded-pill px-3 py-1">LHP TEREKAP</span>
                 </div>
-                <p class="mb-1 fw-bold text-dark">📋 Nomor LHP: {{ rep.report_number }}</p>
-                <p class="mb-1 text-secondary small">Judul Laporan: <strong>{{ rep.title }}</strong></p>
-                <div class="p-3 bg-white rounded-3 border my-2">
-                    <span class="d-block text-uppercase fw-bold text-muted small" style="font-size: 0.65rem;">Uraian Hasil Pelaksanaan:</span>
-                    <p class="mb-0 text-dark small" style="white-space: pre-wrap;">{{ rep.content }}</p>
+                <p class="mb-1 fw-bold text-emerald font-mono">📋 Nomor LHP: {{ rep.report_number }}</p>
+                <p class="mb-2 text-secondary small">Judul Laporan: <strong>{{ rep.title }}</strong></p>
+                <div class="p-3 card-enterprise mb-3" style="background-color: var(--card-bg);">
+                    <span class="d-block text-uppercase fw-bold text-muted small mb-1" style="font-size: 0.7rem;">Uraian Hasil Pelaksanaan & Catatan Lapangan:</span>
+                    <p class="mb-0 text-primary small" style="white-space: pre-wrap; line-height: 1.6;">{{ rep.content }}</p>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <small class="text-muted"><i class="bi bi-clock me-1"></i>Pelaporan: {{ rep.created_at|date:"d M Y, H:i" }} WIB</small>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-secondary"><i class="bi bi-clock me-1"></i>Tanggal Pelaporan: {{ rep.created_at|date:"d M Y, H:i" }} WIB</small>
                     <div class="d-flex gap-2">
-                        <a href="{% url 'reports:detail' rep.pk %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
-                            <i class="bi bi-eye me-1"></i> Detail Rekap Laporan
+                        <a href="{% url 'reports:detail' rep.pk %}" class="btn btn-sm btn-enterprise-primary rounded-pill px-3 fw-bold">
+                            <i class="bi bi-eye-fill me-1"></i> Lihat Detail LHP
                         </a>
                         {% if rep.file %}
                         <a href="{{ rep.file.url }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold">
-                            <i class="bi bi-download me-1"></i> Berkas Laporan
+                            <i class="bi bi-download me-1"></i> Download Berkas LHP
                         </a>
                         {% endif %}
                     </div>
@@ -113,17 +153,18 @@
             </div>
             {% endwith %}
             {% endif %}
+
             {% if sppd.additional_attachments.exists or sppd.report_file %}
-            <div class="mt-4 p-4 rounded-4 bg-light border">
-                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-paperclip me-2 text-primary"></i>Lampiran & Foto Dokumentasi LHP SPPD</h6>
+            <div class="card-enterprise p-4 mb-4" style="background-color: var(--surface-hover);">
+                <h6 class="fw-bold text-emerald mb-3"><i class="bi bi-paperclip me-2 text-primary"></i>Lampiran & Foto Dokumentasi LHP Lapangan</h6>
                 <div class="d-flex flex-wrap gap-2">
                     {% if sppd.report_file %}
-                        <a href="{{ sppd.report_file.url }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 py-2 fw-bold">
-                            <i class="bi bi-file-earmark-image me-1"></i> File Utama LHP
+                        <a href="{{ sppd.report_file.url }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3.5 py-2 fw-bold">
+                            <i class="bi bi-file-earmark-image me-1"></i> Foto / Berkas Utama LHP
                         </a>
                     {% endif %}
                     {% for att in sppd.additional_attachments.all %}
-                        <a href="{{ att.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 fw-bold">
+                        <a href="{{ att.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3.5 py-2 fw-bold">
                             <i class="bi bi-paperclip me-1"></i> {{ att.title|default:att.file.name|truncatechars:25 }}
                         </a>
                     {% endfor %}
@@ -131,22 +172,26 @@
             </div>
             {% endif %}
 
-            <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                {% if not sppd.is_cancelled %}
-                <a href="{% url 'sppd_service:edit' sppd.pk %}" class="btn btn-warning px-4 fw-semibold">
-                    <i class="bi bi-pencil me-2"></i> Edit
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                <a href="{% url 'sppd_service:list' %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar SPPD
                 </a>
-                <form method="post" action="{% url 'sppd_service:cancel' sppd.pk %}" onsubmit="return confirm('Batalkan SPPD {{ sppd.sppd_number|escapejs }}?')">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger px-4 fw-semibold">
-                        <i class="bi bi-x-circle me-2"></i> Cancel
-                    </button>
-                </form>
-                <a href="{% url 'sppd_service:print' %}?ids={{ sppd.id }}" target="_blank" class="btn btn-success px-4 fw-semibold">
-                    <i class="bi bi-printer me-2"></i> Cetak
-                </a>
-                {% endif %}
-                <a href="{% url 'sppd_service:list' %}" class="btn btn-light px-4 fw-semibold">Kembali</a>
+                <div class="d-flex gap-2">
+                    {% if not sppd.is_cancelled %}
+                    <a href="{% url 'sppd_service:edit' sppd.pk %}" class="btn btn-warning text-dark px-4 rounded-pill fw-bold shadow-sm">
+                        <i class="bi bi-pencil-fill me-1"></i> Edit SPPD
+                    </a>
+                    <form method="post" action="{% url 'sppd_service:cancel' sppd.pk %}" class="d-inline" onsubmit="return confirm('Batalkan SPPD {{ sppd.sppd_number|escapejs }}?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger px-4 rounded-pill fw-semibold">
+                            <i class="bi bi-x-circle me-1"></i> Batalkan
+                        </button>
+                    </form>
+                    <a href="{% url 'sppd_service:print' %}?ids={{ sppd.id }}" target="_blank" class="btn btn-enterprise-primary px-4 rounded-pill fw-bold shadow-sm">
+                        <i class="bi bi-printer-fill me-1"></i> Cetak SPPD
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

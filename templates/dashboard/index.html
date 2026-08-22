@@ -1,48 +1,64 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Dashboard Monitoring - SIMAP BAZNAS{% endblock %}
+{% block title %}Dashboard Command Center - SIMAP BAZNAS Kab. Tangerang{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Futuristic Cyber-Glass Theme Elements */
+    /* ENTERPRISE COMMAND CENTER DASHBOARD STYLES */
     .dashboard-header-banner {
-        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-        border-radius: 16px;
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #064E3B 100%);
+        border-radius: 20px;
         color: #FFFFFF;
-        padding: 24px 28px;
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.35);
+        padding: 28px 32px;
+        box-shadow: 0 12px 30px -5px rgba(6, 78, 59, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    .dashboard-header-banner::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(0,0,0,0) 70%);
+        pointer-events: none;
     }
 
-    
-    .stat-card-futuristic {
+    .stat-card-enterprise-glow {
         background: var(--card-bg, #FFFFFF);
         border: 1px solid var(--border-color, #E2E8F0);
-        border-radius: 14px;
-        padding: 18px 20px;
-        transition: all 0.25s ease-in-out;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        position: relative;
+        overflow: hidden;
     }
-    .stat-card-futuristic:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    .stat-card-enterprise-glow:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(16, 185, 129, 0.12);
+        border-color: rgba(16, 185, 129, 0.4) !important;
     }
     
-    .stat-icon-wrapper {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+    .stat-icon-box-lg {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
+        font-size: 1.5rem;
+        box-shadow: inset 0 0 12px rgba(255,255,255,0.2);
     }
-    
-    /* 1. Transparan Scrollbar pada Timeline Aktivitas & Proposal Tracker */
+
+    /* Transparan Scrollbar */
     .activity-timeline::-webkit-scrollbar,
     .overflow-auto::-webkit-scrollbar,
     .table-responsive::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
     }
     .activity-timeline::-webkit-scrollbar-track,
     .overflow-auto::-webkit-scrollbar-track,
@@ -52,7 +68,7 @@
     .activity-timeline::-webkit-scrollbar-thumb,
     .overflow-auto::-webkit-scrollbar-thumb,
     .table-responsive::-webkit-scrollbar-thumb {
-        background: rgba(148, 163, 184, 0.35) !important;
+        background: rgba(148, 163, 184, 0.3) !important;
         border-radius: 4px;
     }
     .activity-timeline::-webkit-scrollbar-thumb:hover,
@@ -77,7 +93,7 @@
     }
     .timeline-item-futuristic {
         position: relative;
-        margin-bottom: 20px;
+        margin-bottom: 18px;
         padding-left: 18px;
     }
     .timeline-item-futuristic::before {
@@ -89,21 +105,22 @@
         height: 10px;
         border-radius: 50%;
         background: #10B981;
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
     }
-    .timeline-item-futuristic.blue::before { background: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-    .timeline-item-futuristic.purple::before { background: #8B5CF6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
-    .timeline-item-futuristic.orange::before { background: #F59E0B; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+    .timeline-item-futuristic.blue::before { background: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
+    .timeline-item-futuristic.purple::before { background: #8B5CF6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25); }
+    .timeline-item-futuristic.orange::before { background: #F59E0B; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25); }
 
-    /* 3. Clickable Proposal Tracker Cards */
+    /* Clickable Proposal Tracker Cards */
     .tracker-hover-card {
-        transition: all 0.2s ease-in-out;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
+        border-radius: 14px !important;
     }
     .tracker-hover-card:hover {
-        transform: translateY(-2px);
-        border-color: #10B981 !important;
-        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.15) !important;
+        transform: translateY(-3px);
+        border-color: var(--color-emerald-500, #10B981) !important;
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15) !important;
     }
 
     /* Animated Flowing Line Tracker */
@@ -135,27 +152,18 @@
         box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
     }
 
-    /* Animation: Garis Maju Dari Tahap Masuk Saat Kursor Hover Ke Dokumen */
     .tracker-hover-card:hover .pipeline-line-progress {
         animation: progressDraw 0.85s cubic-bezier(0.25, 1, 0.5, 1) forwards, flowGradient 3s linear infinite;
     }
 
     @keyframes progressDraw {
-        0% {
-            width: 0% !important;
-            opacity: 0.5;
-        }
-        100% {
-            width: var(--target-progress, 100%) !important;
-            opacity: 1;
-        }
+        0% { width: 0% !important; opacity: 0.5; }
+        100% { width: var(--target-progress, 100%) !important; opacity: 1; }
     }
-
     @keyframes flowGradient {
         0% { background-position: 0% 50%; }
         100% { background-position: 100% 50%; }
     }
-
 
     .pipeline-steps-wrapper {
         position: relative;
@@ -190,7 +198,6 @@
         70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
         100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
-
     @keyframes pulseBlue {
         0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); transform: scale(1.3); }
         70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); transform: scale(1.4); }
@@ -205,14 +212,19 @@
         display: block;
     }
 
-    
     /* Agenda Item Line Indicator */
     .agenda-card-item {
         border-left: 4px solid #10B981;
         background: var(--surface-alt, #F8FAFC);
-        border-radius: 8px;
-        padding: 10px 14px;
+        border-radius: 10px;
+        padding: 12px 14px;
         margin-bottom: 10px;
+        transition: all 0.2s ease;
+    }
+    .agenda-card-item:hover {
+        transform: translateX(3px);
+        background: var(--card-bg, #FFFFFF);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     .agenda-card-item.blue { border-left-color: #3B82F6; }
     .agenda-card-item.orange { border-left-color: #F59E0B; }
@@ -220,31 +232,23 @@
 
     /* Glass Action Cards */
     .quick-action-card {
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 14px 16px;
         background: var(--card-bg, #FFFFFF);
         border: 1px solid var(--border-color, #E2E8F0);
-        transition: all 0.2s ease;
+        transition: all 0.25s ease;
     }
     .quick-action-card:hover {
         border-color: #10B981;
-        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.12);
     }
 
-    /* 7. Corporate Green Footer */
-    .dashboard-footer-banner {
-        background: linear-gradient(135deg, #046C4E 0%, #057A55 100%);
-        border-radius: 14px;
-        color: #FFFFFF;
-        padding: 16px 24px;
-        margin-top: 24px;
-    }
-
-    /* Futuristic Cyber-Glass Theme Elements for SLA Dashboard */
+    /* SLA Dashboard Cards */
     .sla-cyber-card {
         background: var(--card-bg, #FFFFFF);
         border: 1px solid var(--border-color, #E2E8F0);
-        border-radius: 16px;
+        border-radius: 20px;
         box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
         transition: all 0.3s ease;
     }
@@ -252,17 +256,16 @@
     .sla-bidang-item {
         background: var(--surface-alt, #F8FAFC);
         border: 1px solid var(--border-color, #E2E8F0);
-        border-radius: 12px;
-        padding: 12px 16px;
+        border-radius: 14px;
+        padding: 14px 18px;
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
     }
-
     .sla-bidang-item:hover {
         transform: translateX(4px);
         border-color: rgba(16, 185, 129, 0.5) !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
     }
 
     .sla-progress-track {
@@ -273,33 +276,10 @@
         position: relative;
     }
 
-    .sla-progress-bar-neon-1 {
-        background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
-        box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
-        border-radius: 10px;
-        transition: width 1s ease-in-out;
-    }
-
-    .sla-progress-bar-neon-2 {
-        background: linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%);
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
-        border-radius: 10px;
-        transition: width 1s ease-in-out;
-    }
-
-    .sla-progress-bar-neon-3 {
-        background: linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%);
-        box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
-        border-radius: 10px;
-        transition: width 1s ease-in-out;
-    }
-
-    .sla-progress-bar-neon-4 {
-        background: linear-gradient(90deg, #8B5CF6 0%, #A78BFA 100%);
-        box-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
-        border-radius: 10px;
-        transition: width 1s ease-in-out;
-    }
+    .sla-progress-bar-neon-1 { background: linear-gradient(90deg, #10B981 0%, #34D399 100%); box-shadow: 0 0 10px rgba(16, 185, 129, 0.6); border-radius: 10px; }
+    .sla-progress-bar-neon-2 { background: linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%); box-shadow: 0 0 10px rgba(59, 130, 246, 0.6); border-radius: 10px; }
+    .sla-progress-bar-neon-3 { background: linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%); box-shadow: 0 0 10px rgba(245, 158, 11, 0.6); border-radius: 10px; }
+    .sla-progress-bar-neon-4 { background: linear-gradient(90deg, #8B5CF6 0%, #A78BFA 100%); box-shadow: 0 0 10px rgba(139, 92, 246, 0.6); border-radius: 10px; }
 
     .sla-badge-glass-emerald {
         background: rgba(16, 185, 129, 0.12);
@@ -308,9 +288,8 @@
         border-radius: 30px;
         padding: 6px 16px;
         font-size: 0.8rem;
-        font-weight: 600;
+        font-weight: 700;
     }
-
     .sla-badge-glass-blue {
         background: rgba(59, 130, 246, 0.12);
         color: #3B82F6;
@@ -318,35 +297,48 @@
         border-radius: 30px;
         padding: 6px 16px;
         font-size: 0.8rem;
-        font-weight: 600;
+        font-weight: 700;
     }
 
-    .sla-title-text {
-        color: var(--text-primary, #111827) !important;
-    }
-
-    .sla-sub-text {
-        color: var(--text-secondary, #6B7280) !important;
-    }
+    .sla-title-text { color: var(--text-primary, #111827) !important; }
+    .sla-sub-text { color: var(--text-secondary, #6B7280) !important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- 7. Corporate Green Header Banner -->
+<!-- HEADER BANNER ENTERPRISE COMMAND CENTER -->
 <div class="dashboard-header-banner mb-4">
-    <div class="row align-items-center">
-        <div class="col-md-8">
-            <h4 class="fw-bold mb-1 d-flex align-items-center gap-2">
-                Selamat Datang, {{ user.employee.full_name|default:user.username }} 👋
-            </h4>
-            <p class="mb-0 text-white-50 small">
-                Berikut adalah ringkasan aktivitas dan monitoring proses pada SIMAP BAZNAS Kabupaten Tangerang secara realtime.
+    <div class="row align-items-center position-relative" style="z-index: 2;">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                    <i class="bi bi-shield-lock-fill me-1"></i> SIMAP ENTERPRISE v2.5 COMMAND CENTER
+                </span>
+                <span class="badge bg-emerald-subtle text-emerald rounded-pill px-3 py-1 fw-bold border border-emerald-subtle" style="font-size: 0.72rem;">
+                    <span class="pulse-dot bg-success me-1"></span> Live Monitoring Realtime
+                </span>
+            </div>
+            <h2 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">
+                Selamat Datang Kembali, {{ user.employee.full_name|default:user.username }} 👋
+            </h2>
+            <p class="mb-0 text-white opacity-80 small" style="max-width: 650px;">
+                Pusat Kontrol Operasional Sistem Informasi Manajemen Arsip & Monitoring Disposisi BAZNAS Kabupaten Tangerang.
             </p>
         </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <span class="badge bg-white bg-opacity-20 text-white border border-white-50 px-3 py-2 rounded-pill small fw-semibold">
-                <i class="bi bi-calendar3 me-1"></i> {{ today|date:"l, d F Y" }}
-            </span>
+        <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+            <div class="d-inline-flex flex-column align-items-lg-end gap-2">
+                <span class="badge bg-white bg-opacity-15 text-white border border-white border-opacity-25 px-4 py-2 rounded-pill small fw-bold shadow-sm backdrop-blur">
+                    <i class="bi bi-calendar3 text-warning me-2"></i> {{ today|date:"l, d F Y" }}
+                </span>
+                <div class="d-flex gap-1">
+                    <a href="{% url 'archives:upload' %}" class="btn btn-light btn-sm rounded-pill px-3 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
+                        <i class="bi bi-plus-lg me-1"></i> Upload Arsip
+                    </a>
+                    <a href="{% url 'agendas:list' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 fw-bold">
+                        <i class="bi bi-calendar-event me-1"></i> Agenda
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -374,79 +366,80 @@
 <div class="row g-3 mb-4">
     <div class="col-xl-2 col-md-4 col-6">
         <a href="{% url 'archives:list' %}?type=surat_masuk" class="text-decoration-none">
-            <div class="stat-card-futuristic">
+            <div class="stat-card-enterprise">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-wrapper" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">
+                    <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">
                         <i class="bi bi-envelope-paper-fill"></i>
                     </div>
+                    <span class="badge-pill-enterprise badge-pill-success"><span class="pulse-dot"></span> Live</span>
                 </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ surat_masuk_count|default:0 }}</h3>
-                <span class="text-secondary small fw-semibold">Surat Masuk</span>
+                <h3 class="fw-bold mb-0 code-num">{{ surat_masuk_count|default:0 }}</h3>
+                <span class="text-muted small fw-semibold">Surat Masuk</span>
             </div>
         </a>
     </div>
 
     <div class="col-xl-2 col-md-4 col-6">
         <a href="{% url 'archives:list' %}?type=proposal" class="text-decoration-none">
-            <div class="stat-card-futuristic">
+            <div class="stat-card-enterprise">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-wrapper" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">
+                    <div class="stat-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #3B82F6;">
                         <i class="bi bi-folder-fill"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ proposal_aktif_count|default:0 }}</h3>
-                <span class="text-secondary small fw-semibold">Proposal Aktif</span>
+                <h3 class="fw-bold mb-0 code-num">{{ proposal_aktif_count|default:0 }}</h3>
+                <span class="text-muted small fw-semibold">Proposal Aktif</span>
             </div>
         </a>
     </div>
 
     <div class="col-xl-2 col-md-4 col-6">
         <a href="{% url 'agendas:list' %}" class="text-decoration-none">
-            <div class="stat-card-futuristic">
+            <div class="stat-card-enterprise">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-wrapper" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">
+                    <div class="stat-icon-box" style="background: rgba(139, 92, 246, 0.15); color: #8B5CF6;">
                         <i class="bi bi-calendar-event-fill"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ today_agendas_count|default:0 }}</h3>
-                <span class="text-secondary small fw-semibold">Agenda Hari Ini</span>
+                <h3 class="fw-bold mb-0 code-num">{{ today_agendas_count|default:0 }}</h3>
+                <span class="text-muted small fw-semibold">Agenda Hari Ini</span>
             </div>
         </a>
     </div>
 
     <div class="col-xl-2 col-md-4 col-6">
         <a href="{% url 'sppd_service:list' %}" class="text-decoration-none">
-            <div class="stat-card-futuristic">
+            <div class="stat-card-enterprise">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-wrapper" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
+                    <div class="stat-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
                         <i class="bi bi-car-front-fill"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ sppd_berjalan_count|default:0 }}</h3>
-                <span class="text-secondary small fw-semibold">SPPD Berjalan</span>
+                <h3 class="fw-bold mb-0 code-num">{{ sppd_berjalan_count|default:0 }}</h3>
+                <span class="text-muted small fw-semibold">SPPD Berjalan</span>
             </div>
         </a>
     </div>
 
     <div class="col-xl-2 col-md-4 col-6">
         <a href="{% url 'reports:index' %}" class="text-decoration-none">
-            <div class="stat-card-futuristic">
+            <div class="stat-card-enterprise">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-wrapper" style="background: rgba(234, 179, 8, 0.15); color: #EAB308;">
+                    <div class="stat-icon-box" style="background: rgba(234, 179, 8, 0.15); color: #EAB308;">
                         <i class="bi bi-file-earmark-diff-fill"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ menunggu_laporan_count|default:0 }}</h3>
-                <span class="text-secondary small fw-semibold">Menunggu Laporan</span>
+                <h3 class="fw-bold mb-0 code-num">{{ menunggu_laporan_count|default:0 }}</h3>
+                <span class="text-muted small fw-semibold">Menunggu Laporan</span>
             </div>
         </a>
     </div>
 
     <div class="col-xl-2 col-md-4 col-6">
         <a href="{% url 'archives:list' %}" class="text-decoration-none">
-            <div class="stat-card-futuristic">
+            <div class="stat-card-enterprise">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <div class="stat-icon-wrapper" style="background: rgba(16, 185, 129, 0.2); color: #059669;">
+                    <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.2); color: #059669;">
                         <i class="bi bi-check-circle-fill"></i>
                     </div>
                 </div>

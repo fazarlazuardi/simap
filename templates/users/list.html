@@ -1,105 +1,265 @@
 {% extends 'layouts/base.html' %}
+{% load static %}
 
-{% block title %}Manajemen Pengguna - BAZNAS{% endblock %}
+{% block title %}Kelola Pengguna & Hak Akses System - BAZNAS Kab. Tangerang{% endblock %}
+
+{% block extra_css %}
+<style>
+    .custom-input { border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-primary); }
+    .custom-input:focus { border-color: var(--color-emerald-600); box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.15); }
+    
+    .role-badge-admin { background-color: #DC2626; color: #FFFFFF; font-weight: 800; }
+    .role-badge-pimpinan { background-color: #8B5CF6; color: #FFFFFF; font-weight: 800; }
+    .role-badge-kabid { background-color: #2563EB; color: #FFFFFF; font-weight: 700; }
+    .role-badge-sdm { background-color: #D97706; color: #FFFFFF; font-weight: 700; }
+    .role-badge-staf { background-color: #10B981; color: #FFFFFF; font-weight: 700; }
+    .role-badge-default { background-color: #6B7280; color: #FFFFFF; font-weight: 700; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12 d-flex justify-content-between align-items-center">
-        <div>
-            <h4 class="fw-bold mb-1">Manajemen Pengguna</h4>
-            <p class="text-secondary small">Kelola hak akses dan akun pengguna sistem arsip BAZNAS.</p>
+<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                    <i class="bi bi-shield-lock-fill me-1 text-warning"></i> Keamanan & Manajemen Akses Pengguna
+                </span>
+            </div>
+            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Kelola Akses & Akun Pengguna System</h3>
+            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 640px;">
+                Pengaturan hak akses akun, hierarki pimpinan, penetapan role amil, serta integrasi profil pegawai master BAZNAS Kabupaten Tangerang.
+            </p>
         </div>
-        <a href="{% url 'users:create' %}" class="btn btn-primary px-4">
-            <i class="bi bi-person-plus me-2"></i> Tambah Pengguna
-        </a>
+        <div class="col-lg-5 text-lg-end">
+            <a href="{% url 'users:create' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
+                <i class="bi bi-person-plus-fill me-1"></i> Tambah Akun Pengguna Baru
+            </a>
+        </div>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm p-4">
+<!-- KPI SUMMARY STAT CARDS -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
+            <div class="rounded-circle p-3 text-emerald bg-emerald-subtle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                <i class="bi bi-people-fill fs-4"></i>
+            </div>
+            <div>
+                <span class="text-secondary extra-small text-uppercase fw-bold">Total Akun Terdaftar</span>
+                <h4 class="fw-extrabold text-primary mb-0">{{ total_users }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
+            <div class="rounded-circle p-3 text-success bg-success-subtle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                <i class="bi bi-check-circle-fill fs-4"></i>
+            </div>
+            <div>
+                <span class="text-secondary extra-small text-uppercase fw-bold">User Aktif System</span>
+                <h4 class="fw-extrabold text-success mb-0">{{ active_users }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
+            <div class="rounded-circle p-3 text-purple bg-purple-subtle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                <i class="bi bi-person-badge-fill fs-4" style="color: #8B5CF6;"></i>
+            </div>
+            <div>
+                <span class="text-secondary extra-small text-uppercase fw-bold">Pimpinan & Admin</span>
+                <h4 class="fw-extrabold mb-0" style="color: #8B5CF6;">{{ pimpinan_super_count }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
+            <div class="rounded-circle p-3 text-danger bg-danger-subtle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                <i class="bi bi-person-x-fill fs-4"></i>
+            </div>
+            <div>
+                <span class="text-secondary extra-small text-uppercase fw-bold">User Non-Aktif</span>
+                <h4 class="fw-extrabold text-danger mb-0">{{ inactive_users }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SEARCH & FILTER PANEL -->
+<div class="card-enterprise p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-lg-5">
+            <div class="input-group">
+                <span class="input-group-text custom-input border-end-0 bg-transparent text-secondary">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" name="q" value="{{ query }}" class="form-control custom-input border-start-0 ps-0" placeholder="Cari Username, Email, atau Nama Pegawai...">
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <select name="role" class="form-select custom-input" onchange="this.form.submit()">
+                <option value="">Semua Role Akses</option>
+                {% for code, label in roles %}
+                <option value="{{ code }}" {% if role_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-2">
+            <select name="status" class="form-select custom-input" onchange="this.form.submit()">
+                <option value="">Semua Status</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Aktif</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Non-Aktif</option>
+            </select>
+        </div>
+        <div class="col-lg-2 d-flex gap-2">
+            <button type="submit" class="btn btn-enterprise-primary rounded-pill w-100 fw-bold">
+                <i class="bi bi-funnel-fill me-1"></i> Filter
+            </button>
+            {% if query or role_filter or status_filter %}
+            <a href="{% url 'users:list' %}" class="btn btn-outline-secondary rounded-circle" title="Reset Filter">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- TABEL MASTER AKUN PENGGUNA -->
+<div class="card-enterprise p-4 mb-5">
     <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <table class="table table-hover align-middle mb-0">
             <thead>
-                <tr class="text-secondary small text-uppercase">
-                    <th class="border-0">Nama Pengguna</th>
-                    <th class="border-0">Email</th>
-                    <th class="border-0">Role</th>
-                    <th class="border-0">Status</th>
-                    <th class="border-0">Terdaftar Pada</th>
-                    <th class="border-0 text-end">Aksi</th>
+                <tr class="text-secondary extra-small text-uppercase border-bottom">
+                    <th class="py-3">Pengguna & Pegawai Terhubung</th>
+                    <th class="py-3">Email & Kontak</th>
+                    <th class="py-3">Role & Wewenang</th>
+                    <th class="py-3">Status Akun</th>
+                    <th class="py-3">Terdaftar Pada</th>
+                    <th class="py-3 text-end">Aksi Eksekutif</th>
                 </tr>
             </thead>
             <tbody>
                 {% for u in users_list %}
                 <tr>
                     <td>
-                        <div class="d-flex align-items-center">
-                            <img src="https://ui-avatars.com/api/?name={{ u.username }}&background=E8F5E9&color=0E9F6E" class="rounded-circle me-3" width="35">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if u.employee and u.employee.photo %}
+                                <img src="{{ u.employee.photo.url }}" class="rounded-circle shadow-sm" width="44" height="44" style="object-fit: cover;">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ u.get_full_name|default:u.username|urlencode }}&background=10B981&color=FFFFFF" class="rounded-circle shadow-sm" width="44" height="44">
+                            {% endif %}
                             <div>
-                                <p class="mb-0 fw-bold">{{ u.username }}</p>
-                                <p class="mb-0 text-muted small">{{ u.get_full_name|default:"Nama belum diset" }}</p>
+                                <h6 class="fw-bold text-primary mb-0">{{ u.username }}</h6>
+                                <p class="text-secondary small mb-0">{{ u.get_full_name|default:"(Nama Belum Diset)" }}</p>
+                                {% if u.employee %}
+                                    <span class="badge bg-emerald-subtle text-emerald rounded-pill px-2 py-0.5 extra-small border border-emerald-subtle mt-1">
+                                        <i class="bi bi-person-badge me-1"></i>Pegawai: {{ u.employee.full_name }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5 extra-small mt-1">
+                                        Akun Standalone
+                                    </span>
+                                {% endif %}
                             </div>
                         </div>
                     </td>
-                    <td class="small">{{ u.email }}</td>
                     <td>
-                        <span class="badge bg-light text-dark rounded-pill px-3">{{ u.get_role_display }}</span>
+                        <div class="small fw-bold text-dark"><i class="bi bi-envelope-fill me-1 text-secondary"></i> {{ u.email|default:"-" }}</div>
+                        {% if u.employee and u.employee.phone %}
+                            <div class="extra-small text-muted"><i class="bi bi-whatsapp me-1 text-success"></i> {{ u.employee.phone }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_superuser %}
+                            <span class="badge role-badge-admin rounded-pill px-3 py-1">
+                                <i class="bi bi-shield-fill-check me-1"></i> SUPERADMIN
+                            </span>
+                        {% else %}
+                            <span class="badge 
+                                {% if u.role == 'pimpinan' or u.role == 'waka_1' or u.role == 'waka_2' or u.role == 'waka_3' or u.role == 'waka_4' %}role-badge-pimpinan
+                                {% elif 'kabid' in u.role %}role-badge-kabid
+                                {% elif u.role == 'sdm' %}role-badge-sdm
+                                {% elif u.role == 'staf' %}role-badge-staf
+                                {% else %}role-badge-default{% endif %} 
+                                rounded-pill px-3 py-1">
+                                {{ u.get_role_display|default:u.role|upper }}
+                            </span>
+                        {% endif %}
                     </td>
                     <td>
                         {% if u.is_active %}
-                            <span class="badge badge-approved rounded-pill px-3">Aktif</span>
+                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 fw-bold border border-success-subtle">
+                                <i class="bi bi-check-circle-fill me-1"></i> Aktif
+                            </span>
                         {% else %}
-                            <span class="badge badge-rejected rounded-pill px-3">Non-aktif</span>
+                            <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1 fw-bold border border-danger-subtle">
+                                <i class="bi bi-x-circle-fill me-1"></i> Non-Aktif
+                            </span>
                         {% endif %}
                     </td>
-                    <td class="text-secondary small">{{ u.date_joined|date:"d M Y" }}</td>
+                    <td class="text-secondary small fw-medium">
+                        {{ u.date_joined|date:"d M Y, H:i" }} WIB
+                    </td>
                     <td class="text-end">
-                        <a href="{% url 'users:edit' u.pk %}" class="btn btn-light btn-sm rounded-circle shadow-sm me-1" title="Edit">
-                            <i class="bi bi-pencil-square text-primary"></i>
-                        </a>
-                        
-                        {% if u.pk != user.pk and not u.is_superuser %}
-                        <button type="button" class="btn btn-light btn-sm rounded-circle shadow-sm" 
-                                onclick="confirmDelete('{{ u.pk }}', '{{ u.username }}')" title="Hapus">
-                            <i class="bi bi-trash text-danger"></i>
-                        </button>
-                        <form id="delete-form-{{ u.pk }}" action="{% url 'users:delete' u.pk %}" method="post" class="d-none">
-                            {% csrf_token %}
-                        </form>
-                        {% endif %}
+                        <div class="d-inline-flex gap-1">
+                            <a href="{% url 'users:edit' u.pk %}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Edit Akun & Password">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </a>
+                            
+                            {% if u.pk != user.pk and not u.is_superuser %}
+                            <button type="button" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" 
+                                    onclick="confirmDeleteUser('{{ u.pk }}', '{{ u.username|escapejs }}')" title="Hapus Akun Pengguna">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <form id="delete-user-form-{{ u.pk }}" action="{% url 'users:delete' u.pk %}" method="post" class="d-none">
+                                {% csrf_token %}
+                            </form>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
                     <td colspan="6" class="text-center py-5 text-secondary">
-                        Belum ada data pengguna.
+                        <i class="bi bi-person-x fs-1 d-block mb-2 text-muted"></i>
+                        <p class="mb-0 fw-bold">Belum Ada Data Akun Pengguna</p>
+                        <small class="text-muted">Gunakan tombol "Tambah Akun Pengguna Baru" di atas untuk membuat akun baru.</small>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        {% include 'includes/pagination.html' %}
+        
+        <div class="mt-4">
+            {% include 'includes/pagination.html' %}
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    function confirmDelete(userId, username) {
-        Swal.fire({
-            title: 'Hapus Pengguna?',
-            text: "Akun " + username + " akan dihapus permanen dari sistem!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
-            borderRadius: '15px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('delete-form-' + userId).submit();
-            }
-        })
-    }
+function confirmDeleteUser(userId, username) {
+    Swal.fire({
+        title: 'Hapus Akun Pengguna?',
+        html: `Apakah Anda yakin ingin menghapus akun pengguna <strong>"${username}"</strong> secara permanen?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DC2626',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: '<i class="bi bi-trash-fill me-1"></i> Ya, Hapus Akun',
+        cancelButtonText: 'Batal',
+        customClass: {
+            popup: 'card-enterprise border-0 shadow-lg'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('delete-user-form-' + userId).submit();
+        }
+    });
+}
 </script>
 {% endblock %}

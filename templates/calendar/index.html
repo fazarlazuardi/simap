@@ -1,98 +1,130 @@
 {% extends 'layouts/base.html' %}
-{% load static %}
 
-{% block title %}Kalender Kerja & Agenda BAZNAS{% endblock %}
+{% block title %}Kalender Kerja BAZNAS (Google Calendar Style){% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Styling Visual ala Google Calendar Premium */
-    .fc {
-        font-family: 'Inter', sans-serif;
+    /* Google Calendar In-App Experience Styling */
+    .gcal-sidebar-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 20px;
+    }
+    .gcal-create-btn {
+        background: linear-gradient(135deg, var(--color-emerald-600), var(--color-emerald-700));
+        color: #ffffff !important;
+        border-radius: 28px;
+        padding: 12px 24px;
+        font-weight: 800;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s ease;
+        border: none;
+    }
+    .gcal-create-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+        color: #ffffff !important;
     }
     
+    .gcal-layer-check {
+        padding: 8px 12px;
+        border-radius: 10px;
+        transition: background-color 0.15s ease;
+        cursor: pointer;
+        user-select: none;
+    }
+    .gcal-layer-check:hover {
+        background-color: var(--surface-hover);
+    }
+    .gcal-layer-check input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    /* FullCalendar Premium Google Calendar Theme */
+    .fc { font-family: 'Plus Jakarta Sans', sans-serif; }
     .fc .fc-toolbar {
         padding: 14px 18px;
-        background-color: var(--surface-alt, #F8FAFC);
-        border: 1px solid var(--border-color, #E2E8F0);
-        border-radius: 14px 14px 0 0;
+        background-color: var(--surface-hover);
+        border: 1px solid var(--border-color);
+        border-radius: 16px 16px 0 0;
         margin-bottom: 0 !important;
         flex-wrap: wrap;
         gap: 12px;
     }
-
     .fc .fc-toolbar-title {
         font-size: 1.35rem;
-        font-weight: 700;
-        color: var(--primary, #047857);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
     }
-
     .fc .fc-button-primary {
-        background-color: var(--primary, #047857) !important;
-        border-color: var(--primary, #047857) !important;
-        color: #FFFFFF !important;
-        font-weight: 600;
-        border-radius: 10px !important;
-        padding: 7px 14px;
-        font-size: 0.88rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        transition: all 0.2s ease;
-    }
-
-    .fc .fc-button-primary:hover {
-        background-color: var(--primary-dark, #064E3B) !important;
-        border-color: var(--primary-dark, #064E3B) !important;
-        transform: translateY(-1px);
-    }
-
-    .fc .fc-button-primary:not(:disabled):active,
-    .fc .fc-button-primary:not(:disabled).fc-button-active {
-        background-color: var(--primary-dark, #064E3B) !important;
-        border-color: var(--primary-dark, #064E3B) !important;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .fc .fc-col-header-cell {
-        background-color: var(--surface-alt, #F1F5F9);
-        padding: 10px 0;
-        border-color: var(--border-color, #E2E8F0) !important;
-    }
-
-    .fc .fc-col-header-cell-cushion {
-        color: var(--text-primary, #0F172A);
+        background-color: var(--color-emerald-600) !important;
+        border-color: var(--color-emerald-600) !important;
+        padding: 8px 16px;
         font-weight: 700;
-        font-size: 0.85rem;
+        color: #fff !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+    .fc .fc-button-primary:hover {
+        background-color: var(--color-emerald-700) !important;
+        border-color: var(--color-emerald-700) !important;
+    }
+    .fc .fc-col-header-cell {
+        background-color: var(--surface-hover);
+        padding: 10px 0;
+        border-color: var(--border-color) !important;
+    }
+    .fc .fc-col-header-cell-cushion {
+        color: var(--text-primary);
+        font-weight: 700;
+        font-size: 0.8rem;
         text-transform: uppercase;
         text-decoration: none !important;
     }
-
-    .fc .fc-daygrid-day {
-        border-color: var(--border-color, #E2E8F0) !important;
-    }
-
+    .fc .fc-daygrid-day { border-color: var(--border-color) !important; }
     .fc .fc-daygrid-day-number {
-        color: var(--text-primary, #0F172A);
-        font-weight: 600;
+        color: var(--text-primary);
+        font-weight: 700;
         font-size: 0.88rem;
         padding: 6px 8px !important;
         text-decoration: none !important;
     }
-
     .fc .fc-daygrid-day.fc-day-today {
         background-color: rgba(16, 185, 129, 0.12) !important;
     }
-
     .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-        background-color: var(--primary, #047857);
-        color: #FFFFFF !important;
+        background-color: var(--color-emerald-600);
+        color: #ffffff !important;
         border-radius: 50%;
         width: 28px;
         height: 28px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin: 4px;
-        padding: 0 !important;
-        font-weight: 700;
+        margin: 2px;
+    }
+
+    /* TANGGAL MERAH (SUNDAYS & NATIONAL HOLIDAYS) STYLING */
+    .fc .fc-day-sun .fc-daygrid-day-number,
+    .fc .fc-day-sun .fc-col-header-cell-cushion {
+        color: #DC2626 !important;
+        font-weight: 900 !important;
+    }
+    .fc .is-national-holiday-cell {
+        background-color: rgba(220, 38, 38, 0.12) !important;
+    }
+    .fc .is-national-holiday-cell .fc-daygrid-day-number {
+        color: #DC2626 !important;
+        font-weight: 900 !important;
+        font-size: 1.05rem !important;
     }
 
     .fc-event {
@@ -100,186 +132,139 @@
         border-radius: 6px !important;
         padding: 3px 6px !important;
         margin-bottom: 3px !important;
-        font-size: 0.8rem !important;
+        font-size: 0.78rem !important;
         border: none !important;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        transition: transform 0.15s ease;
     }
-
-    .fc-event:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
-    }
-
-    .fc .fc-scrollgrid-section-body {
-        background-color: var(--card-bg, #FFFFFF) !important;
-    }
-
-    [data-theme="dark"] .fc .fc-col-header-cell {
-        background-color: #1E293B !important;
-    }
-
-    [data-theme="dark"] .fc .fc-scrollgrid-section-body {
-        background-color: rgba(15, 23, 42, 0.85) !important;
-    }
-
-    [data-theme="dark"] .fc .fc-toolbar {
-        background-color: #1E293B !important;
-        border-color: #334155 !important;
-    }
-
-    .calendar-wrapper-card {
-        border-radius: 16px;
-        overflow: hidden;
-        border: 1px solid var(--border-color, #E2E8F0);
-        background-color: var(--card-bg, #FFFFFF);
-    }
+    .fc-event:hover { transform: translateY(-1px); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-3 px-md-4 py-3">
-    <!-- Header Utama -->
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb m-0 bg-transparent p-0 small">
-                    <li class="breadcrumb-item"><a href="{% url 'users:dashboard' %}" class="text-decoration-none" style="color: var(--primary);">Dashboard</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Kalender Kerja</li>
-                </ol>
-            </nav>
-            <h4 class="fw-bold m-0 mt-1" style="color: var(--text-primary);">
-                <i class="bi bi-calendar-event-fill me-2 text-primary"></i>Kalender Kerja & Agenda BAZNAS
-            </h4>
-        </div>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <a href="{% url 'agendas:create' %}" class="btn btn-primary fw-bold rounded-3 px-3 py-2 shadow-sm">
-                <i class="bi bi-calendar-plus me-1.5"></i> Buat Agenda Baru
-            </a>
-        </div>
-    </div>
-
-    <!-- Indicator Legenda Berwarna ala Google Calendar -->
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 p-3 rounded-3 shadow-sm"
-        style="background: linear-gradient(135deg, var(--surface-alt) 0%, rgba(241, 245, 249, 0.5) 100%); border: 1px solid var(--border-color); font-size: 0.84rem;">
-        <div class="d-flex align-items-center gap-2.5 flex-wrap">
-            <span class="fw-bold" style="color: var(--text-primary);"><i class="bi bi-palette-fill text-primary me-1"></i> Keterangan Warna Kalender:</span>
-            <span class="badge border px-2.5 py-1.5 rounded-2" style="background-color: #0E9F6E; color: #FFFFFF;">
-                <i class="bi bi-calendar-check me-1"></i> Agenda BAZNAS
-            </span>
-            <span class="badge border px-2.5 py-1.5 rounded-2" style="background-color: #2563EB; color: #FFFFFF;">
-                <i class="bi bi-briefcase me-1"></i> Perjalanan Dinas (SPPD)
-            </span>
-            <span class="badge border px-2.5 py-1.5 rounded-2" style="background-color: #8B5CF6; color: #FFFFFF;">
-                <i class="bi bi-people me-1"></i> Rapat Internal
-            </span>
-            <span class="badge border px-2.5 py-1.5 rounded-2" style="background-color: #DC2626; color: #FFFFFF;">
-                <i class="bi bi-flag-fill me-1"></i> Libur Nasional (Google Feed)
-            </span>
-        </div>
-        <span class="small fw-semibold" style="color: var(--text-secondary);">
-            <i class="bi bi-arrow-repeat me-1 text-success"></i> Tampilan Visual Google Calendar Real-Time
-        </span>
-    </div>
-
-    <!-- Visual Interactive Grid Engine ala Google Calendar -->
-    <div class="calendar-wrapper-card shadow-sm p-0 mb-4">
-        <div id="visual-google-calendar"></div>
-    </div>
-
-    <!-- Data Table Rincian Agenda & SPPD -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body p-3 p-md-4">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 class="fw-bold mb-0" style="color: var(--text-primary);">
-                    <i class="bi bi-journal-text me-2 text-primary"></i>Daftar Rincian Agenda & SPPD
-                </h5>
-                <div class="btn-group btn-group-sm" role="group">
-                    <button type="button" class="btn btn-outline-primary active" onclick="filterTableType('all')">Semua</button>
-                    <button type="button" class="btn btn-outline-primary" onclick="filterTableType('agenda')">Agenda Kerja</button>
-                    <button type="button" class="btn btn-outline-primary" onclick="filterTableType('sppd')">Khusus SPPD</button>
-                </div>
+<!-- HEADER BANNER BANNER GOOGLE CALENDAR STYLED -->
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                    <i class="bi bi-calendar3 me-1 text-warning"></i> Kalender Kerja Visual (Google Calendar Experience)
+                </span>
             </div>
-
-            <div class="table-responsive">
-                <table class="table table-hover align-middle w-100" id="calendarDataTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Jenis</th>
-                            <th>Tanggal & Waktu</th>
-                            <th>Judul / Nama Kegiatan</th>
-                            <th>Lokasi / Tujuan</th>
-                            <th>Pegawai Terlibat</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ev in events %}
-                        <tr class="event-row-item" data-type="{{ ev.source_type }}">
-                            <td>
-                                {% if ev.source_type == 'sppd' %}
-                                    <span class="badge bg-primary px-2 py-1"><i class="bi bi-briefcase me-1"></i>SPPD</span>
-                                {% else %}
-                                    <span class="badge bg-success px-2 py-1"><i class="bi bi-calendar3 me-1"></i>AGENDA</span>
-                                {% endif %}
-                            </td>
-                            <td class="fw-bold" style="color: var(--text-primary);">
-                                {{ ev.start }} {% if ev.end != ev.start %} s.d {{ ev.end }}{% endif %}
-                                {% if ev.time %}<span class="d-block small text-secondary"><i class="bi bi-clock me-1"></i>{{ ev.time }} WIB</span>{% endif %}
-                            </td>
-                            <td>
-                                <div class="fw-bold" style="color: var(--text-primary);">{{ ev.title }}</div>
-                                {% if ev.sppd_number %}<div class="small text-secondary">No. {{ ev.sppd_number }}</div>{% endif %}
-                            </td>
-                            <td><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ ev.location|default:"-" }}</td>
-                            <td><span class="small fw-semibold" style="color: var(--text-primary);">{{ ev.assigned_to|default:"-" }}</span></td>
-                            <td>
-                                <span class="badge rounded-pill px-3 py-1" style="background-color: {{ ev.bg_color|default:'#10B981' }}; color: #FFFFFF;">
-                                    {{ ev.status|default:"Terjadwal" }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-secondary">Belum ada kegiatan atau SPPD terjadwal.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Kalender Kerja & Agenda BAZNAS</h3>
+            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 620px;">
+                Tampilan antarmuka Google Calendar modern untuk memantau rapat pleno, perjalanan dinas, serta Tanggal Merah Hari Libur Nasional & Cuti Bersama SKB 3 Menteri secara realtime.
+            </p>
+        </div>
+        <div class="col-lg-5 text-lg-end">
+            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                <a href="{% url 'agendas:create' %}" class="gcal-create-btn text-decoration-none">
+                    <i class="bi bi-plus-lg fs-5"></i> Buat Agenda Baru
+                </a>
+                <a href="{% url 'agendas:list' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
+                    <i class="bi bi-list-task me-1"></i> Daftar Agenda Master
+                </a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Detail Event ala Google Calendar -->
-<div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true">
+<!-- GOOGLE CALENDAR 2-COLUMN LAYOUT -->
+<div class="row g-4 mb-5">
+    <!-- SIDEBAR KIRI GOOGLE CALENDAR CONTROLS -->
+    <div class="col-lg-3">
+        <div class="gcal-sidebar-card mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <h6 class="fw-bold text-emerald mb-0"><i class="bi bi-layers-fill me-2 text-success"></i>Filter Lapisan Kalender</h6>
+                <span class="badge badge-node-verified rounded-pill px-2.5 py-0.5 small">Google Calendar UI</span>
+            </div>
+
+            <div class="d-flex flex-column gap-1 mb-4">
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerAgendaCal" class="form-check-input accent-emerald" checked onchange="filterCalendarLayersIndex()">
+                        <span class="small fw-bold text-primary"><i class="bi bi-circle-fill me-1" style="color: #10B981;"></i> Agenda BAZNAS</span>
+                    </div>
+                </label>
+
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerSPPDCal" class="form-check-input" checked onchange="filterCalendarLayersIndex()">
+                        <span class="small fw-bold text-primary"><i class="bi bi-circle-fill me-1" style="color: #0284C7;"></i> Perjalanan Dinas (SPPD)</span>
+                    </div>
+                </label>
+
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerMeetingCal" class="form-check-input" checked onchange="filterCalendarLayersIndex()">
+                        <span class="small fw-bold text-primary"><i class="bi bi-circle-fill me-1" style="color: #8B5CF6;"></i> Rapat Pleno Pimpinan</span>
+                    </div>
+                </label>
+
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerLiburCal" class="form-check-input" checked onchange="filterCalendarLayersIndex()">
+                        <span class="small fw-bold text-danger"><i class="bi bi-flag-fill me-1 text-danger"></i> Tanggal Merah SKB 3 Menteri</span>
+                    </div>
+                </label>
+
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerCutiCal" class="form-check-input" checked onchange="filterCalendarLayersIndex()">
+                        <span class="small fw-bold text-warning"><i class="bi bi-exclamation-triangle-fill me-1 text-warning"></i> Cuti Bersama Official</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="p-3 card-enterprise" style="background-color: var(--surface-hover);">
+                <div class="small fw-bold text-emerald mb-1"><i class="bi bi-info-circle-fill me-1 text-warning"></i> Info Integrasi Realtime:</div>
+                <p class="extra-small text-secondary mb-0">
+                    Seluruh tanggal merah hari libur nasional (seperti 17 Agustus Hari Kemerdekaan, Idul Fitri, Imlek, dll.) langsung tercetak teks liburnya di atas tanggal.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- UTAMA FULLCALENDAR CANVAS -->
+    <div class="col-lg-9">
+        <div class="card-enterprise p-4">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<!-- IN-APP GOOGLE CALENDAR EVENT POPOVER MODAL -->
+<div class="modal fade" id="modalGCalEventDetailCal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-bottom p-3" style="background-color: var(--surface-alt);">
-                <h6 class="modal-title fw-bold" id="eventModalTitle" style="color: var(--text-primary);">
-                    <i class="bi bi-calendar-event me-2 text-primary"></i>Detail Kegiatan
-                </h6>
+        <div class="modal-content card-enterprise border-0">
+            <div class="modal-header border-bottom py-3">
+                <h5 class="modal-header-title fw-bold text-emerald mb-0" id="gcalModalTitleCal">Detail Kegiatan</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="badge px-3 py-1.5 rounded-pill" id="eventModalBadge" style="font-size: 0.8rem;">Agenda</span>
-                    <span class="small fw-semibold text-secondary" id="eventModalDate"></span>
+            <div class="modal-body p-4 text-start">
+                <div class="p-3 card-enterprise mb-3" style="background-color: var(--surface-hover);">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase" id="gcalModalTypeBadgeCal">AGENDA</span>
+                        <span class="small font-mono fw-bold text-emerald" id="gcalModalStatusBadgeCal">AKTIF</span>
+                    </div>
+                    <h6 class="fw-bold text-primary mb-1 fs-6" id="gcalModalSubjectTextCal">-</h6>
+                    <small class="text-secondary fw-semibold font-mono d-block" id="gcalModalTimeTextCal">-</small>
                 </div>
-                <h5 class="fw-bold mb-3" id="eventModalName" style="color: var(--text-primary);"></h5>
-                
-                <div class="p-3 rounded-3 mb-3" style="background-color: var(--surface-alt); border: 1px solid var(--border-color); font-size: 0.88rem;">
-                    <div class="mb-2">
-                        <i class="bi bi-geo-alt-fill text-danger me-2"></i>
-                        <strong>Lokasi / Tujuan:</strong> <span id="eventModalLocation"></span>
-                    </div>
-                    <div class="mb-0">
-                        <i class="bi bi-people-fill text-primary me-2"></i>
-                        <strong>Pegawai / Personel:</strong> <span id="eventModalAssigned"></span>
-                    </div>
+
+                <div class="mb-3">
+                    <label class="small text-secondary fw-bold text-uppercase d-block mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Lokasi / Instansi:</label>
+                    <p class="small fw-semibold text-primary mb-0" id="gcalModalLocationTextCal">-</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="small text-secondary fw-bold text-uppercase d-block mb-1"><i class="bi bi-people-fill text-success me-1"></i> Pegawai / Ditugaskan:</label>
+                    <p class="small fw-semibold text-emerald mb-0" id="gcalModalAssigneeTextCal">-</p>
                 </div>
             </div>
-            <div class="modal-footer border-top p-2 px-3">
-                <button type="button" class="btn btn-light btn-sm fw-semibold" data-bs-dismiss="modal">Tutup</button>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+                <a href="#" id="gcalModalActionBtnCal" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
+                    Lihat Detail SIMAP
+                </a>
             </div>
         </div>
     </div>
@@ -287,96 +272,230 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inisialisasi Engine Google Calendar menggunakan FullCalendar 5 Grid
-        var calendarEl = document.getElementById('visual-google-calendar');
-        if (calendarEl) {
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'id',
-                height: 650,
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
-                },
-                buttonText: {
-                    today: 'Hari Ini',
-                    month: 'Bulan',
-                    week: 'Minggu',
-                    day: 'Hari',
-                    list: 'Daftar'
-                },
-                events: function(info, successCallback, failureCallback) {
-                    // Ambil event dari API Agendas backend
-                    fetch('/agendas/events/?start=' + info.startStr + '&end=' + info.endStr)
-                        .then(response => response.json())
-                        .then(data => {
-                            successCallback(data);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching calendar events:', error);
-                            successCallback([]);
-                        });
-                },
-                eventClick: function(info) {
-                    info.jsEvent.preventDefault();
-                    var ev = info.event;
-                    
-                    document.getElementById('eventModalName').innerText = ev.title;
-                    document.getElementById('eventModalDate').innerText = ev.start ? ev.start.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
-                    document.getElementById('eventModalLocation').innerText = (ev.extendedProps && (ev.extendedProps.location || ev.extendedProps.lokasi)) || 'Kantor BAZNAS';
-                    document.getElementById('eventModalAssigned').innerText = (ev.extendedProps && (ev.extendedProps.assigned_to || ev.extendedProps.personel)) || 'Internal / Seluruh Pegawai';
-                    
-                    var badge = document.getElementById('eventModalBadge');
-                    var sourceType = ev.extendedProps ? ev.extendedProps.source_type : '';
-                    if (sourceType === 'sppd') {
-                        badge.innerText = 'Perjalanan Dinas (SPPD)';
-                    } else if (sourceType === 'meeting') {
-                        badge.innerText = 'Rapat Internal';
-                    } else if (sourceType === 'holiday') {
-                        badge.innerText = 'Hari Libur Nasional';
-                    } else {
-                        badge.innerText = 'Agenda Kerja';
+let calendarIndexInstance = null;
+
+const NATIONAL_HOLIDAY_DATES_INDEX = {
+    "2025-01-01": "Tahun Baru 2025 Masehi",
+    "2025-01-27": "Isra Mikraj Nabi Muhammad SAW",
+    "2025-01-28": "Cuti Bersama Imlek 2576",
+    "2025-01-29": "Tahun Baru Imlek 2576 Kongzili",
+    "2025-03-28": "Cuti Bersama Nyepi Saka 1947",
+    "2025-03-29": "Hari Suci Nyepi Saka 1947",
+    "2025-03-31": "Hari Raya Idul Fitri 1446 H",
+    "2025-04-01": "Hari Raya Idul Fitri 1446 H",
+    "2025-04-02": "Cuti Bersama Idul Fitri 1446 H",
+    "2025-04-03": "Cuti Bersama Idul Fitri 1446 H",
+    "2025-04-04": "Cuti Bersama Idul Fitri 1446 H",
+    "2025-04-07": "Cuti Bersama Idul Fitri 1446 H",
+    "2025-04-18": "Wafat Yesus Kristus",
+    "2025-04-20": "Hari Paskah",
+    "2025-05-01": "Hari Buruh Internasional",
+    "2025-05-12": "Hari Raya Waisak 2569 BE",
+    "2025-05-13": "Cuti Bersama Waisak 2569 BE",
+    "2025-05-29": "Kenaikan Yesus Kristus",
+    "2025-05-30": "Cuti Bersama Kenaikan Yesus Kristus",
+    "2025-06-01": "Hari Lahir Pancasila",
+    "2025-06-06": "Hari Raya Idul Adha 1446 H",
+    "2025-06-09": "Cuti Bersama Idul Adha 1446 H",
+    "2025-06-27": "Tahun Baru Islam 1447 H",
+    "2025-08-17": "Hari Kemerdekaan RI Ke-80",
+    "2025-09-05": "Maulid Nabi Muhammad SAW",
+    "2025-12-25": "Hari Raya Natal",
+    "2025-12-26": "Cuti Bersama Hari Raya Natal",
+    "2026-01-01": "Tahun Baru 2026 Masehi",
+    "2026-01-16": "Isra Mikraj Nabi Muhammad SAW",
+    "2026-02-16": "Cuti Bersama Imlek 2577",
+    "2026-02-17": "Tahun Baru Imlek 2577 Kongzili",
+    "2026-03-18": "Cuti Bersama Hari Suci Nyepi Saka 1948",
+    "2026-03-19": "Hari Suci Nyepi Saka 1948",
+    "2026-03-20": "Hari Raya Idul Fitri 1447 H",
+    "2026-03-21": "Hari Raya Idul Fitri 1447 H",
+    "2026-03-22": "Cuti Bersama Idul Fitri 1447 H",
+    "2026-03-23": "Cuti Bersama Idul Fitri 1447 H",
+    "2026-03-24": "Cuti Bersama Idul Fitri 1447 H",
+    "2026-04-03": "Wafat Yesus Kristus",
+    "2026-04-05": "Hari Paskah",
+    "2026-05-01": "Hari Buruh Internasional",
+    "2026-05-14": "Kenaikan Yesus Kristus",
+    "2026-05-27": "Hari Raya Idul Adha 1447 H",
+    "2026-05-28": "Cuti Bersama Idul Adha 1447 H",
+    "2026-05-31": "Hari Raya Waisak 2570 BE",
+    "2026-06-01": "Hari Lahir Pancasila",
+    "2026-06-16": "Tahun Baru Islam 1448 H",
+    "2026-08-17": "Hari Kemerdekaan RI Ke-81",
+    "2026-08-25": "Maulid Nabi Muhammad SAW",
+    "2026-12-25": "Hari Raya Natal",
+    "2026-12-26": "Cuti Bersama Hari Raya Natal",
+    "2027-01-01": "Tahun Baru 2027 Masehi",
+    "2027-02-05": "Isra Mikraj Nabi Muhammad SAW",
+    "2027-02-06": "Tahun Baru Imlek 2578",
+    "2027-03-09": "Hari Suci Nyepi Saka 1949",
+    "2027-03-10": "Hari Raya Idul Fitri 1448 H",
+    "2027-03-11": "Hari Raya Idul Fitri 1448 H",
+    "2027-03-26": "Wafat Yesus Kristus",
+    "2027-05-01": "Hari Buruh Internasional",
+    "2027-05-06": "Kenaikan Yesus Kristus",
+    "2027-05-17": "Hari Raya Idul Adha 1448 H",
+    "2027-05-20": "Hari Raya Waisak 2571 BE",
+    "2027-06-01": "Hari Lahir Pancasila",
+    "2027-06-06": "Tahun Baru Islam 1449 H",
+    "2027-08-15": "Maulid Nabi Muhammad SAW",
+    "2027-08-17": "Hari Kemerdekaan RI Ke-82",
+    "2027-12-25": "Hari Raya Natal"
+};
+
+const AGENDA_DATES_MAP_INDEX = {{ agenda_dates_json|safe }};
+
+document.addEventListener("DOMContentLoaded", function() {
+    var calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
+        calendarIndexInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'id',
+            dayMaxEvents: false,
+            dayMaxEventRows: false,
+            eventDisplay: 'block',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+            },
+            events: '/agenda/events/',
+            dayCellDidMount: function(arg) {
+                var d = arg.date;
+                var year = d.getFullYear();
+                var month = String(d.getMonth() + 1).padStart(2, '0');
+                var day = String(d.getDate()).padStart(2, '0');
+                var dateStr = year + '-' + month + '-' + day;
+
+                var isSunday = (d.getDay() === 0);
+                var holidayName = NATIONAL_HOLIDAY_DATES_INDEX[dateStr];
+
+                if (isSunday || holidayName) {
+                    var numEl = arg.el.querySelector('.fc-daygrid-day-number');
+                    if (numEl) {
+                        numEl.style.color = '#DC2626';
+                        numEl.style.fontWeight = '900';
+                        numEl.style.fontSize = '1.02rem';
                     }
-                    badge.style.backgroundColor = ev.backgroundColor || '#0E9F6E';
-                    badge.style.color = '#FFFFFF';
-
-                    var modal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
-                    modal.show();
+                    if (holidayName) {
+                        arg.el.classList.add('is-national-holiday-cell');
+                        
+                        var topContainer = arg.el.querySelector('.fc-daygrid-day-frame') || arg.el;
+                        if (!arg.el.querySelector('.gcal-holiday-text-badge')) {
+                            var badge = document.createElement('div');
+                            badge.className = 'gcal-holiday-text-badge';
+                            badge.style.cssText = 'font-size: 0.72rem; font-weight: 800; color: #FFFFFF; background-color: #DC2626; padding: 3px 6px; border-radius: 6px; margin: 4px; line-height: 1.25; display: block; text-align: left; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);';
+                            badge.innerHTML = '🔴 ' + holidayName;
+                            topContainer.appendChild(badge);
+                        }
+                    }
                 }
-            });
-            calendar.render();
-        }
 
-        // Inisialisasi DataTable untuk rincian kegiatan di bawah kalender
-        if (jQuery.fn.DataTable) {
-            $('#calendarDataTable').DataTable({
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
-                },
-                pageLength: 7,
-                ordering: true,
-                searching: true,
-                order: [[1, 'desc']]
-            });
-        }
-    });
-
-    function filterTableType(type) {
-        const rows = document.querySelectorAll('.event-row-item');
-        rows.forEach(row => {
-            if (type === 'all') {
-                row.style.display = '';
-            } else {
-                if (row.getAttribute('data-type') === type) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
+                // Cetak Teks Agenda & Rapat Internal Langsung di Sel Tanggal (Sama seperti Libur Nasional)
+                var agendaList = AGENDA_DATES_MAP_INDEX[dateStr];
+                if (agendaList && agendaList.length > 0) {
+                    var frameEl = arg.el.querySelector('.fc-daygrid-day-frame') || arg.el;
+                    agendaList.forEach(function(item) {
+                        if (!arg.el.querySelector('.gcal-agenda-direct-badge[data-title="' + item.title.replace(/"/g, '&quot;') + '"]')) {
+                            var b = document.createElement('a');
+                            b.className = 'gcal-agenda-direct-badge text-decoration-none d-block';
+                            b.setAttribute('data-title', item.title);
+                            b.href = item.url || '#';
+                            var bgCol = item.type === 'meeting' ? '#8B5CF6' : '#10B981';
+                            b.style.cssText = 'font-size: 0.72rem; font-weight: 800; color: #FFFFFF; background-color: ' + bgCol + '; padding: 3px 6px; border-radius: 6px; margin: 3px 4px; line-height: 1.25; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.2);';
+                            b.innerHTML = item.title;
+                            frameEl.appendChild(b);
+                        }
+                    });
                 }
+            },
+            eventDidMount: function(info) {
+                const srcType = info.event.extendedProps.source_type;
+                if (srcType === 'holiday') {
+                    info.el.style.fontWeight = 'bold';
+                    info.el.style.boxShadow = '0 2px 6px rgba(220, 38, 38, 0.35)';
+                    var dayCell = info.el.closest('.fc-daygrid-day');
+                    if (dayCell) {
+                        dayCell.classList.add('is-national-holiday-cell');
+                    }
+                }
+            },
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                showGCalEventModalIndex(info.event);
             }
         });
+        calendarIndexInstance.render();
     }
+});
+
+function showGCalEventModalIndex(event) {
+    const props = event.extendedProps || {};
+    document.getElementById('gcalModalTitleCal').innerText = event.title;
+    document.getElementById('gcalModalSubjectTextCal').innerText = event.title;
+    
+    let timeStr = event.start ? event.start.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB' : 'Sepanjang Hari';
+    document.getElementById('gcalModalTimeTextCal').innerText = timeStr;
+    document.getElementById('gcalModalLocationTextCal').innerText = props.location || 'Kantor BAZNAS';
+    document.getElementById('gcalModalAssigneeTextCal').innerText = props.assigned_to || 'Seluruh Amil BAZNAS';
+    document.getElementById('gcalModalStatusBadgeCal').innerText = props.status || 'Aktif';
+
+    const typeBadge = document.getElementById('gcalModalTypeBadgeCal');
+    const actBtn = document.getElementById('gcalModalActionBtnCal');
+
+    if (props.source_type === 'holiday') {
+        typeBadge.className = 'badge bg-danger text-white rounded-pill px-3 py-1 fw-bold';
+        typeBadge.innerText = 'LIBUR NASIONAL / CUTI';
+        actBtn.style.display = 'none';
+    } else {
+        typeBadge.className = 'badge badge-node-verified rounded-pill px-3 py-1 fw-bold';
+        typeBadge.innerText = 'AGENDA BAZNAS';
+        actBtn.style.display = 'inline-block';
+        actBtn.href = event.url && event.url !== '#' ? event.url : '{% url "agendas:list" %}';
+    }
+
+    var modal = new bootstrap.Modal(document.getElementById('modalGCalEventDetailCal'));
+    modal.show();
+}
+
+function filterCalendarLayersIndex() {
+    if (!calendarIndexInstance) return;
+    const showAgenda = document.getElementById('layerAgendaCal').checked;
+    const showSPPD = document.getElementById('layerSPPDCal').checked;
+    const showMeeting = document.getElementById('layerMeetingCal').checked;
+    const showLibur = document.getElementById('layerLiburCal').checked;
+    const showCuti = document.getElementById('layerCutiCal').checked;
+
+    const events = calendarIndexInstance.getEvents();
+    events.forEach(ev => {
+        const props = ev.extendedProps || {};
+        const st = props.source_type;
+        const title = ev.title || '';
+
+        let visible = true;
+        if (st === 'holiday') {
+            if (title.includes('CUTI BERSAMA')) {
+                visible = showCuti;
+            } else {
+                visible = showLibur;
+            }
+        } else if (st === 'sppd') {
+            visible = showSPPD;
+        } else if (st === 'meeting') {
+            visible = showMeeting;
+        } else {
+            visible = showAgenda;
+        }
+
+        if (visible) {
+            ev.setProp('display', 'auto');
+        } else {
+            ev.setProp('display', 'none');
+        }
+    });
+}
 </script>
 {% endblock %}

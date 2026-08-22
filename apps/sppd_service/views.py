@@ -28,7 +28,21 @@ def sppd_list(request):
     is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
     current_emp = getattr(request.user, 'employee', None)
 
-    if (request.user.is_superadmin and not active_pov) or is_waka_or_kabid_2 or getattr(request.user, 'is_pimpinan', False) or getattr(request.user, 'is_kabid', False):
+    is_admin_or_fo_or_pimpinan = (
+        request.user.is_superadmin or 
+        request.user.is_superuser or 
+        getattr(request.user, 'is_pimpinan', False) or 
+        getattr(request.user, 'is_kabid', False) or 
+        getattr(request.user, 'is_sdm', False) or 
+        getattr(request.user, 'is_fo', False) or 
+        active_pov in ['fo', 'sdm', 'kabid_4', 'waka_4', 'waka_2', 'kabid_2', 'ketua']
+    )
+    if not is_admin_or_fo_or_pimpinan and current_emp and current_emp.dept_relation:
+        dept_name = (current_emp.dept_relation.name or "").lower()
+        if any(k in dept_name for k in ['front office', 'resepsionis', 'sekretariat', 'sdm', 'administrasi', 'umum']):
+            is_admin_or_fo_or_pimpinan = True
+
+    if is_admin_or_fo_or_pimpinan or is_waka_or_kabid_2:
         sppds = SPPD.objects.select_related('disposition__archive', 'disposition__report').prefetch_related('assigned_employees', 'followers').all()
     elif current_emp:
         sppds = SPPD.objects.filter(
@@ -117,7 +131,7 @@ def sppd_list(request):
 
     employees = Employee.objects.all().order_by('full_name')
     status_choices = [('active', 'Aktif'), ('cancelled', 'Dibatalkan')]
-    active_tab = request.GET.get('tab', 'create')
+    active_tab = request.GET.get('tab') or ('list' if sppds.exists() else 'create')
 
     per_page = int(request.GET.get('per_page', 25))
     paginator_sppd = Paginator(sppds, per_page)

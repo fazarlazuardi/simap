@@ -8,6 +8,7 @@ urlpatterns = [
     path('upload/', views.archive_upload, name='upload'),
     path('batch-verify/', views.batch_verify_view, name='batch_verify'),
     path('<int:pk>/', views.archive_detail, name='detail'),
+    path('<int:pk>/quick-detail/', views.archive_quick_detail, name='quick_detail'),
     path('<int:pk>/receipt/', views.archive_receipt, name='receipt'),
     path('<int:pk>/edit/', views.archive_edit, name='edit'),
     path('<int:pk>/verify/', views.archive_verify, name='verify'),

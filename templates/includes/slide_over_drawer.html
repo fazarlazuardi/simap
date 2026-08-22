@@ -1,0 +1,30 @@
+<!-- Global Slide-Over Side Drawer Shell -->
+<div x-data x-show="$store.drawer.isOpen" 
+     x-cloak
+     @click="$store.drawer.close()"
+     class="drawer-backdrop"></div>
+
+<div x-data 
+     class="slide-over-drawer" 
+     :class="{ 'open': $store.drawer.isOpen }" 
+     x-cloak>
+    
+    <!-- Drawer Header -->
+    <div class="p-4 border-bottom d-flex align-items-center justify-content-between bg-body-tertiary">
+        <div>
+            <h5 class="mb-0 fw-bold" x-text="$store.drawer.title">Detail Data</h5>
+            <p class="mb-0 text-muted small" x-text="$store.drawer.subtitle"></p>
+        </div>
+        <button type="button" @click="$store.drawer.close()" class="btn-close" aria-label="Close"></button>
+    </div>
+
+    <!-- Drawer Body Content -->
+    <div class="p-4 overflow-auto flex-grow-1" id="drawerBodyContent" x-html="$store.drawer.contentHtml">
+        <p class="text-muted">Memuat informasi...</p>
+    </div>
+
+    <!-- Drawer Footer Actions -->
+    <div class="p-3 border-top bg-body-tertiary d-flex justify-content-end gap-2">
+        <button type="button" @click="$store.drawer.close()" class="btn btn-sm btn-outline-secondary rounded-pill px-4">Tutup</button>
+    </div>
+</div>

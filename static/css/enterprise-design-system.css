@@ -1,0 +1,731 @@
+/* ==========================================================================
+   SIMAP BAZNAS - ENTERPRISE DESIGN SYSTEM
+   Modern Monolith Styling (Tailwind Tokens & Enterprise Components)
+   ========================================================================== */
+
+/* 1. IMPORTS & GOOGLE FONTS */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* 2. DESIGN TOKENS & ROOT CSS VARIABLES */
+:root {
+  /* Fonts */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Brand Colors (BAZNAS Emerald Spectrum) */
+  --color-emerald-50:  #ECFDF5;
+  --color-emerald-100: #D1FAE5;
+  --color-emerald-200: #A7F3D0;
+  --color-emerald-400: #34D399;
+  --color-emerald-500: #10B981;
+  --color-emerald-600: #059669; /* Main Enterprise Primary */
+  --color-emerald-700: #047857; /* Deep Brand Emerald */
+  --color-emerald-800: #065F46;
+  --color-emerald-900: #064E3B;
+
+  /* Accent Gold Amber */
+  --color-amber-50:  #FFFBEB;
+  --color-amber-100: #FEF3C7;
+  --color-amber-400: #FBBF24;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
+  --color-amber-700: #B45309;
+
+  /* Status Colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger:  #EF4444;
+  --color-info:    #3B82F6;
+  --color-purple:  #8B5CF6;
+
+  /* Light Theme Surfaces & Geometry */
+  --body-bg:          #F8FAFC;
+  --card-bg:          #FFFFFF;
+  --card-border:      #E2E8F0;
+  --surface-hover:    #F1F5F9;
+  --text-primary:     #0F172A;
+  --text-secondary:   #64748B;
+  --text-muted:       #94A3B8;
+  --border-color:     #E2E8F0;
+  --border-subtle:    #F1F5F9;
+  
+  --navbar-bg:        rgba(255, 255, 255, 0.85);
+  --navbar-border:    #E2E8F0;
+  --sidebar-bg:       #0F172A;
+  --sidebar-text:     #94A3B8;
+  --sidebar-active:   #059669;
+
+  /* Radii & Heights */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px;
+
+  --height-input: 46px;
+  --height-btn-md: 44px;
+
+  /* Shadows (Ambient & Soft Elevation) */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.04), 0 2px 4px -2px rgba(15, 23, 42, 0.02);
+  --shadow-md: 0 10px 15px -3px rgba(15, 23, 42, 0.06), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+  --shadow-glow: 0 0 20px rgba(5, 150, 105, 0.18);
+}
+
+/* 3. DARK MODE SURFACES & TOKENS */
+[data-theme="dark"] {
+  --body-bg:          #090D16;
+  --card-bg:          #111827;
+  --card-border:      #1F2937;
+  --surface-hover:    #1E293B;
+  --text-primary:     #F8FAFC;
+  --text-secondary:   #94A3B8;
+  --text-muted:       #64748B;
+  --border-color:     #1F2937;
+  --border-subtle:    #161E2E;
+
+  --navbar-bg:        rgba(17, 24, 39, 0.85);
+  --navbar-border:    #1F2937;
+  --sidebar-bg:       #0B0F19;
+  --sidebar-text:     #94A3B8;
+  --sidebar-active:   #059669;
+
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 25px rgba(16, 185, 129, 0.25);
+}
+
+/* 4. BASE & TYPOGRAPHY RESET */
+html, body {
+  font-family: var(--font-sans) !important;
+  background-color: var(--body-bg) !important;
+  color: var(--text-primary) !important;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.code-num, .font-mono {
+  font-family: var(--font-mono) !important;
+}
+
+/* 5. ENTERPRISE GLASS & CARDS */
+.card-enterprise {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-enterprise:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card-enterprise {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stat-card-enterprise:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-emerald-500);
+}
+
+.stat-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.glass-banner-enterprise {
+  background: linear-gradient(135deg, #064E3B 0%, #0F172A 60%, #1E293B 100%);
+  border-radius: var(--radius-lg);
+  color: #FFFFFF;
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 30px -5px rgba(6, 78, 59, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-banner-enterprise::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* 6. ENTERPRISE BUTTONS & INPUTS */
+.btn-enterprise-primary {
+  background-color: var(--color-emerald-600) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 0.625rem 1.25rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2) !important;
+}
+
+.btn-enterprise-primary:hover {
+  background-color: var(--color-emerald-700) !important;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+/* 7. BADGES & STATUS PILLS */
+.badge-pill-enterprise {
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.02em;
+}
+
+.badge-pill-success {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+[data-theme="dark"] .badge-pill-success {
+  color: #34D399;
+  background-color: rgba(16, 185, 129, 0.2);
+}
+
+.badge-pill-warning {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.badge-pill-danger {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* HIGH-CONTRAST ACTOR BADGES FOR BPMN TIMELINE */
+.badge-actor-primary {
+  background-color: #1D4ED8 !important;
+  color: #FFFFFF !important;
+}
+
+.badge-actor-info {
+  background-color: #0284C7 !important;
+  color: #FFFFFF !important;
+}
+
+.badge-actor-warning {
+  background-color: #D97706 !important;
+  color: #FFFFFF !important;
+}
+
+.badge-actor-success {
+  background-color: #047857 !important;
+  color: #FFFFFF !important;
+}
+
+.badge-actor-secondary {
+  background-color: #334155 !important;
+  color: #FFFFFF !important;
+}
+
+/* HIGH CONTRAST WORKFLOW STATUS BADGES (VERIFIED, SCHEDULED, DISPATCHED, ST, SPPD, LHP) */
+.badge-node-verified {
+  background-color: #065F46 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+.badge-node-dispatched {
+  background-color: #1E40AF !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+.badge-node-st {
+  background-color: #0369A1 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+.badge-node-sppd {
+  background-color: #9A3412 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+.badge-node-scheduled {
+  background-color: #047857 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+.badge-node-lhp {
+  background-color: #6D28D9 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+/* HIGH CONTRAST EMPLOYEE / PERSONEL BADGES (LIGHT & DARK MODE) */
+.badge-employee-tag {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  border: 1px solid #334155 !important;
+  font-weight: 700 !important;
+  padding: 4px 10px !important;
+  font-size: 0.78rem !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+[data-theme="dark"] .badge-employee-tag {
+  background-color: #059669 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #10B981 !important;
+}
+
+/* DROPZONE FILE ACTIVE & GLOWING STATES */
+.dropzone-box {
+  border: 2px dashed #059669 !important; /* GARIS PUTUS-PUTUS TEGAS SANGAT JELAS SAAT KOSONG */
+  background-color: var(--surface-hover) !important;
+  border-radius: var(--radius-sm);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .dropzone-box {
+  border: 2px dashed #34D399 !important;
+  background-color: rgba(30, 41, 59, 0.6) !important;
+}
+
+.dropzone-box:hover {
+  border-color: #10B981 !important;
+  background-color: var(--card-bg) !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2) !important;
+}
+
+.dropzone-box.drag-over {
+  border: 2px dashed #F59E0B !important;
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4) !important;
+  transform: scale(1.01);
+}
+
+.dropzone-box.has-file {
+  border: 2px solid #10B981 !important; /* GARIS UTUH SOLID BERCAHAYA SAAT BERKAS DIMASUKKAN */
+  background-color: rgba(16, 185, 129, 0.14) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.35), 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="dark"] .dropzone-box.has-file {
+  border: 2px solid #34D399 !important;
+  background-color: rgba(16, 185, 129, 0.22) !important;
+  box-shadow: 0 0 24px rgba(52, 211, 153, 0.45) !important;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+  position: relative;
+}
+
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  animation: pulseAnimation 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  opacity: 0.6;
+}
+
+@keyframes pulseAnimation {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* 8. SLIDE-OVER DRAWER COMPONENT */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1080;
+  transition: opacity 0.3s ease;
+}
+
+.slide-over-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 560px;
+  background-color: var(--card-bg);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+  z-index: 1090;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-left: 1px solid var(--border-color);
+}
+
+.slide-over-drawer.open {
+  transform: translateX(0);
+}
+
+/* 9. COMMAND PALETTE (CTRL + K) */
+.command-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(9, 13, 22, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 1100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+}
+
+.command-palette-modal {
+  width: 100%;
+  max-width: 640px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  animation: commandModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) ease;
+}
+
+@keyframes commandModalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.command-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 18px 20px;
+  font-size: 1rem;
+  color: var(--text-primary);
+  outline: none !important;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.command-option-item {
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.command-option-item:hover, .command-option-item.selected {
+  background-color: var(--surface-hover);
+  color: var(--color-emerald-600);
+}
+
+/* 10. HTMX PROGRESS BAR */
+#htmx-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-emerald-500), var(--color-amber-500));
+  z-index: 9999;
+  transition: width 0.2s ease, opacity 0.4s ease;
+  width: 0%;
+  opacity: 0;
+}
+
+#htmx-progress-bar.loading {
+  width: 70%;
+  opacity: 1;
+}
+
+#htmx-progress-bar.finished {
+  width: 100%;
+  opacity: 0;
+}
+
+/* 11. SKELETON SCREEN LOADERS */
+.skeleton-box {
+  background: linear-gradient(90deg, var(--border-subtle) 25%, var(--surface-hover) 37%, var(--border-subtle) 63%);
+  background-size: 400% 100%;
+  animation: skeletonLoading 1.4s ease infinite;
+  border-radius: var(--radius-xs);
+}
+
+@keyframes skeletonLoading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* 12. ENTERPRISE FORM CONTROLS & READABILITY */
+.form-label, label, .form-check-label {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.375rem;
+}
+
+.form-text, .text-muted, .form-text.text-muted {
+  color: var(--text-secondary) !important;
+  font-size: 0.8rem;
+}
+
+.form-control, 
+.form-select, 
+.custom-input, 
+textarea, 
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+input[type="date"], 
+input[type="datetime-local"], 
+input[type="number"], 
+input[type="file"],
+input[type="search"] {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 0.875rem !important;
+  padding: 0.625rem 0.875rem !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+.form-control:focus, 
+.form-select:focus, 
+.custom-input:focus, 
+textarea:focus {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--color-emerald-500) !important;
+  box-shadow: 0 0 0 3.5px rgba(16, 185, 129, 0.2) !important;
+  outline: none !important;
+}
+
+select option, 
+.form-select option,
+.custom-input option {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] select option, 
+[data-theme="dark"] .form-select option,
+[data-theme="dark"] .custom-input option {
+  background-color: #111827 !important;
+  color: #F8FAFC !important;
+}
+
+::placeholder, 
+.form-control::placeholder, 
+.custom-input::placeholder, 
+textarea::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.85 !important;
+}
+
+.form-control:disabled, 
+.form-control[readonly], 
+.form-select:disabled,
+.custom-input[readonly] {
+  background-color: var(--border-subtle) !important;
+  color: var(--text-secondary) !important;
+  opacity: 0.9 !important;
+  cursor: not-allowed;
+}
+
+.form-check-input {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+.form-check-input:checked {
+  background-color: var(--color-emerald-600) !important;
+  border-color: var(--color-emerald-600) !important;
+}
+
+/* 13. EXECUTIVE FUTURISTIC TABS & GLASS CARDS */
+.nav-tabs-futuristic {
+  display: flex;
+  gap: 6px;
+  background: var(--surface-hover);
+  padding: 6px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1.25rem;
+}
+
+.nav-tabs-futuristic .nav-link {
+  flex: 1;
+  text-align: center;
+  border: 1px solid transparent !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  padding: 0.6rem 1rem !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  background: transparent !important;
+}
+
+.nav-tabs-futuristic .nav-link:hover {
+  color: var(--text-primary) !important;
+  background-color: var(--card-bg) !important;
+}
+
+.nav-tabs-futuristic .nav-link.active {
+  background-color: var(--card-bg) !important;
+  color: var(--color-emerald-600) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+[data-theme="dark"] .nav-tabs-futuristic .nav-link.active {
+  color: #34D399 !important;
+}
+
+.card-futuristic-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-futuristic-item:hover {
+  border-color: var(--color-emerald-500);
+  box-shadow: var(--shadow-sm);
+}
+
+.timeline-item-futuristic {
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-hover);
+  border: 1px solid var(--border-color);
+  margin-bottom: 0.625rem;
+  transition: all 0.2s ease;
+}
+
+.timeline-item-futuristic:hover {
+  border-color: var(--color-emerald-500);
+}
+
+/* ==========================================================================
+   GLOBAL ADAPTIVE ENTERPRISE SCROLLBAR (NEON GLOW EMERALD)
+   Auto-adapts to Light & Dark Theme Mode with Glowing Bright Green active state
+   ========================================================================== */
+
+/* 1. Webkit Scrollbar Size (Chrome, Safari, Edge, Opera) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* 2. Scrollbar Track */
+::-webkit-scrollbar-track {
+  background: var(--body-bg);
+  border-radius: 9999px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #060D12;
+}
+
+/* 3. Scrollbar Thumb - Default State */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
+  border-radius: 9999px;
+  border: 2px solid var(--body-bg);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #0E9F6E 0%, #065F46 100%);
+  border: 2px solid #060D12;
+}
+
+/* 4. Scrollbar Thumb - Hover & Active / Dragging State (GLOWING NEON BRIGHT GREEN) */
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #34D399 0%, #10B981 100%) !important;
+  border-color: transparent !important;
+  box-shadow: 
+    0 0 14px rgba(52, 211, 153, 0.9),
+    0 0 28px rgba(16, 185, 129, 0.7),
+    inset 0 0 8px #FFFFFF !important;
+  filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.85));
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] ::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #6EE7B7 0%, #10B981 100%) !important;
+  border-color: transparent !important;
+  box-shadow: 
+    0 0 18px rgba(110, 231, 183, 1),
+    0 0 35px rgba(16, 185, 129, 0.95),
+    inset 0 0 10px #FFFFFF !important;
+  filter: drop-shadow(0 0 14px rgba(110, 231, 183, 0.95));
+}
+
+/* 5. Firefox Standard Scrollbar Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #059669 var(--body-bg);
+}
+
+[data-theme="dark"] * {
+  scrollbar-color: #10B981 #060D12;
+}

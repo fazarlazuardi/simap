@@ -149,6 +149,10 @@ def disposition_edit(request, pk):
     """Edit disposisi tahap 1 (Ketua) — mengisi forwarded_to, note, instruksi."""
     dispo = get_object_or_404(Disposition.objects.select_related('archive'), pk=pk)
     active_pov = request.session.get('active_pov')
+    if active_pov in ['waka_1', 'waka_2', 'waka_3', 'kabid_1', 'kabid_2', 'kabid_3', 'staf']:
+        messages.error(request, "Akses ditolak. Waka I, II, III dan Bidang I, II, III hanya memiliki hak membaca (Read Only).")
+        return redirect('dispositions:list')
+
     is_kabid_or_fo = active_pov in ['kabid_4', 'sdm', 'fo'] or getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_kabid', False) or getattr(request.user, 'is_sdm', False) or getattr(request.user, 'is_fo', False)
     if not request.user.is_pimpinan and not request.user.is_superadmin and not is_kabid_or_fo:
         messages.error(request, "Akses ditolak. Pengisian disposisi memerlukan kewenangan Pimpinan, Kabid IV, atau FO.")
@@ -230,6 +234,10 @@ def disposition_waka_edit(request, pk):
     dispo = get_object_or_404(Disposition.objects.select_related('archive'), pk=pk)
 
     active_pov = request.session.get('active_pov')
+    if active_pov in ['waka_1', 'waka_2', 'waka_3', 'kabid_1', 'kabid_2', 'kabid_3', 'staf']:
+        messages.error(request, "Akses ditolak. Waka I, II, III dan Bidang I, II, III hanya memiliki hak membaca (Read Only).")
+        return redirect('dispositions:list')
+
     is_kabid_4 = active_pov in ['kabid_4', 'sdm'] or getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_kabid', False)
     if not request.user.is_pimpinan and not request.user.is_superadmin and not is_kabid_4:
         messages.error(request, "Hanya Pimpinan, Kabid IV, atau Superadmin yang bisa melakukan disposisi Waka IV.")
@@ -417,7 +425,17 @@ def disposition_delete(request, pk):
 
 @login_required
 def disposition_print(request):
+    blank = request.GET.get('blank') == '1'
+    archive_id = request.GET.get('archive_id')
     ids = request.GET.getlist('ids')
+
+    if blank:
+        archive = get_object_or_404(Archive, pk=archive_id) if archive_id else None
+        return render(request, 'dispositions/print_blank.html', {
+            'archive': archive,
+            'today': timezone.now(),
+        })
+
     if not ids:
         messages.error(request, "Pilih disposisi yang ingin dicetak.")
         return redirect('dispositions:list')

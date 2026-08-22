@@ -27,6 +27,13 @@ class EmployeeChoiceField(forms.ModelMultipleChoiceField):
         return f"{obj.full_name}"
 
 
+class SingleEmployeeChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        if obj.position:
+            return f"{obj.full_name} ({obj.position})"
+        return f"{obj.full_name}"
+
+
 class InternalMeetingForm(forms.ModelForm):
     scheduled_at = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={
@@ -37,40 +44,49 @@ class InternalMeetingForm(forms.ModelForm):
     )
     leaders = EmployeeChoiceField(
         queryset=Employee.objects.none(),
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        widget=forms.SelectMultiple(attrs={'class': 'form-select custom-input select2-leaders', 'multiple': 'multiple'}),
         required=False,
-        label="Pimpinan Rapat (Dapat Disesuaikan Nanti)"
+        label="Pimpinan Rapat (Multi-Select)"
+    )
+    notulis = SingleEmployeeChoiceField(
+        queryset=Employee.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-select custom-input select2-notulis'}),
+        required=False,
+        label="Notulis Rapat / Pencatat Risalah"
     )
     participants = EmployeeChoiceField(
         queryset=Employee.objects.none(),
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        widget=forms.SelectMultiple(attrs={'class': 'form-select custom-input select2-participants', 'multiple': 'multiple'}),
         required=False,
-        label="Peserta Rapat / Amil Hadir (Dapat Disesuaikan Nanti)"
+        label="Peserta Rapat Internal (Amil / Pegawai BAZNAS)"
     )
 
     class Meta:
         model = InternalMeeting
         fields = [
             'title', 'meeting_type', 'scheduled_at', 'location',
-            'leaders', 'participants', 'agenda_topics', 'attachment'
+            'leaders', 'notulis', 'participants', 'guest_names', 'agenda_topics', 'attachment'
         ]
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control custom-input', 'placeholder': 'Contoh: Coffee Morning / Rapat Evaluasi Program'}),
+            'title': forms.TextInput(attrs={'class': 'form-control custom-input', 'placeholder': 'Contoh: Rapat Pleno Evaluasi Program / Coffee Morning'}),
             'meeting_type': forms.Select(attrs={'class': 'form-select custom-input'}),
-            'location': forms.TextInput(attrs={'class': 'form-control custom-input', 'placeholder': 'Contoh: Ruang Rapat Pimpinan BAZNAS / Aula'}),
-            'agenda_topics': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Tuliskan agenda & poin utama pembahasan rapat...'}),
+            'location': forms.TextInput(attrs={'class': 'form-control custom-input', 'placeholder': 'Contoh: Ruang Rapat Utama BAZNAS / Aula Pemkab'}),
+            'agenda_topics': forms.Textarea(attrs={'class': 'form-control custom-input', 'rows': 4, 'placeholder': 'Tuliskan poin-poin utama agenda pembahasan rapat...'}),
+            'guest_names': forms.Textarea(attrs={'class': 'form-control custom-input', 'rows': 3, 'placeholder': 'Tuliskan nama/instansi peserta luar (Contoh: Perwakilan UPZ Kecamatan, OPD Pemkab, Tokoh Agama, Media, Vendor)'}),
             'attachment': forms.FileInput(attrs={'class': 'form-control custom-input'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter Pimpinan Rapat hanya untuk Jabatan Struktural (Ketua s/d Kabid IV), exclude Staff Pelaksana
-        pimpinan_qs = get_ordered_employee_queryset().exclude(position__icontains='staf').exclude(position__icontains='pelaksana')
-        self.fields['leaders'].queryset = pimpinan_qs
-        self.fields['participants'].queryset = get_ordered_employee_queryset()
+        all_emp = get_ordered_employee_queryset()
+        
+        self.fields['leaders'].queryset = all_emp
+        self.fields['notulis'].queryset = all_emp
+        self.fields['participants'].queryset = all_emp
 
         if self.instance and self.instance.pk:
             self.fields['leaders'].initial = self.instance.leaders.all()
+            self.fields['participants'].initial = self.instance.participants.all()
 
 
 class SingleEmployeeChoiceField(forms.ModelChoiceField):

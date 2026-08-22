@@ -1,0 +1,72 @@
+<div id="notificationDropdownContainer">
+    <div class="d-flex align-items-center justify-content-between p-3 pb-2 border-bottom">
+        <div class="d-flex align-items-center gap-2">
+            <h6 class="mb-0 fw-bold">Notifikasi</h6>
+            {% if global_notif_count > 0 %}
+                <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">{{ global_notif_count }} Baru</span>
+            {% else %}
+                <span class="badge bg-secondary bg-opacity-50 text-white rounded-pill" style="font-size: 0.65rem;">0 Baru</span>
+            {% endif %}
+        </div>
+        <div class="d-flex align-items-center gap-1">
+            {% if global_notifications or global_notif_count > 0 %}
+                <form hx-post="{% url 'notifications:mark_all_as_read' %}" 
+                      hx-target="#notificationDropdownContainer" 
+                      hx-swap="outerHTML"
+                      class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0 text-success me-2" style="font-size: 0.72rem;" title="Tandai Semua Dibaca">
+                        <i class="bi bi-check2-all me-1"></i> Dibaca
+                    </button>
+                </form>
+                <form hx-post="{% url 'notifications:clear_all' %}" 
+                      hx-target="#notificationDropdownContainer" 
+                      hx-swap="outerHTML"
+                      class="d-inline"
+                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua notifikasi?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0 text-danger" style="font-size: 0.72rem;" title="Hapus Semua Notifikasi">
+                        <i class="bi bi-trash me-1"></i> Hapus
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <ul class="list-unstyled mb-0" style="max-height: 340px; overflow-y: auto;">
+        {% for notif in global_notifications %}
+        <li>
+            <a class="dropdown-item p-3 border-bottom d-flex align-items-start gap-2 text-wrap" href="{% url 'notifications:read_and_redirect' notif.pk %}">
+                <div class="rounded-circle p-2 bg-emerald-subtle text-emerald flex-shrink-0 mt-1" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                    {% if notif.category == 'disposition' %}
+                        <i class="bi bi-send-fill text-primary"></i>
+                    {% elif notif.category == 'sppd' %}
+                        <i class="bi bi-car-front-fill text-warning"></i>
+                    {% elif notif.category == 'archive' %}
+                        <i class="bi bi-folder-fill text-success"></i>
+                    {% else %}
+                        <i class="bi bi-bell-fill text-info"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <p class="mb-1 small fw-bold text-primary text-truncate">{{ notif.title|default:notif.get_category_display }}</p>
+                    <p class="mb-1 text-dark small text-wrap lh-sm">{{ notif.message }}</p>
+                    <span class="text-muted" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>{{ notif.created_at|timesince }} yang lalu</span>
+                </div>
+                <span class="badge bg-danger rounded-circle p-1 mt-1 flex-shrink-0" style="width: 8px; height: 8px;" title="Belum dibaca"></span>
+            </a>
+        </li>
+        {% empty %}
+        <li class="p-4 text-center text-muted small">
+            <i class="bi bi-bell-slash fs-3 d-block text-secondary opacity-50 mb-2"></i>
+            Tidak ada notifikasi baru
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="p-2 border-top bg-body-tertiary text-center">
+        <a class="text-decoration-none small text-emerald fw-bold" href="{% url 'notifications:list' %}">
+            Lihat Semua Riwayat Notifikasi <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+</div>

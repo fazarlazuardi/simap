@@ -1,500 +1,574 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Kalender Kerja - BAZNAS{% endblock %}
+{% block title %}Kalender Kerja & Agenda - BAZNAS{% endblock %}
 
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <style>
-    .notulensi-content ol, .notulensi-content ul {
-        padding-left: 1.5rem;
-        margin-bottom: 0.5rem;
+    /* Google Calendar In-App Experience Styling */
+    .gcal-sidebar-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 20px;
     }
-    .notulensi-content ul {
-        list-style-type: disc !important;
-    }
-    .notulensi-content ol {
-        list-style-type: decimal;
-    }
-    .notulensi-content li[data-list="bullet"],
-    .notulensi-content ol li[data-list="bullet"],
-    .notulensi-content ul li[data-list="bullet"] {
-        list-style-type: disc !important;
-    }
-    .notulensi-content li[data-list="ordered"],
-    .notulensi-content ol li[data-list="ordered"],
-    .notulensi-content ul li[data-list="ordered"] {
-        list-style-type: decimal !important;
-    }
-    .notulensi-content ol ul, .notulensi-content ul ul, .notulensi-content ol li ul {
-        list-style-type: disc !important;
-        padding-left: 1.5rem;
-    }
-    .notulensi-content ol[type="a"], .notulensi-content ol[type="a" i], .notulensi-content ol.type-a, .notulensi-content ol ol {
-        list-style-type: lower-alpha;
-    }
-    .notulensi-content ol[type="I"], .notulensi-content ol[type="I" i], .notulensi-content ol ol ol {
-        list-style-type: lower-roman;
-    }
-    .notulensi-content li.ql-indent-1, .notulensi-content .ql-indent-1 { padding-left: 1.5em; }
-    .notulensi-content li.ql-indent-2, .notulensi-content .ql-indent-2 { padding-left: 3.0em; }
-    .notulensi-content li.ql-indent-3, .notulensi-content .ql-indent-3 { padding-left: 4.5em; }
-    .notulensi-content p {
-        margin-bottom: 0.35rem;
-    }
-    .notulensi-content p:last-child {
-        margin-bottom: 0;
-    }
-
-    /* Quill Editor Theme Styling & Dark Mode Compatibility */
-    .ql-container {
-        border-bottom-left-radius: 0.5rem;
-        border-bottom-right-radius: 0.5rem;
-        font-family: inherit;
+    .gcal-create-btn {
+        background: linear-gradient(135deg, var(--color-emerald-600), var(--color-emerald-700));
+        color: #ffffff !important;
+        border-radius: 28px;
+        padding: 12px 24px;
+        font-weight: 800;
         font-size: 0.95rem;
-        min-height: 140px;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s ease;
+        border: none;
     }
-    .ql-toolbar {
-        border-top-left-radius: 0.5rem;
-        border-top-right-radius: 0.5rem;
-        background-color: var(--surface-alt, #f8f9fa);
-        border-color: var(--border-color, #dee2e6) !important;
+    .gcal-create-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+        color: #ffffff !important;
     }
-    .ql-container.ql-snow {
-        border-color: var(--border-color, #dee2e6) !important;
-        background-color: var(--card-bg, #ffffff);
-        color: var(--text-primary, #212529);
+    
+    .gcal-layer-check {
+        padding: 8px 12px;
+        border-radius: 10px;
+        transition: background-color 0.15s ease;
+        cursor: pointer;
+        user-select: none;
     }
-    [data-theme="dark"] .ql-toolbar {
-        background-color: #1E293B !important;
-        border-color: #374151 !important;
+    .gcal-layer-check:hover {
+        background-color: var(--surface-hover);
     }
-    [data-theme="dark"] .ql-toolbar .ql-stroke {
-        stroke: #F8FAFC !important;
-    }
-    [data-theme="dark"] .ql-toolbar .ql-fill {
-        fill: #F8FAFC !important;
-    }
-    [data-theme="dark"] .ql-toolbar .ql-picker {
-        color: #F8FAFC !important;
-    }
-    [data-theme="dark"] .ql-toolbar .ql-picker-options {
-        background-color: #1E293B !important;
-        border-color: #374151 !important;
-        color: #F8FAFC !important;
-    }
-    [data-theme="dark"] .ql-container.ql-snow {
-        background-color: #111827 !important;
-        border-color: #374151 !important;
-        color: #F8FAFC !important;
-    }
-    [data-theme="dark"] .ql-editor.ql-blank::before {
-        color: #9CA3AF !important;
+    .gcal-layer-check input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
     }
 
-    .fc .fc-button-primary { background-color: var(--primary); border-color: var(--primary); padding: 8px 16px; font-weight: 600; color: #fff; }
-    .fc .fc-button-primary:hover { background-color: var(--primary-dark); border-color: var(--primary-dark); color: #fff; }
-    .fc .fc-button-primary:not(:disabled):active,
-    .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: var(--primary-dark) !important; border-color: var(--primary-dark) !important; color: #fff !important; }
-    .fc .fc-toolbar-title { font-weight: 700; font-family: 'Inter', sans-serif; text-transform: capitalize; color: var(--primary); }
-    .fc-header-toolbar { padding: 10px; display: flex; align-items: center; justify-content: space-between; }
-    .fc .fc-toolbar-chunk { display: flex; align-items: center; }
-    .fc .fc-toolbar-chunk:nth-child(1) { justify-content: flex-start; }
-    .fc .fc-toolbar-chunk:nth-child(2) { justify-content: center; }
-    .fc .fc-toolbar-chunk:nth-child(3) { justify-content: flex-end; }
-    .fc .fc-col-header-cell-cushion { color: var(--text-secondary); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; text-decoration: none; }
-    .fc .fc-daygrid-day-number { color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; }
-    .fc .fc-daygrid-day.fc-day-today { background-color: rgba(14, 159, 110, 0.12); }
-    .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number { color: var(--primary); font-weight: 700; }
-    .fc .fc-scrollgrid, .fc .fc-daygrid-day, .fc .fc-timegrid-slot, .fc .fc-col-header-cell, .fc .fc-list-table, .fc .fc-popover, .fc .fc-scrollgrid-sync-inner { border-color: var(--border-color) !important; }
-    .fc .fc-daygrid-day-frame, .fc .fc-timegrid-body, .fc .fc-scrollgrid-section-body, .fc .fc-list, .fc .fc-popover, .fc .fc-scrollgrid-sync-inner, .fc .fc-scrollgrid-section-header, .fc .fc-scrollgrid-section-footer { background-color: var(--card-bg) !important; }
-    .fc .fc-daygrid-day-frame, .fc .fc-list-event, .fc .fc-list-day-cushion, .fc .fc-popover-body, .fc .fc-popover-header, .fc .fc-scrollgrid-sync-inner a, .fc .fc-scrollgrid-sync-inner { color: var(--text-primary) !important; }
-    .fc .fc-event-title, .fc .fc-event-time { color: #fff !important; }
-    .fc .fc-daygrid-day.fc-day-other .fc-daygrid-day-number { color: var(--text-secondary) !important; }
-    .fc .fc-col-header-cell-cushion, .fc .fc-daygrid-day-number, .fc .fc-timegrid-axis-cushion, .fc .fc-list-day-text, .fc .fc-list-day-side-text { color: var(--text-primary) !important; }
-    .fc .fc-theme-standard td, .fc .fc-theme-standard th { background-color: var(--card-bg) !important; }
-    /* Responsive Mobile CSS for FullCalendar */
-    @media (max-width: 768px) {
-        .fc .fc-toolbar {
-            flex-direction: column !important;
-            gap: 10px !important;
-            align-items: center !important;
-        }
-        .fc .fc-toolbar-chunk {
-            display: flex !important;
-            justify-content: center !important;
-            width: 100% !important;
-            flex-wrap: wrap !important;
-            gap: 4px !important;
-        }
-        .fc .fc-toolbar-title {
-            font-size: 1.15rem !important;
-            text-align: center !important;
-            margin: 4px 0 !important;
-        }
-        .fc .fc-button {
-            padding: 6px 12px !important;
-            font-size: 0.75rem !important;
-            border-radius: 8px !important;
-        }
-        .calendar-card {
-            padding: 12px 8px !important;
-            border-radius: 14px !important;
-        }
-        .fc .fc-daygrid-day-number {
-            font-size: 0.75rem !important;
-            padding: 2px 4px !important;
-        }
-        .fc .fc-col-header-cell-cushion {
-            font-size: 0.7rem !important;
-            padding: 4px 2px !important;
-        }
-        .fc .fc-event {
-            font-size: 0.68rem !important;
-            padding: 2px 4px !important;
-            border-radius: 4px !important;
-            margin-bottom: 2px !important;
-        }
-        .fc .fc-daygrid-day-frame {
-            min-height: 60px !important;
-        }
-        .fc .fc-view-harness {
-            min-height: 400px !important;
-        }
+    /* FullCalendar Premium Google Calendar Theme */
+    .fc { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .fc .fc-toolbar {
+        padding: 14px 18px;
+        background-color: var(--surface-hover);
+        border: 1px solid var(--border-color);
+        border-radius: 16px 16px 0 0;
+        margin-bottom: 0 !important;
+        flex-wrap: wrap;
+        gap: 12px;
     }
+    .fc .fc-toolbar-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+    }
+    .fc .fc-button-primary {
+        background-color: var(--color-emerald-600) !important;
+        border-color: var(--color-emerald-600) !important;
+        padding: 8px 16px;
+        font-weight: 700;
+        color: #fff !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+    .fc .fc-button-primary:hover {
+        background-color: var(--color-emerald-700) !important;
+        border-color: var(--color-emerald-700) !important;
+    }
+    .fc .fc-col-header-cell {
+        background-color: var(--surface-hover);
+        padding: 10px 0;
+        border-color: var(--border-color) !important;
+    }
+    .fc .fc-col-header-cell-cushion {
+        color: var(--text-primary);
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        text-decoration: none !important;
+    }
+    .fc .fc-daygrid-day { border-color: var(--border-color) !important; }
+    .fc .fc-daygrid-day-number {
+        color: var(--text-primary);
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 6px 8px !important;
+        text-decoration: none !important;
+    }
+    .fc .fc-daygrid-day.fc-day-today {
+        background-color: rgba(16, 185, 129, 0.12) !important;
+    }
+    .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+        background-color: var(--color-emerald-600);
+        color: #ffffff !important;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 2px;
+    }
+
+    /* TANGGAL MERAH (SUNDAYS & NATIONAL HOLIDAYS) STYLING */
+    .fc .fc-day-sun .fc-daygrid-day-number,
+    .fc .fc-day-sun .fc-col-header-cell-cushion {
+        color: #DC2626 !important;
+        font-weight: 900 !important;
+    }
+    .fc .is-national-holiday-cell {
+        background-color: rgba(220, 38, 38, 0.12) !important;
+    }
+    .fc .is-national-holiday-cell .fc-daygrid-day-number {
+        color: #DC2626 !important;
+        font-weight: 900 !important;
+        font-size: 1.05rem !important;
+    }
+
+    .fc-event {
+        cursor: pointer;
+        border-radius: 6px !important;
+        padding: 3px 6px !important;
+        margin-bottom: 3px !important;
+        font-size: 0.78rem !important;
+        border: none !important;
+        transition: transform 0.15s ease;
+    }
+    .fc-event:hover { transform: translateY(-1px); }
+
+    /* Quill & DataTables overrides */
+    .ql-container { border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; font-family: inherit; font-size: 0.95rem; min-height: 140px; }
+    .ql-toolbar { border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; background-color: var(--surface-hover); border-color: var(--border-color) !important; }
+    .ql-container.ql-snow { border-color: var(--border-color) !important; background-color: var(--card-bg); color: var(--text-primary); }
+    [data-theme="dark"] .ql-toolbar { background-color: #1E293B !important; border-color: rgba(255, 255, 255, 0.12) !important; }
+    [data-theme="dark"] .ql-container.ql-snow { background-color: #111827 !important; border-color: rgba(255, 255, 255, 0.12) !important; color: #F8FAFC !important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-            <h4 class="fw-bold mb-1" style="color: var(--text-primary);">Kalender & Agenda Kerja</h4>
-            <p class="text-secondary small mb-0">Pantau jadwal kegiatan secara visual dan terperinci.</p>
+<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                    <i class="bi bi-calendar3 me-1 text-warning"></i> Monitoring Kalender Kerja Visual (Google Calendar Style)
+                </span>
+            </div>
+            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Kalender & Agenda Kerja BAZNAS</h3>
+            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 620px;">
+                Tampilan visual jadwal kegiatan dinas, rapat pleno pimpinan, SPPD, serta Tanggal Merah Hari Libur Nasional & Cuti Bersama SKB 3 Menteri secara realtime.
+            </p>
         </div>
-        {% if user.is_superadmin or user.is_pimpinan or user.is_kabid %}
-        <a href="{% url 'agendas:create' %}" class="btn btn-primary px-4">
-            <i class="bi bi-calendar-plus me-2"></i> Buat Agenda
-        </a>
-        {% endif %}
+        <div class="col-lg-5 text-lg-end">
+            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                {% if user.is_superadmin or user.is_pimpinan or user.is_kabid %}
+                <a href="{% url 'agendas:create' %}" class="gcal-create-btn text-decoration-none">
+                    <i class="bi bi-plus-lg fs-5"></i> Buat Agenda Baru
+                </a>
+                {% endif %}
+                <a href="{% url 'agendas:list' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}&export=1{% else %}?export=1{% endif %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
+                    <i class="bi bi-file-earmark-excel-fill me-1 text-success"></i> Export Excel
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-12 mb-4">
-        <!-- Legend Indicator Google Calendar & Agenda BAZNAS -->
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 p-2 px-3 rounded-3" style="background-color: var(--surface-alt); border: 1px solid var(--border-color); font-size: 0.8rem;">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <span class="fw-bold" style="color: var(--text-primary);"><i class="bi bi-info-circle-fill text-primary me-1"></i> Keterangan Kalender:</span>
-                <span class="badge border px-2 py-1" style="background-color: #0E9F6E; color: #FFFFFF;">
-                    <i class="bi bi-calendar-event me-1"></i> Agenda Kerja / SPPD BAZNAS
-                </span>
-                <span class="badge border px-2 py-1" style="background-color: #DC2626; color: #FFFFFF;">
-                    <i class="bi bi-flag-fill me-1"></i> Hari Libur Nasional & Cuti Bersama (Google Calendar Feed)
-                </span>
+<!-- GOOGLE CALENDAR 2-COLUMN LAYOUT -->
+<div class="row g-4 mb-4">
+    <!-- SIDEBAR KIRI GOOGLE CALENDAR CONTROLS -->
+    <div class="col-lg-3">
+        <div class="gcal-sidebar-card mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <h6 class="fw-bold text-emerald mb-0"><i class="bi bi-layers-fill me-2 text-success"></i>Filter Lapisan Kalender</h6>
+                <span class="badge badge-node-verified rounded-pill px-2.5 py-0.5 small">Google Calendar UI</span>
             </div>
-            <span class="small" style="color: var(--text-secondary);"><i class="bi bi-arrow-repeat me-1"></i> Terhubung Realtime dengan Kalender Nasional</span>
-        </div>
 
-        <div class="calendar-card">
+            <div class="d-flex flex-column gap-1 mb-4">
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerAgenda" class="form-check-input accent-emerald" checked onchange="filterCalendarLayers()">
+                        <span class="small fw-bold text-primary"><i class="bi bi-circle-fill me-1" style="color: #10B981;"></i> Agenda BAZNAS</span>
+                    </div>
+                </label>
+
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerSPPD" class="form-check-input" checked onchange="filterCalendarLayers()">
+                        <span class="small fw-bold text-primary"><i class="bi bi-circle-fill me-1" style="color: #0284C7;"></i> Perjalanan Dinas (SPPD)</span>
+                    </div>
+                </label>
+
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerMeeting" class="form-check-input" checked onchange="filterCalendarLayers()">
+                        <span class="small fw-bold text-primary"><i class="bi bi-circle-fill me-1" style="color: #8B5CF6;"></i> Rapat Pleno Pimpinan</span>
+                    </div>
+                </label>
+
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerLibur" class="form-check-input" checked onchange="filterCalendarLayers()">
+                        <span class="small fw-bold text-danger"><i class="bi bi-flag-fill me-1 text-danger"></i> Tanggal Merah SKB 3 Menteri</span>
+                    </div>
+                </label>
+
+                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" id="layerCuti" class="form-check-input" checked onchange="filterCalendarLayers()">
+                        <span class="small fw-bold text-warning"><i class="bi bi-exclamation-triangle-fill me-1 text-warning"></i> Cuti Bersama Official</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="p-3 card-enterprise" style="background-color: var(--surface-hover);">
+                <div class="small fw-bold text-emerald mb-1"><i class="bi bi-info-circle-fill me-1 text-warning"></i> Info Integrasi SIMAP:</div>
+                <p class="extra-small text-secondary mb-0">
+                    Seluruh tanggal merah hari libur nasional (seperti 17 Agustus Hari Kemerdekaan, Idul Fitri, Imlek, dll.) langsung tercetak teks liburnya di atas tanggal.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- UTAMA FULLCALENDAR CANVAS -->
+    <div class="col-lg-9">
+        <div class="card-enterprise p-4">
             <div id="calendar"></div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card border-0 shadow-sm p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                <h5 class="fw-bold mb-0" style="color: var(--text-primary);"><i class="bi bi-journal-check me-2 text-primary"></i>Daftar Agenda & Penugasan Kerja</h5>
-                <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
-                    <input type="text" name="q" class="form-control form-control-sm" style="width: 180px;" placeholder="🔍 Cari agenda / SPPD..." value="{{ filters.q|default:'' }}">
-                    
-                    <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
-                        <option value="">Semua Status</option>
-                        <option value="terjadwal" {% if filters.status == 'terjadwal' or filters.status == 'upcoming' %}selected{% endif %}>Terjadwal</option>
-                        <option value="selesai" {% if filters.status == 'selesai' or filters.status == 'completed' %}selected{% endif %}>Selesai</option>
-                        <option value="diundur" {% if filters.status == 'diundur' or filters.status == 'postponed' %}selected{% endif %}>Diundur</option>
-                        <option value="dibatalkan" {% if filters.status == 'dibatalkan' or filters.status == 'cancelled' %}selected{% endif %}>Dibatalkan</option>
-                    </select>
-
-                    <select name="disposer" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
-                        <option value="">Semua Pengirim Disposisi</option>
-                        {% for u in disposer_users %}
-                        <option value="{{ u.id }}" {% if filters.disposer == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
-                        {% endfor %}
-                    </select>
-
-                    <select name="terkait_user" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
-                        <option value="">Semua User Terkait</option>
-                        {% for u in terkait_users %}
-                        <option value="{{ u.id }}" {% if filters.terkait_user == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
-                        {% endfor %}
-                    </select>
-
-                    {% if filters.status or filters.disposer or filters.terkait_user or filters.q %}
-                    <a href="{% url 'agendas:list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Reset</a>
-                    {% endif %}
-                    <a href="{% url 'agendas:list' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}&export=1{% else %}?export=1{% endif %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm">
-                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Export Excel
-                    </a>
-                </form>
-            </div>
-
-            <div class="d-flex gap-2 flex-wrap align-items-center mb-4 px-1">
-                <span class="fw-semibold me-2 small" style="color: var(--text-primary);"><i class="bi bi-folder me-1"></i> Kategori:</span>
-                <a href="{% url 'agendas:list' %}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if not current_type %}btn-primary shadow-sm{% else %}btn-light border{% endif %}">
-                    <i class="bi bi-grid-3x3-gap me-1"></i> Semua
-                </a>
-                {% for code, label in archive_types %}
-                <a href="{% url 'agendas:list' %}?type={{ code }}{% if filters.q %}&q={{ filters.q }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.disposer %}&disposer={{ filters.disposer }}{% endif %}{% if filters.terkait_user %}&terkait_user={{ filters.terkait_user }}{% endif %}" class="btn btn-sm rounded-pill px-3 fw-semibold {% if current_type == code %}btn-primary shadow-sm{% else %}btn-light border{% endif %}">
-                    {{ label }}
-                </a>
-                {% endfor %}
-            </div>
+<!-- FILTER PANEL & DATA GRID TABEL AGENDA -->
+<div class="card-enterprise p-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 border-bottom pb-3">
+        <h5 class="fw-bold mb-0 text-emerald"><i class="bi bi-journal-check me-2 text-success"></i>Daftar Master Agenda & Penugasan Kerja</h5>
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+            <input type="text" name="q" class="form-control custom-input" style="width: 200px;" placeholder="🔍 Cari agenda / SPPD..." value="{{ filters.q|default:'' }}">
             
-            <div class="table-responsive rounded-3 border" style="border-color: var(--border-color) !important;">
-                <table class="table table-hover align-middle mb-0" id="agendaTable">
-                    <thead class="text-white small text-uppercase fw-bold" style="background: linear-gradient(135deg, #046C4E, #057A55);">
-                        <tr>
-                            <th class="py-3 px-3 border-0 text-center" style="width: 140px;">Waktu & Tanggal</th>
-                            <th class="py-3 px-3 border-0" style="min-width: 240px;">Nama Kegiatan & Lokasi</th>
-                            <th class="py-3 px-3 border-0" style="width: 180px;">Dokumen Acuan</th>
-                            <th class="py-3 px-3 border-0 text-center" style="width: 130px;">Status Agenda</th>
-                            <th class="py-3 px-3 border-0" style="min-width: 180px;">Pegawai Ditugaskan</th>
-                            <th class="py-3 px-3 border-0 text-center" style="width: 130px;">Notifikasi WA</th>
-                            <th class="py-3 px-3 border-0 text-end" style="min-width: 220px;">Aksi Cepat</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for agenda in agendas %}
-                        <tr id="agenda-{{ agenda.id }}" class="agenda-row {% if request.GET.q and request.GET.q in agenda.title or request.GET.highlight == agenda.id|slugify %}table-primary fw-semibold{% endif %}">
+            <select name="status" class="form-select custom-input" onchange="this.form.submit()" style="width: auto;">
+                <option value="">Semua Status</option>
+                <option value="terjadwal" {% if filters.status == 'terjadwal' or filters.status == 'upcoming' %}selected{% endif %}>Terjadwal</option>
+                <option value="selesai" {% if filters.status == 'selesai' or filters.status == 'completed' %}selected{% endif %}>Selesai</option>
+                <option value="diundur" {% if filters.status == 'diundur' or filters.status == 'postponed' %}selected{% endif %}>Diundur</option>
+                <option value="dibatalkan" {% if filters.status == 'dibatalkan' or filters.status == 'cancelled' %}selected{% endif %}>Dibatalkan</option>
+            </select>
 
-                            <!-- 1. Waktu & Tanggal -->
-                            <td class="text-center px-3 py-3" data-order="{{ agenda.scheduled_at|date:'U' }}">
-                                <div class="p-2 rounded-3 text-center" style="background-color: var(--surface-alt); border: 1px solid var(--border-color);">
-                                    <span class="d-block fw-bold text-success small" style="font-size: 0.82rem;">{{ agenda.scheduled_at|date:"l" }}</span>
-                                    <span class="d-block fw-black fs-6" style="color: var(--text-primary);">{{ agenda.scheduled_at|date:"d M Y" }}</span>
-                                    <span class="badge border px-2 py-0" style="background-color: rgba(100, 116, 139, 0.15); color: var(--text-primary); font-size: 0.68rem;"><i class="bi bi-clock me-1"></i>{{ agenda.scheduled_at|time:"H:i" }} WIB</span>
-                                </div>
-                            </td>
+            <select name="disposer" class="form-select custom-input" onchange="this.form.submit()" style="width: auto;">
+                <option value="">Pengirim Disposisi</option>
+                {% for u in disposer_users %}
+                <option value="{{ u.id }}" {% if filters.disposer == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
+                {% endfor %}
+            </select>
 
-                            <!-- 2. Nama Kegiatan & Lokasi -->
-                            <td class="px-3 py-3">
-                                <h6 class="fw-bold mb-1" style="color: var(--text-primary); font-size: 0.9rem;">{{ agenda.title }}</h6>
-                                {% if agenda.location %}
-                                <div class="small fw-semibold mb-1" style="color: #3B82F6;">
-                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ agenda.location }}
-                                </div>
-                                {% endif %}
-                                {% if agenda.description %}
-                                <p class="mb-0 small italic" style="color: var(--text-secondary); font-size: 0.78rem;">{{ agenda.description|truncatechars:60 }}</p>
-                                {% endif %}
-                                <div class="mt-1 d-flex gap-1 flex-wrap">
-                                    {% if agenda.is_recurring %}
-                                    <span class="badge rounded-pill px-2 py-1 fw-bold" style="background-color: #0284C7; color: #FFFFFF; font-size: 0.68rem;"><i class="bi bi-repeat me-1"></i> Rutin ({{ agenda.get_recurrence_type_display }})</span>
-                                    {% endif %}
-                                    {% if agenda.is_sppd_generated or agenda.sppd_ref %}
-                                    <span class="badge rounded-pill px-2 py-1 fw-bold" style="background-color: #7C3AED; color: #FFFFFF; font-size: 0.68rem;"><i class="bi bi-briefcase-fill me-1"></i> SPPD TERBIT</span>
-                                    {% endif %}
-                                </div>
-                            </td>
+            <select name="terkait_user" class="form-select custom-input" onchange="this.form.submit()" style="width: auto;">
+                <option value="">User Terkait</option>
+                {% for u in terkait_users %}
+                <option value="{{ u.id }}" {% if filters.terkait_user == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
+                {% endfor %}
+            </select>
 
-                            <!-- 3. Dokumen Acuan -->
-                            <td class="px-3 py-3">
-                                {% if agenda.archive %}
-                                <a href="{% url 'archives:detail' agenda.archive.pk %}" class="text-decoration-none fw-bold small d-block text-primary">
-                                    <i class="bi bi-file-earmark-text me-1"></i>{{ agenda.archive.archive_number|default:"No. Arsip" }}
+            {% if filters.status or filters.disposer or filters.terkait_user or filters.q %}
+            <a href="{% url 'agendas:list' %}" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- KATEGORI PILLS FUTURISTIK -->
+    <div class="d-flex gap-2 flex-wrap align-items-center mb-4">
+        <span class="fw-bold text-emerald me-2 small"><i class="bi bi-folder-fill me-1 text-warning"></i> Kategori Jenis:</span>
+        <a href="{% url 'agendas:list' %}" class="btn btn-sm rounded-pill px-3.5 fw-bold {% if not current_type %}btn-enterprise-primary shadow-sm{% else %}btn-outline-secondary{% endif %}">
+            <i class="bi bi-grid-3x3-gap me-1"></i> Semua Kategori
+        </a>
+        {% for code, label in archive_types %}
+        <a href="{% url 'agendas:list' %}?type={{ code }}{% if filters.q %}&q={{ filters.q }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.disposer %}&disposer={{ filters.disposer }}{% endif %}{% if filters.terkait_user %}&terkait_user={{ filters.terkait_user }}{% endif %}" class="btn btn-sm rounded-pill px-3.5 fw-bold {% if current_type == code %}btn-enterprise-primary shadow-sm{% else %}btn-outline-secondary{% endif %}">
+            {{ label }}
+        </a>
+        {% endfor %}
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover align-middle w-100 small" id="agendaTable">
+            <thead>
+                <tr class="text-secondary small text-uppercase">
+                    <th class="border-0 text-center" style="width: 140px;">Waktu & Tanggal</th>
+                    <th class="border-0" style="min-width: 240px;">Nama Kegiatan & Lokasi</th>
+                    <th class="border-0" style="width: 180px;">Dokumen Acuan</th>
+                    <th class="border-0 text-center" style="width: 130px;">Status Agenda</th>
+                    <th class="border-0" style="min-width: 180px;">Pegawai Ditugaskan</th>
+                    <th class="border-0 text-center" style="width: 120px;">Notifikasi WA</th>
+                    <th class="border-0 text-end" style="min-width: 220px;">Aksi Cepat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agenda in agendas %}
+                <tr id="agenda-{{ agenda.id }}" class="agenda-row {% if request.GET.q and request.GET.q in agenda.title or request.GET.highlight == agenda.id|slugify %}table-primary fw-semibold{% endif %}">
+
+                    <!-- Waktu & Tanggal -->
+                    <td class="text-center" data-order="{{ agenda.scheduled_at|date:'U' }}">
+                        <div class="p-2 card-enterprise text-center" style="background-color: var(--surface-hover);">
+                            <span class="d-block fw-bold text-emerald small">{{ agenda.scheduled_at|date:"l" }}</span>
+                            <span class="d-block fw-extrabold fs-6 text-primary">{{ agenda.scheduled_at|date:"d M Y" }}</span>
+                            <span class="badge badge-node-dispatched px-2 py-0.5 mt-1" style="font-size: 0.68rem;"><i class="bi bi-clock me-1"></i>{{ agenda.scheduled_at|time:"H:i" }} WIB</span>
+                        </div>
+                    </td>
+
+                    <!-- Nama Kegiatan & Lokasi -->
+                    <td>
+                        <h6 class="fw-bold mb-1 text-primary" style="font-size: 0.9rem;">{{ agenda.title }}</h6>
+                        {% if agenda.location %}
+                        <div class="small fw-semibold text-emerald mb-1">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ agenda.location }}
+                        </div>
+                        {% endif %}
+                        {% if agenda.description %}
+                        <p class="mb-0 small text-secondary italic" style="font-size: 0.78rem;">{{ agenda.description|truncatechars:60 }}</p>
+                        {% endif %}
+                        <div class="mt-1.5 d-flex gap-1 flex-wrap">
+                            {% if agenda.is_recurring %}
+                            <span class="badge badge-node-st rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 0.68rem;"><i class="bi bi-repeat me-1"></i> Rutin ({{ agenda.get_recurrence_type_display }})</span>
+                            {% endif %}
+                            {% if agenda.is_sppd_generated or agenda.sppd_ref %}
+                            <span class="badge badge-node-sppd rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 0.68rem;"><i class="bi bi-briefcase-fill me-1"></i> SPPD TERBIT</span>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <!-- Dokumen Acuan -->
+                    <td>
+                        {% if agenda.archive %}
+                        <a href="{% url 'archives:detail' agenda.archive.pk %}" class="text-decoration-none fw-bold text-emerald font-mono small d-block">
+                            <i class="bi bi-file-earmark-text me-1"></i>{{ agenda.archive.archive_number|default:"No. Arsip" }}
+                        </a>
+                        <small class="d-block text-secondary text-truncate" style="max-width: 170px;" title="{{ agenda.archive.title }}">{{ agenda.archive.title }}</small>
+                        {% else %}
+                        <span class="badge badge-node-dispatched rounded-pill px-2.5 py-1 small fw-semibold"><i class="bi bi-journal me-1"></i>Agenda Manual</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Status Agenda -->
+                    <td class="text-center">
+                        {% if agenda.status == 'selesai' %}
+                            <span class="badge badge-node-verified rounded-pill px-3 py-1 fw-bold small">
+                                <i class="bi bi-check-circle-fill me-1"></i>Selesai
+                            </span>
+                        {% elif agenda.status == 'diundur' %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold small">
+                                <i class="bi bi-clock-history me-1"></i>Diundur
+                            </span>
+                        {% elif agenda.status == 'dibatalkan' %}
+                            <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold small">
+                                <i class="bi bi-x-circle-fill me-1"></i>Dibatalkan
+                            </span>
+                        {% else %}
+                            <span class="badge badge-node-dispatched rounded-pill px-3 py-1 fw-bold small">
+                                <i class="bi bi-calendar-event me-1"></i>Terjadwal
+                            </span>
+                        {% endif %}
+
+                        {% if agenda.completed_notes or agenda.completed_file %}
+                        <span class="badge badge-node-verified rounded-pill px-2 py-0.5 d-block mt-1 mx-auto fw-bold" style="font-size: 0.65rem; width: fit-content;">
+                            <i class="bi bi-journal-check me-1"></i>Notulensi Ada
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Pegawai Ditugaskan -->
+                    <td>
+                        {% if agenda.assigned_employees.exists %}
+                            {% for emp in agenda.assigned_employees.all %}
+                            <span class="badge-employee-tag mb-1 me-1">
+                                <i class="bi bi-person-fill text-emerald me-1"></i>{{ emp.full_name }}
+                            </span>
+                            {% endfor %}
+                        {% elif agenda.assigned_to.exists %}
+                            {% for u in agenda.assigned_to.all %}
+                            <span class="badge-employee-tag mb-1 me-1">
+                                <i class="bi bi-person-fill text-primary me-1"></i>{{ u.get_full_name|default:u.username }}
+                            </span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="small text-muted italic">—</span>
+                        {% endif %}
+
+                        {% if agenda.internal_meeting and agenda.internal_meeting.notulis %}
+                        <div class="mt-1">
+                            <span class="badge badge-node-st rounded-pill px-2 py-0.5 small fw-semibold" style="font-size: 0.68rem;" title="Notulis Rapat Internal">
+                                <i class="bi bi-pencil-square text-primary me-1"></i>Notulis: {{ agenda.internal_meeting.notulis.full_name }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- Notifikasi WA -->
+                    <td class="text-center small">
+                        {% if agenda.notification_sent_at %}
+                            <span class="text-success d-block fw-bold mb-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-check-all me-1"></i>{{ agenda.notification_sent_at|date:"d/m H:i" }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted d-block mb-1" style="font-size: 0.72rem;">—</span>
+                        {% endif %}
+                        <form action="{% url 'agendas:notify' agenda.pk %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" style="font-size: 0.7rem;" title="Kirim Pengingat WA">
+                                <i class="bi bi-send me-1"></i> WA
+                            </button>
+                        </form>
+                    </td>
+
+                    <!-- Aksi Cepat -->
+                    <td class="text-end">
+                        <script type="application/json" id="agenda-notulensi-json-{{ agenda.pk }}">{{ agenda.notulensi_json|safe }}</script>
+                        <div class="d-flex justify-content-end gap-1 flex-wrap">
+                        {% if agenda.status == 'terjadwal' or agenda.status == 'diundur' %}
+                            {% if agenda.is_sppd_generated or agenda.sppd_ref %}
+                                <button type="button" 
+                                        class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                        onclick="bukaModalSelesaiSPPD('{{ agenda.pk }}', '{{ agenda.sppd_ref.id|default:'' }}', '{{ agenda.sppd_ref.sppd_number|default:agenda.title|escapejs }}', '{{ agenda.title|escapejs }}')"
+                                        title="Input Laporan Hasil & Selesaikan SPPD/Agenda">
+                                    <i class="bi bi-check-lg me-1"></i> Selesai (LHP)
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold" disabled title="Agenda SPPD diedit melalui modul SPPD">
+                                    <i class="bi bi-lock me-1"></i> Edit SPPD
+                                </button>
+                            {% else %}
+                                {% if not agenda.is_sppd_generated and not agenda.sppd_ref %}
+                                <a href="{% url 'agendas:generate_sppd' agenda.pk %}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Terbitkan SPPD & Surat Tugas untuk Agenda ini">
+                                    <i class="bi bi-briefcase me-1"></i> Terbitkan SPPD
                                 </a>
-                                <small class="d-block text-truncate" style="color: var(--text-secondary); max-width: 170px;" title="{{ agenda.archive.title }}">{{ agenda.archive.title }}</small>
-                                {% else %}
-                                <span class="badge rounded-pill px-2 py-1 small fw-semibold" style="background-color: var(--surface-alt); color: var(--text-primary); border: 1px solid var(--border-color);"><i class="bi bi-journal me-1"></i>Agenda Manual</span>
-                                {% endif %}
-                            </td>
-
-                            <!-- 4. Status Agenda -->
-                            <td class="text-center px-3 py-3">
-                                {% if agenda.status == 'selesai' %}
-                                    <span class="badge rounded-pill px-3 py-1 fw-bold small" style="background-color: #0E9F6E; color: #FFFFFF;">
-                                        <i class="bi bi-check-circle-fill me-1"></i>Selesai
-                                    </span>
-                                {% elif agenda.status == 'diundur' %}
-                                    <span class="badge rounded-pill px-3 py-1 fw-bold small" style="background-color: #D97706; color: #FFFFFF;">
-                                        <i class="bi bi-clock-history me-1"></i>Diundur
-                                    </span>
-                                {% elif agenda.status == 'dibatalkan' %}
-                                    <span class="badge rounded-pill px-3 py-1 fw-bold small" style="background-color: #DC2626; color: #FFFFFF;">
-                                        <i class="bi bi-x-circle-fill me-1"></i>Dibatalkan
-                                    </span>
-                                {% else %}
-                                    <span class="badge rounded-pill px-3 py-1 fw-bold small" style="background-color: #2563EB; color: #FFFFFF;">
-                                        <i class="bi bi-calendar-event me-1"></i>Terjadwal
-                                    </span>
                                 {% endif %}
 
-                                {% if agenda.completed_notes or agenda.completed_file %}
-                                <span class="badge rounded-pill px-2 py-1 d-block mt-1 mx-auto fw-bold" style="background-color: #059669; color: #FFFFFF; font-size: 0.65rem; width: fit-content;">
-                                    <i class="bi bi-journal-check me-1"></i>Notulensi Ada
-                                </span>
-                                {% endif %}
-                            </td>
-
-                            <!-- 5. Pegawai Ditugaskan -->
-                            <td class="px-3 py-3">
-                                {% if agenda.assigned_employees.exists %}
-                                    {% for emp in agenda.assigned_employees.all %}
-                                    <span class="badge border rounded-pill px-2 py-1 mb-1 me-1 small fw-semibold" style="background-color: var(--surface-alt); color: var(--text-primary); border-color: var(--border-color) !important; font-size: 0.72rem;">
-                                        <i class="bi bi-person-fill text-success me-1"></i>{{ emp.full_name }}
-                                    </span>
-                                    {% endfor %}
-                                {% elif agenda.assigned_to.exists %}
-                                    {% for u in agenda.assigned_to.all %}
-                                    <span class="badge border rounded-pill px-2 py-1 mb-1 me-1 small fw-semibold" style="background-color: var(--surface-alt); color: var(--text-primary); border-color: var(--border-color) !important; font-size: 0.72rem;">
-                                        <i class="bi bi-person-fill text-primary me-1"></i>{{ u.get_full_name|default:u.username }}
-                                    </span>
-                                    {% endfor %}
-                                {% else %}
-                                    <span class="small italic" style="color: var(--text-secondary);">—</span>
-                                {% endif %}
-
-                                {% if agenda.internal_meeting and agenda.internal_meeting.notulis %}
-                                <div class="mt-1">
-                                    <span class="badge border rounded-pill px-2 py-1 small fw-semibold bg-light text-secondary" style="font-size: 0.68rem;" title="Notulis Rapat Internal">
-                                        <i class="bi bi-pencil-square text-primary me-1"></i>Notulis: {{ agenda.internal_meeting.notulis.full_name }}
-                                    </span>
-                                </div>
-                                {% endif %}
-                            </td>
-
-                            <!-- 6. Notifikasi WA -->
-                            <td class="text-center px-3 py-3 small">
-                                {% if agenda.notification_sent_at %}
-                                    <span class="text-success d-block fw-semibold mb-1" style="font-size: 0.72rem;">
-                                        <i class="bi bi-check-all me-1"></i>{{ agenda.notification_sent_at|date:"d/m H:i" }}
-                                    </span>
-                                {% else %}
-                                    <span class="text-muted d-block mb-1" style="font-size: 0.72rem;">—</span>
-                                {% endif %}
-                                <form action="{% url 'agendas:notify' agenda.pk %}" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0" style="font-size: 0.7rem;" title="Kirim Pengingat WA">
-                                        <i class="bi bi-send me-1"></i> WA
+                                {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
+                                    <button type="button" 
+                                            class="btn btn-enterprise-primary btn-sm rounded-pill px-2.5 py-1 fw-bold shadow-sm" 
+                                            onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
+                                        <i class="bi bi-journal-text me-1"></i> Baca Notulensi
                                     </button>
-                                </form>
-                            </td>
-
-                            <td class="text-end">
-                                <script type="application/json" id="agenda-notulensi-json-{{ agenda.pk }}">{{ agenda.notulensi_json|safe }}</script>
-                                <div class="d-flex justify-content-end gap-1 flex-wrap">
-                                {% if agenda.status == 'terjadwal' or agenda.status == 'diundur' %}
-                                    {% if agenda.is_sppd_generated or agenda.sppd_ref %}
-                                        <!-- 1. AGENDA SPPD (Hanya Tombol Selesai LHP, Tanpa Notulensi) -->
-                                        <button type="button" 
-                                                class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" 
-                                                onclick="bukaModalSelesaiSPPD('{{ agenda.pk }}', '{{ agenda.sppd_ref.id|default:'' }}', '{{ agenda.sppd_ref.sppd_number|default:agenda.title|escapejs }}', '{{ agenda.title|escapejs }}')"
-                                                title="Input Laporan Hasil & Selesaikan SPPD/Agenda">
-                                            <i class="bi bi-check-lg me-1"></i> Selesai (LHP)
-                                        </button>
-                                        <button type="button" class="btn btn-light btn-sm border rounded-pill px-3 fw-bold text-muted" disabled title="Agenda SPPD diedit melalui modul SPPD">
-                                            <i class="bi bi-lock me-1"></i> Edit SPPD
-                                        </button>
-                                    {% else %}
-                                        <!-- 2. AGENDA RAPAT INTERNAL & MANUAL -->
-                                        {% if not agenda.is_sppd_generated and not agenda.sppd_ref %}
-                                        <a href="{% url 'agendas:generate_sppd' agenda.pk %}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Terbitkan SPPD & Surat Tugas untuk Agenda ini">
-                                            <i class="bi bi-briefcase me-1"></i> Terbitkan SPPD
-                                        </a>
-                                        {% endif %}
-
-                                        <!-- Tombol Notulensi (Baca / Edit / Input) -->
-                                        {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
-                                            <button type="button" 
-                                                    class="btn btn-success btn-sm rounded-pill px-2 py-1 fw-bold shadow-sm" 
-                                                    onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
-                                                <i class="bi bi-journal-text me-1"></i> Baca Notulensi
-                                            </button>
-                                            <button type="button" 
-                                                    class="btn btn-outline-success btn-sm rounded-pill px-2 py-1 fw-bold shadow-sm" 
-                                                    onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                                <i class="bi bi-pencil-square me-1"></i> Edit Notulensi
-                                            </button>
-                                        {% else %}
-                                            <button type="button" 
-                                                    class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm" 
-                                                    onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                                <i class="bi bi-pencil-square me-1"></i> Input Notulensi
-                                            </button>
-                                        {% endif %}
-
-                                        <!-- Tombol Selesai Agenda Manual -->
-                                        <button type="button" 
-                                                class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" 
-                                                onclick="bukaModalSelesai('{{ agenda.title|escapejs }}', '{{ agenda.archive.archive_number|default:agenda.title|escapejs }}', '{% url 'agendas:complete' agenda.pk %}')"
-                                                title="Selesaikan Agenda Kerja">
-                                            <i class="bi bi-check-lg me-1"></i> Selesai
-                                        </button>
-
-                                        <a href="{% url 'agendas:edit' agenda.pk %}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Edit / Reschedule Agenda">
-                                            <i class="bi bi-pencil me-1"></i> Edit
-                                        </a>
-                                    {% endif %}
-                                    
-                                    <form action="{% url 'agendas:cancel' agenda.pk %}" method="post" class="d-inline" onsubmit="return confirm('Batalkan agenda {{ agenda.title|escapejs }}?')">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                                            <i class="bi bi-x-circle me-1"></i> Batal
-                                        </button>
-                                    </form>
+                                    <button type="button" 
+                                            class="btn btn-outline-success btn-sm rounded-pill px-2.5 py-1 fw-bold shadow-sm" 
+                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
+                                        <i class="bi bi-pencil-square me-1"></i> Edit Notulensi
+                                    </button>
                                 {% else %}
-                                    <!-- AGENDA SELESAI -->
-                                    {% if agenda.is_sppd_generated or agenda.sppd_ref %}
-                                        {% if agenda.sppd_ref and agenda.sppd_ref.disposition and agenda.sppd_ref.disposition.archive and agenda.sppd_ref.disposition.archive.latest_report %}
-                                        <a href="{% url 'reports:detail' agenda.sppd_ref.disposition.archive.latest_report.pk %}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Lihat Rekap Data Laporan Hasil Penanganan (LHP)">
-                                            <i class="bi bi-file-earmark-check-fill me-1"></i> Rekap LHP
-                                        </a>
-                                        {% endif %}
-                                    {% else %}
-                                        {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
-                                            <button type="button" 
-                                                    class="btn btn-success btn-sm rounded-pill px-2 py-1 fw-bold shadow-sm" 
-                                                    onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
-                                                <i class="bi bi-journal-text me-1"></i> Baca Notulensi
-                                            </button>
-                                            <button type="button" 
-                                                    class="btn btn-outline-success btn-sm rounded-pill px-2 py-1 fw-bold shadow-sm" 
-                                                    onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                                <i class="bi bi-pencil-square me-1"></i> Edit Notulensi
-                                            </button>
-                                        {% else %}
-                                            <button type="button" 
-                                                    class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm" 
-                                                    onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                                <i class="bi bi-pencil-square me-1"></i> Input Notulensi
-                                            </button>
-                                        {% endif %}
-                                    {% endif %}
-                                    {% if agenda.completed_file %}
-                                    <a href="{{ agenda.completed_file.url }}" target="_blank" class="btn btn-sm btn-light border text-success rounded-pill px-2 fw-bold" title="Unduh Berkas Dokumentasi Hasil Agenda">
-                                        <i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Berkas Foto/PDF
-                                    </a>
-                                    {% endif %}
+                                    <button type="button" 
+                                            class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm" 
+                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
+                                        <i class="bi bi-pencil-square me-1"></i> Input Notulensi
+                                    </button>
                                 {% endif %}
 
-                                <form action="{% url 'agendas:delete' agenda.pk %}" method="post" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin MENGHAPUS agenda {{ agenda.title|escapejs }} ini secara permanen?')">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="Hapus Agenda">
-                                        <i class="bi bi-trash me-1"></i> Hapus
-                                    </button>
-                                </form>
+                                <button type="button" 
+                                        class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                        onclick="bukaModalSelesai('{{ agenda.title|escapejs }}', '{{ agenda.archive.archive_number|default:agenda.title|escapejs }}', '{% url 'agendas:complete' agenda.pk %}')"
+                                        title="Selesaikan Agenda Kerja">
+                                    <i class="bi bi-check-lg me-1"></i> Selesai
+                                </button>
 
-                                <a href="{% if agenda.archive %}{% url 'archives:detail' agenda.archive.pk %}{% else %}#{% endif %}" class="btn btn-light btn-sm rounded-circle border shadow-sm" title="Detail Agenda/Arsip">
-                                    <i class="bi bi-eye"></i>
+                                <a href="{% url 'agendas:edit' agenda.pk %}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Edit Agenda">
+                                    <i class="bi bi-pencil me-1"></i> Edit
                                 </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            {% endif %}
+                            
+                            <form action="{% url 'agendas:cancel' agenda.pk %}" method="post" class="d-inline" onsubmit="return confirm('Batalkan agenda {{ agenda.title|escapejs }}?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                    <i class="bi bi-x-circle me-1"></i> Batal
+                                </button>
+                            </form>
+                        {% else %}
+                            <!-- AGENDA SELESAI -->
+                            {% if agenda.is_sppd_generated or agenda.sppd_ref %}
+                                {% if agenda.sppd_ref and agenda.sppd_ref.disposition and agenda.sppd_ref.disposition.archive and agenda.sppd_ref.disposition.archive.latest_report %}
+                                <a href="{% url 'reports:detail' agenda.sppd_ref.disposition.archive.latest_report.pk %}" class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Lihat Rekap Data LHP">
+                                    <i class="bi bi-file-earmark-check-fill me-1"></i> Rekap LHP
+                                </a>
+                                {% endif %}
+                            {% else %}
+                                {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
+                                    <button type="button" 
+                                            class="btn btn-enterprise-primary btn-sm rounded-pill px-2.5 py-1 fw-bold shadow-sm" 
+                                            onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
+                                        <i class="bi bi-journal-text me-1"></i> Baca Notulensi
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-outline-success btn-sm rounded-pill px-2.5 py-1 fw-bold shadow-sm" 
+                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
+                                        <i class="bi bi-pencil-square me-1"></i> Edit Notulensi
+                                    </button>
+                                {% else %}
+                                    <button type="button" 
+                                            class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm" 
+                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
+                                        <i class="bi bi-pencil-square me-1"></i> Input Notulensi
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                            {% if agenda.completed_file %}
+                            <a href="{{ agenda.completed_file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 fw-bold" title="Unduh Berkas Dokumentasi">
+                                <i class="bi bi-file-earmark-arrow-down-fill me-1 text-success"></i> Berkas Foto/PDF
+                            </a>
+                            {% endif %}
+                        {% endif %}
+
+                        <form action="{% url 'agendas:delete' agenda.pk %}" method="post" class="d-inline" onsubmit="return confirm('Hapus agenda {{ agenda.title|escapejs }} ini secara permanen?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="Hapus Agenda">
+                                <i class="bi bi-trash me-1"></i> Hapus
+                            </button>
+                        </form>
+
+                        <a href="{% if agenda.archive %}{% url 'archives:detail' agenda.archive.pk %}{% else %}#{% endif %}" class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm" title="Detail Agenda/Arsip">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- IN-APP GOOGLE CALENDAR EVENT POPOVER MODAL -->
+<div class="modal fade" id="modalGCalEventDetail" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-enterprise border-0">
+            <div class="modal-header border-bottom py-3">
+                <h5 class="modal-header-title fw-bold text-emerald mb-0" id="gcalModalTitle">Detail Kegiatan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-start">
+                <div class="p-3 card-enterprise mb-3" style="background-color: var(--surface-hover);">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase" id="gcalModalTypeBadge">AGENDA</span>
+                        <span class="small font-mono fw-bold text-emerald" id="gcalModalStatusBadge">AKTIF</span>
+                    </div>
+                    <h6 class="fw-bold text-primary mb-1 fs-6" id="gcalModalSubjectText">-</h6>
+                    <small class="text-secondary fw-semibold font-mono d-block" id="gcalModalTimeText">-</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="small text-secondary fw-bold text-uppercase d-block mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Lokasi / Instansi:</label>
+                    <p class="small fw-semibold text-primary mb-0" id="gcalModalLocationText">-</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="small text-secondary fw-bold text-uppercase d-block mb-1"><i class="bi bi-people-fill text-success me-1"></i> Pegawai / Ditugaskan:</label>
+                    <p class="small fw-semibold text-emerald mb-0" id="gcalModalAssigneeText">-</p>
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+                <a href="#" id="gcalModalActionBtn" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
+                    Lihat Detail SIMAP
+                </a>
             </div>
         </div>
     </div>
@@ -505,53 +579,46 @@
 <!-- Modal Pop-Up Selesai SPPD / Unggah LHP Lapangan -->
 <div class="modal fade" id="modalSelesaiSPPD" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-success text-white rounded-top-4 py-3">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-check-circle-fill me-2"></i>Selesaikan SPPD & Input Laporan Hasil Lapangan (LHP)
+        <div class="modal-content card-enterprise border-0">
+            <div class="modal-header border-bottom py-3">
+                <h5 class="modal-header-title fw-bold text-emerald mb-0">
+                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Selesaikan SPPD & Input Laporan Hasil Lapangan (LHP)
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="formSelesaiSPPD" method="post" enctype="multipart/form-data" action="">
                 {% csrf_token %}
                 <div class="modal-body p-4 text-start">
-                    <div class="alert alert-info border-0 rounded-3 mb-3 small">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        Menyelesaikan SPPD ini akan mencatat Laporan Hasil Pelaksanaan (LHP) dan memperbarui status penugasan menjadi Selesai.
-                    </div>
-                    
-                    <div class="p-3 bg-light rounded-3 border mb-3">
-                        <h6 class="fw-bold text-dark mb-1" id="sppdModalTitleText">-</h6>
-                        <span class="badge bg-primary text-white rounded-pill px-3 py-1 small" id="sppdModalNumBadge">SPPD / Penugasan Luar</span>
+                    <div class="p-3 card-enterprise mb-3" style="background-color: var(--surface-hover);">
+                        <h6 class="fw-bold text-primary mb-1" id="sppdModalTitleText">-</h6>
+                        <span class="badge badge-node-sppd rounded-pill px-3 py-1 small" id="sppdModalNumBadge">SPPD / Penugasan Luar</span>
                     </div>
 
                     <div class="mb-3">
-                        <label for="id_report_notes_sppd" class="form-label fw-bold text-dark">Rangkuman Hasil Kegiatan / Catatan Lapangan <span class="text-danger">*</span></label>
-                        <textarea name="completed_notes" id="id_report_notes_sppd" rows="4" class="form-control shadow-sm" placeholder="Tuliskan ringkasan hasil kegiatan / survei / penyaluran di sini..." required></textarea>
+                        <label for="id_report_notes_sppd" class="form-label fw-bold">Rangkuman Hasil Kegiatan / Catatan Lapangan <span class="text-danger">*</span></label>
+                        <textarea name="completed_notes" id="id_report_notes_sppd" rows="4" class="form-control custom-input p-3" placeholder="Tuliskan ringkasan hasil kegiatan / survei / penyaluran di sini..." required></textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label for="id_report_file_sppd" class="form-label fw-bold text-dark">Foto Utama / Berkas PDF LHP Lapangan</label>
-                        <input type="file" name="completed_file" id="id_report_file_sppd" class="form-control shadow-sm" accept="image/*,.pdf,.doc,.docx">
-                        <small class="text-muted"><i class="bi bi-paperclip me-1"></i>Unggah foto bukti kegiatan atau berkas LHP fisik utama yang telah di-scan.</small>
+                        <label for="id_report_file_sppd" class="form-label fw-bold">Foto Utama / Berkas PDF LHP Lapangan</label>
+                        <input type="file" name="completed_file" id="id_report_file_sppd" class="form-control custom-input" accept="image/*,.pdf,.doc,.docx">
+                        <small class="text-secondary"><i class="bi bi-paperclip me-1"></i>Unggah foto bukti kegiatan atau berkas LHP fisik utama yang telah di-scan.</small>
                     </div>
 
-                    <!-- FITUR TAMBAH FILE LAMPIRAN LAINNYA -->
                     <div class="mb-3 border-top pt-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-bold text-dark mb-0"><i class="bi bi-folder-plus me-1 text-primary"></i>Lampiran Berkas / Foto Tambahan</label>
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="addAdditionalFileRowAgendaSPPD()">
+                            <label class="form-label fw-bold mb-0 text-emerald"><i class="bi bi-folder-plus me-1 text-primary"></i>Lampiran Berkas / Foto Tambahan</label>
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="addAdditionalFileRowAgendaSPPD()">
                                 <i class="bi bi-plus-lg me-1"></i> Tambah File Lain
                             </button>
                         </div>
                         <div id="additionalFilesContainerAgendaSPPD" class="d-flex flex-column gap-2"></div>
-                        <small class="text-muted mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Klik "Tambah File Lain" jika Anda ingin melampirkan beberapa foto/dokumen pendukung sekaligus.</small>
                     </div>
                 </div>
-                <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-light border fw-semibold rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
-                        <i class="bi bi-check-lg me-1"></i> Simpan & Nyatakan Selesai
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-enterprise-primary rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-check-circle-fill me-1"></i> Simpan LHP & Selesaikan
                     </button>
                 </div>
             </form>
@@ -559,275 +626,104 @@
     </div>
 </div>
 
-<!-- Modal Input / Edit Notulensi Agenda (100% Identik dengan Modal Rapat Internal) -->
-<div class="modal fade" id="modalNotulensiAgendaSync" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-success text-white rounded-top-4 py-3">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-pencil-square me-2"></i>Formulir Notulensi & Risalah Rapat Agenda
+<!-- Modal Pop-Up Notulensi Rapat Internal (Quill.js Rich Text) -->
+<div class="modal fade" id="modalNotulensiRapat" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content card-enterprise border-0">
+            <div class="modal-header border-bottom py-3">
+                <h5 class="modal-header-title fw-bold text-emerald mb-0" id="modalNotulensiHeaderTitle">
+                    <i class="bi bi-journal-text me-2 text-success"></i>Notulensi Rapat Internal Pimpinan BAZNAS
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formNotulensiAgendaSync" method="post" action="" enctype="multipart/form-data">
+            <form id="formNotulensiRapat" method="post" enctype="multipart/form-data" action="">
                 {% csrf_token %}
-                <div class="modal-body p-4">
-                    <div class="alert alert-success d-flex align-items-center mb-3">
-                        <i class="bi bi-info-circle-fill fs-5 me-2"></i>
-                        <div>Agenda / Kegiatan: <strong id="notulensiAgendaTitleText">-</strong></div>
-                    </div>
+                <input type="hidden" name="meeting_id" id="notulensi_meeting_id" value="">
+                <input type="hidden" name="agenda_id" id="notulensi_agenda_id" value="">
+                <input type="hidden" name="notulensi_summary" id="hidden_notulensi_summary" value="">
+                <input type="hidden" name="notulensi_decision" id="hidden_notulensi_decision" value="">
+                <input type="hidden" name="notulensi_action_items" id="hidden_notulensi_action_items" value="">
 
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-3">
-                            <label for="id_meeting_type_agenda" class="form-label fw-bold text-dark">Sifat Kegiatan</label>
-                            <select name="meeting_type" id="id_meeting_type_agenda" class="form-select shadow-sm">
-                                <option value="khusus">Rapat Internal / Khusus</option>
-                                <option value="audiensi">Audiensi / Penerimaan Tamu</option>
-                                <option value="pimpinan">Rapat Pimpinan (Rapim)</option>
-                                <option value="pleno">Rapat Pleno Bidang</option>
-                                <option value="evaluasi">Rapat Evaluasi</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="id_leader_agenda" class="form-label fw-bold text-dark">Amil Menerima / Pimpinan</label>
-                            <select name="leader" id="id_leader_agenda" class="form-select shadow-sm">
-                                <option value="">-- Auto (Amil Penugasan) --</option>
-                                {% for emp in employees %}
-                                <option value="{{ emp.pk }}">{{ emp.full_name }} ({% if emp.position %}{{ emp.position }}{% else %}Amil{% endif %})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="id_notulis_agenda" class="form-label fw-bold text-dark">Notulis / Pencatat <span class="text-danger">*</span></label>
-                            <select name="notulis" id="id_notulis_agenda" class="form-select shadow-sm" required>
-                                <option value="">-- Pilih Notulis --</option>
-                                {% for emp in employees %}
-                                <option value="{{ emp.pk }}">{{ emp.full_name }} ({% if emp.position %}{{ emp.position }}{% else %}Amil{% endif %})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="id_status_agenda" class="form-label fw-bold text-dark">Status Agenda</label>
-                            <select name="status" id="id_status_agenda" class="form-select shadow-sm">
-                                <option value="selesai" selected>Selesai</option>
-                                <option value="berlangsung">Sedang Berlangsung</option>
-                                <option value="terjadwal">Terjadwal</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 p-3 border rounded-3 bg-white shadow-sm">
-                        <label for="id_guest_names_agenda" class="form-label fw-bold text-dark mb-1">
-                            <i class="bi bi-person-lines-fill text-primary me-1"></i>Daftar Tamu / Instansi Tamu <span class="text-muted fw-normal">(Khusus Audiensi / Tamu Eksternal)</span>
-                        </label>
-                        <textarea name="guest_names" id="id_guest_names_agenda" rows="2" class="form-control form-control-sm" placeholder="Tuliskan nama & instansi tamu per baris (misal: Bpk. H. Ahmad - Ketua Yayasan Peduli, Ibu Siti - Pemkab Tangerang). Jika dikosongkan, cetak presensi akan berupa baris manual..."></textarea>
-                        <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i>Untuk Audiensi / Penerimaan Tamu, label Pimpinan Rapat di cetakan PDF akan otomatis berubah menjadi <strong>Petugas Amil / Amil yang Menerima</strong>.</div>
-                    </div>
-
-                    <!-- Bagian Edit Peserta Hadir Rapat (Identik dengan Modul Rapat Internal) -->
-                    <div class="mb-3 p-3 border rounded-3 bg-light">
-                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                            <label class="form-label fw-bold text-dark m-0"><i class="bi bi-people-fill text-success me-1"></i> Peserta Rapat Hadir</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="selectAllNotulensiParticipantsAgenda()">
-                                    <i class="bi bi-check-all me-1"></i> Pilih Semua
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" onclick="deselectAllNotulensiParticipantsAgenda()">
-                                    <i class="bi bi-x-circle me-1"></i> Batal Semua
-                                </button>
-                                <span class="badge bg-success rounded-pill px-3" id="modal_participant_counter_agenda">0 Hadir</span>
+                <div class="modal-body p-4 text-start">
+                    <div class="p-3 card-enterprise mb-4" style="background-color: var(--surface-hover);">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="fw-bold text-primary mb-1" id="notulensiTitleText">-</h6>
+                                <span class="small text-secondary fw-semibold" id="notulensiDateText">-</span>
                             </div>
-                        </div>
-                        <!-- BAR FILTER BIDANG PEGAWAI PADA MODAL NOTULENSI -->
-                        <div class="d-flex align-items-center gap-1 flex-wrap mb-2 p-2 rounded-3 bg-light border">
-                            <span class="small fw-bold text-secondary me-1"><i class="bi bi-funnel-fill text-success me-1"></i>Filter Bidang:</span>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-bidang-filter-agenda active btn-primary" onclick="filterNotulensiParticipantsAgenda('all', this)">Semua</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter-agenda btn-light border" onclick="filterNotulensiParticipantsAgenda('bidang_1', this)">Bidang I</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter-agenda btn-light border" onclick="filterNotulensiParticipantsAgenda('bidang_2', this)">Bidang II</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter-agenda btn-light border" onclick="filterNotulensiParticipantsAgenda('bidang_3', this)">Bidang III</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter-agenda btn-light border" onclick="filterNotulensiParticipantsAgenda('bidang_4', this)">Bidang IV</button>
-                        </div>
-
-                        <input type="text" id="modal_search_participant_agenda" onkeyup="searchNotulensiParticipantsAgenda()" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari nama / jabatan peserta rapat...">
-                        
-                        <div class="p-2 rounded-3 border bg-white" style="max-height: 180px; overflow-y: auto;">
-                            <div class="row g-2" id="modal_participant_list_agenda">
-                                {% for emp in employees %}
-                                <div class="col-md-6 modal-participant-item-agenda" data-bidang="{{ emp.division|default:'bidang_1' }}" data-name="{{ emp.full_name|lower }}">
-                                    <label class="form-check-label d-flex align-items-center gap-2 m-0 border p-2 rounded-3 w-100 bg-light" style="cursor: pointer;">
-                                        <input type="checkbox" name="participants" value="{{ emp.pk }}" class="form-check-input notulensi-participant-chk-agenda" onchange="updateNotulensiParticipantCounterAgenda()">
-                                        <span class="small fw-semibold text-dark">{{ emp.full_name }} {% if emp.position %}<span class="text-muted">({{ emp.position }})</span>{% endif %}</span>
-                                    </label>
-                                </div>
-                                {% endfor %}
+                            <div class="col-md-4 text-md-end">
+                                <span class="badge badge-node-verified rounded-pill px-3 py-1" id="notulensiStatusBadge">Notulensi Rapat</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="id_notulensi_summary_agenda" class="form-label fw-bold text-dark">1. Ringkasan Pembahasan & Risalah Rapat <span class="text-danger">*</span></label>
-                        <div id="quill-editor-summary-agenda" class="bg-white"></div>
-                        <div class="d-none"><textarea name="notulensi_summary" id="id_notulensi_summary_agenda"></textarea></div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Notulis / Pencatat <span class="text-danger">*</span></label>
+                            <select name="notulis_id" id="notulensi_notulis_id" class="form-select custom-input" required>
+                                <option value="">Pilih Notulis...</option>
+                                {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.full_name }} ({{ emp.position }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Jenis Rapat Internal</label>
+                            <select name="meeting_type" id="notulensi_meeting_type" class="form-select custom-input">
+                                <option value="pimpinan">Rapat Pleno Pimpinan</option>
+                                <option value="koordinasi">Rapat Koordinasi Bidang</option>
+                                <option value="khusus">Rapat Khusus / Insidental</option>
+                                <option value="evaluasi">Rapat Evaluasi Kerja</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="id_notulensi_decision_agenda" class="form-label fw-bold text-dark">2. Kesimpulan & Keputusan Rapat</label>
-                        <div id="quill-editor-decision-agenda" class="bg-white"></div>
-                        <div class="d-none"><textarea name="notulensi_decision" id="id_notulensi_decision_agenda"></textarea></div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-emerald"><i class="bi bi-card-text me-1 text-primary"></i> 1. Ringkasan & Poin Pembahasan Rapat <span class="text-danger">*</span></label>
+                        <div id="quill_notulensi_summary"></div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="id_notulensi_action_items_agenda" class="form-label fw-bold text-dark">3. Catatan Ringkas Rencana Tindak Lanjut (Action Plan)</label>
-                        <div id="quill-editor-action-items-agenda" class="bg-white mb-3"></div>
-                        <div class="d-none"><textarea name="notulensi_action_items" id="id_notulensi_action_items_agenda"></textarea></div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-emerald"><i class="bi bi-check2-square me-1 text-success"></i> 2. Kesimpulan / Keputusan Rapat</label>
+                        <div id="quill_notulensi_decision"></div>
                     </div>
 
-                    <!-- FITUR ACTION ITEMS TRACKER DENGAN PIC & DUE DATE -->
+                    <div class="mb-4 border-top pt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-emerald mb-0"><i class="bi bi-list-task me-1 text-warning"></i> 3. Action Plan / Rencana Tindak Lanjut</label>
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="addActionPlanRowAgenda()">
+                                + Tambah Action Plan
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle small mb-0" id="tableActionPlanAgenda">
+                                <thead>
+                                    <tr class="text-secondary small text-uppercase">
+                                        <th class="border-0">Tugas / Action Item</th>
+                                        <th class="border-0" style="width: 220px;">PIC (Penanggung Jawab)</th>
+                                        <th class="border-0" style="width: 160px;">Tgl Target (Deadline)</th>
+                                        <th class="border-0 text-center" style="width: 60px;">Hapus</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyActionPlanAgenda"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div class="mb-3 border-top pt-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-bold text-dark mb-0"><i class="bi bi-list-check me-1 text-primary"></i>Tabel Item Tindak Lanjut Terstruktur (Action Items Tracker)</label>
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="addNotulensiActionItemRowAgenda()">
-                                <i class="bi bi-plus-lg me-1"></i> Tambah Action Item
+                            <label class="form-label fw-bold text-emerald mb-0"><i class="bi bi-paperclip me-1 text-primary"></i> 4. Dokumen Lampiran Berkas / Foto Presensi</label>
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="addNotulensiFileRowAgenda()">
+                                + Tambah File
                             </button>
                         </div>
-                        <div id="notulensiActionItemsContainerAgenda" class="d-flex flex-column gap-2 mb-2"></div>
-                        <small class="text-muted d-block"><i class="bi bi-info-circle me-1"></i>Setiap action item akan otomatis terdeteksi di Dashboard Monitoring Action Plan BAZNAS.</small>
-                    </div>
-
-                    <!-- BAGIAN DYNAMIC UPLOAD BERKAS & FOTO NOTULENSI (+ TAMBAH BERKAS IDENTIK RAPAT INTERNAL) -->
-                    <div class="mb-3 p-3 border rounded-3 bg-light">
-                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                            <label class="form-label fw-bold text-dark m-0">
-                                <i class="bi bi-paperclip text-success me-1"></i> Upload Dokumen Bukti & Foto Notulensi <span class="text-muted fw-normal">(Opsional)</span>
-                            </label>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold shadow-sm" onclick="addNotulensiFileRowAgenda()">
-                                <i class="bi bi-plus-circle-fill me-1"></i> Tambah Berkas / Foto Baru
-                            </button>
-                        </div>
-
-                        <!-- KONTEN DINAMIS DAFTAR FILE INPUT -->
-                        <div id="notulensi_file_inputs_container_agenda" class="d-flex flex-column gap-2 mb-2">
-                            <div class="card border p-2 rounded-3 bg-white notulensi-file-row-agenda">
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-md-6">
-                                        <input type="file" name="notulensi_files" class="form-control form-control-sm rounded-pill px-3">
-                                    </div>
-                                    <div class="col-md-5">
-                                        <input type="text" name="notulensi_file_labels[]" class="form-control form-control-sm rounded-pill px-3" placeholder="Nama / Keterangan Berkas (misal: Foto Suasana Rapat)">
-                                    </div>
-                                    <div class="col-md-1 text-end">
-                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle btn-remove-notulensi-file-agenda d-none" onclick="this.closest('.notulensi-file-row-agenda').remove()" title="Hapus Baris Ini">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i> Klik tombol <strong>+ Tambah Berkas / Foto Baru</strong> di atas jika ingin menambah lebih dari 1 file lampiran.</div>
-
-                        <div id="existingAttachmentsContainerAgenda" class="mt-3 p-3 bg-white rounded-3 border d-none">
-                            <span class="small fw-bold text-secondary d-block mb-2"><i class="bi bi-folder-check text-primary me-1"></i> Berkas & Foto Lampiran Tersimpan Saat Ini:</span>
-                            <div id="existingAttachmentsListAgenda" class="d-flex flex-wrap gap-2"></div>
-                        </div>
+                        <div id="notulensiFilesContainerAgenda" class="d-flex flex-column gap-2"></div>
                     </div>
                 </div>
-
-                <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="bi bi-send-fill me-1"></i> Simpan & Terbitkan Notulensi
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal View Notulensi Pop-up (Modul Agenda) -->
-<div class="modal fade" id="notulensiViewModalAgenda" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-success text-white rounded-top-4 py-3">
-                <h5 class="modal-title fw-bold" id="viewNotulensiTitleAgenda">
-                    <i class="bi bi-journal-text me-2"></i>Risalah & Notulensi Agenda
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="p-3 mb-3 bg-light rounded-3 border">
-                    <div class="row g-2 small">
-                        <div class="col-sm-6"><strong>Nomor Risalah:</strong> <span id="viewNotulensiNumberAgenda" class="text-primary fw-bold"></span></div>
-                        <div class="col-sm-6"><strong>Waktu Kegiatan:</strong> <span id="viewNotulensiDateAgenda"></span></div>
-                        <div class="col-sm-6"><strong>Pimpinan Rapat:</strong> <span id="viewNotulensiLeaderAgenda"></span></div>
-                        <div class="col-sm-6"><strong>Notulis:</strong> <span id="viewNotulensiNotulisAgenda"></span></div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <h6 class="fw-bold text-primary"><i class="bi bi-chat-left-text me-1"></i> 1. Ringkasan Pembahasan & Risalah Rapat:</h6>
-                    <div id="viewNotulensiSummaryAgenda" class="p-3 bg-light border rounded-3 text-dark notulensi-content"></div>
-                </div>
-
-                <div class="mb-3">
-                    <h6 class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1"></i> 2. Kesimpulan & Keputusan Rapat:</h6>
-                    <div id="viewNotulensiDecisionAgenda" class="p-3 border rounded-3 text-dark notulensi-content" style="background-color: rgba(13, 138, 82, 0.05); border-color: rgba(13, 138, 82, 0.2) !important;"></div>
-                </div>
-
-                <div class="mb-3" id="viewActionItemsBoxAgenda">
-                    <h6 class="fw-bold text-warning"><i class="bi bi-list-task me-1"></i> 3. Rencana Tindak Lanjut (Action Plan):</h6>
-                    <div id="viewNotulensiActionItemsAgenda" class="p-3 bg-light border rounded-3 text-dark notulensi-content"></div>
-                </div>
-
-                <div class="mb-3 d-none" id="viewAttachmentsBoxAgenda">
-                    <h6 class="fw-bold text-secondary"><i class="bi bi-paperclip me-1"></i> Dokumen Bukti & Foto Lampiran:</h6>
-                    <div id="viewNotulensiAttachmentsAgenda" class="d-flex flex-wrap gap-2"></div>
-                </div>
-            </div>
-            <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                <a id="viewNotulensiPrintBtnAgenda" href="#" target="_blank" class="btn btn-outline-secondary rounded-pill px-3 fw-bold">
-                    <i class="bi bi-printer me-1"></i> Cetak PDF
-                </a>
-                <button type="button" id="viewNotulensiEditBtnAgenda" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
-                    <i class="bi bi-pencil-square me-1"></i> Edit Notulensi
-                </button>
-                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Konfirmasi Selesai Agenda Manual -->
-<div class="modal fade" id="modalSelesaiAgenda" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-success text-white rounded-top-4 py-3">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-check-circle-fill me-2"></i>Konfirmasi Selesaikan Agenda
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="formSelesaiAgenda" method="post" action="">
-                {% csrf_token %}
-                <div class="modal-body p-4 text-start">
-                    <div class="text-center mb-3 text-success">
-                        <i class="bi bi-patch-check-fill display-4"></i>
-                    </div>
-                    <p class="text-secondary small text-center mb-3">Apakah Anda yakin ingin menyatakan agenda kerja berikut telah <strong>SELESAI</strong> dilaksanakan?</p>
-                    
-                    <div class="p-3 bg-light rounded-3 border mb-3">
-                        <h6 class="fw-bold text-dark mb-1" id="selesaiAgendaTitle">-</h6>
-                        <span class="badge bg-secondary text-white rounded-pill px-2 py-1 small" id="selesaiAgendaDocInfo">-</span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="selesai_completed_notes" class="form-label fw-bold text-dark">Catatan Pelaksanaan / Hasil Singkat (Opsional)</label>
-                        <textarea name="completed_notes" id="selesai_completed_notes" rows="3" class="form-control" placeholder="Tambahkan ringkasan singkat pelaksanaan kegiatan jika ada..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-light border fw-semibold rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
-                        <i class="bi bi-check-lg me-1"></i> Ya, Selesaikan Agenda
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-enterprise-primary rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-check-circle-fill me-1"></i> Simpan Notulensi Rapat
                     </button>
                 </div>
             </form>
@@ -837,497 +733,402 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
-    var quillSummaryAgenda, quillDecisionAgenda, quillActionItemsAgenda;
+let calendarInstance = null;
+let quillSummary, quillDecision;
 
-    function getFilterParams() {
-        var params = new URLSearchParams(window.location.search);
-        var result = {};
-        var filterKeys = ['disposer', 'terkait_user'];
-        filterKeys.forEach(function(key) {
-            var val = params.get(key);
-            if (val) result[key] = val;
+const NATIONAL_HOLIDAY_DATES = {
+    "2025-01-01": "Tahun Baru 2025 Masehi",
+    "2025-01-27": "Isra Mikraj Nabi Muhammad SAW",
+    "2025-01-28": "Cuti Bersama Imlek 2576",
+    "2025-01-29": "Tahun Baru Imlek 2576 Kongzili",
+    "2025-03-28": "Cuti Bersama Nyepi Saka 1947",
+    "2025-03-29": "Hari Suci Nyepi Saka 1947",
+    "2025-03-31": "Hari Raya Idul Fitri 1446 H",
+    "2025-04-01": "Hari Raya Idul Fitri 1446 H",
+    "2025-04-02": "Cuti Bersama Idul Fitri 1446 H",
+    "2025-04-03": "Cuti Bersama Idul Fitri 1446 H",
+    "2025-04-04": "Cuti Bersama Idul Fitri 1446 H",
+    "2025-04-07": "Cuti Bersama Idul Fitri 1446 H",
+    "2025-04-18": "Wafat Yesus Kristus",
+    "2025-04-20": "Hari Paskah",
+    "2025-05-01": "Hari Buruh Internasional",
+    "2025-05-12": "Hari Raya Waisak 2569 BE",
+    "2025-05-13": "Cuti Bersama Waisak 2569 BE",
+    "2025-05-29": "Kenaikan Yesus Kristus",
+    "2025-05-30": "Cuti Bersama Kenaikan Yesus Kristus",
+    "2025-06-01": "Hari Lahir Pancasila",
+    "2025-06-06": "Hari Raya Idul Adha 1446 H",
+    "2025-06-09": "Cuti Bersama Idul Adha 1446 H",
+    "2025-06-27": "Tahun Baru Islam 1447 H",
+    "2025-08-17": "Hari Kemerdekaan RI Ke-80",
+    "2025-09-05": "Maulid Nabi Muhammad SAW",
+    "2025-12-25": "Hari Raya Natal",
+    "2025-12-26": "Cuti Bersama Hari Raya Natal",
+    "2026-01-01": "Tahun Baru 2026 Masehi",
+    "2026-01-16": "Isra Mikraj Nabi Muhammad SAW",
+    "2026-02-16": "Cuti Bersama Imlek 2577",
+    "2026-02-17": "Tahun Baru Imlek 2577 Kongzili",
+    "2026-03-18": "Cuti Bersama Hari Suci Nyepi Saka 1948",
+    "2026-03-19": "Hari Suci Nyepi Saka 1948",
+    "2026-03-20": "Hari Raya Idul Fitri 1447 H",
+    "2026-03-21": "Hari Raya Idul Fitri 1447 H",
+    "2026-03-22": "Cuti Bersama Idul Fitri 1447 H",
+    "2026-03-23": "Cuti Bersama Idul Fitri 1447 H",
+    "2026-03-24": "Cuti Bersama Idul Fitri 1447 H",
+    "2026-04-03": "Wafat Yesus Kristus",
+    "2026-04-05": "Hari Paskah",
+    "2026-05-01": "Hari Buruh Internasional",
+    "2026-05-14": "Kenaikan Yesus Kristus",
+    "2026-05-27": "Hari Raya Idul Adha 1447 H",
+    "2026-05-28": "Cuti Bersama Idul Adha 1447 H",
+    "2026-05-31": "Hari Raya Waisak 2570 BE",
+    "2026-06-01": "Hari Lahir Pancasila",
+    "2026-06-16": "Tahun Baru Islam 1448 H",
+    "2026-08-17": "Hari Kemerdekaan RI Ke-81",
+    "2026-08-25": "Maulid Nabi Muhammad SAW",
+    "2026-12-25": "Hari Raya Natal",
+    "2026-12-26": "Cuti Bersama Hari Raya Natal",
+    "2027-01-01": "Tahun Baru 2027 Masehi",
+    "2027-02-05": "Isra Mikraj Nabi Muhammad SAW",
+    "2027-02-06": "Tahun Baru Imlek 2578",
+    "2027-03-09": "Hari Suci Nyepi Saka 1949",
+    "2027-03-10": "Hari Raya Idul Fitri 1448 H",
+    "2027-03-11": "Hari Raya Idul Fitri 1448 H",
+    "2027-03-26": "Wafat Yesus Kristus",
+    "2027-05-01": "Hari Buruh Internasional",
+    "2027-05-06": "Kenaikan Yesus Kristus",
+    "2027-05-17": "Hari Raya Idul Adha 1448 H",
+    "2027-05-20": "Hari Raya Waisak 2571 BE",
+    "2027-06-01": "Hari Lahir Pancasila",
+    "2027-06-06": "Tahun Baru Islam 1449 H",
+    "2027-08-15": "Maulid Nabi Muhammad SAW",
+    "2027-08-17": "Hari Kemerdekaan RI Ke-82",
+    "2027-12-25": "Hari Raya Natal"
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. DataTables Init
+    if ($('#agendaTable tbody tr').length > 0 && !$('#agendaTable tbody tr td').hasClass('text-center')) {
+        $('#agendaTable').DataTable({
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' },
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Semua']],
+            order: [[0, 'desc']],
+            columnDefs: [{ orderable: false, targets: [4, 5, 6] }]
         });
-        return result;
     }
 
-    function buildEventUrl() {
-        var base = '{% url "agendas:events" %}';
-        var params = getFilterParams();
-        var query = new URLSearchParams(params).toString();
-        return query ? base + '?' + query : base;
+    // 2. Quill Editors Init
+    if (document.getElementById('quill_notulensi_summary')) {
+        quillSummary = new Quill('#quill_notulensi_summary', { theme: 'snow', placeholder: 'Tuliskan poin pembahasan rapat di sini...' });
+    }
+    if (document.getElementById('quill_notulensi_decision')) {
+        quillDecision = new Quill('#quill_notulensi_decision', { theme: 'snow', placeholder: 'Tuliskan keputusan rapat di sini...' });
     }
 
-    // Helper konversi Markdown (** -> <strong>)
-    function convertMarkdownToHTML(text) {
-        if (!text) return text;
-        return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    const formNotulensi = document.getElementById('formNotulensiRapat');
+    if (formNotulensi) {
+        formNotulensi.addEventListener('submit', function() {
+            if (quillSummary) document.getElementById('hidden_notulensi_summary').value = quillSummary.root.innerHTML;
+            if (quillDecision) document.getElementById('hidden_notulensi_decision').value = quillDecision.root.innerHTML;
+        });
     }
 
-    // Helper penanganan Smart Paste dari WhatsApp / ChatGPT / MS Word
-    function setupSmartPasteAgenda(quillObj) {
-        if (!quillObj || !quillObj.root) return;
-        quillObj.root.addEventListener('paste', function(e) {
-            var clipboardData = e.clipboardData || window.clipboardData;
-            if (!clipboardData) return;
-            var text = clipboardData.getData('text/plain');
-            var html = clipboardData.getData('text/html');
+    const AGENDA_DATES_MAP = {{ agenda_dates_json|safe }};
 
-            if (!html && text && (text.includes('**') || /^(\d+|\[?[a-zA-Z]\]?)[\.\)]\s+/m.test(text) || /^[\-\*\•]\s+/m.test(text))) {
-                e.preventDefault();
-                e.stopPropagation();
+    // 3. FullCalendar Google Calendar In-App Experience Init
+    var calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
+        calendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'id',
+            dayMaxEvents: false,
+            dayMaxEventRows: false,
+            eventDisplay: 'block',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+            },
+            events: '/agenda/events/',
+            dayCellDidMount: function(arg) {
+                var d = arg.date;
+                var year = d.getFullYear();
+                var month = String(d.getMonth() + 1).padStart(2, '0');
+                var day = String(d.getDate()).padStart(2, '0');
+                var dateStr = year + '-' + month + '-' + day;
 
-                var lines = text.split('\n');
-                var htmlResult = '';
-                var inOl = false, inUl = false;
+                var isSunday = (d.getDay() === 0);
+                var holidayName = NATIONAL_HOLIDAY_DATES[dateStr];
 
-                lines.forEach(function(line) {
-                    var trimmed = line.trim();
-                    if (!trimmed) {
-                        if (inOl) { htmlResult += '</ol>'; inOl = false; }
-                        if (inUl) { htmlResult += '</ul>'; inUl = false; }
-                        htmlResult += '<p><br></p>';
-                        return;
+                if (isSunday || holidayName) {
+                    var numEl = arg.el.querySelector('.fc-daygrid-day-number');
+                    if (numEl) {
+                        numEl.style.color = '#DC2626';
+                        numEl.style.fontWeight = '900';
+                        numEl.style.fontSize = '1.02rem';
                     }
-
-                    var olMatch = trimmed.match(/^(\d+|\[?[a-zA-Z]\]?)[\.\)]\s+(.*)/);
-                    var ulMatch = trimmed.match(/^[\-\*\•]\s+(.*)/);
-
-                    if (olMatch) {
-                        if (inUl) { htmlResult += '</ul>'; inUl = false; }
-                        if (!inOl) { htmlResult += '<ol>'; inOl = true; }
-                        htmlResult += '<li>' + convertMarkdownToHTML(olMatch[2]) + '</li>';
-                    } else if (ulMatch) {
-                        if (inOl) { htmlResult += '</ol>'; inOl = false; }
-                        if (!inUl) { htmlResult += '<ul>'; inUl = true; }
-                        htmlResult += '<li>' + convertMarkdownToHTML(ulMatch[1]) + '</li>';
-                    } else {
-                        if (inOl) { htmlResult += '</ol>'; inOl = false; }
-                        if (inUl) { htmlResult += '</ul>'; inUl = false; }
-                        htmlResult += '<p>' + convertMarkdownToHTML(trimmed) + '</p>';
+                    if (holidayName) {
+                        arg.el.classList.add('is-national-holiday-cell');
+                        
+                        var topContainer = arg.el.querySelector('.fc-daygrid-day-frame') || arg.el;
+                        if (!arg.el.querySelector('.gcal-holiday-text-badge')) {
+                            var badge = document.createElement('div');
+                            badge.className = 'gcal-holiday-text-badge';
+                            badge.style.cssText = 'font-size: 0.72rem; font-weight: 800; color: #FFFFFF; background-color: #DC2626; padding: 3px 6px; border-radius: 6px; margin: 4px; line-height: 1.25; display: block; text-align: left; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);';
+                            badge.innerHTML = '🔴 ' + holidayName;
+                            topContainer.appendChild(badge);
+                        }
                     }
-                });
+                }
 
-                if (inOl) htmlResult += '</ol>';
-                if (inUl) htmlResult += '</ul>';
-
-                var range = quillObj.getSelection(true);
-                quillObj.clipboard.dangerouslyPasteHTML(range ? range.index : 0, htmlResult);
+                // Cetak Teks Agenda & Rapat Internal Langsung di Sel Tanggal (Sama seperti Libur Nasional)
+                var agendaList = AGENDA_DATES_MAP[dateStr];
+                if (agendaList && agendaList.length > 0) {
+                    var frameEl = arg.el.querySelector('.fc-daygrid-day-frame') || arg.el;
+                    agendaList.forEach(function(item) {
+                        if (!arg.el.querySelector('.gcal-agenda-direct-badge[data-title="' + item.title.replace(/"/g, '&quot;') + '"]')) {
+                            var b = document.createElement('a');
+                            b.className = 'gcal-agenda-direct-badge text-decoration-none d-block';
+                            b.setAttribute('data-title', item.title);
+                            b.href = item.url || '#';
+                            var bgCol = item.type === 'meeting' ? '#8B5CF6' : '#10B981';
+                            b.style.cssText = 'font-size: 0.72rem; font-weight: 800; color: #FFFFFF; background-color: ' + bgCol + '; padding: 3px 6px; border-radius: 6px; margin: 3px 4px; line-height: 1.25; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.2);';
+                            b.innerHTML = item.title;
+                            frameEl.appendChild(b);
+                        }
+                    });
+                }
+            },
+            eventDidMount: function(info) {
+                const srcType = info.event.extendedProps.source_type;
+                if (srcType === 'holiday') {
+                    info.el.style.fontWeight = 'bold';
+                    info.el.style.boxShadow = '0 2px 6px rgba(220, 38, 38, 0.35)';
+                    var dayCell = info.el.closest('.fc-daygrid-day');
+                    if (dayCell) {
+                        dayCell.classList.add('is-national-holiday-cell');
+                    }
+                }
+            },
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                showGCalEventModal(info.event);
             }
         });
+        calendarInstance.render();
+    }
+});
+
+function showGCalEventModal(event) {
+    const props = event.extendedProps || {};
+    document.getElementById('gcalModalTitle').innerText = event.title;
+    document.getElementById('gcalModalSubjectText').innerText = event.title;
+    
+    let timeStr = event.start ? event.start.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB' : 'Sepanjang Hari';
+    document.getElementById('gcalModalTimeText').innerText = timeStr;
+    document.getElementById('gcalModalLocationText').innerText = props.location || 'Kantor BAZNAS';
+    document.getElementById('gcalModalAssigneeText').innerText = props.assigned_to || 'Seluruh Amil BAZNAS';
+    document.getElementById('gcalModalStatusBadge').innerText = props.status || 'Aktif';
+
+    const typeBadge = document.getElementById('gcalModalTypeBadge');
+    const actBtn = document.getElementById('gcalModalActionBtn');
+
+    if (props.source_type === 'holiday') {
+        typeBadge.className = 'badge bg-danger text-white rounded-pill px-3 py-1 fw-bold';
+        typeBadge.innerText = 'LIBUR NASIONAL / CUTI';
+        actBtn.style.display = 'none';
+    } else {
+        typeBadge.className = 'badge badge-node-verified rounded-pill px-3 py-1 fw-bold';
+        typeBadge.innerText = 'AGENDA BAZNAS';
+        actBtn.style.display = 'inline-block';
+        actBtn.href = event.url && event.url !== '#' ? event.url : '{% url "agendas:list" %}';
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // SOLUSI MUTLAK: Pindahkan semua modal ke root document.body agar bebas dari stacking context container
-        ['modalNotulensiAgendaSync', 'notulensiViewModalAgenda', 'modalSelesaiSPPD', 'modalSelesaiAgenda'].forEach(function(mId) {
-            var mEl = document.getElementById(mId);
-            if (mEl && mEl.parentElement !== document.body) document.body.appendChild(mEl);
-        });
+    var modal = new bootstrap.Modal(document.getElementById('modalGCalEventDetail'));
+    modal.show();
+}
 
-        // Initialize Quill Editors
-        var toolbarOptions = [
-            ['bold', 'italic', 'underline'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            [{ 'indent': '-1'}, { 'indent': '+1' }],
-            ['clean']
-        ];
+function filterCalendarLayers() {
+    if (!calendarInstance) return;
+    const showAgenda = document.getElementById('layerAgenda').checked;
+    const showSPPD = document.getElementById('layerSPPD').checked;
+    const showMeeting = document.getElementById('layerMeeting').checked;
+    const showLibur = document.getElementById('layerLibur').checked;
+    const showCuti = document.getElementById('layerCuti').checked;
 
-        var summaryEl = document.getElementById('quill-editor-summary-agenda');
-        if (summaryEl) {
-            quillSummaryAgenda = new Quill('#quill-editor-summary-agenda', {
-                theme: 'snow',
-                placeholder: 'Tuliskan ringkasan pembahasan & dinamika rapat (Gunakan toolbar penomoran 1,2,3 / a,b,c)...',
-                modules: { toolbar: toolbarOptions }
-            });
-            setupSmartPasteAgenda(quillSummaryAgenda);
+    const events = calendarInstance.getEvents();
+    events.forEach(ev => {
+        const props = ev.extendedProps || {};
+        const st = props.source_type;
+        const title = ev.title || '';
+
+        let visible = true;
+        if (st === 'holiday') {
+            if (title.includes('CUTI BERSAMA')) {
+                visible = showCuti;
+            } else {
+                visible = showLibur;
+            }
+        } else if (st === 'sppd') {
+            visible = showSPPD;
+        } else if (st === 'meeting') {
+            visible = showMeeting;
+        } else {
+            visible = showAgenda;
         }
 
-        var decisionEl = document.getElementById('quill-editor-decision-agenda');
-        if (decisionEl) {
-            quillDecisionAgenda = new Quill('#quill-editor-decision-agenda', {
-                theme: 'snow',
-                placeholder: 'Tuliskan kesimpulan & poin-poin keputusan rapat...',
-                modules: { toolbar: toolbarOptions }
-            });
-            setupSmartPasteAgenda(quillDecisionAgenda);
-        }
-
-        var actionItemsEl = document.getElementById('quill-editor-action-items-agenda');
-        if (actionItemsEl) {
-            quillActionItemsAgenda = new Quill('#quill-editor-action-items-agenda', {
-                theme: 'snow',
-                placeholder: 'Tuliskan catatan ringkas rencana tindak lanjut (Action Plan)...',
-                modules: { toolbar: toolbarOptions }
-            });
-            setupSmartPasteAgenda(quillActionItemsAgenda);
-        }
-
-        // Form Submit Handler for Syncing Quill Editors to Hidden Textareas
-        var formNotulensi = document.getElementById('formNotulensiAgendaSync');
-        if (formNotulensi) {
-            formNotulensi.addEventListener('submit', function() {
-                if (quillSummaryAgenda) document.getElementById('id_notulensi_summary_agenda').value = quillSummaryAgenda.root.innerHTML;
-                if (quillDecisionAgenda) document.getElementById('id_notulensi_decision_agenda').value = quillDecisionAgenda.root.innerHTML;
-                if (quillActionItemsAgenda) document.getElementById('id_notulensi_action_items_agenda').value = quillActionItemsAgenda.root.innerHTML;
-            });
-        }
-
-        var calendarEl = document.getElementById('calendar');
-        if (calendarEl) {
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'id',
-                events: buildEventUrl(),
-                height: 'auto',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
-                },
-                buttonText: {
-                    today: 'Hari Ini',
-                    month: 'Bulan',
-                    week: 'Minggu',
-                    day: 'Hari',
-                    list: 'Daftar Agenda'
-                },
-                eventDidMount: function(info) {
-                    info.el.style.backgroundColor = info.event.backgroundColor;
-                    info.el.style.borderColor = info.event.borderColor;
-                    info.el.style.color = info.event.textColor;
-                }
-            });
-            calendar.render();
-        }
-
-        if (typeof $.fn.DataTable !== 'undefined' && $('#agendaTable').length) {
-            $('#agendaTable').DataTable({
-                language: { 
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' 
-                },
-                pageLength: 10,
-                ordering: true,
-                searching: false,
-                order: [[0, 'desc']]
-            });
+        if (visible) {
+            ev.setProp('display', 'auto');
+        } else {
+            ev.setProp('display', 'none');
         }
     });
+}
 
-    function updateNotulensiParticipantCounterAgenda() {
-        var count = document.querySelectorAll('.notulensi-participant-chk-agenda:checked').length;
-        var badge = document.getElementById('modal_participant_counter_agenda');
-        if (badge) badge.textContent = count + ' Hadir';
-    }
-
-    function selectAllNotulensiParticipantsAgenda() {
-        document.querySelectorAll('.notulensi-participant-chk-agenda').forEach(function(chk) {
-            chk.checked = true;
-        });
-        updateNotulensiParticipantCounterAgenda();
-    }
-
-    function deselectAllNotulensiParticipantsAgenda() {
-        document.querySelectorAll('.notulensi-participant-chk-agenda').forEach(function(chk) {
-            chk.checked = false;
-        });
-        updateNotulensiParticipantCounterAgenda();
-    }
-
-    function filterNotulensiParticipantsAgenda(bidang, btnEl) {
-        document.querySelectorAll('.btn-modal-bidang-filter-agenda').forEach(function(btn) {
-            btn.classList.remove('active', 'btn-primary');
-            btn.classList.add('btn-light', 'border');
-        });
-        btnEl.classList.remove('btn-light', 'border');
-        btnEl.classList.add('active', 'btn-primary');
-
-        var items = document.querySelectorAll('.modal-participant-item-agenda');
-        items.forEach(function(item) {
-            if (bidang === 'all' || item.getAttribute('data-bidang') === bidang) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    function searchNotulensiParticipantsAgenda() {
-        var query = (document.getElementById('modal_search_participant_agenda').value || '').toLowerCase().trim();
-        var items = document.querySelectorAll('.modal-participant-item-agenda');
-        items.forEach(function(item) {
-            var name = item.getAttribute('data-name') || '';
-            if (!query || name.includes(query)) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    function addNotulensiFileRowAgenda() {
-        var container = document.getElementById('notulensi_file_inputs_container_agenda');
-        var div = document.createElement('div');
-        div.className = 'card border p-2 rounded-3 bg-white notulensi-file-row-agenda';
-        div.innerHTML = `
-            <div class="row g-2 align-items-center">
-                <div class="col-md-6">
-                    <input type="file" name="notulensi_files" class="form-control form-control-sm rounded-pill px-3">
-                </div>
-                <div class="col-md-5">
-                    <input type="text" name="notulensi_file_labels[]" class="form-control form-control-sm rounded-pill px-3" placeholder="Nama / Keterangan Berkas (misal: Foto Suasana Rapat)">
-                </div>
-                <div class="col-md-1 text-end">
-                    <button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="this.closest('.notulensi-file-row-agenda').remove()" title="Hapus Baris Ini">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        container.appendChild(div);
-    }
-
-    function addNotulensiActionItemRowAgenda(title = '', picId = '', dueDate = '', itemId = '') {
-        var container = document.getElementById('notulensiActionItemsContainerAgenda');
-        if (!container) return;
-        var div = document.createElement('div');
-        div.className = 'p-2 bg-light rounded-3 border d-flex flex-column flex-md-row gap-2 align-items-md-center';
+// --- MODAL POP-UP HANDLERS UNTUK TOMBOL DAFTAR AGENDA ---
+function bukaModalNotulensiAgenda(agendaId) {
+    const rawJson = document.getElementById('agenda-notulensi-json-' + agendaId);
+    if (!rawJson) return;
+    try {
+        const data = JSON.parse(rawJson.textContent);
         
-        var empOptions = '<option value="">-- Pilih PIC --</option>';
-        {% for emp in employees %}
-        empOptions += `<option value="{{ emp.pk }}" ${picId == '{{ emp.pk }}' ? 'selected' : ''}>{{ emp.full_name|escapejs }}</option>`;
-        {% endfor %}
-
-        div.innerHTML = `
-            <input type="hidden" name="action_id[]" value="${itemId}">
-            <div class="flex-grow-1">
-                <input type="text" name="action_title[]" class="form-control form-control-sm shadow-sm" placeholder="Judul Action Item / Tugas..." value="${title}" required>
-            </div>
-            <div style="min-width: 180px;">
-                <select name="action_pic[]" class="form-select form-select-sm shadow-sm">
-                    ${empOptions}
-                </select>
-            </div>
-            <div style="min-width: 150px;">
-                <input type="date" name="action_due_date[]" class="form-control form-control-sm shadow-sm" value="${dueDate}">
-            </div>
-            <div>
-                <button type="button" class="btn btn-sm btn-outline-danger rounded-circle px-2" onclick="this.parentElement.parentElement.remove()" title="Hapus Baris">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-        `;
-        container.appendChild(div);
-    }
-
-    function getAgendaNotulensiData(agendaId) {
-        var scriptEl = document.getElementById('agenda-notulensi-json-' + agendaId);
-        if (scriptEl && scriptEl.textContent) {
-            try {
-                return JSON.parse(scriptEl.textContent);
-            } catch(e) {
-                console.error("Error parsing agenda notulensi json:", e);
-            }
-        }
-        return null;
-    }
-
-    function bukaModalNotulensiAgenda(agendaId) {
-        var data = getAgendaNotulensiData(agendaId);
-        var form = document.getElementById('formNotulensiAgendaSync');
-
-        if (agendaId) {
-            form.action = '/agendas/' + agendaId + '/upload-notulensi/';
-        }
-
-        if (data) {
-            document.getElementById('notulensiAgendaTitleText').innerText = data.title || '-';
-            
-            // Set Leader Select
-            var leaderSelect = document.getElementById('id_leader_agenda');
-            if (leaderSelect) leaderSelect.value = data.leader_id || '';
-
-            // Set Notulis Select
-            var notulisSelect = document.getElementById('id_notulis_agenda');
-            if (notulisSelect) notulisSelect.value = data.notulis_id || '';
-
-            // Set Status Select
-            var statusSelect = document.getElementById('id_status_agenda');
-            if (statusSelect) statusSelect.value = data.status === 'terjadwal' ? 'selesai' : (data.status || 'selesai');
-
-            // Set Sifat / Meeting Type Select
-            var meetingTypeSelect = document.getElementById('id_meeting_type_agenda');
-            if (meetingTypeSelect) meetingTypeSelect.value = data.meeting_type || (data.title && (data.title.toLowerCase().includes('audiensi') || data.title.toLowerCase().includes('tamu')) ? 'audiensi' : 'khusus');
-
-            // Set Guest Names Textarea
-            var guestNamesInput = document.getElementById('id_guest_names_agenda');
-            if (guestNamesInput) guestNamesInput.value = data.guest_names || '';
-
-            // Set Quill Editors Content
-            if (quillSummaryAgenda) {
-                quillSummaryAgenda.clipboard.dangerouslyPasteHTML(data.summary || '');
-            }
-            if (quillDecisionAgenda) {
-                quillDecisionAgenda.clipboard.dangerouslyPasteHTML(data.decision || '');
-            }
-            if (quillActionItemsAgenda) {
-                quillActionItemsAgenda.clipboard.dangerouslyPasteHTML(data.action_items_text || '');
-            }
-
-            // Set Participant Checkboxes
-            var participantSet = new Set((data.participants || []).map(String));
-            document.querySelectorAll('.notulensi-participant-chk-agenda').forEach(function(chk) {
-                chk.checked = participantSet.has(String(chk.value));
-            });
-            updateNotulensiParticipantCounterAgenda();
-
-            // Render Dynamic Action Items Rows
-            var containerActions = document.getElementById('notulensiActionItemsContainerAgenda');
-            if (containerActions) {
-                containerActions.innerHTML = '';
-                if (data.action_plan_items && data.action_plan_items.length > 0) {
-                    data.action_plan_items.forEach(function(item) {
-                        addNotulensiActionItemRowAgenda(item.title || '', item.pic_id || '', item.due_date || '', item.id || '');
-                    });
-                }
-            }
-
-            // Render Existing Attachments List
-            var containerExistingAtt = document.getElementById('existingAttachmentsContainerAgenda');
-            var listExistingAtt = document.getElementById('existingAttachmentsListAgenda');
-            if (containerExistingAtt && listExistingAtt) {
-                listExistingAtt.innerHTML = '';
-                if (data.attachments && data.attachments.length > 0) {
-                    containerExistingAtt.classList.remove('d-none');
-                    data.attachments.forEach(function(att) {
-                        var aEl = document.createElement('a');
-                        aEl.href = att.url;
-                        aEl.target = '_blank';
-                        aEl.className = 'btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold';
-                        aEl.innerHTML = `<i class="bi bi-paperclip me-1"></i> ${att.name || 'Dokumen Notulensi'}`;
-                        listExistingAtt.appendChild(aEl);
-                    });
-                } else {
-                    containerExistingAtt.classList.add('d-none');
-                }
-            }
-        }
-
-        var modalElement = document.getElementById('modalNotulensiAgendaSync');
-        if (modalElement && modalElement.parentElement !== document.body) {
-            document.body.appendChild(modalElement);
-        }
-        var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-        modal.show();
-    }
-
-    function viewNotulensiModalAgenda(agendaId) {
-        var data = getAgendaNotulensiData(agendaId);
-        if (!data) return;
-
-        document.getElementById('viewNotulensiTitleAgenda').innerText = 'Risalah Notulensi: ' + (data.meeting_number || data.title);
-        document.getElementById('viewNotulensiNumberAgenda').innerText = data.meeting_number || '-';
-        document.getElementById('viewNotulensiDateAgenda').innerText = data.scheduled_at || '-';
-        document.getElementById('viewNotulensiLeaderAgenda').innerText = data.leader_names || '-';
-        document.getElementById('viewNotulensiNotulisAgenda').innerText = data.notulis_name || '-';
+        document.getElementById('notulensi_agenda_id').value = agendaId;
+        document.getElementById('notulensi_meeting_id').value = data.meeting_id || '';
+        document.getElementById('notulensiTitleText').innerText = data.title;
+        document.getElementById('notulensiDateText').innerText = data.scheduled_at;
         
-        document.getElementById('viewNotulensiSummaryAgenda').innerHTML = data.summary || '-';
-        document.getElementById('viewNotulensiDecisionAgenda').innerHTML = data.decision || '-';
-        document.getElementById('viewNotulensiActionItemsAgenda').innerHTML = data.action_items_text || '-';
-
-        var printBtn = document.getElementById('viewNotulensiPrintBtnAgenda');
-        if (printBtn) {
-            printBtn.href = data.print_url && data.print_url !== '#' ? data.print_url : '#';
-            if (data.print_url && data.print_url !== '#') {
-                printBtn.classList.remove('d-none');
-            } else {
-                printBtn.classList.add('d-none');
-            }
+        if (data.notulis_id) {
+            document.getElementById('notulensi_notulis_id').value = data.notulis_id;
+        }
+        if (data.meeting_type) {
+            document.getElementById('notulensi_meeting_type').value = data.meeting_type;
         }
 
-        var editBtn = document.getElementById('viewNotulensiEditBtnAgenda');
-        if (editBtn) {
-            editBtn.onclick = function() {
-                var viewModalEl = document.getElementById('notulensiViewModalAgenda');
-                var viewModal = bootstrap.Modal.getInstance(viewModalEl);
-                if (viewModal) viewModal.hide();
-                setTimeout(function() {
-                    bukaModalNotulensiAgenda(agendaId);
-                }, 300);
-            };
-        }
+        if (quillSummary) quillSummary.root.innerHTML = data.summary || '';
+        if (quillDecision) quillDecision.root.innerHTML = data.decision || '';
 
-        // Attachments view
-        var attachmentsBox = document.getElementById('viewAttachmentsBoxAgenda');
-        var attachmentsList = document.getElementById('viewNotulensiAttachmentsAgenda');
-        if (attachmentsBox && attachmentsList) {
-            attachmentsList.innerHTML = '';
-            if (data.attachments && data.attachments.length > 0) {
-                attachmentsBox.classList.remove('d-none');
-                data.attachments.forEach(function(att) {
-                    var aEl = document.createElement('a');
-                    aEl.href = att.url;
-                    aEl.target = '_blank';
-                    aEl.className = 'btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold';
-                    aEl.innerHTML = `<i class="bi bi-paperclip me-1"></i> ${att.name || 'Dokumen Notulensi'}`;
-                    attachmentsList.appendChild(aEl);
-                });
-            } else {
-                attachmentsBox.classList.add('d-none');
-            }
-        }
-
-        var modalEl = document.getElementById('notulensiViewModalAgenda');
-        if (modalEl && modalEl.parentElement !== document.body) {
-            document.body.appendChild(modalEl);
-        }
-        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.show();
-    }
-
-    function bukaModalSelesaiSPPD(agendaId, sppdId, sppdNum, agendaTitle) {
-        document.getElementById('sppdModalTitleText').innerText = sppdNum ? (sppdNum + ' - ' + agendaTitle) : agendaTitle;
-        document.getElementById('id_report_notes_sppd').value = '';
-        document.getElementById('additionalFilesContainerAgendaSPPD').innerHTML = '';
-        
-        var form = document.getElementById('formSelesaiSPPD');
-        if (sppdId && sppdId !== 'None' && sppdId !== '') {
-            form.action = '/sppd/' + sppdId + '/complete/';
+        const formEl = document.getElementById('formNotulensiRapat');
+        if (data.meeting_id) {
+            formEl.action = '/rapat-internal/' + data.meeting_id + '/notulensi/';
         } else {
-            form.action = '/agendas/' + agendaId + '/upload-notulensi/';
+            formEl.action = '/agenda/' + agendaId + '/complete/';
         }
 
-        var modalEl = document.getElementById('modalSelesaiSPPD');
-        if (modalEl && modalEl.parentElement !== document.body) {
-            document.body.appendChild(modalEl);
-        }
-        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var modalEl = document.getElementById('modalNotulensiRapat');
+        var modal = new bootstrap.Modal(modalEl);
         modal.show();
+    } catch (e) {
+        console.error("Error parsing notulensi JSON:", e);
     }
+}
 
-    function addAdditionalFileRowAgendaSPPD() {
-        var container = document.getElementById('additionalFilesContainerAgendaSPPD');
-        var div = document.createElement('div');
-        div.className = 'd-flex gap-2 align-items-center bg-light p-2 rounded-3 border';
-        div.innerHTML = `
-            <input type="file" name="completed_files" class="form-control form-control-sm shadow-sm" accept="image/*,.pdf,.doc,.docx" required>
-            <button type="button" class="btn btn-sm btn-outline-danger rounded-circle px-2" onclick="this.parentElement.remove()" title="Hapus File Ini">
-                <i class="bi bi-trash"></i>
-            </button>
-        `;
-        container.appendChild(div);
-    }
-
-    function bukaModalSelesai(agendaTitle, agendaDocInfo, actionUrl) {
-        document.getElementById('selesaiAgendaTitle').textContent = agendaTitle;
-        document.getElementById('selesaiAgendaDocInfo').textContent = agendaDocInfo;
-        document.getElementById('formSelesaiAgenda').action = actionUrl;
-        var modalElement = document.getElementById('modalSelesaiAgenda');
-        if (modalElement && modalElement.parentElement !== document.body) {
-            document.body.appendChild(modalElement);
+function viewNotulensiModalAgenda(agendaId) {
+    const rawJson = document.getElementById('agenda-notulensi-json-' + agendaId);
+    if (!rawJson) return;
+    try {
+        const data = JSON.parse(rawJson.textContent);
+        if (data.meeting_id) {
+            window.location.href = '/rapat-internal/' + data.meeting_id + '/';
+        } else {
+            bukaModalNotulensiAgenda(agendaId);
         }
-        var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-        modal.show();
+    } catch (e) {
+        console.error("Error redirecting to notulensi:", e);
     }
+}
+
+function bukaModalSelesai(title, refNum, completeUrl) {
+    Swal.fire({
+        title: 'Selesaikan Agenda Kerja?',
+        html: `Apakah Anda yakin ingin menyelesaikan agenda <strong>"${title}"</strong>?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10B981',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: '<i class="bi bi-check-lg me-1"></i> Ya, Selesaikan',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = completeUrl;
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = '{{ csrf_token }}';
+            form.appendChild(csrfInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+function bukaModalSelesaiSPPD(agendaId, sppdId, sppdNum, title) {
+    document.getElementById('sppdModalTitleText').innerText = title;
+    document.getElementById('sppdModalNumBadge').innerText = 'No. SPPD: ' + (sppdNum || '-');
+    
+    const formEl = document.getElementById('formSelesaiSPPD');
+    if (sppdId) {
+        formEl.action = '/sppd/' + sppdId + '/complete/';
+    } else {
+        formEl.action = '/agenda/' + agendaId + '/complete/';
+    }
+
+    var modal = new bootstrap.Modal(document.getElementById('modalSelesaiSPPD'));
+    modal.show();
+}
+
+function addActionPlanRowAgenda() {
+    const tbody = document.getElementById('tbodyActionPlanAgenda');
+    if (!tbody) return;
+    const rowId = Date.now();
+    const tr = document.createElement('tr');
+    tr.id = 'ap-row-' + rowId;
+    tr.innerHTML = `
+        <td><input type="text" name="action_task[]" class="form-control form-control-sm custom-input" placeholder="Tuliskan tugas / action plan..." required></td>
+        <td><select name="action_pic[]" class="form-select form-select-sm custom-input">
+            <option value="">Pilih PIC...</option>
+            {% for emp in employees %}
+            <option value="{{ emp.id }}">{{ emp.full_name }}</option>
+            {% endfor %}
+        </select></td>
+        <td><input type="date" name="action_due_date[]" class="form-control form-control-sm custom-input"></td>
+        <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="document.getElementById('ap-row-${rowId}').remove()"><i class="bi bi-trash"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+}
+
+function addNotulensiFileRowAgenda() {
+    const container = document.getElementById('notulensiFilesContainerAgenda');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'd-flex gap-2 align-items-center mb-2';
+    div.innerHTML = `
+        <input type="file" name="notulensi_files[]" class="form-control form-control-sm custom-input" accept="image/*,.pdf,.doc,.docx">
+        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+    `;
+    container.appendChild(div);
+}
+
+function addAdditionalFileRowAgendaSPPD() {
+    const container = document.getElementById('additionalFilesContainerAgendaSPPD');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'd-flex gap-2 align-items-center mb-2';
+    div.innerHTML = `
+        <input type="file" name="additional_files[]" class="form-control form-control-sm custom-input" accept="image/*,.pdf,.doc,.docx">
+        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+    `;
+    container.appendChild(div);
+}
 </script>
 {% endblock %}

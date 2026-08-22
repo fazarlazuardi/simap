@@ -14,4 +14,5 @@ urlpatterns = [
     path('<int:pk>/notify/', views.agenda_notify, name='notify'),
     path('<int:pk>/generate-sppd/', views.agenda_generate_sppd, name='generate_sppd'),
     path('<int:pk>/upload-notulensi/', views.agenda_upload_notulensi, name='upload_notulensi'),
+    path('ical/', views.agenda_ical_feed, name='ical_feed'),
 ]

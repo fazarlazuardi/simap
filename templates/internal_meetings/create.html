@@ -1,322 +1,394 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
 
-{% block title %}{% if is_edit %}Edit Agenda Rapat{% else %}Buat Agenda Rapat Internal Baru{% endif %} - BAZNAS{% endblock %}
+{% block title %}{% if is_edit %}Edit Agenda Rapat Internal{% else %}Buat Agenda Rapat Internal Baru{% endif %} - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block extra_css %}
+<!-- Select2 BS5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
 <style>
-    .custom-input { height: 50px; border-radius: 12px; border: 1px solid #E5E7EB; }
-    .custom-input:focus { border-color: var(--primary); box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15); }
-    textarea { border-radius: 12px !important; border: 1px solid #E5E7EB !important; }
+    .custom-input { border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-primary); }
+    .custom-input:focus { border-color: var(--color-emerald-600); box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.15); }
     
-    .participant-checkbox-card {
-        border: 1px solid var(--border-color, #cbd5e1);
-        border-radius: 10px;
-        padding: 8px 12px;
-        transition: all 0.2s ease;
-        background-color: var(--card-bg, #ffffff);
-        cursor: pointer;
+    /* Select2 Enterprise Styling */
+    .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 12px !important;
+        min-height: 48px !important;
+        border: 1px solid var(--border-color) !important;
+        background-color: var(--card-bg) !important;
     }
-    .participant-checkbox-card:hover {
-        border-color: var(--primary, #0d8a52);
-        background-color: rgba(13, 138, 82, 0.04);
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+        background-color: var(--color-emerald-600) !important;
+        color: #ffffff !important;
+        border-radius: 20px !important;
+        padding: 4px 10px !important;
+        font-weight: 700 !important;
+        font-size: 0.82rem !important;
+        border: none !important;
     }
-    
-    /* Workflow Step Progress Styling */
-    .step-progress-bar {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 24px;
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
+        color: #ffffff !important;
+        margin-right: 6px !important;
     }
-    .step-item {
-        flex: 1;
-        background: #F1F5F9;
-        border-radius: 12px;
+    [data-theme="dark"] .select2-dropdown {
+        background-color: #1E293B !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+        color: #FFFFFF !important;
+    }
+    [data-theme="dark"] .select2-results__option--highlighted {
+        background-color: var(--color-emerald-600) !important;
+    }
+
+    /* Enterprise Workflow Step Banner */
+    .step-item-enterprise {
+        background: var(--surface-hover);
+        border-radius: 14px;
         padding: 12px 16px;
         display: flex;
         align-items: center;
-        gap: 10px;
-        border: 1px solid #E2E8F0;
+        gap: 12px;
+        border: 1px solid var(--border-color);
+        flex: 1;
+        min-width: 200px;
     }
-    .step-item.active {
-        background: rgba(14, 159, 110, 0.1);
-        border-color: #0E9F6E;
-        color: #0E9F6E;
+    .step-item-enterprise.active {
+        background: rgba(16, 185, 129, 0.12);
+        border-color: var(--color-emerald-600);
+        color: var(--color-emerald-700);
     }
-    .step-number {
-        width: 28px;
-        height: 28px;
+    .step-num {
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
-        background: #CBD5E1;
-        color: #475569;
+        background: var(--border-color);
+        color: var(--text-secondary);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
-        font-size: 0.85rem;
+        font-weight: 800;
+        font-size: 0.9rem;
     }
-    .step-item.active .step-number {
-        background: #0E9F6E;
+    .step-item-enterprise.active .step-num {
+        background: var(--color-emerald-600);
         color: #ffffff;
+    }
+
+    .quick-filter-pill {
+        font-size: 0.76rem;
+        font-weight: 700;
+        border-radius: 20px;
+        padding: 4px 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .quick-filter-pill:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2">
-    <!-- Header Navigation -->
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb m-0 bg-transparent p-0 small">
-                    <li class="breadcrumb-item"><a href="{% url 'internal_meetings:list' %}" class="text-decoration-none" style="color: var(--primary);">Rapat Internal</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{% if is_edit %}Edit Agenda Rapat{% else %}Buat Agenda Baru{% endif %}</li>
-                </ol>
-            </nav>
-            <h4 class="fw-bold m-0" style="color: var(--text-primary);">
-                <i class="bi bi-calendar-plus-fill me-2 text-success"></i>{% if is_edit %}Edit Agenda Rapat Internal{% else %}Formulir Agenda Rapat Internal Baru{% endif %}
-            </h4>
+<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                    <i class="bi bi-calendar-plus-fill me-1 text-warning"></i> Form Penjadwalan Rapat Terintegrasi SIMAP
+                </span>
+            </div>
+            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">{% if is_edit %}Edit Agenda Rapat Internal{% else %}Buat Agenda Rapat Internal Baru{% endif %}</h3>
+            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 620px;">
+                Penjadwalan rapat bersifat sangat fleksibel: Pimpinan Sidang dan Peserta Rapat <strong>dapat disesuaikan di Hari H</strong>.
+            </p>
         </div>
-        <div>
-            <a href="{% url 'internal_meetings:list' %}" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
-                <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
+        <div class="col-lg-5 text-lg-end">
+            <a href="{% url 'internal_meetings:list' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
+                <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Rapat
             </a>
         </div>
     </div>
+</div>
 
-    <!-- WORKFLOW STEP PROGRESS -->
-    <div class="step-progress-bar flex-wrap">
-        <div class="step-item active">
-            <div class="step-number">1</div>
-            <div>
-                <strong class="d-block small">Upload Jadwal Rapat</strong>
-                <span class="text-muted" style="font-size: 0.75rem;">Judul, Jenis, Waktu & Tempat</span>
-            </div>
-        </div>
-        <div class="step-item">
-            <div class="step-number">2</div>
-            <div>
-                <strong class="d-block small">Presensi Pimpinan & Peserta</strong>
-                <span class="text-muted" style="font-size: 0.75rem;">Dapat Disesuaikan Nanti</span>
-            </div>
-        </div>
-        <div class="step-item">
-            <div class="step-number">3</div>
-            <div>
-                <strong class="d-block small">Input Notulensi & Decision</strong>
-                <span class="text-muted" style="font-size: 0.75rem;">Hasil Keputusan Rapat</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- INFORMATIONAL BANNER -->
-    <div class="alert alert-success border-0 rounded-4 shadow-sm p-3 mb-4 d-flex align-items-center gap-3">
-        <div class="bg-success text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; flex-shrink: 0;">
-            <i class="bi bi-lightbulb-fill fs-5"></i>
-        </div>
+<!-- WORKFLOW STEP PROGRESS BANNER (4 STEPS) -->
+<div class="d-flex gap-3 mb-4 flex-wrap">
+    <div class="step-item-enterprise active">
+        <div class="step-num">1</div>
         <div>
-            <h6 class="fw-bold mb-1 text-success">Alur Praktis Pembuatan Rapat Internal</h6>
-            <p class="mb-0 small text-secondary">Cukup isi <strong>4 informasi utama jadwal rapat</strong> di bawah ini (Judul, Jenis Rapat, Waktu & Tempat). Pimpinan Rapat dan daftar pegawai yang hadir dapat disesuaikan pada halaman <strong>Detail Rapat</strong> setelah jadwal resmi diterbitkan.</p>
+            <strong class="d-block small text-emerald">1. Jadwal & Topik Rapat</strong>
+            <span class="text-secondary extra-small">Judul, Jenis, Waktu & Tempat</span>
         </div>
     </div>
-
-    <!-- MAIN FORM CARD -->
-    <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
-        <div class="card-header bg-white py-3 px-4 rounded-top-4" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
-            <h6 class="fw-bold mb-0 text-primary">
-                <i class="bi bi-pencil-fill me-2"></i>Rincian Informasi Jadwal Rapat
-            </h6>
+    <div class="step-item-enterprise">
+        <div class="step-num">2</div>
+        <div>
+            <strong class="d-block small">2. Pimpinan & Notulis</strong>
+            <span class="text-secondary extra-small">Opsional saat Penjadwalan</span>
         </div>
-
-        <div class="card-body p-4">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                <!-- Baris 1: Judul & Jenis Rapat -->
-                <div class="row g-3 mb-4">
-                    <div class="col-md-8">
-                        <label for="{{ form.title.id_for_label }}" class="form-label fw-bold text-dark">
-                            Judul / Perihal Rapat <span class="text-danger">*</span>
-                        </label>
-                        {{ form.title }}
-                        <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i>Misal: <code>Coffee Morning</code>, <code>Rapat Pleno Program Pendistribusian</code></div>
-                        {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-4">
-                        <label for="{{ form.meeting_type.id_for_label }}" class="form-label fw-bold text-dark">
-                            Jenis Rapat <span class="text-danger">*</span>
-                        </label>
-                        {{ form.meeting_type }}
-                        <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i>Misal: Rapat Internal / Khusus</div>
-                        {% if form.meeting_type.errors %}<div class="text-danger small mt-1">{{ form.meeting_type.errors }}</div>{% endif %}
-                    </div>
-                </div>
-
-                <!-- Baris 2: Waktu, Lokasi -->
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label for="{{ form.scheduled_at.id_for_label }}" class="form-label fw-bold text-dark">
-                            Waktu & Tanggal Pelaksanaan <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            {{ form.scheduled_at }}
-                            <span class="input-group-text bg-light text-muted small fw-bold" style="border-radius: 0 12px 12px 0;">s.d Selesai</span>
-                        </div>
-                        <div class="form-text small text-muted"><i class="bi bi-clock-history me-1"></i>Format: <code>dd/mm/yyyy --:-- s.d Selesai</code></div>
-                        {% if form.scheduled_at.errors %}<div class="text-danger small mt-1">{{ form.scheduled_at.errors }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-6">
-                        <label for="{{ form.location.id_for_label }}" class="form-label fw-bold text-dark">
-                            Tempat / Ruang Rapat <span class="text-danger">*</span>
-                        </label>
-                        {{ form.location }}
-                        <div class="form-text small text-muted"><i class="bi bi-geo-alt me-1"></i>Misal: Ruang Rapat Pimpinan BAZNAS</div>
-                        {% if form.location.errors %}<div class="text-danger small mt-1">{{ form.location.errors }}</div>{% endif %}
-                    </div>
-                </div>
-
-                <!-- Baris 3: Agenda Pembahasan (Opsional) -->
-                <div class="mb-4">
-                    <label for="{{ form.agenda_topics.id_for_label }}" class="form-label fw-bold text-dark">
-                        Agenda & Poin Pembahasan <span class="text-muted fw-normal">(Opsional)</span>
-                    </label>
-                    {{ form.agenda_topics }}
-                    {% if form.agenda_topics.errors %}<div class="text-danger small mt-1">{{ form.agenda_topics.errors }}</div>{% endif %}
-                </div>
-
-                <!-- Baris 4: File Lampiran (Opsional) -->
-                <div class="mb-4">
-                    <label for="{{ form.attachment.id_for_label }}" class="form-label fw-bold text-dark">
-                        Berkas Lampiran / Undangan <span class="text-muted fw-normal">(Opsional)</span>
-                    </label>
-                    {{ form.attachment }}
-                    {% if form.attachment.errors %}<div class="text-danger small mt-1">{{ form.attachment.errors }}</div>{% endif %}
-                </div>
-
-                <!-- ACCORDION OPSIONAL: PILIH PIMPINAN & PESERTA SEKARANG (OPSIONAL) -->
-                <div class="accordion mb-4" id="accordionAttendanceOptional">
-                    <div class="accordion-item border rounded-3 overflow-hidden">
-                        <h2 class="accordion-header" id="headingOptionalAttendance">
-                            <button class="accordion-button collapsed bg-light py-3 text-dark fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOptionalAttendance" aria-expanded="false" aria-controls="collapseOptionalAttendance">
-                                <i class="bi bi-people-fill text-primary me-2"></i> Pimpinan & Peserta Rapat (Opsional - Bisa Disesuaikan Nanti)
-                            </button>
-                        </h2>
-                        <div id="collapseOptionalAttendance" class="accordion-collapse collapse" aria-labelledby="headingOptionalAttendance" data-bs-parent="#accordionAttendanceOptional">
-                            <div class="accordion-body p-4 bg-white">
-                                <p class="text-secondary small mb-3">Jika Anda sudah mengetahui Pimpinan Rapat dan Amil yang akan hadir, Anda dapat menceklisnya sekarang. Jika belum, Anda dapat meleatinya dan memilihnya di halaman Detail Rapat setelah rapat selesai diselenggarakan.</p>
-
-                                <!-- Pimpinan Rapat Checkbox Grid -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                                        <label class="form-label fw-bold text-dark m-0"><i class="bi bi-person-badge-fill text-primary me-1"></i> Pimpinan Rapat</label>
-                                        <span class="badge bg-primary rounded-pill px-3" id="leader_count_badge">0 Pimpinan Di-ceklis</span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <input type="text" id="search_leader" class="form-control form-control-sm rounded-pill px-3" placeholder="🔍 Cari nama pimpinan rapat...">
-                                    </div>
-                                    <div class="p-3 rounded-3 border" style="max-height: 160px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
-                                        <div class="row g-2" id="leader_checkbox_container">
-                                            {% for checkbox in form.leaders %}
-                                            <div class="col-md-4 col-sm-6 leader-card-item">
-                                                <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1">
-                                                    {{ checkbox.tag }}
-                                                    <span class="small fw-semibold text-dark">{{ checkbox.choice_label }}</span>
-                                                </label>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Peserta Rapat Checkbox Grid -->
-                                <div class="mb-2">
-                                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                                        <label class="form-label fw-bold text-dark m-0"><i class="bi bi-people-fill text-success me-1"></i> Peserta Rapat (Amil Hadir)</label>
-                                        <span class="badge bg-success rounded-pill px-3" id="participant_count_badge">0 Peserta Di-ceklis</span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <input type="text" id="search_participant" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari nama atau jabatan pegawai / amil...">
-                                    </div>
-                                    <div class="p-3 rounded-3 border" style="max-height: 180px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
-                                        <div class="row g-2" id="participant_checkbox_container">
-                                            {% for checkbox in form.participants %}
-                                            <div class="col-md-4 col-sm-6 participant-card-item" data-emp-id="{{ checkbox.choice_value }}">
-                                                <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100">
-                                                    {{ checkbox.tag }}
-                                                    <span class="small fw-semibold text-dark">{{ checkbox.choice_label }}</span>
-                                                </label>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="d-flex justify-content-end gap-3 pt-3 border-top">
-                    <a href="{% url 'internal_meetings:list' %}" class="btn btn-light rounded-pill px-4 fw-semibold border">Batal</a>
-                    <button type="submit" class="btn text-white rounded-pill px-5 fw-bold shadow-sm" style="background-color: var(--primary);">
-                        <i class="bi bi-check-circle-fill me-2"></i>{% if is_edit %}Simpan Perubahan{% else %}Terbitkan Jadwal Rapat{% endif %}
-                    </button>
-                </div>
-            </form>
+    </div>
+    <div class="step-item-enterprise">
+        <div class="step-num">3</div>
+        <div>
+            <strong class="d-block small">3. Peserta Internal & Eksternal</strong>
+            <span class="text-secondary extra-small">Filter Bidang / UPZ / Tamu</span>
+        </div>
+    </div>
+    <div class="step-item-enterprise">
+        <div class="step-num">4</div>
+        <div>
+            <strong class="d-block small text-success"><i class="bi bi-link-45deg me-1"></i>4. Sync & Notifikasi WA</strong>
+            <span class="text-secondary extra-small">Otomatis Integrasi Kalender</span>
         </div>
     </div>
 </div>
+
+<!-- FORM UTAMA BUAT RAPAT INTERNAL -->
+<form method="post" enctype="multipart/form-data" class="card-enterprise p-4 mb-5">
+    {% csrf_token %}
+
+    <div class="row g-4">
+        <!-- SEKSI 1: INFORMASI UTAMA & JADWAL RAPAT -->
+        <div class="col-lg-6">
+            <div class="card-enterprise p-4 mb-4" style="background-color: var(--card-bg);">
+                <h6 class="fw-bold text-emerald border-bottom pb-2 mb-3">
+                    <i class="bi bi-calendar-event-fill me-2 text-success"></i>1. Informasi Utama & Jadwal Rapat
+                </h6>
+
+                <div class="mb-3">
+                    <label for="{{ form.title.id_for_label }}" class="form-label fw-bold small text-uppercase">Judul / Perihal Rapat <span class="text-danger">*</span></label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{% endif %}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.meeting_type.id_for_label }}" class="form-label fw-bold small text-uppercase">Jenis Rapat <span class="text-danger">*</span></label>
+                        {{ form.meeting_type }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.scheduled_at.id_for_label }}" class="form-label fw-bold small text-uppercase">Waktu & Tanggal <span class="text-danger">*</span></label>
+                        {{ form.scheduled_at }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.location.id_for_label }}" class="form-label fw-bold small text-uppercase">Tempat / Lokasi Rapat <span class="text-danger">*</span></label>
+                    {{ form.location }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.agenda_topics.id_for_label }}" class="form-label fw-bold small text-uppercase">Agenda & Topik Pembahasan <span class="text-danger">*</span></label>
+                    {{ form.agenda_topics }}
+                </div>
+
+                <div class="mb-0">
+                    <label for="{{ form.attachment.id_for_label }}" class="form-label fw-bold small text-uppercase">File Undangan / Lampiran (Opsional)</label>
+                    {{ form.attachment }}
+                </div>
+            </div>
+
+            <!-- SEKSI 2: PIMPINAN SIDANG & NOTULIS RAPAT -->
+            <div class="card-enterprise p-4" style="background-color: var(--card-bg);">
+                <h6 class="fw-bold text-emerald border-bottom pb-2 mb-3">
+                    <i class="bi bi-person-workspace me-2 text-primary"></i>2. Pimpinan Sidang & Notulis Rapat
+                    <span class="badge bg-secondary rounded-pill float-end extra-small" style="font-weight: 500;">Opsional saat Penjadwalan</span>
+                </h6>
+                <p class="extra-small text-secondary mb-3">
+                    <i class="bi bi-info-circle me-1 text-primary"></i>Pimpinan rapat dan notulis dapat dikosongkan atau disesuaikan saat Hari H pelaksanaan rapat.
+                </p>
+
+                <div class="mb-3">
+                    <label for="{{ form.leaders.id_for_label }}" class="form-label fw-bold small text-uppercase">
+                        <i class="bi bi-person-badge-fill me-1 text-emerald"></i> Pemimpin Sidang / Pimpinan Rapat
+                    </label>
+                    {{ form.leaders }}
+                </div>
+
+                <div class="mb-0">
+                    <label for="{{ form.notulis.id_for_label }}" class="form-label fw-bold small text-uppercase">
+                        <i class="bi bi-pencil-square me-1 text-primary"></i> Notulis / Pencatat Risalah
+                    </label>
+                    {{ form.notulis }}
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKSI 3 & 4: PESERTA INTERNAL, EKSTERNAL & INTEGRASI -->
+        <div class="col-lg-6">
+            <div class="card-enterprise p-4 mb-4" style="background-color: var(--card-bg);">
+                <h6 class="fw-bold text-emerald border-bottom pb-2 mb-3">
+                    <i class="bi bi-people-fill me-2 text-info"></i>3. Peserta Rapat Internal (Pegawai BAZNAS)
+                    <span class="badge bg-secondary rounded-pill float-end extra-small" style="font-weight: 500;">Opsional saat Penjadwalan</span>
+                </h6>
+
+                <!-- TOMBOL PINTAS SELEKSI SECEPAT KILAT PER BIDANG -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold extra-small text-uppercase text-secondary mb-1">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Pilih Cepat Peserta Berdasarkan Bidang:
+                    </label>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-success quick-filter-pill" onclick="selectParticipantsByBidang('all')">
+                            ⚡ Semua Pegawai
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary quick-filter-pill" onclick="selectParticipantsByBidang('pimpinan')">
+                            🏛️ Pimpinan BAZNAS
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-info quick-filter-pill" onclick="selectParticipantsByBidang('bidang_1')">
+                            📊 Pengumpulan
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-warning quick-filter-pill" onclick="selectParticipantsByBidang('bidang_2')">
+                            🤲 Pendistribusian
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary quick-filter-pill" onclick="selectParticipantsByBidang('bidang_3')">
+                            💼 Keuangan & Pelaporan
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-dark quick-filter-pill" onclick="selectParticipantsByBidang('bidang_4')">
+                            ⚙️ SDM & Umum
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger quick-filter-pill" onclick="selectParticipantsByBidang('none')">
+                            ❌ Kosongkan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-0">
+                    {{ form.participants }}
+                    <small class="text-secondary extra-small d-block mt-1">
+                        <i class="bi bi-hand-index-thumb me-1"></i>Gunakan tombol pintas per bidang di atas untuk memilih seluruh tim secara instan.
+                    </small>
+                </div>
+            </div>
+
+            <!-- SEKSI TAMU EKSTERNAL / INSTANSI / UPZ / MASYARAKAT -->
+            <div class="card-enterprise p-4 mb-4" style="background-color: var(--card-bg);">
+                <h6 class="fw-bold text-emerald border-bottom pb-2 mb-3">
+                    <i class="bi bi-building-gear me-2 text-warning"></i>Peserta Eksternal / Tamu Undangan (Opsional)
+                </h6>
+                <p class="extra-small text-secondary mb-2">
+                    Gunakan kolom ini jika rapat menghadiri/mengundang <strong>UPZ, Instansi Pemkab, Tokoh Masyarakat, Ormas, Media, atau Vendor</strong>.
+                </p>
+
+                <!-- INSERTION HELPER BADGES -->
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    <button type="button" class="btn btn-sm btn-light border extra-small rounded-pill" onclick="appendGuestTag('Perwakilan UPZ Kecamatan / Desa')">
+                        + UPZ Kecamatan
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border extra-small rounded-pill" onclick="appendGuestTag('Dinas / OPD Pemkab Tangerang')">
+                        + OPD Pemkab
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border extra-small rounded-pill" onclick="appendGuestTag('Tokoh Masyarakat / Ulama')">
+                        + Tokoh Agama
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border extra-small rounded-pill" onclick="appendGuestTag('Rekanan / Vendor Ke-3')">
+                        + Vendor / Pihak Ke-3
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border extra-small rounded-pill" onclick="appendGuestTag('Insan Pers / Media')">
+                        + Pers / Media
+                    </button>
+                </div>
+
+                {{ form.guest_names }}
+            </div>
+
+            <!-- PANEL INTEGRASI OTOMATIS AGENDA SIMAP & NOTIFIKASI WA -->
+            <div class="p-4 card-enterprise mb-4" style="background-color: var(--surface-hover);">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge badge-node-verified rounded-pill px-3 py-1 fw-bold">
+                        <i class="bi bi-check-all me-1"></i> INTEGRASI OTOMATIS SIMAP
+                    </span>
+                </div>
+                <p class="extra-small text-secondary mb-3">
+                    Agenda Rapat Internal ini akan <strong>otomatis dibuatkan entri Agenda Kerja</strong> dan langsung tercetak pada <strong>Kalender Kerja Visual (Google Calendar Experience)</strong> tanpa langkah manual.
+                </p>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input accent-emerald" type="checkbox" name="send_wa" id="id_send_wa" checked>
+                    <label class="form-check-label fw-bold small text-primary" for="id_send_wa">
+                        <i class="bi bi-whatsapp text-success me-1"></i> Kirim Undangan Rapat Otomatis via WhatsApp Gateway
+                    </label>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                <a href="{% url 'internal_meetings:list' %}" class="btn btn-outline-secondary rounded-pill px-4">Batal</a>
+                <button type="submit" class="btn btn-enterprise-primary rounded-pill px-5 fw-bold shadow-sm">
+                    <i class="bi bi-check-circle-fill me-1"></i> {% if is_edit %}Simpan Perubahan Rapat{% else %}Terbitkan & Sinkronkan ke Agenda{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const leaderCheckboxes = document.querySelectorAll('input[name="leaders"]');
-        const leaderBadgeCounter = document.getElementById('leader_count_badge');
-        const searchLeader = document.getElementById('search_leader');
+const EMP_BIDANG_MAP = {{ employee_bidang_json|safe }};
 
-        function updateLeaderCount() {
-            let count = 0;
-            leaderCheckboxes.forEach(cb => { if (cb.checked) count++; });
-            if (leaderBadgeCounter) leaderBadgeCounter.innerText = `${count} Pimpinan Di-ceklis`;
-        }
+function selectParticipantsByBidang(bidangCode) {
+    const $select = $('.select2-participants, select[name="participants"]');
+    if (!$select.length) return;
 
-        if (searchLeader) {
-            searchLeader.addEventListener('input', function() {
-                const query = this.value.toLowerCase();
-                document.querySelectorAll('.leader-card-item').forEach(item => {
-                    const text = item.innerText.toLowerCase();
-                    item.style.display = text.includes(query) ? 'block' : 'none';
-                });
-            });
-        }
+    if (bidangCode === 'all') {
+        const allVal = [];
+        $select.find('option').each(function() {
+            if ($(this).val()) allVal.push($(this).val());
+        });
+        $select.val(allVal).trigger('change');
+    } else if (bidangCode === 'none') {
+        $select.val([]).trigger('change');
+    } else {
+        const selectedVals = $select.val() || [];
+        $select.find('option').each(function() {
+            const empId = $(this).val();
+            if (empId && EMP_BIDANG_MAP[empId] === bidangCode) {
+                if (!selectedVals.includes(empId)) {
+                    selectedVals.push(empId);
+                }
+            }
+        });
+        $select.val(selectedVals).trigger('change');
+    }
+}
 
-        leaderCheckboxes.forEach(cb => cb.addEventListener('change', updateLeaderCount));
-        updateLeaderCount();
+function appendGuestTag(tagText) {
+    const textarea = document.getElementById('id_guest_names');
+    if (!textarea) return;
+    const currentVal = textarea.value.trim();
+    if (currentVal.length > 0) {
+        textarea.value = currentVal + '\n• ' + tagText + ': ';
+    } else {
+        textarea.value = '• ' + tagText + ': ';
+    }
+    textarea.focus();
+}
 
-        const participantCheckboxes = document.querySelectorAll('input[name="participants"]');
-        const badgeCounter = document.getElementById('participant_count_badge');
-        const searchParticipant = document.getElementById('search_participant');
+document.addEventListener('DOMContentLoaded', function() {
+    if ($.fn.select2) {
+        $('.select2-leaders, select[name="leaders"]').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Pilih Pemimpin Sidang (Dapat dikosongkan)...',
+            width: '100%',
+            allowClear: true
+        });
 
-        function updateParticipantCount() {
-            let count = 0;
-            participantCheckboxes.forEach(cb => { if (cb.checked) count++; });
-            if (badgeCounter) badgeCounter.innerText = `${count} Peserta Di-ceklis`;
-        }
+        $('.select2-notulis, select[name="notulis"]').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Pilih Notulis Rapat (Dapat dikosongkan)...',
+            width: '100%',
+            allowClear: true
+        });
 
-        if (searchParticipant) {
-            searchParticipant.addEventListener('input', function() {
-                const query = this.value.toLowerCase();
-                document.querySelectorAll('.participant-card-item').forEach(item => {
-                    const text = item.innerText.toLowerCase();
-                    item.style.display = text.includes(query) ? 'block' : 'none';
-                });
-            });
-        }
-
-        participantCheckboxes.forEach(cb => cb.addEventListener('change', updateParticipantCount));
-        updateParticipantCount();
-    });
+        $('.select2-participants, select[name="participants"]').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Pilih Peserta Rapat Internal (Dapat dikosongkan)...',
+            width: '100%',
+            allowClear: true
+        });
+    }
+});
 </script>
 {% endblock %}

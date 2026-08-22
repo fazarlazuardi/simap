@@ -1,0 +1,113 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Emergency Takeover Disposisi - SIMAP BAZNAS Kab. Tangerang{% endblock %}
+
+{% block extra_css %}
+<style>
+    .custom-input { border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-primary); }
+    .custom-input:focus { border-color: #DC2626; box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.15); }
+    .emp-checkbox-card {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: var(--card-bg);
+        transition: all 0.2s ease;
+    }
+    .emp-checkbox-card:hover {
+        border-color: #DC2626;
+        background: rgba(220, 38, 38, 0.03);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HEADER BANNER EMERGENCY TAKEOVER -->
+<div class="card border-0 shadow-lg mb-4 text-white" style="border-radius: 20px; background: linear-gradient(135deg, #991B1B 0%, #7F1D1D 60%, #450A0A 100%);">
+    <div class="card-body p-4 position-relative">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold border border-white border-opacity-25" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                <i class="bi bi-lightning-charge-fill me-1"></i> MODUL EMERGENCY OVERRIDE
+            </span>
+        </div>
+        <h3 class="fw-extrabold mb-2"><i class="bi bi-shield-exclamation me-2"></i>Emergency Takeover Disposisi</h3>
+        <p class="mb-0 text-white text-opacity-80 small" style="max-width: 650px;">
+            Fitur pengambilalihan disposisi darurat oleh <strong>Kabid IV / Superadmin</strong> saat Ketua & Waka IV berhalangan/kegiatan luar kantor, guna memastikan alur dokumen BAZNAS <strong>TIDAK MACET/MANGKRAK</strong>.
+        </p>
+    </div>
+</div>
+
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-10">
+        <div class="card-enterprise p-4">
+            <!-- DATA DOKUMEN -->
+            <div class="bg-light p-3 rounded-3 mb-4 border">
+                <div class="row g-2 text-dark">
+                    <div class="col-md-6">
+                        <small class="text-uppercase text-secondary extra-small fw-bold">Nomor Arsip / Surat</small>
+                        <p class="fw-bold mb-0 text-primary">{{ archive.archive_number|default:"DRAFT" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-uppercase text-secondary extra-small fw-bold">Pengirim / Pemohon</small>
+                        <p class="fw-bold mb-0">{{ archive.sender_receiver|default:"-" }}</p>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <small class="text-uppercase text-secondary extra-small fw-bold">Perihal Document</small>
+                        <h6 class="fw-bold mb-0 text-dark">{{ archive.title }}</h6>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="takeover_reason" class="form-label fw-bold small text-uppercase text-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Alasan Emergency Takeover <span class="text-danger">*</span>
+                    </label>
+                    <select name="takeover_reason" id="takeover_reason" class="form-select custom-input" required>
+                        <option value="Ketua & Waka IV Tugas Luar / Kegiatan Lapangan BAZNAS" selected>Ketua & Waka IV Tugas Luar / Kegiatan Lapangan BAZNAS</option>
+                        <option value="Disposisi Darurat Terkait Penyaluran Bantuan Bencana/Mustahik Critical">Disposisi Darurat Terkait Penyaluran Bantuan Bencana/Mustahik Critical</option>
+                        <option value="Surat Masuk Undangan Berbatas Waktu Sangat Segera">Surat Masuk Undangan Berbatas Waktu Sangat Segera</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-dark">
+                        <i class="bi bi-people-fill me-1 text-primary"></i> Diteruskan Langsung Ke Kepala Bidang / Amil Pelaksana <span class="text-danger">*</span>
+                    </label>
+                    <div class="row g-2">
+                        {% for emp in employees %}
+                        <div class="col-md-6">
+                            <div class="emp-checkbox-card d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="waka_forwarded_to" value="{{ emp.id }}" id="emp_{{ emp.id }}">
+                                        <label class="form-check-label fw-bold text-dark small" for="emp_{{ emp.id }}">
+                                            {{ emp.full_name }}
+                                        </label>
+                                    </div>
+                                    <small class="text-secondary extra-small ms-4 d-block">{{ emp.position }} ({{ emp.dept_relation.name|default:"Struktur Utama" }})</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="note" class="form-label fw-bold small text-uppercase text-dark">Catatan Instruksi Operasional Disposisi</label>
+                    <textarea name="note" id="note" class="form-control custom-input" rows="3" placeholder="Masukkan arahan/petunjuk khusus untuk Kabid Pelaksana..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'dispositions:list' %}" class="btn btn-outline-secondary rounded-pill px-4">Batal</a>
+                    <button type="submit" class="btn btn-danger rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Eksekusi Emergency Takeover
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -137,6 +137,16 @@ def archive_list(request):
     })
 
 @login_required
+def archive_quick_detail(request, pk):
+    """View HTMX/AJAX untuk Slide-Over Drawer quick view data arsip."""
+    archive = get_object_or_404(
+        Archive.objects.select_related('category', 'uploaded_by').prefetch_related('dispositions', 'dispositions__sender'),
+        pk=pk
+    )
+    return render(request, 'archives/quick_detail.html', {'archive': archive})
+
+
+@login_required
 @sdm_required
 def archive_upload(request):
     if not can_view_arsip_sdm(request):
@@ -210,10 +220,16 @@ def archive_upload(request):
         address = request.POST.get('address', '').strip()
         category = get_object_or_404(Category, id=category_id)
         
+        from django.utils.dateparse import parse_date
+        letter_date_val = parse_date(letter_date) if letter_date else timezone.now().date()
+        received_date_input = request.POST.get('received_date')
+        received_date_val = parse_date(received_date_input) if received_date_input else timezone.now().date()
+
         archive = Archive.objects.create(
             archive_type=archive_type,
             archive_number=archive_number,
-            letter_date=letter_date,
+            letter_date=letter_date_val,
+            received_date=received_date_val,
             sender=sender_receiver,
             address=address,
             title=title,
@@ -270,7 +286,7 @@ def archive_upload(request):
             messages.success(request, "Dokumen berhasil diunggah & terverifikasi (Siap Disposisi Ketua BAZNAS).")
         else:
             messages.success(request, "Dokumen berhasil diunggah dengan status BARU.")
-        return redirect('archives:list')
+        return redirect(f"/archives/upload/?success_id={archive.pk}")
     
     # --- Handling GET Method ---
     categories = Category.objects.all()
@@ -283,12 +299,18 @@ def archive_upload(request):
     for code, _ in Archive.TYPE_CHOICES:
         default_by_type[code] = NumberingService.get_default_number('archive', {'archive_type': code})
 
+    success_id = request.GET.get('success_id')
+    success_archive = None
+    if success_id:
+        success_archive = Archive.objects.filter(pk=success_id).first()
+
     return render(request, 'archives/upload.html', {
         'archive_types': Archive.TYPE_CHOICES,
         'categories': categories,
         'selected_type': selected_type,
         'default_archive_number': default_by_type.get(selected_type, ''),
         'default_by_type_json': json.dumps(default_by_type),
+        'success_archive': success_archive,
     })
 
 @login_required
@@ -461,6 +483,7 @@ def archive_detail(request, pk):
         'sppd_list': sppd_list,
         'latest_sppd': latest_sppd,
         'latest_report': latest_report,
+        'default_archive_number': NumberingService.get_default_number('archive', {'archive_type': archive.archive_type}),
     })
 
 @login_required

@@ -1,104 +1,105 @@
 {% extends 'layouts/base.html' %}
+{% load static %}
 
-{% block title %}Beri Disposisi Digital - BAZNAS{% endblock %}
+{% block title %}Beri Disposisi Digital - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3" style="max-width: 1040px;">
-    <!-- Header & Breadcrumb Ringkas -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb m-0 bg-transparent p-0 small">
-                    <li class="breadcrumb-item"><a href="{% url 'archives:list' %}" class="text-decoration-none" style="color: var(--primary);">Arsip</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'archives:detail' archive.pk %}" class="text-decoration-none" style="color: var(--primary);">Detail Arsip</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Beri Disposisi</li>
-                </ol>
-            </nav>
-            <h5 class="fw-bold m-0" style="color: var(--text-primary);">
-                Disposisi Dokumen: {{ archive.archive_number|default:archive.title }}
-            </h5>
-        </div>
-        <span class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill small fw-bold">
-            Status: Baru
-        </span>
-    </div>
+<div class="container-fluid py-3" style="max-width: 1080px;">
+    <!-- BREADCRUMB NAV -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a href="{% url 'archives:list' %}" class="text-decoration-none text-emerald fw-bold">Arsip SDM</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'archives:detail' archive.pk %}" class="text-decoration-none text-emerald fw-bold">Detail Arsip</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Beri Disposisi Digital</li>
+        </ol>
+    </nav>
 
-    <form method="post" action="{% url 'dispositions:create' archive.pk %}" id="formCreateDisposisi">
-        {% csrf_token %}
-        <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            
-            <!-- Banner Header Lembar Disposisi -->
-            <div class="card-header text-white px-3 py-2 d-flex justify-content-between align-items-center" style="background-color: #0d8a52 !important;">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-file-earmark-plus-fill fs-6"></i>
-                    <span class="fw-bold text-uppercase small">Formulir Lembar Disposisi Digital</span>
+    <!-- ENTERPRISE GLASS HEADER BANNER -->
+    <div class="glass-banner-enterprise mb-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 position-relative" style="z-index: 2;">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 font-mono fw-bold" style="font-size: 0.75rem;">
+                        <i class="bi bi-send-fill me-1"></i> TAHAP 1: DISPOSISI KETUA
+                    </span>
+                    <span class="badge badge-node-verified rounded-pill px-3 py-1 font-mono">
+                        {{ archive.archive_number|default:"DRAFT" }}
+                    </span>
                 </div>
-                <small class="text-white-50">BAZNAS Kab. Tangerang</small>
+                <h3 class="fw-bold mb-1 text-white">Lembar Disposisi Digital BAZNAS</h3>
+                <p class="mb-0 text-white opacity-75 small">Perihal: <strong>{{ archive.title }}</strong> | Pengirim: <strong>{{ archive.sender_receiver|default:"-" }}</strong></p>
             </div>
 
-            <div class="card-body p-3">
-                <!-- Metadata Header Dokumen Ringkas -->
-                <div class="row g-2 p-2 rounded-3 mb-3" style="background-color: var(--surface-alt); border: 1px solid var(--border-color); font-size: 0.85rem;">
-                    <div class="col-md-4">
-                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">No. Agenda / Surat</label>
-                        <span class="fw-bold text-dark">{{ archive.archive_number|default:archive.title }}</span>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Nomor Disposisi</label>
-                        <input type="text" name="disposition_number" class="form-control form-control-sm bg-white fw-bold py-0" value="{{ generated_disp_no }}" readonly style="font-size: 0.85rem;">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Tgl. Surat</label>
-                        <span class="fw-bold text-dark">{{ archive.letter_date|date:"d M Y"|default:"-" }}</span>
-                    </div>
+            <div class="d-flex gap-2 align-items-center">
+                {% if archive.file_path %}
+                <a href="{{ archive.file_path.url }}" target="_blank" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Pratinjau Berkas PDF
+                </a>
+                {% endif %}
+                <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-light btn-sm rounded-pill px-3 py-2 fw-semibold">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali
+                </a>
+            </div>
+        </div>
+    </div>
 
+    <!-- FORM UTAMA DISPOSISI DIGITAL -->
+    <form method="post" action="{% url 'dispositions:create' archive.pk %}" id="formCreateDisposisi">
+        {% csrf_token %}
+        <div class="card-enterprise p-4 mb-4">
+            
+            <!-- HEADER METADATA DOKUMEN -->
+            <div class="p-3 rounded-3 mb-4 border bg-body-tertiary">
+                <h6 class="fw-bold text-emerald mb-3 pb-2 border-bottom"><i class="bi bi-file-earmark-text-fill me-2"></i>Rincian Dokumen Terkait</h6>
+                <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Tgl. Terima Arsip</label>
-                        <span class="fw-bold text-dark">{{ archive.created_at|date:"d M Y, H:i" }}</span>
+                        <label class="form-label small fw-bold text-uppercase">Nomor Disposisi Resmi</label>
+                        <input type="text" name="disposition_number" class="form-control font-mono fw-bold text-emerald" value="{{ generated_disp_no }}" readonly style="font-size: 0.9rem;">
                     </div>
-                    <div class="col-md-3 col-sm-6">
-                        <span class="d-block text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.7rem;">Tgl. Pelaksanaan / Deadline <small class="text-muted fw-normal">(Opsional)</small></span>
-                        <input type="date" name="target_date" class="form-control form-control-sm border-secondary-subtle fw-semibold" style="font-size: 0.85rem;">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-uppercase">Nomor Surat / Agenda</label>
+                        <input type="text" class="form-control font-mono fw-bold" value="{{ archive.archive_number|default:archive.title }}" readonly style="font-size: 0.9rem;">
                     </div>
-                    <div class="col-md-5">
-                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Sifat / Kecepatan</label>
-                        <div class="d-flex gap-3 align-items-center pt-1">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-uppercase">Tanggal Surat</label>
+                        <input type="text" class="form-control font-mono fw-bold" value="{{ archive.letter_date|date:'d F Y'|default:'-' }}" readonly style="font-size: 0.9rem;">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-uppercase">Batas Pelaksanaan <small class="text-secondary fw-normal">(Opsional)</small></label>
+                        <input type="date" name="target_date" class="form-control font-mono fw-bold">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold text-uppercase">Sifat Urgensi / Kecepatan</label>
+                        <div class="d-flex gap-4 align-items-center pt-2">
                             <div class="form-check m-0">
                                 <input class="form-check-input" type="radio" name="priority" id="p_segera" value="segera">
-                                <label class="form-check-label text-danger fw-bold small" for="p_segera">Segera</label>
+                                <label class="form-check-label text-danger fw-bold" for="p_segera"><i class="bi bi-exclamation-octagon-fill me-1"></i> Segera</label>
                             </div>
                             <div class="form-check m-0">
                                 <input class="form-check-input" type="radio" name="priority" id="p_penting" value="penting">
-                                <label class="form-check-label text-warning fw-bold small" for="p_penting">Penting</label>
+                                <label class="form-check-label text-warning-emphasis fw-bold" for="p_penting"><i class="bi bi-exclamation-triangle-fill me-1"></i> Penting</label>
                             </div>
                             <div class="form-check m-0">
                                 <input class="form-check-input" type="radio" name="priority" id="p_biasa" value="biasa" checked>
-                                <label class="form-check-label text-success fw-bold small" for="p_biasa">Biasa</label>
+                                <label class="form-check-label text-success fw-bold" for="p_biasa"><i class="bi bi-check-circle-fill me-1"></i> Biasa</label>
                             </div>
                         </div>
                     </div>
-
-                    <div class="col-md-6">
-                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Asal Surat / Pengirim</label>
-                        <span class="fw-bold text-primary">{{ archive.sender|default:"-" }}</span>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted fw-bold d-block text-uppercase" style="font-size: 0.7rem;">Perihal</label>
-                        <span class="fw-bold text-dark text-truncate d-block">{{ archive.title }}</span>
-                    </div>
                 </div>
+            </div>
 
-                <!-- Form Utama Disposisi -->
-                <div class="row g-3">
-                    <!-- Kolom Kiri: Penerima Disposisi -->
-                    <div class="col-md-6">
-                        <h6 class="fw-bold mb-2 small text-uppercase" style="color: var(--text-primary);">
-                            <i class="bi bi-people-fill me-1"></i>Diteruskan Kepada:
+            <!-- MAIN GRID 2 KOLOM (PENERIMA & INSTRUKSI) -->
+            <div class="row g-4">
+                <!-- KOLOM KIRI: PENERIMA DISPOSISI (MULTI SELECT WITH ROLE FILTER) -->
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border h-100 bg-body-tertiary">
+                        <h6 class="fw-bold text-emerald mb-3 pb-2 border-bottom">
+                            <i class="bi bi-people-fill me-2"></i>1. Diteruskan Kepada (Penerima):
                         </h6>
                         
-                        <!-- Quick Select Jabatan -->
-                        <div class="p-2 mb-2 rounded-3" style="background-color: var(--surface-alt); border: 1px solid var(--border-color);">
-                            <label class="fw-bold text-muted d-block mb-1" style="font-size: 0.7rem;">Pilih Otomatis Jabatan:</label>
+                        <!-- QUICK SELECT JABATAN BUTTONS -->
+                        <div class="p-2 mb-3 rounded-3 border bg-white">
+                            <label class="form-label small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem;">Pilih Otomatis Berdasarkan Jabatan:</label>
                             <div class="row g-1">
                                 <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="ketua" id="role_ketua"><label class="form-check-label small" for="role_ketua">Ketua</label></div></div>
                                 <div class="col-4"><div class="form-check m-0"><input type="checkbox" class="form-check-input role-filter" data-role="waka i" id="role_waka1"><label class="form-check-label small" for="role_waka1">Waka I</label></div></div>
@@ -112,15 +113,15 @@
                             </div>
                         </div>
 
-                        <!-- Live Search -->
+                        <!-- LIVE SEARCH -->
                         <div class="mb-2">
-                            <input type="text" id="searchStaff" class="form-control form-control-sm" placeholder="🔍 Cari nama / jabatan...">
+                            <input type="text" id="searchStaff" class="form-control" placeholder="🔍 Cari nama / jabatan pegawai...">
                         </div>
 
-                        <!-- Daftar Pegawai -->
-                        <div class="list-group overflow-auto custom-scroll" style="max-height: 220px; border: 1px solid var(--border-color); border-radius: 6px;">
+                        <!-- DAFTAR PEGAWAI CHECKLIST -->
+                        <div class="list-group overflow-auto custom-scroll" style="max-height: 250px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
                             {% for employee in employees %}
-                            <label class="list-group-item list-group-item-action py-1 px-2 d-flex justify-content-between align-items-center staff-item">
+                            <label class="list-group-item list-group-item-action py-2 px-3 d-flex justify-content-between align-items-center staff-item" style="cursor: pointer;">
                                 <div class="d-flex align-items-center gap-2 overflow-hidden">
                                     <input class="form-check-input me-1 staff-checkbox flex-shrink-0" 
                                            type="checkbox" 
@@ -129,77 +130,70 @@
                                            id="emp_{{ employee.pk }}"
                                            {% if disposition and employee in disposition.forwarded_to.all %}checked{% endif %}>
                                     <div class="text-truncate">
-                                        <span class="fw-semibold d-block small text-dark staff-name text-truncate" style="font-size: 0.8rem;">{{ employee.full_name }}</span>
-                                        <span class="small text-muted staff-job d-block" style="font-size: 0.7rem;">{{ employee.position|default:"Pegawai" }}</span>
+                                        <span class="fw-bold d-block small staff-name text-truncate text-dark" style="font-size: 0.85rem;">{{ employee.full_name }}</span>
+                                        <span class="small text-secondary staff-job d-block" style="font-size: 0.73rem;">{{ employee.position|default:"Pegawai" }}</span>
                                     </div>
                                 </div>
-                                <span class="badge bg-light text-dark border ms-1 flex-shrink-0" style="font-size: 0.65rem;">
+                                <span class="badge bg-secondary bg-opacity-25 text-dark border ms-1 flex-shrink-0" style="font-size: 0.68rem;">
                                     {{ employee.position|default:"Pegawai" }}
                                 </span>
                             </label>
                             {% empty %}
-                            <div class="p-2 text-center text-muted small">Data pegawai tidak ditemukan.</div>
+                            <div class="p-3 text-center text-muted small">Data pegawai tidak ditemukan.</div>
                             {% endfor %}
                         </div>
                     </div>
+                </div>
 
-                    <!-- Kolom Kanan: Instruksi Pimpinan -->
-                    <div class="col-md-6">
-                        <h6 class="fw-bold mb-2 small text-uppercase" style="color: var(--text-primary);">
-                            <i class="bi bi-list-check me-1"></i>Isi Instruksi Pimpinan:
+                <!-- KOLOM KANAN: INSTRUKSI & ARAHAN PIMPINAN -->
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border h-100 bg-body-tertiary">
+                        <h6 class="fw-bold text-emerald mb-3 pb-2 border-bottom">
+                            <i class="bi bi-list-check me-2"></i>2. Isi Instruksi & Arahan Pimpinan:
                         </h6>
                         
-                        <!-- Instruksi Grid 2 Kolom -->
-                        <div class="row g-2 mb-2">
+                        <!-- INSTRUKSI GRID CHECKBOXES -->
+                        <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <div class="form-check p-2 border rounded-2 bg-white d-flex align-items-center h-100">
+                                <div class="form-check p-2.5 border rounded-3 bg-white d-flex align-items-center h-100 shadow-xs">
                                     <input class="form-check-input me-2 mt-0" type="checkbox" name="inst_selesaikan" id="ins1">
-                                    <label class="form-check-label small lh-sm" for="ins1">Selesaikan / Jawab</label>
+                                    <label class="form-check-label small fw-bold lh-sm text-dark" for="ins1">Selesaikan / Jawab</label>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="form-check p-2 border rounded-2 bg-white d-flex align-items-center h-100">
+                                <div class="form-check p-2.5 border rounded-3 bg-white d-flex align-items-center h-100 shadow-xs">
                                     <input class="form-check-input me-2 mt-0" type="checkbox" name="inst_untuk_diketahui" id="ins2">
-                                    <label class="form-check-label small lh-sm" for="ins2">Untuk diketahui</label>
+                                    <label class="form-check-label small fw-bold lh-sm text-dark" for="ins2">Untuk Diketahui</label>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="form-check p-2 border rounded-2 bg-white d-flex align-items-center h-100">
+                                <div class="form-check p-2.5 border rounded-3 bg-white d-flex align-items-center h-100 shadow-xs">
                                     <input class="form-check-input me-2 mt-0" type="checkbox" name="inst_laporkan_hasilnya" id="ins3">
-                                    <label class="form-check-label small lh-sm" for="ins3">Laporkan hasilnya</label>
+                                    <label class="form-check-label small fw-bold lh-sm text-dark" for="ins3">Laporkan Hasilnya</label>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="form-check p-2 border rounded-2 bg-white d-flex align-items-center h-100">
+                                <div class="form-check p-2.5 border rounded-3 bg-white d-flex align-items-center h-100 shadow-xs">
                                     <input class="form-check-input me-2 mt-0" type="checkbox" name="inst_koordinasikan" id="ins4">
-                                    <label class="form-check-label small lh-sm" for="ins4">Koordinasikan</label>
+                                    <label class="form-check-label small fw-bold lh-sm text-dark" for="ins4">Koordinasikan</label>
                                 </div>
                             </div>
                         </div>
 
-
-                        <label class="fw-bold small mb-1" style="color: var(--text-primary); font-size: 0.8rem;">Catatan / Arahan Tambahan:</label>
-                        <textarea name="note" class="form-control form-control-sm" rows="5" placeholder="Tuliskan arahan tambahan pimpinan di sini..." style="font-size: 0.85rem;"></textarea>
+                        <label class="form-label small fw-bold text-uppercase d-block mb-1">Catatan / Arahan Tambahan Ketua:</label>
+                        <textarea name="note" class="form-control" rows="5" placeholder="Tuliskan catatan arahan khusus dari Ketua BAZNAS di sini..."></textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- Footer Action Bar Ringkas -->
-            <div class="card-footer bg-light px-3 py-2 d-flex justify-content-between align-items-center">
-                <div>
-                    {% if archive.file_path %}
-                    <a href="{{ archive.file_path.url }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold">
-                        <i class="bi bi-file-earmark-pdf me-1"></i> Lihat Berkas
-                    </a>
-                    {% endif %}
-                </div>
-                
-                <div class="d-flex gap-2">
-                    <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-light btn-sm px-3 rounded-2 fw-bold">Batal</a>
-                    <button type="submit" class="btn btn-success btn-sm px-4 rounded-2 fw-bold text-white" style="background-color: #0d8a52;">
-                        <i class="bi bi-send-check me-1"></i> Kirim Disposisi
-                    </button>
-                </div>
+            <!-- ACTION BUTTON FOOTER -->
+            <div class="d-flex justify-content-between align-items-center pt-4 mt-4 border-top">
+                <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+                    <i class="bi bi-x-circle me-1"></i> Batal
+                </a>
+                <button type="submit" class="btn btn-enterprise-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+                    <i class="bi bi-send-check-fill me-1"></i> Kirim Disposisi Ketua Sekarang
+                </button>
             </div>
         </div>
     </form>

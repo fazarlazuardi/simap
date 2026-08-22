@@ -1,81 +1,92 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}{% if report %}Edit{% else %}Input{% endif %} Laporan Akhir - BAZNAS{% endblock %}
+{% block title %}{% if report %}Edit{% else %}Input{% endif %} Laporan Hasil Pelaksanaan (LHP) - BAZNAS{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'reports:index' %}" class="text-decoration-none text-primary">Laporan</a></li>
-                <li class="breadcrumb-item active" aria-current="page">{% if report %}Edit{% else %}Input{% endif %} Hasil</li>
-            </ol>
-        </nav>
-        <h4 class="fw-bold">{% if report %}Edit Laporan{% else %}Input Laporan Hasil Tindak Lanjut{% endif %}</h4>
-        <p class="text-secondary small">Dokumentasikan hasil pelaksanaan instruksi pimpinan untuk menyelesaikan alur dokumen.</p>
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'reports:index' %}" class="text-white text-opacity-75 text-decoration-none"><i class="bi bi-diagram-3 me-1"></i>Laporan</a></li>
+                    <li class="breadcrumb-item text-white active" aria-current="page">{% if report %}Edit{% else %}Input{% endif %} LHP</li>
+                </ol>
+            </nav>
+            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">{% if report %}Edit Laporan Hasil Pelaksanaan (LHP){% else %}Input Laporan Hasil Tindak Lanjut (LHP){% endif %}</h3>
+            <p class="text-white text-opacity-80 mb-0 small">
+                Dokumentasikan hasil pelaksanaan instruksi pimpinan, kegiatan survei lapangan, atau pentasyarufan bantuan untuk menyelesaikan alur kerja BPMN dokumen.
+            </p>
+        </div>
     </div>
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm p-4">
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-10">
+        <div class="card-enterprise p-4">
             <!-- Ringkasan Instruksi Disposisi -->
-            <div class="mb-4 bg-light p-3 rounded-3 border">
-                <p class="mb-1 text-secondary small fw-bold text-uppercase">Instruksi Disposisi:</p>
-                <p class="mb-0 fw-bold text-primary">"{{ dispo.note|default:'-' }}"</p>
+            <div class="card-enterprise p-3.5 mb-4" style="background-color: var(--surface-hover); border-left: 4px solid var(--color-emerald-500) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon-box bg-success bg-opacity-20 text-success rounded-circle flex-shrink-0">
+                        <i class="bi bi-quote fs-3"></i>
+                    </div>
+                    <div>
+                        <span class="d-block small text-secondary fw-bold text-uppercase" style="letter-spacing: 0.05em;">Instruksi Disposisi Acuan:</span>
+                        <h6 class="fw-bold text-emerald mb-0">"{{ dispo.note|default:'-' }}"</h6>
+                    </div>
+                </div>
             </div>
 
             <form method="post" enctype="multipart/form-data" id="reportForm">
                 {% csrf_token %}
                 
-                <div class="mb-4">
-                    <label for="report_number" class="form-label fw-bold">Nomor Laporan <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control custom-input" id="report_number" name="report_number" required
-                           placeholder="Contoh: 001/LHP/SDM/2026"
-                           value="{% if report %}{{ report.report_number }}{% else %}{{ default_report_number|default:'' }}{% endif %}">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="report_number" class="form-label fw-bold">Nomor Laporan LHP Resmi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input font-mono fw-semibold" id="report_number" name="report_number" required
+                               placeholder="Contoh: 001/LHP/SDM/2026"
+                               value="{% if report %}{{ report.report_number }}{% else %}{{ default_report_number|default:'' }}{% endif %}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="title" class="form-label fw-bold">Judul Ringkas Laporan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input fw-semibold" id="title" name="title" required
+                               placeholder="Judul ringkas hasil kegiatan / survei"
+                               value="{% if report %}{{ report.title }}{% else %}{{ default_title|default:'' }}{% endif %}">
+                    </div>
                 </div>
 
                 <div class="mb-4">
-                    <label for="title" class="form-label fw-bold">Judul Laporan <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control custom-input" id="title" name="title" required
-                           placeholder="Judul ringkas hasil kegiatan"
-                           value="{% if report %}{{ report.title }}{% else %}{{ default_title|default:'' }}{% endif %}">
+                    <label for="content" class="form-label fw-bold">Uraian / Ringkasan Hasil Pelaksanaan <span class="text-danger">*</span></label>
+                    <textarea class="form-control p-3" id="content" name="content" rows="6" required
+                              placeholder="Jelaskan secara detail uraian tindakan, temuan lapangan, atau proses penyaluran yang telah dilakukan...">{% if report %}{{ report.content }}{% else %}{{ default_content|default:'' }}{% endif %}</textarea>
                 </div>
 
-                <div class="mb-4">
-                    <label for="content" class="form-label fw-bold">Uraian / Ringkasan Hasil Penyaluran <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="content" name="content" rows="5" required
-                              placeholder="Jelaskan secara detail tindakan yang telah dilakukan...">{% if report %}{{ report.content }}{% else %}{{ default_content|default:'' }}{% endif %}</textarea>
-                </div>
-
-                <!-- Bagian Lampiran -->
-                <div class="mb-5">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label fw-bold mb-0">Dokumen Lampiran</label>
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="addAttachment()">
-                            <i class="bi bi-plus-lg me-1"></i> Tambah Lampiran
+                <!-- Bagian Lampiran Multi-File -->
+                <div class="mb-5 border-top pt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <label class="form-label fw-bold mb-0 text-emerald"><i class="bi bi-paperclip me-1 text-primary"></i> Dokumen Lampiran Berkas & Foto Kegiatan</label>
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3.5 fw-bold" onclick="addAttachment()">
+                            <i class="bi bi-plus-lg me-1"></i> Tambah Lampiran File
                         </button>
                     </div>
 
                     <!-- Lampiran Eksisting (Edit Mode) -->
                     {% if report and report.attachments.all %}
                     <div class="mb-3">
-                        <label class="form-label small text-secondary fw-semibold">Lampiran Saat Ini:</label>
+                        <span class="d-block small text-secondary fw-bold text-uppercase mb-2">Lampiran Saat Ini:</span>
                         {% for att in report.attachments.all %}
-                        <div class="d-flex align-items-center justify-content-between bg-light p-2 px-3 rounded-3 mb-2 border">
+                        <div class="d-flex align-items-center justify-content-between card-enterprise p-2.5 px-3 mb-2">
                             <div class="d-flex align-items-center text-truncate me-2">
-                                <i class="bi bi-paperclip me-2 text-primary fs-5"></i>
+                                <i class="bi bi-file-earmark-image me-2 text-success fs-5"></i>
                                 <div class="text-truncate">
-                                    <a href="{{ att.file.url }}" target="_blank" class="text-decoration-none fw-semibold small d-block text-truncate">
+                                    <a href="{{ att.file.url }}" target="_blank" class="text-decoration-none fw-bold small text-emerald d-block text-truncate">
                                         {{ att.description|default:att.file.name }}
                                     </a>
-                                    <span class="text-muted extra-small">{{ att.file.name|slice:":40" }}</span>
+                                    <span class="text-secondary extra-small">{{ att.file.name|slice:":40" }}</span>
                                 </div>
                             </div>
-                            <!-- Form Checkbox untuk hapus lampiran lama -->
                             <div class="form-check form-check-inline m-0">
                                 <input class="form-check-input border-danger" type="checkbox" name="delete_attachments" value="{{ att.id }}" id="del_att_{{ att.id }}">
-                                <label class="form-check-label small text-danger fw-semibold" for="del_att_{{ att.id }}">
+                                <label class="form-check-label small text-danger fw-bold" for="del_att_{{ att.id }}">
                                     Hapus
                                 </label>
                             </div>
@@ -86,10 +97,10 @@
                     
                     <!-- Container untuk Lampiran Baru -->
                     <div id="attachment-container">
-                        <div class="attachment-row d-flex gap-2 mb-2 align-items-center">
-                            <input type="text" class="form-control form-control-sm custom-sub-input" name="attachment_description"
-                                   placeholder="Keterangan file (Opsional)" style="max-width:220px;">
-                            <input type="file" class="form-control form-control-sm custom-sub-input" name="attachment_file">
+                        <div class="attachment-row d-flex gap-2 mb-2 align-items-center card-enterprise p-2">
+                            <input type="text" class="form-control custom-input" name="attachment_description"
+                                   placeholder="Keterangan foto/file (Opsional)" style="max-width:260px;">
+                            <input type="file" class="form-control custom-input" name="attachment_file">
                             <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" onclick="removeAttachment(this)" title="Hapus">
                                 <i class="bi bi-trash"></i>
                             </button>
@@ -98,11 +109,13 @@
                 </div>
 
                 <!-- Tombol Aksi -->
-                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                    <a href="{% url 'reports:index' %}" class="btn btn-light px-4 fw-semibold rounded-pill border">Batal</a>
-                    <button type="submit" class="btn btn-success px-5 shadow-sm fw-bold rounded-pill">
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a href="{% url 'reports:index' %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                        <i class="bi bi-arrow-left me-1"></i> Batal
+                    </a>
+                    <button type="submit" class="btn btn-enterprise-primary px-5 py-2.5 rounded-pill shadow-lg">
                         <i class="bi bi-check-circle-fill me-2"></i>
-                        {% if report %}Simpan Perubahan{% else %}Kirim Laporan & Selesaikan{% endif %}
+                        {% if report %}Simpan Perubahan LHP{% else %}Kirim Laporan & Selesaikan{% endif %}
                     </button>
                 </div>
             </form>
@@ -117,11 +130,11 @@ function addAttachment() {
     const container = document.getElementById('attachment-container');
 
     const row = document.createElement('div');
-    row.className = 'attachment-row d-flex gap-2 mb-2 align-items-center';
+    row.className = 'attachment-row d-flex gap-2 mb-2 align-items-center card-enterprise p-2';
     row.innerHTML = `
-        <input type="text" class="form-control form-control-sm custom-sub-input" name="attachment_description"
-               placeholder="Keterangan file (Opsional)" style="max-width:220px;">
-        <input type="file" class="form-control form-control-sm custom-sub-input" name="attachment_file" required>
+        <input type="text" class="form-control custom-input" name="attachment_description"
+               placeholder="Keterangan foto/file (Opsional)" style="max-width:260px;">
+        <input type="file" class="form-control custom-input" name="attachment_file" required>
         <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" onclick="removeAttachment(this)" title="Hapus">
             <i class="bi bi-trash"></i>
         </button>
@@ -134,29 +147,4 @@ function removeAttachment(btn) {
     row.remove();
 }
 </script>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .custom-input { 
-        height: 48px; 
-        border-radius: 10px; 
-        border: 1px solid var(--border-color, #dee2e6); 
-        background: var(--card-bg, #fff); 
-        color: var(--text-primary, #212529); 
-    }
-    .custom-sub-input {
-        border-radius: 8px;
-        border: 1px solid var(--border-color, #dee2e6);
-    }
-    textarea.form-control { 
-        border-radius: 10px !important; 
-        border: 1px solid var(--border-color, #dee2e6) !important; 
-        background: var(--card-bg, #fff) !important; 
-        color: var(--text-primary, #212529) !important; 
-    }
-    .extra-small {
-        font-size: 0.75rem;
-    }
-</style>
 {% endblock %}

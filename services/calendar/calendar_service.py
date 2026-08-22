@@ -40,7 +40,8 @@ class CalendarService:
                 'text_color': '#ffffff',
             })
 
-        # 2. Agenda Events
+        # 2. Agenda Events (Includes synced Rapat Internal)
+        from datetime import timedelta
         agendas = Agenda.objects.all().select_related('archive').prefetch_related('assigned_to', 'assigned_employees')
         if start_date:
             agendas = agendas.filter(scheduled_at__date__gte=start_date)
@@ -48,47 +49,92 @@ class CalendarService:
             agendas = agendas.filter(scheduled_at__date__lte=end_date)
 
         for agenda in agendas:
+            if not agenda.scheduled_at:
+                continue
+            local_dt = timezone.localtime(agenda.scheduled_at)
             assigned_names = agenda.assigned_names_display
-            date_str = agenda.scheduled_at.strftime('%Y-%m-%d')
-            time_str = agenda.scheduled_at.strftime('%H:%M')
+            date_str = local_dt.strftime('%Y-%m-%d')
+            time_str = local_dt.strftime('%H:%M WIB')
             bg = '#10b981' if agenda.status == 'selesai' else ('#ef4444' if agenda.status == 'dibatalkan' else ('#f59e0b' if agenda.status == 'diundur' else '#0e9f6e'))
+            
+            src_type = 'sppd' if (agenda.is_sppd_generated or agenda.sppd_ref) else ('meeting' if agenda.internal_meeting_id else 'agenda')
+            prefix = '👥 [RAPAT]' if agenda.internal_meeting_id else '📅 [AGENDA]'
+
             events.append({
                 'id': f"agenda-{agenda.id}",
-                'title': f"📅 [AGENDA] {agenda.title}",
+                'title': f"{prefix} {agenda.title} ({time_str})",
                 'start': date_str,
-                'end': date_str,
+                'allDay': True,
+                'display': 'block',
                 'time': time_str,
                 'location': agenda.location or 'Kantor BAZNAS / Sesuai Undangan',
-                'source_type': 'agenda',
+                'source_type': src_type,
                 'assigned_to': assigned_names or 'Internal',
                 'status': agenda.get_status_display(),
-                'bg_color': bg,
+                'bg_color': '#8b5cf6' if agenda.internal_meeting_id else bg,
                 'text_color': '#ffffff',
             })
 
-        # 3. Rapat Internal Events
-        meetings = InternalMeeting.objects.all().select_related('leader', 'notulis').prefetch_related('leaders', 'participants')
+        # 3. Standalone Rapat Internal Events (Fallback for unlinked meetings)
+        linked_meeting_ids = set()
+        for agenda in agendas:
+            mid = getattr(agenda, 'internal_meeting_id', None)
+            if mid:
+                linked_meeting_ids.add(mid)
+
+        meetings = InternalMeeting.objects.exclude(id__in=linked_meeting_ids).select_related('leader', 'notulis').prefetch_related('leaders', 'participants')
         if start_date:
             meetings = meetings.filter(scheduled_at__date__gte=start_date)
         if end_date:
             meetings = meetings.filter(scheduled_at__date__lte=end_date)
 
         for mtg in meetings:
-            date_str = mtg.scheduled_at.strftime('%Y-%m-%d')
-            time_str = mtg.scheduled_at.strftime('%H:%M')
+            if not mtg.scheduled_at:
+                continue
+            local_dt = timezone.localtime(mtg.scheduled_at)
+            date_str = local_dt.strftime('%Y-%m-%d')
+            time_str = local_dt.strftime('%H:%M WIB')
             leaders_text = mtg.leader_names_display if hasattr(mtg, 'leader_names_display') else (mtg.leader.full_name if mtg.leader else 'Pimpinan BAZNAS')
             events.append({
                 'id': f"meeting-{mtg.id}",
-                'title': f"👥 [RAPAT] {mtg.title}",
+                'title': f"👥 [RAPAT] {mtg.title} ({time_str})",
                 'start': date_str,
-                'end': date_str,
+                'allDay': True,
+                'display': 'block',
                 'time': time_str,
                 'location': mtg.location or 'Ruang Rapat Utama BAZNAS',
                 'source_type': 'meeting',
                 'assigned_to': f"Pimpinan: {leaders_text}",
                 'status': mtg.get_status_display(),
-                'bg_color': '#8b5cf6', # Violet
+                'bg_color': '#8b5cf6',
                 'text_color': '#ffffff',
+            })
+
+        # 4. Hari Libur Nasional & Cuti Bersama SKB 3 Menteri (Google Calendar Feed)
+        from services.integrations.google_calendar_service import GoogleCalendarService
+        holidays = GoogleCalendarService.get_national_holidays_events(start_year=2025, end_year=2027)
+        
+        for h in holidays:
+            # Check date range filter if provided
+            h_start = h['start']
+            if start_date and h_start < start_date:
+                continue
+            if end_date and h_start > end_date:
+                continue
+
+            events.append({
+                'id': h['id'],
+                'title': h['title'],
+                'start': h['start'],
+                'end': h.get('end', h['start']),
+                'location': h['extendedProps']['location'],
+                'source_type': h['extendedProps']['source_type'],
+                'assigned_to': h['extendedProps']['assigned_to'],
+                'status': h['extendedProps']['status'],
+                'bg_color': h['backgroundColor'],
+                'text_color': '#FFFFFF',
+                'allDay': True,
+                'display': 'block',
             })
 
         events.sort(key=lambda x: x['start'])

@@ -3,60 +3,69 @@
 {% block title %}{{ form_title }} - BAZNAS{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'sppd_service:list' %}" class="text-decoration-none text-primary">SPPD</a></li>
-                <li class="breadcrumb-item active" aria-current="page">{{ form_title }}</li>
-            </ol>
-        </nav>
-        <h4 class="fw-bold">{{ form_title }}</h4>
-        <p class="text-secondary small">
-            {% if surat_tugas %}
-                Isi formulir SPPD berdasarkan Surat Tugas nomor {{ surat_tugas.nomor_surat }}.
-            {% else %}
-                Isi formulir SPPD baru secara mandiri.
-            {% endif %}
-        </p>
+<div class="glass-banner-enterprise mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{% url 'sppd_service:list' %}" class="text-white text-opacity-75 text-decoration-none"><i class="bi bi-pin-map me-1"></i>SPPD</a></li>
+                    <li class="breadcrumb-item text-white active" aria-current="page">{{ form_title }}</li>
+                </ol>
+            </nav>
+            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">{{ form_title }}</h3>
+            <p class="text-white text-opacity-80 mb-0 small">
+                {% if surat_tugas %}
+                    Mengisi lembar formulir SPPD berdasarkan Surat Tugas resmi nomor <strong class="text-warning">{{ surat_tugas.nomor_surat }}</strong>.
+                {% else %}
+                    Mengisi lembar formulir Surat Perintah Perjalanan Dinas (SPPD) baru secara mandiri.
+                {% endif %}
+            </p>
+        </div>
     </div>
 </div>
 
-<div class="row justify-content-center">
+<div class="row justify-content-center mb-5">
     <div class="col-lg-10">
-        <div class="card border-0 shadow-sm p-4">
+        <div class="card-enterprise p-4">
             {% if surat_tugas %}
-            <div class="mb-4 bg-light p-3 rounded-3 border">
-                <p class="mb-1 text-secondary small fw-bold text-uppercase">Referensi Surat Tugas:</p>
-                <p class="mb-1 fw-bold text-primary">No: {{ surat_tugas.nomor_surat }}</p>
-                <p class="mb-0 text-muted small">Tentang: "{{ surat_tugas.tentang }}"</p>
+            <div class="card-enterprise p-3.5 mb-4" style="background-color: var(--surface-hover); border-left: 4px solid var(--color-emerald-500) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon-box bg-success bg-opacity-20 text-success rounded-circle flex-shrink-0">
+                        <i class="bi bi-file-earmark-check-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <span class="d-block small text-secondary fw-bold text-uppercase" style="letter-spacing: 0.05em;">Referensi Surat Tugas:</span>
+                        <h6 class="fw-bold text-emerald mb-1">Nomor: {{ surat_tugas.nomor_surat }}</h6>
+                        <p class="mb-0 text-secondary small">Tentang: "{{ surat_tugas.tentang }}"</p>
+                    </div>
+                </div>
             </div>
             {% endif %}
 
             <form method="post">
                 {% csrf_token %}
                 
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="sppd_number" class="form-label fw-bold">Nomor SPPD <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input" name="sppd_number" required placeholder="Contoh: 001/SPPD/BAZNAS/2026" value="{{ sppd.sppd_number|default:default_sppd_number|default:'' }}">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="sppd_number" class="form-label fw-bold">Nomor SPPD Resmi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input font-mono fw-semibold" name="sppd_number" required placeholder="Contoh: 001/SPPD/BAZNAS/2026" value="{{ sppd.sppd_number|default:default_sppd_number|default:'' }}">
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="destination" class="form-label fw-bold">Tempat Tujuan <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input" name="destination" required placeholder="Contoh: Kantor BAZNAS Pusat, Jakarta" value="{{ sppd.destination|default:default_destination|default:'' }}">
+                    <div class="col-md-6">
+                        <label for="destination" class="form-label fw-bold">Tempat / Lokasi Tujuan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control custom-input fw-semibold" name="destination" required placeholder="Contoh: Kantor BAZNAS RI / Lokasi Mustahik Kec. Jambe" value="{{ sppd.destination|default:default_destination|default:'' }}">
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label for="purpose" class="form-label fw-bold">Maksud / Tujuan Perjalanan Dinas <span class="text-danger">*</span></label>
-                    <textarea class="form-control custom-input" name="purpose" rows="2" required placeholder="Contoh: Menghadiri Undangan / Survei Peninjauan Lapangan / Penyaluran Bantuan Pelunasan Hutang Mustahik...">{{ sppd.purpose|default:default_purpose|default:'' }}</textarea>
-                    <div class="form-text text-muted small">Maksud perjalanan dinas ini akan dianalisis secara otomatis oleh sistem untuk menentukan tahapan log alur kerja BPMN dokumen.</div>
+                    <textarea class="form-control p-3" name="purpose" rows="2" required placeholder="Contoh: Menghadiri Undangan / Survei Peninjauan Lapangan Mustahik / Penyaluran Bantuan Pelunasan Hutang...">{{ sppd.purpose|default:default_purpose|default:'' }}</textarea>
+                    <div class="form-text text-muted small"><i class="bi bi-info-circle me-1"></i>Maksud perjalanan dinas ini akan dianalisis secara otomatis oleh sistem untuk menentukan tahapan log alur kerja BPMN dokumen.</div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="sppd_type" class="form-label fw-bold">Jenis / Tujuan SPPD <span class="text-danger">*</span></label>
-                        <select class="form-select custom-input" name="sppd_type" id="sppd_type">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="sppd_type" class="form-label fw-bold">Jenis & Kategori SPPD <span class="text-danger">*</span></label>
+                        <select class="form-select custom-input fw-semibold" name="sppd_type" id="sppd_type">
                             <option value="umum" {% if sppd.sppd_type == 'umum' or not sppd %}selected{% endif %}>🚗 Umum / Perjalanan Dinas Lainnya</option>
                             <option value="survei" {% if sppd.sppd_type == 'survei' %}selected{% endif %}>🔍 Survei / Verifikasi Lapangan Mustahik</option>
                             <option value="penyaluran" {% if sppd.sppd_type == 'penyaluran' %}selected{% endif %}>🤝 Penyaluran Bantuan / Pentasyarufan</option>
@@ -64,30 +73,30 @@
                         <div class="form-text text-muted small">Untuk dokumen bantuan, bisa dibuat SPPD Survei dulu lalu SPPD Penyaluran setelah survei selesai.</div>
                     </div>
 
-                    <div class="col-md-4 mb-4">
+                    <div class="col-md-3">
                         <label for="departure_date" class="form-label fw-bold">Tanggal Berangkat <span class="text-danger">*</span></label>
                         <input type="date" class="form-control custom-input" name="departure_date" required value="{{ sppd.departure_date|date:'Y-m-d'|default:default_departure|default:'' }}">
                     </div>
-                    <div class="col-md-4 mb-4">
+                    <div class="col-md-3">
                         <label for="return_date" class="form-label fw-bold">Tanggal Kembali <span class="text-danger">*</span></label>
                         <input type="date" class="form-control custom-input" name="return_date" required value="{{ sppd.return_date|date:'Y-m-d'|default:default_return|default:default_departure|default:'' }}">
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <label for="transportation" class="form-label fw-bold">Alat Angkut <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input" name="transportation" required placeholder="Contoh: Kendaraan Dinas / Umum" value="{{ sppd.transportation|default:default_transportation|default:'Mobil Dinas / Umum' }}">
                     </div>
                 </div>
 
                 <div class="mb-4">
+                    <label for="transportation" class="form-label fw-bold">Alat Angkut / Transportasi <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control custom-input fw-semibold" name="transportation" required placeholder="Contoh: Kendaraan Dinas / Umum" value="{{ sppd.transportation|default:default_transportation|default:'Mobil Dinas / Umum' }}">
+                </div>
+
+                <div class="mb-4">
                     <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
-                        <label class="form-label fw-bold mb-0">PEGAWAI YANG DIPERINTAHKAN:</label>
-                        <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-3 py-1 fw-bold rounded-pill" id="checked-count-badge">
-                            <i class="bi bi-people-fill me-1"></i> <span id="checked-count">0</span> Pegawai Terpilih
+                        <label class="form-label fw-bold mb-0 text-emerald"><i class="bi bi-people-fill me-1"></i> PEGAWAI YANG DIPERINTAHKAN:</label>
+                        <span class="badge badge-node-verified rounded-pill px-3 py-1.5 fw-bold" id="checked-count-badge">
+                            <i class="bi bi-check-circle-fill me-1"></i> <span id="checked-count">0</span> Pegawai Terpilih
                         </span>
                     </div>
 
-                    <!-- Live Checked Employee Badges Container (Requirement 3) -->
-                    <div class="p-3 mb-3 rounded-3 border" style="background-color: var(--surface-alt, #F8FAFC);">
+                    <div class="p-3 mb-3 card-enterprise" style="background-color: var(--surface-hover);">
                         <span class="d-block small text-secondary fw-bold text-uppercase mb-2">
                             <i class="bi bi-check2-square text-success me-1"></i>Daftar Pegawai yang Di-ceklis:
                         </span>
@@ -97,19 +106,19 @@
                     </div>
 
                     <div class="input-group input-group-sm mb-2 search-box-professional">
-                        <span class="input-group-text"><i class="bi bi-person-lines-fill"></i></span>
-                        <input type="text" class="form-control" placeholder="Cari pegawai..." data-search-target="assigned">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control custom-input" placeholder="Cari nama atau jabatan pegawai..." data-search-target="assigned">
                     </div>
-                    <div class="row g-2 overflow-auto" style="max-height: 200px;" id="assigned-employee-list">
+                    <div class="row g-2 overflow-auto p-2 border rounded-3" style="max-height: 220px; background-color: var(--card-bg);" id="assigned-employee-list">
                         {% for emp in employees %}
                         <div class="col-md-4 employee-item" data-search="{{ emp.full_name|lower }} {{ emp.position|lower }}">
-                            <div class="form-check p-2 rounded border small" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                            <div class="form-check p-2.5 rounded-3 border small transition-all" style="background-color: var(--surface-hover); border-color: var(--border-color);">
                                 <input class="form-check-input ms-0 me-2 emp-checkbox" type="checkbox" name="assigned_employees" value="{{ emp.id }}" id="emp_{{ emp.id }}" data-emp-name="{{ emp.full_name }}" data-emp-pos="{{ emp.position }}"
                                        {% if sppd and emp in sppd.assigned_employees.all %}checked{% elif not sppd and surat_tugas and emp in surat_tugas.pegawai_ditugaskan.all %}checked{% elif not sppd and dispo and emp in dispo.forwarded_to.all %}checked{% elif not sppd and default_assigned_emp_ids and emp.id in default_assigned_emp_ids %}checked{% endif %}>
 
                                 <label class="form-check-label fw-bold" for="emp_{{ emp.id }}" style="color: var(--text-primary);">
                                     {{ emp.full_name }}
-                                    <small class="d-block fw-normal" style="color: var(--text-secondary);">{{ emp.position }}</small>
+                                    <small class="d-block fw-normal text-secondary">{{ emp.position }}</small>
                                 </label>
                             </div>
                         </div>
@@ -118,20 +127,20 @@
                 </div>
 
                 <div class="mb-5">
-                    <label class="form-label fw-bold mb-3 border-bottom w-100 pb-2">PENGIKUT:</label>
+                    <label class="form-label fw-bold mb-2 border-bottom w-100 pb-2 text-secondary"><i class="bi bi-people me-1"></i> PENGIKUT (OPSIONAL):</label>
                     <div class="input-group input-group-sm mb-2 search-box-professional">
-                        <span class="input-group-text"><i class="bi bi-people-fill"></i></span>
-                        <input type="text" class="form-control" placeholder="Cari pengikut..." data-search-target="followers">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control custom-input" placeholder="Cari pengikut..." data-search-target="followers">
                     </div>
-                    <div class="row g-2 overflow-auto" style="max-height: 200px;" id="follower-employee-list">
+                    <div class="row g-2 overflow-auto p-2 border rounded-3" style="max-height: 180px; background-color: var(--card-bg);" id="follower-employee-list">
                         {% for emp in employees %}
                         <div class="col-md-4 employee-item" data-search="{{ emp.full_name|lower }} {{ emp.position|lower }}">
-                            <div class="form-check p-2 rounded border small" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                            <div class="form-check p-2.5 rounded-3 border small transition-all" style="background-color: var(--surface-hover); border-color: var(--border-color);">
                                 <input class="form-check-input ms-0 me-2" type="checkbox" name="followers" value="{{ emp.id }}" id="follower_{{ emp.id }}"
                                        {% if sppd and emp in sppd.followers.all %}checked{% endif %}>
                                 <label class="form-check-label fw-bold" for="follower_{{ emp.id }}" style="color: var(--text-primary);">
                                     {{ emp.full_name }}
-                                    <small class="d-block fw-normal" style="color: var(--text-secondary);">{{ emp.position }}</small>
+                                    <small class="d-block fw-normal text-secondary">{{ emp.position }}</small>
                                 </label>
                             </div>
                         </div>
@@ -139,14 +148,18 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
                     {% if sppd %}
-                    <a href="{% url 'sppd_service:detail' sppd.pk %}" class="btn btn-light px-4 fw-semibold">Batal</a>
+                    <a href="{% url 'sppd_service:detail' sppd.pk %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                        <i class="bi bi-arrow-left me-1"></i> Batal
+                    </a>
                     {% else %}
-                    <a href="{% url 'sppd_service:list' %}" class="btn btn-light px-4 fw-semibold">Batal</a>
+                    <a href="{% url 'sppd_service:list' %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                        <i class="bi bi-arrow-left me-1"></i> Batal
+                    </a>
                     {% endif %}
-                    <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold">
-                        <i class="bi bi-save me-2"></i> {{ submit_label }}
+                    <button type="submit" class="btn btn-enterprise-primary px-5 py-2.5 rounded-pill shadow-lg">
+                        <i class="bi bi-save-fill me-2"></i> {{ submit_label }}
                     </button>
                 </div>
             </form>
@@ -155,23 +168,10 @@
 </div>
 
 <style>
-    .custom-input { height: 52px; border-radius: 12px; border: 1px solid #E5E7EB; }
     .search-box-professional .input-group-text {
-        background-color: var(--card-bg);
+        background-color: var(--surface-hover);
         color: var(--text-secondary);
         border-color: var(--border-color);
-    }
-    .search-box-professional .form-control {
-        border-left: 0;
-        height: 36px;
-        border-radius: 0 10px 10px 0;
-        background-color: var(--card-bg);
-        color: var(--text-primary);
-        border-color: var(--border-color);
-    }
-    .search-box-professional .form-control:focus {
-        box-shadow: none;
-        border-color: var(--primary);
     }
 </style>
 {% endblock %}
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var html = '';
         checkedCheckboxes.forEach(function(cb) {
             var name = cb.getAttribute('data-emp-name') || (cb.nextElementSibling ? cb.nextElementSibling.innerText.split('\n')[0].trim() : 'Pegawai');
-            html += `<span class="badge bg-success text-white px-3 py-2 rounded-pill shadow-sm small fw-bold"><i class="bi bi-person-check-fill me-1"></i>${name}</span>`;
+            html += `<span class="badge badge-node-verified text-white px-3 py-1.5 rounded-pill shadow-sm small fw-bold"><i class="bi bi-person-check-fill me-1"></i>${name}</span>`;
         });
         container.innerHTML = html;
     }

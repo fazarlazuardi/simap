@@ -38,6 +38,7 @@
         })();
     </script>
     <style>
+        [x-cloak] { display: none !important; }
         html, body {
             background-color: #060D12 !important;
             min-height: 100vh;
@@ -196,13 +197,15 @@
         }
     </style>
     
-    <!-- Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts: Plus Jakarta Sans & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Enterprise Design System CSS -->
+    <link rel="stylesheet" href="{% static 'css/enterprise-design-system.css' %}">
     <!-- Flatpickr Large Datepicker CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_green.css">
@@ -213,6 +216,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
     <!-- FullCalendar 5.11.3 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    
+    <!-- HTMX (1.9.10) & Alpine.js (3.13.5) Frameworks -->
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
+    <script src="{% static 'js/enterprise-core.js' %}"></script>
     
     <style>
         :root {
@@ -1150,6 +1158,12 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Top HTMX Progress Loading Indicator Bar -->
+    <div id="htmx-progress-bar"></div>
+
+    <!-- Enterprise Command Palette (Ctrl+K) & Slide-Over Drawer Components -->
+    {% include 'includes/command_palette.html' %}
+    {% include 'includes/slide_over_drawer.html' %}
 
     {% include 'layouts/sidebar.html' %}
 

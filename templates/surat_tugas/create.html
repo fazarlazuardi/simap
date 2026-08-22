@@ -4,12 +4,88 @@
 
 {% block extra_css %}
 <style>
+    /* Wizard Stepper Progress Bar */
+    .wizard-stepper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        margin-bottom: 2rem;
+        padding: 0 1rem;
+    }
+    .wizard-stepper::before {
+        content: '';
+        position: absolute;
+        top: 24px;
+        left: 40px;
+        right: 40px;
+        height: 3px;
+        background-color: var(--border-color, #E2E8F0);
+        z-index: 1;
+    }
+    .wizard-progress-bar {
+        position: absolute;
+        top: 24px;
+        left: 40px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--color-emerald-500, #10B981), var(--color-amber-500, #F59E0B));
+        z-index: 2;
+        transition: width 0.35s ease-in-out;
+    }
+    .wizard-step-node {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+    }
+    .step-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: var(--card-bg, #FFFFFF);
+        border: 2px solid var(--border-color, #CBD5E1);
+        color: var(--text-secondary, #64748B);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-xs, 0 1px 2px rgba(0,0,0,0.05));
+    }
+    .wizard-step-node.active .step-circle {
+        border-color: var(--color-emerald-500, #10B981);
+        background-color: var(--color-emerald-600, #059669);
+        color: #FFFFFF;
+        box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2);
+    }
+    .wizard-step-node.completed .step-circle {
+        border-color: var(--color-emerald-500, #10B981);
+        background-color: var(--color-emerald-50, #ECFDF5);
+        color: var(--color-emerald-600, #059669);
+    }
+    .step-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-secondary, #64748B);
+        margin-top: 8px;
+        text-align: center;
+        transition: color 0.3s ease;
+    }
+    .wizard-step-node.active .step-label {
+        color: var(--color-emerald-600, #059669);
+        font-weight: 700;
+    }
+
     .select2-container--bootstrap-5 .select2-selection {
         background-color: var(--card-bg, #ffffff) !important;
         border-color: var(--border-color, #cbd5e1) !important;
         color: var(--text-primary, #0f172a) !important;
-        min-height: 42px;
-        padding: 4px;
+        min-height: 46px;
+        padding: 4px 8px;
+        border-radius: var(--radius-sm, 10px) !important;
     }
     .select2-container--bootstrap-5 .select2-selection__rendered {
         color: var(--text-primary, #0f172a) !important;
@@ -18,120 +94,275 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2">
-    <!-- FORM PEMBUATAN SURAT TUGAS -->
+<div class="container-fluid py-3" x-data="suratTugasWizard()" x-init="initData()">
     <div class="row justify-content-center">
-        <div class="col-lg-9">
-            <div class="card shadow-sm border-0 rounded-4" style="background-color: var(--card-bg, #ffffff);">
-                <div class="card-header bg-success text-white py-3 px-4 rounded-top-4 d-flex align-items-center justify-content-between" style="background-color: #0d8a52 !important;">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text-fill me-2"></i> Form Pembuatan Surat Tugas</h5>
-                    <span class="badge bg-light text-success fw-semibold">BAZNAS Kab. Tangerang</span>
-                </div>
-                
-                <div class="card-body p-4">
-                    {% if disposition %}
-                    <div class="alert alert-info border-0 shadow-sm mb-4">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
-                            <div>
-                                <h6 class="fw-bold mb-1">Terintegrasi dengan Disposisi: {{ disposition.archive.archive_number|default:disposition.disposition_number }}</h6>
-                                <p class="mb-0 small text-muted">Perihal dan metadata penugasan telah ditarik secara otomatis dari data lembar disposisi pimpinan.</p>
-                            </div>
-                        </div>
+        <div class="col-lg-10">
+            <!-- Glass Header Card -->
+            <div class="glass-banner-enterprise mb-4">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold mb-2" style="font-size: 0.7rem;">WIZARD PENERBITAN</span>
+                        <h3 class="fw-bold mb-1 text-white">Form Pembuatan Surat Tugas</h3>
+                        <p class="mb-0 text-white opacity-75 small">Lengkapi 4 langkah logis berikut untuk menerbitkan dokumen penugasan resmi BAZNAS.</p>
                     </div>
-                    {% endif %}
+                    <div>
+                        <a href="{% url 'surat_tugas:list' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                            <i class="bi bi-arrow-left me-1"></i> Batal & Kembali
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-                    <form method="post" id="suratTugasForm" novalidate>
-                        {% csrf_token %}
+            {% if disposition %}
+            <div class="alert alert-banner-sppd border-0 shadow-sm rounded-4 mb-4 p-3 d-flex align-items-center">
+                <div class="rounded-circle bg-success text-white p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                    <i class="bi bi-link-45deg fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold alert-title mb-0">Terintegrasi dengan Disposisi: {{ disposition.archive.archive_number|default:disposition.disposition_number }}</h6>
+                    <span class="small alert-desc">Perihal & metadata telah ditarik otomatis dari lembar disposisi pimpinan.</span>
+                </div>
+            </div>
+            {% endif %}
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" style="color: var(--text-primary);">Nomor Surat</label>
-                            {{ form.nomor_surat }}
-                            <div class="form-text text-muted small">Kosongkan jika ingin nomor otomatis diterbitkan sistem (`ST/00X/...`).</div>
-                            {% if form.nomor_surat.errors %}
-                                <div class="text-danger small mt-1">{{ form.nomor_surat.errors.0 }}</div>
-                            {% endif %}
+            <!-- Multi-Step Form Card -->
+            <div class="card-enterprise p-4 mb-5">
+                <!-- STEPPER INDICATOR BAR -->
+                <div class="wizard-stepper">
+                    <div class="wizard-progress-bar" :style="{ width: ((step - 1) * 33.33) + '%' }"></div>
+                    
+                    <!-- Step 1 Node -->
+                    <div class="wizard-step-node" :class="{ 'active': step === 1, 'completed': step > 1 }" @click="goToStep(1)">
+                        <div class="step-circle">
+                            <template x-if="step > 1"><i class="bi bi-check-lg"></i></template>
+                            <template x-if="step <= 1"><span>1</span></template>
                         </div>
+                        <span class="step-label">1. Perihal & Informasi</span>
+                    </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" style="color: var(--text-primary);">Perihal / Tentang Penugasan <span class="text-danger">*</span></label>
-                            {{ form.tentang }}
-                            {% if form.tentang.errors %}
-                                <div class="text-danger small mt-1">{{ form.tentang.errors.0 }}</div>
-                            {% endif %}
+                    <!-- Step 2 Node -->
+                    <div class="wizard-step-node" :class="{ 'active': step === 2, 'completed': step > 2 }" @click="goToStep(2)">
+                        <div class="step-circle">
+                            <template x-if="step > 2"><i class="bi bi-check-lg"></i></template>
+                            <template x-if="step <= 2"><span>2</span></template>
+                        </div>
+                        <span class="step-label">2. Waktu & Lokasi</span>
+                    </div>
+
+                    <!-- Step 3 Node -->
+                    <div class="wizard-step-node" :class="{ 'active': step === 3, 'completed': step > 3 }" @click="goToStep(3)">
+                        <div class="step-circle">
+                            <template x-if="step > 3"><i class="bi bi-check-lg"></i></template>
+                            <template x-if="step <= 3"><span>3</span></template>
+                        </div>
+                        <span class="step-label">3. Personel & Pejabat</span>
+                    </div>
+
+                    <!-- Step 4 Node -->
+                    <div class="wizard-step-node" :class="{ 'active': step === 4 }" @click="goToStep(4)">
+                        <div class="step-circle">
+                            <i class="bi bi-send-check"></i>
+                        </div>
+                        <span class="step-label">4. Review & Terbitkan</span>
+                    </div>
+                </div>
+
+                <hr class="my-4" style="border-color: var(--border-color);">
+
+                <form method="post" id="suratTugasForm" novalidate>
+                    {% csrf_token %}
+
+                    <!-- STEP 1 CONTENT: Informasi Penugasan -->
+                    <div x-show="step === 1" x-transition:enter.opacity.duration.300ms>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-file-earmark-text text-emerald fs-4"></i>
+                            <h5 class="fw-bold mb-0">Langkah 1: Perihal & Informasi Penugasan</h5>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold" style="color: var(--text-primary);">Hari Kegiatan <span class="text-danger">*</span></label>
-                                {{ form.hari_kegiatan }}
-                                <input type="text" id="id_hari_kegiatan_custom" name="hari_kegiatan_custom" class="form-control shadow-sm mt-2 d-none" placeholder="Tuliskan hari kustom (contoh: Senin s.d. Minggu)...">
-                                <div class="form-text text-muted small">Pilih dari dropdown atau tentukan Tanggal Mulai untuk terisi otomatis.</div>
-                                {% if form.hari_kegiatan.errors %}
-                                    <div class="text-danger small mt-1">{{ form.hari_kegiatan.errors.0 }}</div>
+                                <label class="form-label fw-semibold">Disposisi Terkait (Opsional)</label>
+                                {{ form.disposition }}
+                                <div class="form-text text-muted small">Pilih jika surat tugas ini berasal dari lembar disposisi.</div>
+                                {% if form.disposition.errors %}
+                                    <div class="text-danger small mt-1">{{ form.disposition.errors.0 }}</div>
                                 {% endif %}
                             </div>
+
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold" style="color: var(--text-primary);">Tanggal Mulai <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Nomor Surat Tugas</label>
+                                {{ form.nomor_surat }}
+                                <div class="form-text text-muted small">Biarkan kosong jika ingin diterbitkan penomoran otomatis (`ST/00X/...`).</div>
+                                {% if form.nomor_surat.errors %}
+                                    <div class="text-danger small mt-1">{{ form.nomor_surat.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Perihal / Tentang Penugasan <span class="text-danger">*</span></label>
+                            {{ form.tentang }}
+                            <div class="form-text text-muted small">Tuliskan maksud penugasan secara singkat & jelas (contoh: Pendistribusian Bantuan Zakat di Kec. Balaraja).</div>
+                            {% if form.tentang.errors %}
+                                <div class="text-danger small mt-1">{{ form.tentang.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- STEP 2 CONTENT: Waktu & Lokasi -->
+                    <div x-show="step === 2" x-transition:enter.opacity.duration.300ms style="display: none;">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-calendar-event text-warning fs-4"></i>
+                            <h5 class="fw-bold mb-0">Langkah 2: Pelaksanaan Waktu & Lokasi</h5>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Tanggal Mulai Kegiatan <span class="text-danger">*</span></label>
                                 {{ form.tanggal_mulai }}
                                 {% if form.tanggal_mulai.errors %}
                                     <div class="text-danger small mt-1">{{ form.tanggal_mulai.errors.0 }}</div>
                                 {% endif %}
                             </div>
-                        </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" style="color: var(--text-primary);">Lokasi / Tempat Tujuan <span class="text-danger">*</span></label>
-                            {{ form.lokasi_tujuan }}
-                            {% if form.lokasi_tujuan.errors %}
-                                <div class="text-danger small mt-1">{{ form.lokasi_tujuan.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" style="color: var(--text-primary);">Disposisi Terkait (Opsional)</label>
-                            {{ form.disposition }}
-                            {% if form.disposition.errors %}
-                                <div class="text-danger small mt-1">{{ form.disposition.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold" style="color: var(--text-primary);">Pegawai yang Ditugaskan <span class="text-danger">*</span></label>
-                            {{ form.pegawai_ditugaskan }}
-                            <div class="form-text text-muted small">Pilih satu atau beberapa pegawai dari database. Mendukung lintas bidang.</div>
-                            {% if form.pegawai_ditugaskan.errors %}
-                                <div class="text-danger small mt-1">{{ form.pegawai_ditugaskan.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="p-3 mb-4 rounded-3 border" style="background-color: var(--surface-alt, #f8fafc); border-color: var(--border-color, #e2e8f0) !important;">
-                            <h6 class="fw-bold text-success mb-2"><i class="bi bi-shield-check me-1"></i> Penandatangan Surat Tugas (Fleksibel)</h6>
-                            <p class="text-muted small mb-3">Pilih pejabat penandatangan yang berwenang (Ketua atau Wakil Ketua I s.d. IV):</p>
-                            <div class="mb-0">
-                                <label class="form-label fw-semibold" style="color: var(--text-primary);">Pejabat Penandatangan <span class="text-danger">*</span></label>
-                                {{ form.pilihan_penandatangan }}
-                                {% if form.pilihan_penandatangan.errors %}
-                                    <div class="text-danger small mt-1">{{ form.pilihan_penandatangan.errors.0 }}</div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Hari Kegiatan <span class="text-danger">*</span></label>
+                                {{ form.hari_kegiatan }}
+                                <input type="text" id="id_hari_kegiatan_custom" name="hari_kegiatan_custom" class="form-control form-control-enterprise mt-2 d-none" placeholder="Tuliskan hari kustom (contoh: Senin s.d. Minggu)...">
+                                <div class="form-text text-muted small">Terisi otomatis sesuai Tanggal Mulai atau pilih dari opsi.</div>
+                                {% if form.hari_kegiatan.errors %}
+                                    <div class="text-danger small mt-1">{{ form.hari_kegiatan.errors.0 }}</div>
                                 {% endif %}
                             </div>
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-semibold" style="color: var(--text-primary);">Status Tahap BPMN</label>
-                            {{ form.status }}
+                            <label class="form-label fw-semibold">Lokasi / Tempat Tujuan Penugasan <span class="text-danger">*</span></label>
+                            {{ form.lokasi_tujuan }}
+                            <div class="form-text text-muted small">Contoh: Kantor Kecamatan Tigaraksa / Gedung GSG BAZNAS Kab. Tangerang.</div>
+                            {% if form.lokasi_tujuan.errors %}
+                                <div class="text-danger small mt-1">{{ form.lokasi_tujuan.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- STEP 3 CONTENT: Personel & TTD -->
+                    <div x-show="step === 3" x-transition:enter.opacity.duration.300ms style="display: none;">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-people text-info fs-4"></i>
+                            <h5 class="fw-bold mb-0">Langkah 3: Personel Ditugaskan & Otorisasi</h5>
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: var(--border-color) !important;">
-                            <a href="javascript:history.back()" class="btn btn-outline-secondary px-4 rounded-3">
-                                <i class="bi bi-arrow-left me-1"></i> Kembali
-                            </a>
-                            <button type="submit" id="btnSubmitSuratTugas" class="btn btn-success px-4 rounded-3 fw-bold" style="background-color: #0d8a52 !important;">
-                                <i class="bi bi-save me-1"></i> Simpan Surat Tugas
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Pegawai yang Ditugaskan <span class="text-danger">*</span></label>
+                            {{ form.pegawai_ditugaskan }}
+                            <div class="form-text text-muted small">Pilih satu atau beberapa pegawai dari database SDM. Mendukung tim lintas bidang.</div>
+                            {% if form.pegawai_ditugaskan.errors %}
+                                <div class="text-danger small mt-1">{{ form.pegawai_ditugaskan.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="p-3 mb-4 rounded-3 border bg-body-tertiary">
+                            <h6 class="fw-bold text-emerald mb-2"><i class="bi bi-shield-check me-1"></i> Pejabat Penandatangan Surat Tugas</h6>
+                            <label class="form-label fw-semibold">Pilih Otorisator Penandatangan <span class="text-danger">*</span></label>
+                            {{ form.pilihan_penandatangan }}
+                            {% if form.pilihan_penandatangan.errors %}
+                                <div class="text-danger small mt-1">{{ form.pilihan_penandatangan.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Status Tahap Alur Kerja</label>
+                            {{ form.status }}
+                        </div>
+                    </div>
+
+                    <!-- STEP 4 CONTENT: Review & Confirmation -->
+                    <div x-show="step === 4" x-transition:enter.opacity.duration.300ms style="display: none;">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-clipboard-check text-success fs-4"></i>
+                            <h5 class="fw-bold mb-0">Langkah 4: Review Pre-Flight & Terbitkan</h5>
+                        </div>
+
+                        <p class="text-muted small mb-4">Periksa kembali ringkasan data Surat Tugas sebelum resmi disimpan dan ditindaklanjuti untuk SPPD.</p>
+
+                        <!-- Pre-flight Summary Card -->
+                        <div class="card border-emerald mb-4 p-4 rounded-4" style="border: 2px dashed var(--color-emerald-500, #10B981); background: var(--surface-hover, #F8FAFC);">
+                            <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
+                                <div>
+                                    <span class="badge bg-emerald text-white rounded-pill px-3 py-1 mb-1">DRAFT SURAT TUGAS</span>
+                                    <h6 class="fw-bold mb-0 font-mono text-emerald-700" x-text="reviewData.nomor_surat || '(Penomoran Otomatis System ST/00X/...)'"></h6>
+                                </div>
+                                <i class="bi bi-file-earmark-check-fill text-emerald fs-1 opacity-50"></i>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <span class="text-muted small d-block">Perihal / Maksud Penugasan:</span>
+                                    <strong class="fs-6 text-dark" x-text="reviewData.tentang || '-'"></strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="text-muted small d-block">Hari & Tanggal Pelaksanaan:</span>
+                                    <strong class="text-dark" x-text="(reviewData.hari_kegiatan || '-') + ', ' + (reviewData.tanggal_mulai || '-')"></strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="text-muted small d-block">Lokasi / Tempat Tujuan:</span>
+                                    <strong class="text-dark" x-text="reviewData.lokasi_tujuan || '-'"></strong>
+                                </div>
+                                <div class="col-md-12">
+                                    <span class="text-muted small d-block mb-1">Pegawai yang Ditugaskan:</span>
+                                    <template x-if="reviewData.pegawai.length > 0">
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <template x-for="p in reviewData.pegawai" :key="p">
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-semibold" x-text="p"></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="reviewData.pegawai.length === 0">
+                                        <span class="text-muted small italic">(Belum ada pegawai dipilih)</span>
+                                    </template>
+                                </div>
+                                <div class="col-md-12">
+                                    <span class="text-muted small d-block">Pejabat Penandatangan:</span>
+                                    <strong class="text-success" x-text="reviewData.penandatangan || '-'"></strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-0 rounded-3 mb-4 small">
+                            <i class="bi bi-info-circle-fill me-1"></i> Setelah Surat Tugas ini diterbitkan, data akan langsung masuk ke antrean **Bidang IV / Front Office** untuk proses pembuatan **SPPD**.
+                        </div>
+                    </div>
+
+                    <!-- STEPPER FOOTER BUTTONS -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: var(--border-color) !important;">
+                        <button type="button" 
+                                x-show="step > 1" 
+                                @click="prevStep()" 
+                                class="btn btn-outline-secondary px-4 rounded-pill">
+                            <i class="bi bi-arrow-left me-1"></i> Langkah Sebelumnya
+                        </button>
+
+                        <span x-show="step === 1"></span> <!-- Placeholder for flex alignment -->
+
+                        <div>
+                            <button type="button" 
+                                    x-show="step < 4" 
+                                    @click="nextStep()" 
+                                    class="btn btn-enterprise-primary px-4 rounded-pill">
+                                Lanjut ke Langkah <span x-text="step + 1"></span> <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+
+                            <button type="submit" 
+                                    x-show="step === 4" 
+                                    id="btnSubmitSuratTugas" 
+                                    class="btn btn-success px-5 py-2 rounded-pill fw-bold shadow-lg"
+                                    style="background-color: #059669 !important;">
+                                <i class="bi bi-check-circle-fill me-2"></i> Terbitkan Surat Tugas Now
                             </button>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -140,11 +371,139 @@
 
 {% block extra_js %}
 <script>
+    function suratTugasWizard() {
+        return {
+            step: 1,
+            reviewData: {
+                nomor_surat: '',
+                tentang: '',
+                hari_kegiatan: '',
+                tanggal_mulai: '',
+                lokasi_tujuan: '',
+                penandatangan: '',
+                pegawai: []
+            },
+            initData() {
+                this.updateReviewData();
+            },
+            goToStep(target) {
+                if (target < this.step) {
+                    this.step = target;
+                } else if (target > this.step) {
+                    if (this.validateCurrentStep()) {
+                        this.step = target;
+                        if (this.step === 4) this.updateReviewData();
+                    }
+                }
+            },
+            nextStep() {
+                if (this.validateCurrentStep()) {
+                    if (this.step < 4) this.step++;
+                    if (this.step === 4) this.updateReviewData();
+                }
+            },
+            prevStep() {
+                if (this.step > 1) this.step--;
+            },
+            updateReviewData() {
+                const nom = document.querySelector('[name="nomor_surat"]');
+                const tentang = document.querySelector('[name="tentang"]');
+                const hari = document.querySelector('[name="hari_kegiatan"]');
+                const hariCustom = document.querySelector('[name="hari_kegiatan_custom"]');
+                const tgl = document.querySelector('[name="tanggal_mulai"]');
+                const lokasi = document.querySelector('[name="lokasi_tujuan"]');
+                const ttd = document.querySelector('[name="pilihan_penandatangan"]');
+
+                this.reviewData.nomor_surat = nom ? nom.value : '';
+                this.reviewData.tentang = tentang ? tentang.value : '';
+                
+                let hariVal = '';
+                if (hari) {
+                    if (hari.value === 'custom' && hariCustom && hariCustom.value) {
+                        hariVal = hariCustom.value;
+                    } else if (hari.selectedIndex >= 0 && hari.options[hari.selectedIndex]) {
+                        hariVal = hari.options[hari.selectedIndex].text;
+                    } else {
+                        hariVal = hari.value;
+                    }
+                }
+                this.reviewData.hari_kegiatan = hariVal;
+                this.reviewData.tanggal_mulai = tgl ? tgl.value : '';
+                this.reviewData.lokasi_tujuan = lokasi ? lokasi.value : '';
+                
+                if (ttd) {
+                    if (ttd.selectedIndex >= 0 && ttd.options[ttd.selectedIndex]) {
+                        this.reviewData.penandatangan = ttd.options[ttd.selectedIndex].text;
+                    } else {
+                        this.reviewData.penandatangan = ttd.value;
+                    }
+                }
+
+                // Get selected employees from Select2
+                const selectedPegawai = [];
+                $('#id_pegawai_ditugaskan option:selected').each(function() {
+                    selectedPegawai.push($(this).text().trim());
+                });
+                this.reviewData.pegawai = selectedPegawai;
+            },
+            validateCurrentStep() {
+                if (this.step === 1) {
+                    const tentang = document.querySelector('[name="tentang"]').value;
+                    if (!tentang || !tentang.trim()) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Perihal Penugasan Kosong',
+                            text: 'Mohon isi perihal / tentang penugasan terlebih dahulu!',
+                            confirmButtonColor: '#059669'
+                        });
+                        document.querySelector('[name="tentang"]').focus();
+                        return false;
+                    }
+                } else if (this.step === 2) {
+                    const tgl = document.querySelector('[name="tanggal_mulai"]').value;
+                    const lokasi = document.querySelector('[name="lokasi_tujuan"]').value;
+                    if (!tgl || !tgl.trim()) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tanggal Mulai Kosong',
+                            text: 'Mohon tentukan Tanggal Mulai Pelaksanaan Kegiatan!',
+                            confirmButtonColor: '#059669'
+                        });
+                        document.querySelector('[name="tanggal_mulai"]').focus();
+                        return false;
+                    }
+                    if (!lokasi || !lokasi.trim()) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Lokasi Tujuan Kosong',
+                            text: 'Mohon isi bidang Lokasi / Tempat Tujuan penugasan!',
+                            confirmButtonColor: '#059669'
+                        });
+                        document.querySelector('[name="lokasi_tujuan"]').focus();
+                        return false;
+                    }
+                } else if (this.step === 3) {
+                    const pegawai = $('#id_pegawai_ditugaskan').val();
+                    if (!pegawai || pegawai.length === 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Pegawai Ditugaskan Kosong',
+                            text: 'Mohon pilih minimal satu Pegawai yang Ditugaskan!',
+                            confirmButtonColor: '#059669'
+                        });
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+    }
+
     $(document).ready(function() {
         $('.select2-employee').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            placeholder: 'Cari nama pegawai...',
+            placeholder: 'Cari & pilih nama pegawai...',
             allowClear: true
         });
 
@@ -166,7 +525,6 @@
                 if (!isNaN(d.getTime())) {
                     var dayName = daysIndo[d.getDay()];
                     var $hk = $('#id_hari_kegiatan');
-                    // Jika belum dipilih atau saat ini memilih salah satu hari tunggal, update otomatis
                     if ($hk.length && (!$hk.val() || daysIndo.includes($hk.val()))) {
                         $hk.val(dayName).trigger('change');
                     }
@@ -174,70 +532,14 @@
             }
         });
 
-        // Trigger awal jika sudah ada tanggal terisi
         if ($('#id_tanggal_mulai').val() && !$('#id_hari_kegiatan').val()) {
             $('#id_tanggal_mulai').trigger('change');
         }
 
-        // Interactive Form Validation & Notification
         $('#suratTugasForm').on('submit', function(e) {
-            var tentang = $('[name="tentang"]').val();
-            var tgl = $('[name="tanggal_mulai"]').val();
-            var lokasi = $('[name="lokasi_tujuan"]').val();
-            var pegawai = $('[name="pegawai_ditugaskan"]').val();
-
-            if (!tentang || !tentang.trim()) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Perihal Penugasan Kosong',
-                    text: 'Mohon isi bidang Perihal / Tentang Penugasan terlebih dahulu!',
-                    confirmButtonColor: '#0d8a52'
-                });
-                $('[name="tentang"]').focus();
-                return false;
-            }
-
-            if (!tgl || !tgl.trim()) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tanggal Mulai Kosong',
-                    text: 'Mohon tentukan Tanggal Mulai Pelaksanaan Kegiatan!',
-                    confirmButtonColor: '#0d8a52'
-                });
-                $('[name="tanggal_mulai"]').focus();
-                return false;
-            }
-
-            if (!lokasi || !lokasi.trim()) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Lokasi Tujuan Kosong',
-                    text: 'Mohon isi bidang Lokasi / Tempat Tujuan penugasan!',
-                    confirmButtonColor: '#0d8a52'
-                });
-                $('[name="lokasi_tujuan"]').focus();
-                return false;
-            }
-
-            if (!pegawai || pegawai.length === 0) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Pegawai Ditugaskan Belum Dipilih',
-                    text: 'Mohon pilih minimal satu Pegawai Yang Ditugaskan!',
-                    confirmButtonColor: '#0d8a52'
-                });
-                $('[name="pegawai_ditugaskan"]').focus();
-                return false;
-            }
-
-            // Show loading indicator on submit button
             var btn = $('#btnSubmitSuratTugas');
             btn.prop('disabled', true);
-            btn.html('<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...');
+            btn.html('<span class="spinner-border spinner-border-sm me-2"></span>Menerbitkan Surat Tugas...');
         });
     });
 </script>

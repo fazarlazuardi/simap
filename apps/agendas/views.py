@@ -301,6 +301,27 @@ def agenda_list(request):
         }
         a.notulensi_json = json.dumps(notulensi_data)
 
+    from services.integrations.google_calendar_service import GoogleCalendarService
+    google_cal_url = GoogleCalendarService.get_google_calendar_direct_url(request)
+
+    agenda_dates_map = {}
+    for ag in Agenda.objects.all().select_related('archive'):
+        if ag.scheduled_at:
+            local_dt = timezone.localtime(ag.scheduled_at)
+            d_str = local_dt.strftime('%Y-%m-%d')
+            t_str = local_dt.strftime('%H:%M WIB')
+            icon = '👥' if ag.internal_meeting_id else '📅'
+            b_text = f"{icon} {ag.title} ({t_str})"
+            if d_str not in agenda_dates_map:
+                agenda_dates_map[d_str] = []
+            agenda_dates_map[d_str].append({
+                'title': b_text,
+                'type': 'meeting' if ag.internal_meeting_id else 'agenda',
+                'url': f"/rapat-internal/{ag.internal_meeting_id}/" if ag.internal_meeting_id else f"/agenda/"
+            })
+
+    agenda_dates_json = json.dumps(agenda_dates_map)
+
     return render(request, 'agendas/list.html', {
         'page_obj': page_obj,
         'agendas': page_obj,
@@ -315,6 +336,8 @@ def agenda_list(request):
         'archive_types': Archive.TYPE_CHOICES if hasattr(Archive, 'TYPE_CHOICES') else [],
         'current_type': archive_type or '',
         'employees': Employee.objects.filter(is_active=True).order_by('full_name'),
+        'google_calendar_direct_url': google_cal_url,
+        'agenda_dates_json': agenda_dates_json,
     })
 
 
@@ -708,10 +731,17 @@ def agenda_events(request):
     disposer = request.GET.get('disposer')
     terkait_user = request.GET.get('terkait_user')
     
-    events = Agenda.objects.select_related('archive').prefetch_related('assigned_to', 'assigned_employees').all()
+    events = Agenda.objects.select_related('archive', 'created_by').prefetch_related('assigned_to', 'assigned_employees').all()
 
     if start and end:
-        events = events.filter(scheduled_at__range=[start, end])
+        try:
+            from django.utils.dateparse import parse_datetime
+            start_dt = parse_datetime(start)
+            end_dt = parse_datetime(end)
+            if start_dt and end_dt:
+                events = events.filter(scheduled_at__gte=start_dt, scheduled_at__lte=end_dt)
+        except Exception:
+            pass
 
     if disposer:
         events = events.filter(archive__dispositions__sender_id=disposer)
@@ -750,11 +780,17 @@ def agenda_events(request):
             event_url = f'/archives/{event.archive.pk}/'
 
         src_type = 'sppd' if (event.is_sppd_generated or event.sppd_ref) else ('meeting' if event.internal_meeting_id else 'agenda')
+        local_dt = timezone.localtime(event.scheduled_at) if event.scheduled_at else None
+        date_str = local_dt.strftime('%Y-%m-%d') if local_dt else None
+        time_str = local_dt.strftime('%H:%M WIB') if local_dt else ''
+        display_title = f"{event.title} ({time_str})" if time_str else event.title
 
         data.append({
             'id': event.id,
-            'title': event.title,
-            'start': event.scheduled_at.isoformat() if event.scheduled_at else None,
+            'title': display_title,
+            'start': date_str,
+            'allDay': True,
+            'display': 'block',
             'backgroundColor': bg_color,
             'borderColor': bg_color,
             'textColor': text_color,
@@ -767,50 +803,9 @@ def agenda_events(request):
             }
         })
 
-    holidays_2026 = [
-        {"title": "🔴 LIBUR: Tahun Baru 2026 Masehi", "start": "2026-01-01"},
-        {"title": "🔴 LIBUR: Isra Mikraj Nabi Muhammad SAW", "start": "2026-01-16"},
-        {"title": "🔴 LIBUR: Tahun Baru Imlek 2577 Kongzili", "start": "2026-02-17"},
-        {"title": "🔴 CUTI BERSAMA: Imlek 2577", "start": "2026-02-16"},
-        {"title": "🔴 LIBUR: Hari Suci Nyepi Saka 1948", "start": "2026-03-19"},
-        {"title": "🔴 CUTI BERSAMA: Hari Suci Nyepi", "start": "2026-03-18"},
-        {"title": "🔴 LIBUR: Hari Raya Idul Fitri 1447 H", "start": "2026-03-20"},
-        {"title": "🔴 LIBUR: Hari Raya Idul Fitri 1447 H", "start": "2026-03-21"},
-        {"title": "🔴 CUTI BERSAMA: Idul Fitri 1447 H", "start": "2026-03-22"},
-        {"title": "🔴 CUTI BERSAMA: Idul Fitri 1447 H", "start": "2026-03-23"},
-        {"title": "🔴 CUTI BERSAMA: Idul Fitri 1447 H", "start": "2026-03-24"},
-        {"title": "🔴 LIBUR: Wafat Yesus Kristus", "start": "2026-04-03"},
-        {"title": "🔴 LIBUR: Hari Paskah", "start": "2026-04-05"},
-        {"title": "🔴 LIBUR: Hari Buruh Internasional", "start": "2026-05-01"},
-        {"title": "🔴 LIBUR: Kenaikan Yesus Kristus", "start": "2026-05-14"},
-        {"title": "🔴 LIBUR: Hari Raya Idul Adha 1447 H", "start": "2026-05-27"},
-        {"title": "🔴 CUTI BERSAMA: Idul Adha 1447 H", "start": "2026-05-28"},
-        {"title": "🔴 LIBUR: Hari Raya Waisak 2570 BE", "start": "2026-05-31"},
-        {"title": "🔴 LIBUR: Hari Lahir Pancasila", "start": "2026-06-01"},
-        {"title": "🔴 LIBUR: Tahun Baru Islam 1448 H", "start": "2026-06-16"},
-        {"title": "🔴 LIBUR: Hari Kemerdekaan RI Ke-81", "start": "2026-08-17"},
-        {"title": "🔴 LIBUR: Maulid Nabi Muhammad SAW", "start": "2026-08-25"},
-        {"title": "🔴 LIBUR: Hari Raya Natal", "start": "2026-12-25"},
-        {"title": "🔴 CUTI BERSAMA: Hari Raya Natal", "start": "2026-12-26"},
-    ]
-
-    for h in holidays_2026:
-        data.append({
-            'id': f"holiday-{h['start']}",
-            'title': h['title'],
-            'start': h['start'],
-            'backgroundColor': '#DC2626',
-            'borderColor': '#B91C1C',
-            'textColor': '#FFFFFF',
-            'allDay': True,
-            'url': '#',
-            'extendedProps': {
-                'location': 'Nasional / Seluruh Indonesia',
-                'assigned_to': 'Seluruh Amil & Pegawai BAZNAS',
-                'source_type': 'holiday',
-                'status': 'Hari Libur Official'
-            }
-        })
+    from services.integrations.google_calendar_service import GoogleCalendarService
+    holiday_events = GoogleCalendarService.get_national_holidays_events(start_year=2025, end_year=2027)
+    data.extend(holiday_events)
 
     return JsonResponse(data, safe=False)
 
@@ -1141,3 +1136,50 @@ def agenda_complete(request, pk):
     AuditService.log_action(request.user, f"Selesaikan Agenda: {agenda.title}", request)
     messages.success(request, f"Agenda '{agenda.title}' berhasil diselesaikan.")
     return redirect('agendas:list')
+
+
+@login_required
+def agenda_ical_feed(request):
+    """
+    Ekspor Feed iCal (.ics) agar user dapat berlangganan kalender SIMAP BAZNAS 
+    secara otomatis di Google Calendar, Apple Calendar, atau Outlook.
+    """
+    agendas = Agenda.objects.filter(status__in=['terjadwal', 'selesai', 'diundur']).select_related('archive')
+    
+    ics_lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//BAZNAS Kabupaten Tangerang//SIMAP Agenda//ID",
+        "X-WR-CALNAME:Agenda SIMAP BAZNAS",
+        "X-WR-TIMEZONE:Asia/Jakarta",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH"
+    ]
+    
+    for a in agendas:
+        if not a.scheduled_at:
+            continue
+        dt_start = a.scheduled_at.strftime('%Y%m%dT%H%M%SZ')
+        dt_stamp = a.created_at.strftime('%Y%m%dT%H%M%SZ') if a.created_at else dt_start
+        summary = (a.title or '').replace('\n', ' ').replace(',', '\\,')
+        location = (a.location or 'Kantor BAZNAS').replace('\n', ' ').replace(',', '\\,')
+        description = (a.description or a.title or '').replace('\n', ' ').replace(',', '\\,')
+        
+        ics_lines.extend([
+            "BEGIN:VEVENT",
+            f"UID:simap-agenda-{a.id}@baznaskabtangerang.id",
+            f"DTSTAMP:{dt_stamp}",
+            f"DTSTART:{dt_start}",
+            f"SUMMARY:{summary}",
+            f"LOCATION:{location}",
+            f"DESCRIPTION:{description}",
+            "STATUS:CONFIRMED",
+            "END:VEVENT"
+        ])
+        
+    ics_lines.append("END:VCALENDAR")
+    ics_content = "\r\n".join(ics_lines)
+    
+    response = HttpResponse(ics_content, content_type='text/calendar; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="agenda_simap_baznas.ics"'
+    return response
