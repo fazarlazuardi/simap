@@ -152,8 +152,6 @@ def sync_meeting_to_agenda(meeting):
         marker = f"InternalMeetingID:{meeting.pk}"
         
         agenda = Agenda.objects.filter(description__icontains=marker).first()
-        if not agenda:
-            agenda = Agenda.objects.filter(internal_meeting_id=meeting.pk).first()
         
         desc_text = (
             f"{marker}\n\n"
@@ -174,8 +172,7 @@ def sync_meeting_to_agenda(meeting):
                 scheduled_at=meeting.scheduled_at,
                 created_by=meeting.created_by,
                 status=status_val,
-                is_completed=is_finished,
-                internal_meeting_id=meeting.pk
+                is_completed=is_finished
             )
         else:
             agenda.title = agenda_title
@@ -184,7 +181,6 @@ def sync_meeting_to_agenda(meeting):
             agenda.scheduled_at = meeting.scheduled_at
             agenda.status = status_val
             agenda.is_completed = is_finished
-            agenda.internal_meeting_id = meeting.pk
             
         if meeting.notulensi_summary:
             notes = f"Hasil Notulensi:\n{meeting.notulensi_summary}"
