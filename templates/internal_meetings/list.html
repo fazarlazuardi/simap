@@ -131,14 +131,14 @@
 <!-- SEGMENTED NAV TABS & DATA GRID TABEL RAPAT INTERNAL -->
 <div class="card-enterprise p-4 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 border-bottom pb-3">
-        <div class="nav nav-tabs-futuristic" id="meetingTab" role="tablist">
-            <button class="nav-link active" id="scheduled-tab" data-bs-toggle="tab" data-bs-target="#tab-scheduled" type="button" role="tab">
-                <i class="bi bi-calendar-check me-2"></i>1. Agenda Terjadwal & Berlangsung
-                <span class="badge bg-warning text-dark ms-2 rounded-circle">{{ scheduled_meetings|length }}</span>
+        <div class="p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex flex-wrap gap-2" id="meetingPureTabNav">
+            <button type="button" class="meeting-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-emerald-600 text-white shadow-sm" data-tab-target="tab-scheduled" id="scheduled-tab">
+                <i class="bi bi-calendar-check text-sm"></i> 1. Agenda Terjadwal & Berlangsung
+                <span class="px-2 py-0.5 text-[10px] bg-white/20 text-white rounded-full font-mono font-bold">{{ scheduled_meetings|length }}</span>
             </button>
-            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#tab-completed" type="button" role="tab">
-                <i class="bi bi-journal-check me-2"></i>2. Riwayat Notulensi Selesai
-                <span class="badge bg-success text-white ms-2 rounded-circle">{{ completed_meetings|length }}</span>
+            <button type="button" class="meeting-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-tab-target="tab-completed" id="completed-tab">
+                <i class="bi bi-journal-check text-sm"></i> 2. Riwayat Notulensi Selesai
+                <span class="px-2 py-0.5 text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-full font-mono font-bold">{{ completed_meetings|length }}</span>
             </button>
         </div>
     </div>
@@ -391,13 +391,54 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function filterByStat(type) {
-    if (type === 'scheduled') {
-        const tabEl = document.getElementById('scheduled-tab');
-        if (tabEl) new bootstrap.Tab(tabEl).show();
-    } else if (type === 'completed') {
-        const tabEl = document.getElementById('completed-tab');
-        if (tabEl) new bootstrap.Tab(tabEl).show();
-    }
+    const targetId = type === 'scheduled' ? 'tab-scheduled' : 'tab-completed';
+    const btn = document.querySelector(`.meeting-tab-btn[data-tab-target="${targetId}"]`);
+    if (btn) btn.click();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const meetingTabButtons = document.querySelectorAll('#meetingPureTabNav button');
+    const meetingTabPanes = document.querySelectorAll('#meetingTabContent .tab-pane');
+
+    meetingTabButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-tab-target');
+
+            meetingTabButtons.forEach(b => {
+                b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
+                b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+                const badge = b.querySelector('span');
+                if (badge) {
+                    badge.classList.remove('bg-white/20', 'text-white');
+                    badge.classList.add('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
+                }
+            });
+
+            this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
+            this.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+            const activeBadge = this.querySelector('span');
+            if (activeBadge) {
+                activeBadge.classList.add('bg-white/20', 'text-white');
+                activeBadge.classList.remove('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
+            }
+
+            meetingTabPanes.forEach(pane => {
+                pane.classList.remove('active', 'show');
+                pane.classList.add('hidden');
+            });
+
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) {
+                targetPane.classList.add('active', 'show');
+                targetPane.classList.remove('hidden');
+            }
+
+            if (window.jQuery && $.fn.DataTable) {
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        });
+    });
+});
 </script>
 {% endblock %}

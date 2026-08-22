@@ -315,7 +315,7 @@
                 <h5 class="modal-title fw-bold">
                     <i class="bi bi-pencil-square me-2"></i>Formulir Notulensi & Risalah Rapat
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" onclick="closeAllMeetingsModalsPure()" aria-label="Close"></button>
             </div>
             <form id="formNotulensiModal" method="post" action="{% url 'internal_meetings:notulensi' meeting.pk %}" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -455,7 +455,7 @@
                 </div>
 
                 <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-light border rounded-pill px-4" onclick="closeAllMeetingsModalsPure()">Batal</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
                         <i class="bi bi-send-fill me-1"></i> Simpan & Terbitkan Notulensi
                     </button>
@@ -473,7 +473,7 @@
                 <h5 class="modal-title fw-bold">
                     <i class="bi bi-person-gear me-2"></i>Penyesuaian Presensi Pimpinan & Peserta Hadir
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" onclick="closeAllMeetingsModalsPure()" aria-label="Close"></button>
             </div>
             <form method="post" action="{% url 'internal_meetings:update_attendance' meeting.pk %}">
                 {% csrf_token %}
@@ -535,7 +535,7 @@
                 </div>
 
                 <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-light border rounded-pill px-4" onclick="closeAllMeetingsModalsPure()">Batal</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
                         <i class="bi bi-save me-1"></i> Simpan Presensi & Hadir
                     </button>
@@ -553,7 +553,7 @@
                 <h5 class="modal-title fw-bold">
                     <i class="bi bi-whatsapp me-2"></i>Kirim Notifikasi WA Gateway Undangan Rapat
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" onclick="closeAllMeetingsModalsPure()" aria-label="Close"></button>
             </div>
             <form method="post" action="{% url 'internal_meetings:notify' meeting.pk %}">
                 {% csrf_token %}
@@ -651,7 +651,7 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.</div>
                 </div>
 
                 <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-light border rounded-pill px-4" onclick="closeAllMeetingsModalsPure()">Batal</button>
                     <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm">
                         <i class="bi bi-send-fill me-2"></i> Kirim Notifikasi WA Sekarang
                     </button>
