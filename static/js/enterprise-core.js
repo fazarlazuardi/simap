@@ -210,12 +210,12 @@ window.showEnterpriseNotificationToast = function(title, body, icon = 'info', li
     if (window.Swal) {
         Swal.fire({
             toast: true,
-            position: 'top-end',
+            position: 'bottom-end',
             icon: icon,
             title: title,
             text: body,
             showConfirmButton: false,
-            timer: 5000,
+            timer: 6000,
             timerProgressBar: true,
             didOpen: (toast) => {
                 toast.addEventListener('mouseenter', Swal.stopTimer);

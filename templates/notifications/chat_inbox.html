@@ -250,10 +250,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Show Top-Right Toast Popup & Play Chime Sound
-                if (window.showEnterpriseNotificationToast) {
-                    window.showEnterpriseNotificationToast('💬 Pesan Terkirim', 'Pesan Anda berhasil dikirim.', 'success');
-                }
+                // Append new outgoing message bubble for sender (sound & toast strictly for recipient)
 
                 // Append new outgoing message bubble
                 var thread = document.getElementById('chatMessagesThread');

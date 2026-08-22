@@ -1370,6 +1370,19 @@
                 }
                 {% endfor %}
             {% endif %}
+
+            {% if unread_direct_msg_count > 0 and latest_unread_direct_msg %}
+                setTimeout(function() {
+                    if (window.showEnterpriseNotificationToast) {
+                        window.showEnterpriseNotificationToast(
+                            '💬 Pesan Baru dari {{ latest_unread_direct_msg.sender.employee.full_name|default:latest_unread_direct_msg.sender.username|escapejs }}',
+                            '{{ latest_unread_direct_msg.body|truncatechars:60|escapejs }}',
+                            'info',
+                            "{% url 'notifications:chat_inbox_user' latest_unread_direct_msg.sender.pk %}"
+                        );
+                    }
+                }, 800);
+            {% endif %}
         });
     </script>
     {% block extra_modals %}{% endblock %}

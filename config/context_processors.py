@@ -1,5 +1,5 @@
 from django.db.models import Q
-from notifications.models import Notification
+from notifications.models import Notification, DirectMessage
 from users.models import AppConfig
 from archives.models import Archive
 from dispositions.models import Disposition
@@ -25,6 +25,11 @@ def notification_context(request):
         ).exclude(
             link_url__in=completed_urls
         ).order_by('-created_at')
+
+        # Pesan Unread Direct Amil Khusus Penerima
+        unread_direct_msgs = DirectMessage.objects.filter(recipient=request.user, is_read=False).order_by('-created_at')
+        unread_direct_msg_count = unread_direct_msgs.count()
+        latest_unread_direct_msg = unread_direct_msgs.first()
         
         active_pov = request.session.get('active_pov')
         is_kabid_4_active = active_pov == 'kabid_4' or (not active_pov and getattr(request.user, 'is_kabid_4', False))
@@ -51,6 +56,8 @@ def notification_context(request):
         context.update({
             'global_notifications': unread_notifications[:5],
             'global_notif_count': unread_notifications.count(),
+            'unread_direct_msg_count': unread_direct_msg_count,
+            'latest_unread_direct_msg': latest_unread_direct_msg,
             'is_kabid_4_active': is_kabid_4_active,
             'is_waka_4_active': is_waka_4_active,
             'unverified_count': unverified_count,
