@@ -874,14 +874,45 @@ html, body {
   color: #FFFFFF !important;
 }
 
-.contact-item-active {
-  background-color: rgba(16, 185, 129, 0.15) !important;
-  border-left: 4px solid #10B981 !important;
+/* EXPLICIT ULTRA-BRIGHT TEXT & CONTRAST FOR CHAT MESSENGER (DARK MODE & LIGHT MODE) */
+.contact-item {
+  color: #0F172A !important;
+}
+
+.contact-item h6 {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+.contact-item small {
+  color: #475569 !important;
+}
+
+[data-theme="dark"] .contact-item {
+  color: #F8FAFC !important;
+}
+
+[data-theme="dark"] .contact-item h6 {
+  color: #FFFFFF !important; /* 100% PURE BRIGHT WHITE NAMES IN DARK MODE */
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] .contact-item small {
+  color: #CBD5E1 !important; /* BRIGHT LIGHT SLATE METADATA IN DARK MODE */
 }
 
 [data-theme="dark"] .contact-item-active {
-  background-color: rgba(16, 185, 129, 0.28) !important;
+  background-color: rgba(16, 185, 129, 0.25) !important;
   border-left: 4px solid #34D399 !important;
+}
+
+[data-theme="dark"] .contact-item-active h6 {
+  color: #34D399 !important; /* BRIGHT MINT FOR SELECTED ACTIVE RECIPIENT IN DARK MODE */
+  font-weight: 800 !important;
+}
+
+[data-theme="dark"] .contact-item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* HIGH-CONTRAST CHAT SEND BUTTON FOR LIGHT & DARK MODE */
