@@ -44,44 +44,37 @@
 
 {% block content %}
 <div class="container-fluid py-2">
-    <!-- Header & Action Button -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb m-0 bg-transparent p-0 small">
-                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none" style="color: var(--primary);">Modul Utama</a></li>
-                    <li class="breadcrumb-item active" aria-current="page" style="color: var(--text-secondary);">Surat Tugas</li>
-                </ol>
-            </nav>
-            <h4 class="fw-bold m-0" style="color: var(--text-primary);">
-                <i class="bi bi-file-earmark-text me-2 text-success"></i>Manajemen Surat Tugas Penugasan
-            </h4>
-        </div>
-        <div>
-            <a href="{% url 'surat_tugas:create' %}" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background-color: var(--primary);">
-                <i class="bi bi-plus-lg me-2"></i> Buat Surat Tugas Baru
-            </a>
+    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
+                    <i class="bi bi-file-earmark-text"></i> PENUGASAN RESMI AMIL
+                </span>
+                <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Manajemen Surat Tugas Penugasan</h1>
+                <p class="text-slate-300 text-sm max-w-2xl mb-0">Kelola penerbitan Surat Tugas berdasarkan instruksi disposisi pimpinan BAZNAS Kabupaten Tangerang.</p>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <a href="{% url 'surat_tugas:create' %}" class="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all text-decoration-none inline-flex items-center gap-1.5">
+                    <i class="bi bi-plus-lg text-base"></i> Buat Surat Tugas Baru
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- TAB NAVIGASI UTAMA -->
-    <ul class="nav nav-pills mb-4 p-2 rounded-4 shadow-sm d-inline-flex gap-2" id="suratTugasTab" role="tablist" style="background-color: var(--card-bg) !important; border: 1px solid var(--border-color);">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link px-4 py-2 fw-bold rounded-3 active" id="disposition-tab" data-bs-toggle="pill" data-bs-target="#tab-disposition" type="button" role="tab">
-                <i class="bi bi-file-earmark-check me-2"></i>1. Dokumen Siap Surat Tugas (Disposisi)
-                <span class="badge bg-success ms-2 rounded-circle">{{ dispositions_pending_st|length }}</span>
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link px-4 py-2 fw-bold rounded-3" id="history-tab" data-bs-toggle="pill" data-bs-target="#tab-history" type="button" role="tab">
-                <i class="bi bi-journal-text me-2"></i>2. Riwayat Surat Tugas Terbit
-                <span class="badge bg-primary ms-2 rounded-circle">{{ surat_list|length }}</span>
-            </button>
-        </li>
-    </ul>
-
-    <div class="tab-content" id="suratTugasTabContent">
-        <!-- TAB 1: DOKUMEN SIAP SURAT TUGAS -->
+    <div class="p-2 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex gap-2" id="suratTugasTab" role="tablist">
+        <button class="px-4 py-2.5 text-xs font-bold rounded-xl transition-all border-0 cursor-pointer active shadow-sm bg-emerald-600 text-white" id="disposition-tab" data-bs-toggle="pill" data-bs-target="#tab-disposition" type="button" role="tab">
+            <i class="bi bi-file-earmark-check me-1.5"></i>1. Dokumen Siap Surat Tugas (Disposisi)
+            <span class="px-2 py-0.5 text-[10px] bg-white text-emerald-900 rounded-full ml-1.5 font-mono font-bold">{{ dispositions_pending_st|length }}</span>
+        </button>
+        <button class="px-4 py-2.5 text-xs font-bold rounded-xl transition-all border-0 cursor-pointer text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700" id="history-tab" data-bs-toggle="pill" data-bs-target="#tab-history" type="button" role="tab">
+            <i class="bi bi-journal-text me-1.5"></i>2. Riwayat Surat Tugas Terbit
+            <span class="px-2 py-0.5 text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-full ml-1.5 font-mono font-bold">{{ surat_list|length }}</span>
+        </button>
+    </div>
+<!-- TAB 1: DOKUMEN SIAP SURAT TUGAS -->
         <div class="tab-pane fade show active" id="tab-disposition" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
                 <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
