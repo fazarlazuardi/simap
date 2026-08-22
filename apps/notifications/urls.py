@@ -17,4 +17,6 @@ urlpatterns = [
     path('chat/', views.chat_inbox, name='chat_inbox'),
     path('chat/<int:recipient_id>/', views.chat_inbox, name='chat_inbox_user'),
     path('chat/send/', views.send_direct_message, name='send_direct_message'),
+    path('chat/message/<int:pk>/delete/', views.delete_direct_message, name='delete_direct_message'),
+    path('chat/<int:recipient_id>/clear/', views.clear_chat_thread, name='clear_chat_thread'),
 ]

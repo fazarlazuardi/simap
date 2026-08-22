@@ -123,11 +123,20 @@
                     </div>
                 </div>
 
-                <div>
+                <div class="d-flex align-items-center gap-2">
                     {% if active_recipient.employee and active_recipient.employee.phone_number %}
                     <a href="https://api.whatsapp.com/send?phone=62{{ active_recipient.employee.phone_number }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" title="Kirim WA Langsung">
                         <i class="bi bi-whatsapp me-1"></i> WA
                     </a>
+                    {% endif %}
+
+                    {% if messages_list %}
+                    <form action="{% url 'notifications:clear_chat_thread' active_recipient.pk %}" method="post" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh riwayat obrolan ini?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" title="Hapus Seluruh Pesan Percakapan">
+                            <i class="bi bi-trash me-1"></i> Hapus Obrolan
+                        </button>
+                    </form>
                     {% endif %}
                 </div>
             </div>
@@ -143,9 +152,17 @@
                 {% for msg in messages_list %}
                     {% if msg.sender == request.user %}
                     <!-- Outgoing Message (Right - Emerald Bubble) -->
-                    <div class="d-flex flex-column align-items-end mb-3">
-                        <div class="p-3 rounded-4 chat-bubble-outgoing text-break" style="max-width: 72%; border-bottom-right-radius: 4px !important;">
-                            <p class="mb-0 lh-base">{{ msg.body }}</p>
+                    <div class="d-flex flex-column align-items-end mb-3" id="msg-item-{{ msg.pk }}">
+                        <div class="d-flex align-items-center gap-1">
+                            <form action="{% url 'notifications:delete_direct_message' msg.pk %}" method="post" class="d-inline opacity-75 hover-opacity-100 me-1" onsubmit="return confirm('Hapus pesan ini?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link btn-sm text-danger p-0 border-0" title="Hapus Pesan">
+                                    <i class="bi bi-trash extra-small"></i>
+                                </button>
+                            </form>
+                            <div class="p-3 rounded-4 chat-bubble-outgoing text-break" style="max-width: 72%; border-bottom-right-radius: 4px !important;">
+                                <p class="mb-0 lh-base">{{ msg.body }}</p>
+                            </div>
                         </div>
                         <small class="text-muted font-mono extra-small mt-1">
                             {{ msg.created_at|date:"H:i" }} WIB {% if msg.is_read %}<i class="bi bi-check2-all text-primary ms-1" title="Sudah dibaca"></i>{% else %}<i class="bi bi-check2 text-muted ms-1" title="Terkirim"></i>{% endif %}
@@ -153,7 +170,7 @@
                     </div>
                     {% else %}
                     <!-- Incoming Message (Left - White/Dark Bubble) -->
-                    <div class="d-flex align-items-start gap-2.5 mb-3">
+                    <div class="d-flex align-items-start gap-2.5 mb-3" id="msg-item-{{ msg.pk }}">
                         {% if active_recipient.employee and active_recipient.employee.photo %}
                             <img src="{{ active_recipient.employee.photo.url }}" class="rounded-circle flex-shrink-0 mt-1" width="32" height="32" style="object-fit: cover;">
                         {% else %}
@@ -161,8 +178,16 @@
                         {% endif %}
 
                         <div class="d-flex flex-column align-items-start">
-                            <div class="p-3 rounded-4 chat-bubble-incoming text-break" style="max-width: 72%; border-bottom-left-radius: 4px !important;">
-                                <p class="mb-0 lh-base">{{ msg.body }}</p>
+                            <div class="d-flex align-items-center gap-1">
+                                <div class="p-3 rounded-4 chat-bubble-incoming text-break" style="max-width: 72%; border-bottom-left-radius: 4px !important;">
+                                    <p class="mb-0 lh-base">{{ msg.body }}</p>
+                                </div>
+                                <form action="{% url 'notifications:delete_direct_message' msg.pk %}" method="post" class="d-inline opacity-75 hover-opacity-100 ms-1" onsubmit="return confirm('Hapus pesan ini?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link btn-sm text-danger p-0 border-0" title="Hapus Pesan">
+                                        <i class="bi bi-trash extra-small"></i>
+                                    </button>
+                                </form>
                             </div>
                             <small class="text-muted font-mono extra-small mt-1 ms-1">{{ msg.created_at|date:"H:i" }} WIB</small>
                         </div>

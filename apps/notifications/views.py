@@ -180,6 +180,13 @@ def chat_inbox(request, recipient_id=None):
     messages_list = []
     if active_recipient:
         DirectMessage.objects.filter(sender=active_recipient, recipient=request.user, is_read=False).update(is_read=True)
+        Notification.objects.filter(
+            user=request.user, 
+            category='general', 
+            link_url__icontains=f"/notifications/chat/{active_recipient.pk}/",
+            status='unread'
+        ).update(status='read')
+
         messages_list = DirectMessage.objects.filter(
             (Q(sender=request.user) & Q(recipient=active_recipient)) |
             (Q(sender=active_recipient) & Q(recipient=request.user))
@@ -263,4 +270,43 @@ def send_direct_message(request):
 
     messages.success(request, f"Pesan terkirim ke {recipient.username}")
     return redirect('notifications:chat_inbox_user', recipient_id=recipient.pk)
+
+
+@login_required
+@require_POST
+def delete_direct_message(request, pk):
+    """Menghapus 1 pesan direct tertentu."""
+    from .models import DirectMessage
+    msg = get_object_or_404(DirectMessage, pk=pk)
+    
+    if msg.sender != request.user and msg.recipient != request.user:
+        messages.error(request, "Anda tidak memiliki hak akses untuk menghapus pesan ini.")
+        return redirect('notifications:chat_inbox')
+        
+    recipient_id = msg.recipient_id if msg.sender == request.user else msg.sender_id
+    msg.delete()
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'success': True, 'message': 'Pesan berhasil dihapus.'})
+        
+    messages.success(request, "Pesan berhasil dihapus.")
+    return redirect('notifications:chat_inbox_user', recipient_id=recipient_id)
+
+
+@login_required
+@require_POST
+def clear_chat_thread(request, recipient_id):
+    """Membersihkan seluruh percakapan antara request.user dan recipient_id."""
+    from users.models import User
+    from .models import DirectMessage
+    recipient = get_object_or_404(User, pk=recipient_id)
+    
+    deleted_count, _ = DirectMessage.objects.filter(
+        (Q(sender=request.user) & Q(recipient=recipient)) |
+        (Q(sender=recipient) & Q(recipient=request.user))
+    ).delete()
+    
+    messages.success(request, f"Obrolan dengan {recipient.username} ({deleted_count} pesan) berhasil dibersihkan.")
+    return redirect('notifications:chat_inbox_user', recipient_id=recipient.pk)
+
 
