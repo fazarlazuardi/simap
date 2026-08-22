@@ -205,8 +205,8 @@ document.addEventListener('DOMContentLoaded', function () {
         searchInput.addEventListener('input', function() {
             const filter = this.value.toLowerCase().trim();
             document.querySelectorAll('.staff-item').forEach(function(item) {
-                const name = item.querySelector('.staff-name').textContent.toLowerCase();
-                const job = item.querySelector('.staff-job').textContent.toLowerCase();
+                const name = item.querySelector('.staff-name')?.textContent.toLowerCase() || '';
+                const job = item.querySelector('.staff-job')?.textContent.toLowerCase() || '';
                 const isMatch = name.includes(filter) || job.includes(filter);
                 
                 item.style.display = isMatch ? 'flex' : 'none';
@@ -215,16 +215,41 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const roleRules = {
-        'ketua': /^(?=.*ketua)(?!.*(wakil|waka)).*$/i,
-        'waka i': /(waka|wakil ketua)\s*(i|1)/i,
-        'waka ii': /(waka|wakil ketua)\s*(ii|2)/i,
-        'waka iii': /(waka|wakil ketua)\s*(iii|3)/i,
-        'waka iv': /(waka|wakil ketua)\s*(iv|4)/i,
-        'kabid i': /(kabid|kepala bidang)\s*(i|1)/i,
-        'kabid ii': /(kabid|kepala bidang)\s*(ii|2)/i,
-        'kabid iii': /(kabid|kepala bidang)\s*(iii|3)/i,
-        'kabid iv': /(kabid|kepala bidang)\s*(iv|4)/i
+        'ketua': /ketua(?!\s*(i{1,3}|iv|1|2|3|4|bidang))/i,
+        'waka i': /(waka|wakil ketua|wakil).*?(i\b|1\b|bidang 1|bidang i)/i,
+        'waka ii': /(waka|wakil ketua|wakil).*?(ii\b|2\b|bidang 2|bidang ii)/i,
+        'waka iii': /(waka|wakil ketua|wakil).*?(iii\b|3\b|bidang 3|bidang iii)/i,
+        'waka iv': /(waka|wakil ketua|wakil).*?(iv\b|4\b|bidang 4|bidang iv)/i,
+        'kabid i': /(kabid|kepala bidang).*?(i\b|1\b|bidang 1|bidang i)/i,
+        'kabid ii': /(kabid|kepala bidang).*?(ii\b|2\b|bidang 2|bidang ii)/i,
+        'kabid iii': /(kabid|kepala bidang).*?(iii\b|3\b|bidang 3|bidang iii)/i,
+        'kabid iv': /(kabid|kepala bidang).*?(iv\b|4\b|bidang 4|bidang iv)/i
     };
+
+    function updateRoleButtonsState() {
+        document.querySelectorAll('.role-btn').forEach(function(btn) {
+            const targetRole = btn.getAttribute('data-role').toLowerCase().trim();
+            const regex = roleRules[targetRole];
+            if (!regex) return;
+
+            let hasChecked = false;
+            document.querySelectorAll('.staff-item').forEach(function(item) {
+                const jobText = (item.querySelector('.staff-job')?.textContent || '') + ' ' + (item.querySelector('.staff-name')?.textContent || '');
+                const cb = item.querySelector('.staff-checkbox');
+                if (cb && cb.checked && regex.test(jobText)) {
+                    hasChecked = true;
+                }
+            });
+
+            if (hasChecked) {
+                btn.classList.add('bg-emerald-600', 'text-white', 'border-emerald-600');
+                btn.classList.remove('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+            } else {
+                btn.classList.remove('bg-emerald-600', 'text-white', 'border-emerald-600');
+                btn.classList.add('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+            }
+        });
+    }
 
     document.querySelectorAll('.role-btn').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
@@ -234,18 +259,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!regex) return;
 
             const isActive = this.classList.contains('bg-emerald-600');
-            if (isActive) {
-                this.classList.remove('bg-emerald-600', 'text-white', 'border-emerald-600');
-                this.classList.add('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
-            } else {
-                this.classList.add('bg-emerald-600', 'text-white', 'border-emerald-600');
-                this.classList.remove('bg-slate-50', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
-            }
-
             const shouldCheck = !isActive;
 
             document.querySelectorAll('.staff-item').forEach(function(item) {
-                const jobText = item.querySelector('.staff-job').textContent.toLowerCase().trim();
+                const jobText = (item.querySelector('.staff-job')?.textContent || '') + ' ' + (item.querySelector('.staff-name')?.textContent || '');
 
                 if (regex.test(jobText)) {
                     const staffCheckbox = item.querySelector('.staff-checkbox');
@@ -254,8 +271,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             });
+
+            updateRoleButtonsState();
         });
     });
+
+    document.querySelectorAll('.staff-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', updateRoleButtonsState);
+    });
+
+    // Initial evaluation on load
+    updateRoleButtonsState();
 });
 </script>
 {% endblock %}
