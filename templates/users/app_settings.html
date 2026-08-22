@@ -481,7 +481,7 @@
                                         <tbody>
                                             {% for dept in departments %}
                                             <tr>
-                                                <td class="fw-bold text-dark"><i class="bi bi-building me-2 text-muted"></i>{{ dept.name }}</td>
+                                                <td class="fw-bold"><span class="badge {{ dept.badge_color_class }} rounded-pill px-3 py-1 me-2"><i class="bi bi-building me-1"></i>{{ dept.name }}</span></td>
                                                 <td class="text-end">
                                                     <form action="{% url 'users:department_delete' dept.id %}" method="post" class="d-inline">
                                                         {% csrf_token %}

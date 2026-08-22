@@ -25,6 +25,38 @@ class Department(models.Model):
             return f"{self.parent.name} - {self.name}"
         return self.name
 
+    @property
+    def rank_order(self):
+        """Menentukan urutan hirarki bidang (Ketua -> Bidang 1 -> Bidang 2 -> Bidang 3 -> Bidang 4)."""
+        name_lower = self.name.lower()
+        if 'ketua' in name_lower or 'pimpinan' in name_lower:
+            return 0
+        elif '1' in name_lower or 'i' in name_lower or 'pengumpulan' in name_lower:
+            return 1
+        elif '2' in name_lower or 'ii' in name_lower or 'pendistribusian' in name_lower or 'pendayagunaan' in name_lower:
+            return 2
+        elif '3' in name_lower or 'iii' in name_lower or 'perencanaan' in name_lower or 'keuangan' in name_lower:
+            return 3
+        elif '4' in name_lower or 'iv' in name_lower or 'administrasi' in name_lower or 'sdm' in name_lower or 'umum' in name_lower:
+            return 4
+        return 5
+
+    @property
+    def badge_color_class(self):
+        """Menentukan warna badge terang, kontras, dan variatif per bidang."""
+        rank = self.rank_order
+        if rank == 0:
+            return 'bg-success text-white border border-success-subtle shadow-xs fw-bold'
+        elif rank == 1:
+            return 'bg-primary text-white border border-primary-subtle shadow-xs fw-bold'
+        elif rank == 2:
+            return 'bg-warning text-dark border border-warning-subtle shadow-xs fw-bold'
+        elif rank == 3:
+            return 'bg-purple text-white border border-purple-subtle shadow-xs fw-bold'
+        elif rank == 4:
+            return 'bg-info text-white border border-info-subtle shadow-xs fw-bold'
+        return 'bg-secondary text-white'
+
 
 class Employee(models.Model):
     GENDER_CHOICES = [('L', 'Laki-laki'), ('P', 'Perempuan')]
@@ -137,6 +169,40 @@ class Employee(models.Model):
         if self.is_acting_role and self.acting_in_department:
             return self.acting_in_department
         return self.dept_relation
+
+    @property
+    def department_rank(self):
+        """Metode urutan hirarki pegawai: Ketua BAZNAS -> Waka -> Bidang I -> Bidang II -> Bidang III -> Bidang IV."""
+        if self.leadership_type == 'ketua':
+            return 0
+        elif self.leadership_type == 'waka_1':
+            return 1
+        elif self.leadership_type == 'waka_2':
+            return 2
+        elif self.leadership_type == 'waka_3':
+            return 3
+        elif self.leadership_type == 'waka_4':
+            return 4
+        elif self.dept_relation:
+            return 10 + self.dept_relation.rank_order
+        return 99
+
+    @property
+    def department_badge_class(self):
+        """Badge warna terang variatif per bidang/pimpinan."""
+        if self.leadership_type == 'ketua':
+            return 'bg-emerald text-white border border-emerald-subtle shadow-xs fw-bold'
+        elif self.leadership_type == 'waka_1':
+            return 'bg-primary text-white border border-primary-subtle shadow-xs fw-bold'
+        elif self.leadership_type == 'waka_2':
+            return 'bg-warning text-dark border border-warning-subtle shadow-xs fw-bold'
+        elif self.leadership_type == 'waka_3':
+            return 'bg-purple text-white border border-purple-subtle shadow-xs fw-bold'
+        elif self.leadership_type == 'waka_4':
+            return 'bg-info text-white border border-info-subtle shadow-xs fw-bold'
+        elif self.dept_relation:
+            return self.dept_relation.badge_color_class
+        return 'bg-secondary text-white'
 
     @classmethod
     def get_ketua(cls):

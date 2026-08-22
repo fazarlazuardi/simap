@@ -47,7 +47,7 @@
                     </td>
                     <td>
                         <p class="mb-0 fw-bold small">{{ emp.position }}</p>
-                        <p class="mb-0 text-muted small">{{ emp.dept_relation.name|default:'-' }}</p>
+                        <span class="badge {{ emp.department_badge_class }} rounded-pill extra-small px-2.5 py-1 mt-1 d-inline-block">{{ emp.dept_relation.name|default:'Struktur Utama BAZNAS' }}</span>
                     </td>
                     <td>
                         <span class="badge {% if emp.employment_status == 'amil_tetap' %}bg-success text-white{% elif emp.employment_status == 'amil_kontrak' %}bg-primary text-white{% else %}bg-warning text-dark{% endif %} rounded-pill px-2 py-1 small mb-1">

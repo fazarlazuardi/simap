@@ -167,7 +167,7 @@
                     </td>
                     <td>
                         <div class="small fw-bold text-dark">{{ emp.position|default:"Amil BAZNAS" }}</div>
-                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill extra-small px-2 py-0.5 mt-1">
+                        <span class="badge {{ emp.department_badge_class }} rounded-pill extra-small px-2.5 py-1 mt-1 d-inline-block">
                             {{ emp.dept_relation.name|default:"Struktur Utama BAZNAS" }}
                         </span>
                     </td>

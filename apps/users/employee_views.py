@@ -20,8 +20,7 @@ def employee_master(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    employee_list = [(emp, users.get(emp.pk)) for emp in page_obj]
-    departments = Department.objects.all()
+    departments = sorted(Department.objects.all(), key=lambda d: d.rank_order)
     roles = User.ROLE_CHOICES
 
     return render(request, 'users/employee_master.html', {
@@ -198,7 +197,7 @@ def employee_list(request):
     elif akun == 'tidak':
         employees = employees.exclude(pk__in=user_emp_ids)
 
-    departments = Department.objects.all()
+    departments = sorted(Department.objects.all(), key=lambda d: d.rank_order)
     users_map = {
         u.employee_id: u 
         for u in User.objects.filter(employee__isnull=False).select_related('employee')
