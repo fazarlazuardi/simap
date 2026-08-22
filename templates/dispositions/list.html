@@ -35,28 +35,28 @@
 
 {% block content %}
 <div class="container-fluid py-3">
-    <!-- ENTERPRISE GLASS HEADER BANNER -->
-    <div class="glass-banner-enterprise mb-4">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 position-relative" style="z-index: 2;">
+    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <span class="badge bg-warning text-dark rounded-pill px-3 py-1 font-mono fw-bold mb-2" style="font-size: 0.75rem;">
-                    <i class="bi bi-send-check-fill me-1"></i> MODUL DISPOSISI DIGITAL
+                <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
+                    <i class="bi bi-send-check-fill"></i> MODUL DISPOSISI DIGITAL
                 </span>
-                <h3 class="fw-bold mb-1 text-white">Pusat Disposisi Digital Pimpinan</h3>
-                <p class="mb-0 text-white opacity-75 small">Kelola instruksi pimpinan, arahan Ketua & Waka IV, serta alur penanganan dokumen secara terstruktur.</p>
+                <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Pusat Disposisi Digital Pimpinan</h1>
+                <p class="text-slate-300 text-sm max-w-2xl mb-0">Kelola instruksi pimpinan, arahan Ketua & Waka IV, serta alur penanganan dokumen secara terstruktur.</p>
             </div>
 
-            <div class="d-flex align-items-center gap-2">
+            <div class="flex items-center gap-2 flex-shrink-0">
                 {% if is_batch_ready %}
                 <form method="post" action="{% url 'dispositions:batch_notify' %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success fw-bold px-4 py-2.5 rounded-pill shadow-sm" style="background-color: #059669 !important;">
-                        <i class="bi bi-whatsapp me-2"></i>Kirim Notifikasi Batch Disposisi ({{ pending_batch_count }})
+                    <button type="submit" class="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all border-0 inline-flex items-center gap-2">
+                        <i class="bi bi-whatsapp text-lg"></i>Kirim Notifikasi Batch Disposisi ({{ pending_batch_count }})
                     </button>
                 </form>
                 {% else %}
-                <button class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 disabled" title="Minimal 10 disposisi terverifikasi untuk mengaktifkan notifikasi batch (mencegah spam)">
-                    <i class="bi bi-whatsapp me-1 text-warning"></i>Antrian Notif Batch: {{ pending_batch_count }}/10
+                <button class="px-3 py-2 rounded-full border border-white/20 text-slate-300 text-xs font-semibold opacity-60 cursor-not-allowed inline-flex items-center gap-1.5" title="Minimal 10 disposisi terverifikasi untuk mengaktifkan notifikasi batch (mencegah spam)">
+                    <i class="bi bi-whatsapp text-amber-400"></i>Antrian Notif Batch: {{ pending_batch_count }}/10
                 </button>
                 {% endif %}
             </div>
@@ -64,39 +64,39 @@
     </div>
 
     <!-- FILTER BAR ENTERPRISE -->
-    <div class="card-enterprise p-3 mb-4">
-        <form method="get" class="row g-2 align-items-end">
-            <div class="col-md-3 col-sm-6">
-                <label class="form-label small fw-bold text-uppercase">Penerima Disposisi</label>
-                <select name="penerima" class="form-select form-select-sm">
+    <div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-end">
+            <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Penerima Disposisi</label>
+                <select name="penerima" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
                     <option value="">-- Semua Penerima --</option>
                     {% for u in users %}
                     <option value="{{ u.id }}" {% if penerima == u.id|stringformat:'s' %}selected{% endif %}>{{ u.employee.full_name|default:u.username }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2 col-sm-6">
-                <label class="form-label small fw-bold text-uppercase">Status Alur</label>
-                <select name="status" class="form-select form-select-sm">
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Status Alur</label>
+                <select name="status" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
                     <option value="">-- Semua Status --</option>
                     {% for code, label in status_choices %}
                     <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2 col-sm-6">
-                <label class="form-label small fw-bold text-uppercase">Dari Tanggal</label>
-                <input type="date" name="date_from" class="form-control form-control-sm font-mono" value="{{ date_from }}">
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Dari Tanggal</label>
+                <input type="date" name="date_from" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ date_from }}">
             </div>
-            <div class="col-md-2 col-sm-6">
-                <label class="form-label small fw-bold text-uppercase">Sampai Tanggal</label>
-                <input type="date" name="date_to" class="form-control form-control-sm font-mono" value="{{ date_to }}">
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">Sampai Tanggal</label>
+                <input type="date" name="date_to" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ date_to }}">
             </div>
-            <div class="col-md-3 col-sm-12 d-flex gap-2">
-                <button type="submit" class="btn btn-enterprise-primary w-100 justify-content-center rounded-pill py-2 fw-bold shadow-sm">
-                    <i class="bi bi-funnel-fill me-1"></i> Filter Data
+            <div class="md:col-span-3 flex gap-2">
+                <button type="submit" class="flex-1 py-2 px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5">
+                    <i class="bi bi-funnel-fill"></i> Filter Data
                 </button>
-                <a href="{% url 'dispositions:list' %}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center" title="Reset Filter">
+                <a href="{% url 'dispositions:list' %}" class="px-3.5 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-all inline-flex items-center justify-center text-decoration-none" title="Reset Filter">
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </a>
             </div>
@@ -104,21 +104,20 @@
     </div>
 
     <!-- TABS KATEGORI ARSIP -->
-    <div class="card-enterprise p-3 mb-4">
-        <div class="d-flex gap-2 flex-wrap align-items-center">
-            <span class="fw-bold text-emerald me-2 small"><i class="bi bi-folder-fill me-1"></i> Filter Kategori:</span>
-            <a href="{% url 'dispositions:list' %}" class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {% if not current_type %}btn-emerald shadow-sm{% else %}btn-outline-secondary{% endif %}">
+    <div class="p-3 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="flex gap-2 flex-wrap items-center">
+            <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs me-1 flex items-center gap-1"><i class="bi bi-folder-fill"></i> Filter Kategori:</span>
+            <a href="{% url 'dispositions:list' %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if not current_type %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
                 <i class="bi bi-grid-3x3-gap me-1"></i> Semua Dokumen
             </a>
             {% for code, label in archive_types %}
-            <a href="{% url 'dispositions:list' %}?type={{ code }}{% if penerima %}&penerima={{ penerima }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {% if current_type == code %}btn-emerald shadow-sm{% else %}btn-outline-secondary{% endif %}">
+            <a href="{% url 'dispositions:list' %}?type={{ code }}{% if penerima %}&penerima={{ penerima }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
                 {{ label }}
             </a>
             {% endfor %}
         </div>
     </div>
-
-    <!-- DOKUMEN TERVERIFIKASI BELUM ADA DISPOSISI -->
+<!-- DOKUMEN TERVERIFIKASI BELUM ADA DISPOSISI -->
     {% if archives_verified_no_dispo %}
     <div class="card-enterprise mb-4 p-3 border-start border-4 border-warning">
         <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
