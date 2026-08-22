@@ -65,51 +65,51 @@
             <div class="flex-grow-1 overflow-auto p-2" id="contactsListContainer">
                 {% for item in user_chat_list %}
                 <a href="{% url 'notifications:chat_inbox_user' item.user.pk %}" 
-                   class="contact-item d-flex align-items-center gap-3 p-2.5 rounded-3 text-decoration-none mb-1 transition-all {% if active_recipient and active_recipient.pk == item.user.pk %}contact-item-active shadow-xs{% else %}text-body hover-bg-light{% endif %}"
+                   class="contact-item d-flex align-items-center gap-3 p-2.5 rounded-2xl text-decoration-none mb-1 transition-all hover:bg-emerald-500/10 dark:hover:bg-slate-800/80 {% if active_recipient and active_recipient.pk == item.user.pk %}bg-emerald-500/15 dark:bg-emerald-500/20 border-l-4 border-emerald-500 shadow-sm{% else %}text-slate-900 dark:text-slate-100{% endif %}"
                    data-name="{{ item.user.employee.full_name|default:item.user.username|lower }}">
                     
                     <div class="position-relative flex-shrink-0">
                         {% if item.user.employee and item.user.employee.photo %}
-                            <img src="{{ item.user.employee.photo.url }}" class="rounded-circle border border-2 border-white shadow-xs" width="44" height="44" style="object-fit: cover;">
+                            <img src="{{ item.user.employee.photo.url }}" class="rounded-circle border border-2 border-white dark:border-slate-800 shadow-xs" width="44" height="44" style="object-fit: cover;">
                         {% else %}
                             <img src="https://ui-avatars.com/api/?name={{ item.user.employee.full_name|default:item.user.username|urlencode }}&background={% if active_recipient and active_recipient.pk == item.user.pk %}10B981&color=FFFFFF{% else %}059669&color=FFFFFF{% endif %}&bold=true" class="rounded-circle shadow-xs" width="44" height="44">
                         {% endif %}
                         {% if item.user.is_online %}
-                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-success border border-2 border-white rounded-circle" title="Online (Akun Aktif)"></span>
+                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-emerald-500 border border-2 border-white dark:border-slate-900 rounded-circle" title="Online (Akun Aktif)"></span>
                         {% else %}
-                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-secondary border border-2 border-white rounded-circle opacity-75" title="{{ item.user.last_seen_display }}"></span>
+                            <span id="online-dot-{{ item.user.pk }}" class="position-absolute bottom-0 end-0 p-1 bg-slate-400 border border-2 border-white dark:border-slate-900 rounded-circle opacity-75" title="{{ item.user.last_seen_display }}"></span>
                         {% endif %}
                     </div>
 
                     <div class="flex-grow-1 overflow-hidden">
                         <div class="d-flex align-items-center justify-content-between mb-0.5">
-                            <h6 class="mb-0 fw-bold small text-truncate text-body" style="max-width: 125px;">
+                            <h6 class="mb-0 fw-bold small text-truncate text-slate-900 dark:text-white font-sans" style="max-width: 125px;">
                                 {{ item.user.employee.full_name|default:item.user.username }}
                             </h6>
                             {% if item.last_message %}
-                            <small class="text-muted extra-small font-mono">
+                            <small class="text-slate-400 dark:text-slate-400 extra-small font-mono">
                                 {{ item.last_message.created_at|date:"H:i" }}
                             </small>
                             {% endif %}
                         </div>
 
                         <div class="d-flex align-items-center justify-content-between">
-                            <small class="text-secondary extra-small text-truncate d-block" style="max-width: 135px;">
+                            <small class="text-slate-500 dark:text-slate-400 extra-small text-truncate d-block" style="max-width: 135px;">
                                 {% if item.last_message %}
-                                    {% if item.last_message.sender == request.user %}<span class="text-emerald font-mono fw-bold">Anda:</span> {% endif %}{{ item.last_message.body }}
+                                    {% if item.last_message.sender == request.user %}<span class="text-emerald-600 dark:text-emerald-400 font-mono fw-bold">Anda:</span> {% endif %}{{ item.last_message.body }}
                                 {% else %}
                                     <em class="opacity-75">Mulai obrolan baru</em>
                                 {% endif %}
                             </small>
 
                             {% if item.unread_count > 0 and active_recipient.pk != item.user.pk %}
-                            <span class="badge bg-danger rounded-circle p-1 extra-small ms-1">{{ item.unread_count }}</span>
+                            <span class="badge bg-rose-500 text-white rounded-circle p-1 extra-small ms-1">{{ item.unread_count }}</span>
                             {% endif %}
                         </div>
                     </div>
                 </a>
                 {% empty %}
-                <div class="text-center py-5 text-muted extra-small">
+                <div class="text-center py-5 text-slate-400 extra-small">
                     <i class="bi bi-people fs-3 d-block mb-1 opacity-50"></i> Tidak ada kontak amil ditemukan.
                 </div>
                 {% endfor %}

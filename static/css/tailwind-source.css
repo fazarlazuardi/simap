@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer components {
+  .btn-tailwind-emerald {
+    @apply bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-bold py-2.5 px-4 rounded-full shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2;
+  }
+  
+  .chat-bubble-tw-out {
+    @apply bg-gradient-to-tr from-emerald-700 to-emerald-500 text-white rounded-2xl rounded-br-sm shadow-sm p-3.5 text-sm leading-relaxed;
+  }
+
+  .chat-bubble-tw-in {
+    @apply bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-2xl rounded-bl-sm shadow-sm border border-slate-200 dark:border-slate-700/70 p-3.5 text-sm leading-relaxed;
+  }
+}

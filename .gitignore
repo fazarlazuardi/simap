@@ -53,3 +53,7 @@ token.json
 .gemini/
 brain/
 scratch/
+
+# Node.js
+node_modules/
+
