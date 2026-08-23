@@ -210,6 +210,13 @@ def is_superadmin_or_kabid_4(user):
 
 @login_required
 def agenda_list(request):
+    query = request.GET.get('q', '').strip()
+    status = request.GET.get('status')
+    disposer = request.GET.get('disposer')
+    archive_type = request.GET.get('type')
+    terkait_user = request.GET.get('terkait_user')
+
+    agendas = Agenda.objects.select_related('archive', 'created_by').prefetch_related(
         'assigned_to',
         Prefetch(
             'archive__dispositions',
