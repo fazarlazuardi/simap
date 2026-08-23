@@ -133,18 +133,19 @@
                 </div>
             </a>
 
-            <!-- CATEGORY 3: SISTEM & AKSES -->
+            <!-- DIREKTORI & DATA PEGAWAI (READ ONLY UNTUK SEMUA AMIL, AKSI MANAGEMENT UNTUK SUPERADMIN) -->
+            <a href="{% url 'users:employee_list' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-sm font-bold transition-all duration-200 text-decoration-none {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'list' or request.resolver_match.url_name == 'employee_detail' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-people-fill text-lg text-sky-400 group-hover:text-sky-300"></i>
+                    <span class="sidebar-text">Direktori & Data Pegawai</span>
+                </div>
+            </a>
+
+            <!-- CATEGORY 3: SISTEM & AKSES SUPERADMIN -->
             {% if user.is_superadmin and not request.session.active_pov %}
             <div class="menu-category-title px-3 pt-3.5 pb-1 text-xs font-extrabold uppercase tracking-wider text-slate-400/90 font-mono border-t border-slate-800/50 mt-2">
                 <i class="bi bi-gear-fill me-1"></i> Administrasi Sistem
             </div>
-
-            <a href="{% url 'users:employee_list' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-sm font-bold transition-all duration-200 text-decoration-none {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'list' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
-                <div class="flex items-center gap-3">
-                    <i class="bi bi-people-fill text-lg text-sky-400 group-hover:text-sky-300"></i>
-                    <span class="sidebar-text">Kelola User</span>
-                </div>
-            </a>
 
             <a href="{% url 'notifications:wa_outbox' %}" class="sidebar-nav-item group flex items-center justify-between px-3.5 py-2.5 my-0.5 rounded-xl text-sm font-bold transition-all duration-200 text-decoration-none {% if request.resolver_match.url_name == 'wa_outbox' %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-900/40 scale-[1.02]{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 hover:translate-x-1{% endif %}">
                 <div class="flex items-center gap-3">
