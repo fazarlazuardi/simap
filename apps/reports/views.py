@@ -1168,11 +1168,13 @@ def calendar_work_view(request):
 
     agenda_dates_json = json.dumps(agenda_dates_map)
 
+    from agendas.views import is_superadmin_or_kabid_4
     return render(request, 'calendar/index.html', {
         'events': events,
         'events_json': json.dumps(events),
         'google_calendar_direct_url': google_cal_url,
         'agenda_dates_json': agenda_dates_json,
+        'can_manage_agenda': is_superadmin_or_kabid_4(request.user),
     })
 
 # Alias for compatibility

@@ -175,10 +175,41 @@ def agenda_list(request):
                 elif sppd_obj.surat_tugas and sppd_obj.surat_tugas.pegawai_ditugaskan.exists():
                     agenda_target.assigned_employees.set(sppd_obj.surat_tugas.pegawai_ditugaskan.all())
     except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning("SPPD agenda backfill notice: %s", e)
+        pass
 
-    agendas = Agenda.objects.select_related('archive', 'created_by').prefetch_related(
+
+def is_superadmin_or_kabid_4(user):
+    """
+    Hanya Superadmin dan Kabid IV (serta POV Kabid 4 / Superadmin) yang diizinkan 
+    melakukan penambahan, pengeditan, atau pengelolaan agenda di Modul Agenda.
+    Pengguna lain hanya memiliki akses Read Only.
+    """
+    if not user or not user.is_authenticated:
+        return False
+    if getattr(user, 'is_superuser', False) or getattr(user, 'is_superadmin', False):
+        return True
+    
+    # Check active POV in session / attribute
+    active_pov = getattr(user, 'active_pov', '')
+    if active_pov in ['superadmin', 'kabid_4']:
+        return True
+
+    if getattr(user, 'is_kabid_4', False):
+        return True
+
+    is_kabid = getattr(user, 'is_kabid', False)
+    bidang = getattr(user, 'active_bidang', '')
+    if not bidang and hasattr(user, 'employee') and user.employee:
+        bidang = getattr(user.employee, 'bidang', '')
+
+    if is_kabid and bidang == 'bidang_4':
+        return True
+
+    return False
+
+
+@login_required
+def agenda_list(request):
         'assigned_to',
         Prefetch(
             'archive__dispositions',
@@ -338,6 +369,7 @@ def agenda_list(request):
         'employees': Employee.objects.filter(is_active=True).order_by('full_name'),
         'google_calendar_direct_url': google_cal_url,
         'agenda_dates_json': agenda_dates_json,
+        'can_manage_agenda': is_superadmin_or_kabid_4(request.user),
     })
 
 
@@ -549,8 +581,10 @@ def agenda_delete(request, pk):
 
 
 @login_required
-@staff_or_kabid_or_pimpinan_required
 def agenda_create(request):
+    if not is_superadmin_or_kabid_4(request.user):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin dan Kabid IV yang berhak menambah agenda kegiatan.")
+        return redirect('agendas:list')
     if request.method == 'POST':
         title = request.POST.get('title')
         location = request.POST.get('location')
