@@ -14,11 +14,13 @@
             </nav>
             <h4 class="fw-bold mb-0" style="color: var(--text-primary);">Profil Smart HRMS & Kepegawaian</h4>
         </div>
+        {% if user.is_superuser or user.is_superadmin %}
         <div>
             <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-emerald fw-bold rounded-pill px-4 shadow-sm text-white" style="background-color: var(--primary);">
                 <i class="bi bi-pencil-square me-2"></i> Edit Master & SK
             </a>
         </div>
+        {% endif %}
     </div>
 </div>
 
@@ -192,18 +194,22 @@
                     {% else %}
                     <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold me-2">Akun Non-aktif</span>
                     {% endif %}
+                    {% if user.is_superuser or user.is_superadmin %}
                     <a href="{% url 'users:employee_edit_master' employee.pk %}" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold">
                         <i class="bi bi-gear me-1"></i> Pengaturan Akun
                     </a>
+                    {% endif %}
                 </div>
             </div>
             {% else %}
             <div class="text-center py-4">
                 <i class="bi bi-person-x fs-1 text-muted d-block mb-2 opacity-50"></i>
                 <p class="text-muted">Pegawai ini belum memiliki akun login sistem SIMAP.</p>
+                {% if user.is_superuser or user.is_superadmin %}
                 <button class="btn btn-success fw-bold rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createUserModal">
                     <i class="bi bi-person-plus me-1"></i> Buat Akun Akses
                 </button>
+                {% endif %}
             </div>
             {% endif %}
         </div>
