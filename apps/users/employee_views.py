@@ -69,7 +69,6 @@ def employee_delete_user(request, emp_pk):
 
 
 @login_required
-@superadmin_required
 def employee_detail(request, pk):
     emp = get_object_or_404(Employee.objects.select_related('dept_relation'), pk=pk)
     user = User.objects.filter(employee=emp).first()
@@ -162,7 +161,6 @@ def employee_edit_master(request, pk):
 
 
 @login_required
-@superadmin_required
 def employee_list(request):
     from django.db.models import Q
     bidang = request.GET.get('bidang')

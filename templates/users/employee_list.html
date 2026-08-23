@@ -188,18 +188,18 @@
                         {% endif %}
                     </td>
                     <td class="text-end">
-                        <div class="d-inline-flex gap-1">
-                            <a href="{% url 'users:employee_detail' emp.pk %}" class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Lihat Profil Lengkap">
-                                <i class="bi bi-eye me-1"></i> Detail
+                        <div class="inline-flex items-center gap-1.5 justify-end">
+                            <a href="{% url 'users:employee_detail' emp.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Lihat Profil Lengkap">
+                                <i class="bi bi-eye-fill"></i> Detail Profil
                             </a>
-                            {% if request.user.is_superadmin and not request.session.active_pov %}
-                            <a href="{% url 'users:employee_edit' emp.pk %}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Edit Data Pegawai">
-                                <i class="bi bi-pencil me-1"></i> Edit
+                            {% if user.is_superuser or user.is_superadmin %}
+                            <a href="{% url 'users:employee_edit' emp.pk %}" class="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit Data Pegawai">
+                                <i class="bi bi-pencil-square"></i> Edit
                             </a>
-                            <form action="{% url 'users:employee_delete' emp.pk %}" method="post" class="d-inline" onsubmit="return confirm('Hapus data pegawai {{ emp.full_name|escapejs }}?')">
+                            <form action="{% url 'users:employee_delete' emp.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Hapus data pegawai {{ emp.full_name|escapejs }}?')">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" title="Hapus Pegawai">
-                                    <i class="bi bi-trash"></i>
+                                <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Pegawai">
+                                    <i class="bi bi-trash-fill text-xs"></i>
                                 </button>
                             </form>
                             {% endif %}

@@ -447,7 +447,6 @@ def category_delete(request, pk):
     return redirect('users:app_settings')
 
 @login_required
-@user_passes_test(superuser_only)
 def user_list(request):
     from django.db.models import Q
     query = request.GET.get('q', '').strip()
