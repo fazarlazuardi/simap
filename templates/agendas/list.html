@@ -423,109 +423,109 @@
                         </form>
                     </td>
 
-                    <!-- Aksi Cepat -->
+                    <!-- Aksi Cepat (Pure Tailwind Professional Badges) -->
                     <td class="text-end">
                         <script type="application/json" id="agenda-notulensi-json-{{ agenda.pk }}">{{ agenda.notulensi_json|safe }}</script>
-                        <div class="d-flex justify-content-end gap-1 flex-wrap">
+                        <div class="inline-flex items-center justify-end gap-1.5 flex-wrap">
                         {% if agenda.status == 'terjadwal' or agenda.status == 'diundur' %}
                             {% if agenda.is_sppd_generated or agenda.sppd_ref %}
                                 <button type="button" 
-                                        class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                        class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
                                         onclick="bukaModalSelesaiSPPD('{{ agenda.pk }}', '{{ agenda.sppd_ref.id|default:'' }}', '{{ agenda.sppd_ref.sppd_number|default:agenda.title|escapejs }}', '{{ agenda.title|escapejs }}')"
                                         title="Input Laporan Hasil & Selesaikan SPPD/Agenda">
-                                    <i class="bi bi-check-lg me-1"></i> Selesai (LHP)
+                                    <i class="bi bi-check-circle-fill"></i> Selesai (LHP)
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold" disabled title="Agenda SPPD diedit melalui modul SPPD">
-                                    <i class="bi bi-lock me-1"></i> Edit SPPD
+                                <button type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-[11px] cursor-not-allowed border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1" disabled title="Agenda SPPD diedit melalui modul SPPD">
+                                    <i class="bi bi-lock-fill"></i> Edit SPPD
                                 </button>
                             {% else %}
                                 {% if not agenda.is_sppd_generated and not agenda.sppd_ref %}
-                                <a href="{% url 'agendas:generate_sppd' agenda.pk %}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Terbitkan SPPD & Surat Tugas untuk Agenda ini">
-                                    <i class="bi bi-briefcase me-1"></i> Terbitkan SPPD
+                                <a href="{% url 'agendas:generate_sppd' agenda.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-xs transition-all text-decoration-none inline-flex items-center gap-1.5" title="Terbitkan SPPD & Surat Tugas untuk Agenda ini">
+                                    <i class="bi bi-briefcase-fill"></i> Terbitkan SPPD
                                 </a>
                                 {% endif %}
 
                                 {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
                                     <button type="button" 
-                                            class="btn btn-enterprise-primary btn-sm rounded-pill px-2.5 py-1 fw-bold shadow-sm" 
+                                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
                                             onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-journal-text me-1"></i> Baca Notulensi
+                                        <i class="bi bi-journal-text"></i> Baca Notulensi
                                     </button>
                                     <button type="button" 
-                                            class="btn btn-outline-success btn-sm rounded-pill px-2.5 py-1 fw-bold shadow-sm" 
+                                            class="px-2.5 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500 text-sky-600 dark:text-sky-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1" 
                                             onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-pencil-square me-1"></i> Edit Notulensi
+                                        <i class="bi bi-pencil-square"></i> Edit Notulensi
                                     </button>
                                 {% else %}
                                     <button type="button" 
-                                            class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm" 
+                                            class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
                                             onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-pencil-square me-1"></i> Input Notulensi
+                                        <i class="bi bi-pencil-square"></i> Input Notulensi
                                     </button>
                                 {% endif %}
 
                                 <button type="button" 
-                                        class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" 
+                                        class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
                                         onclick="bukaModalSelesai('{{ agenda.title|escapejs }}', '{{ agenda.archive.archive_number|default:agenda.title|escapejs }}', '{% url 'agendas:complete' agenda.pk %}')"
                                         title="Selesaikan Agenda Kerja">
-                                    <i class="bi bi-check-lg me-1"></i> Selesai
+                                    <i class="bi bi-check-circle-fill"></i> Selesai
                                 </button>
 
-                                <a href="{% url 'agendas:edit' agenda.pk %}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Edit Agenda">
-                                    <i class="bi bi-pencil me-1"></i> Edit
+                                <a href="{% url 'agendas:edit' agenda.pk %}" class="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit Agenda">
+                                    <i class="bi bi-pencil-square"></i> Edit
                                 </a>
                             {% endif %}
                             
-                            <form action="{% url 'agendas:cancel' agenda.pk %}" method="post" class="d-inline" onsubmit="return confirm('Batalkan agenda {{ agenda.title|escapejs }}?')">
+                            <form action="{% url 'agendas:cancel' agenda.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Batalkan agenda {{ agenda.title|escapejs }}?')">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                                    <i class="bi bi-x-circle me-1"></i> Batal
+                                <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1">
+                                    <i class="bi bi-x-circle"></i> Batal
                                 </button>
                             </form>
                         {% else %}
                             <!-- AGENDA SELESAI -->
                             {% if agenda.is_sppd_generated or agenda.sppd_ref %}
                                 {% if agenda.sppd_ref and agenda.sppd_ref.disposition and agenda.sppd_ref.disposition.archive and agenda.sppd_ref.disposition.archive.latest_report %}
-                                <a href="{% url 'reports:detail' agenda.sppd_ref.disposition.archive.latest_report.pk %}" class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Lihat Rekap Data LHP">
-                                    <i class="bi bi-file-earmark-check-fill me-1"></i> Rekap LHP
+                                <a href="{% url 'reports:detail' agenda.sppd_ref.disposition.archive.latest_report.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-xs transition-all text-decoration-none inline-flex items-center gap-1.5" title="Lihat Rekap Data LHP">
+                                    <i class="bi bi-file-earmark-check-fill"></i> Rekap LHP
                                 </a>
                                 {% endif %}
                             {% else %}
                                 {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
                                     <button type="button" 
-                                            class="btn btn-enterprise-primary btn-sm rounded-pill px-2.5 py-1 fw-bold shadow-sm" 
+                                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
                                             onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-journal-text me-1"></i> Baca Notulensi
+                                        <i class="bi bi-journal-text"></i> Baca Notulensi
                                     </button>
                                     <button type="button" 
-                                            class="btn btn-outline-success btn-sm rounded-pill px-2.5 py-1 fw-bold shadow-sm" 
+                                            class="px-2.5 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500 text-sky-600 dark:text-sky-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1" 
                                             onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-pencil-square me-1"></i> Edit Notulensi
+                                        <i class="bi bi-pencil-square"></i> Edit Notulensi
                                     </button>
                                 {% else %}
                                     <button type="button" 
-                                            class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm" 
+                                            class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
                                             onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-pencil-square me-1"></i> Input Notulensi
+                                        <i class="bi bi-pencil-square"></i> Input Notulensi
                                     </button>
                                 {% endif %}
                             {% endif %}
                             {% if agenda.completed_file %}
-                            <a href="{{ agenda.completed_file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 fw-bold" title="Unduh Berkas Dokumentasi">
-                                <i class="bi bi-file-earmark-arrow-down-fill me-1 text-success"></i> Berkas Foto/PDF
+                            <a href="{{ agenda.completed_file.url }}" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Unduh Berkas Dokumentasi">
+                                <i class="bi bi-file-earmark-arrow-down-fill text-emerald-600"></i> Berkas Foto/PDF
                             </a>
                             {% endif %}
                         {% endif %}
 
-                        <form action="{% url 'agendas:delete' agenda.pk %}" method="post" class="d-inline" onsubmit="return confirm('Hapus agenda {{ agenda.title|escapejs }} ini secara permanen?')">
+                        <form action="{% url 'agendas:delete' agenda.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Hapus agenda {{ agenda.title|escapejs }} ini secara permanen?')">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="Hapus Agenda">
-                                <i class="bi bi-trash me-1"></i> Hapus
+                            <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Agenda">
+                                <i class="bi bi-trash-fill text-xs"></i>
                             </button>
                         </form>
 
-                        <a href="{% if agenda.archive %}{% url 'archives:detail' agenda.archive.pk %}{% else %}#{% endif %}" class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm" title="Detail Agenda/Arsip">
-                            <i class="bi bi-eye"></i>
+                        <a href="{% if agenda.archive %}{% url 'archives:detail' agenda.archive.pk %}{% else %}#{% endif %}" class="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center justify-center" title="Detail Agenda/Arsip">
+                            <i class="bi bi-eye-fill text-xs"></i>
                         </a>
                         </div>
                     </td>
