@@ -225,20 +225,20 @@
 
                             <!-- Aksi Cepat -->
                             <td class="text-end">
-                                <div class="d-flex justify-content-end gap-1 flex-wrap">
-                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Buka Lembar Detail & Notulensi">
-                                        <i class="bi bi-journal-text me-1"></i> Detail & Notulensi
+                                <div class="inline-flex items-center gap-1.5 justify-end flex-wrap">
+                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Buka Lembar Detail & Notulensi">
+                                        <i class="bi bi-journal-text"></i> Detail & Notulensi
                                     </a>
                                     {% if user.is_superuser or user.is_superadmin or user.is_staff or user.is_pimpinan or user.is_kabid or user.employee == mtg.notulis %}
-                                    <a href="{% url 'internal_meetings:edit' mtg.pk %}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Edit Agenda Rapat">
-                                        <i class="bi bi-pencil me-1"></i> Edit
+                                    <a href="{% url 'internal_meetings:edit' mtg.pk %}" class="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit Agenda Rapat">
+                                        <i class="bi bi-pencil-square"></i> Edit
                                     </a>
                                     {% endif %}
                                     {% if user.is_superuser or user.is_superadmin or user.is_staff or user.is_pimpinan %}
-                                    <form action="{% url 'internal_meetings:delete' mtg.pk %}" method="post" class="d-inline" onsubmit="return confirm('Hapus agenda rapat {{ mtg.title|escapejs }}?')">
+                                    <form action="{% url 'internal_meetings:delete' mtg.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Hapus agenda rapat {{ mtg.title|escapejs }}?')">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" title="Hapus Rapat">
-                                            <i class="bi bi-trash"></i>
+                                        <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Rapat">
+                                            <i class="bi bi-trash-fill text-xs"></i>
                                         </button>
                                     </form>
                                     {% endif %}

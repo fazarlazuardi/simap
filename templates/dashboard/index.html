@@ -659,47 +659,73 @@
                     </h3>
                 </div>
 
-                <div class="space-y-3 mb-6">
+                <div class="space-y-2.5 mb-6">
                     {% if can_upload %}
-                    <a href="{% url 'archives:upload' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group">
+                    <a href="{% url 'archives:upload' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg font-bold">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base font-bold shadow-xs">
                                 <i class="bi bi-cloud-arrow-up-fill"></i>
                             </div>
                             <div>
-                                <span class="font-bold block text-xs text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 transition-colors">Unggah Arsip Baru</span>
-                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Registrasi Surat / Proposal Bantuan</span>
+                                <span class="font-extrabold block text-xs text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 transition-colors">Unggah Arsip Baru</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">Registrasi Surat Masuk & Proposal</span>
                             </div>
                         </div>
-                        <i class="bi bi-chevron-right text-slate-400 group-hover:text-emerald-600 transition-colors text-xs"></i>
+                        <i class="bi bi-arrow-right-short text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all text-lg"></i>
                     </a>
                     {% endif %}
 
-                    <a href="{% url 'dispositions:list' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-amber-50 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group">
+                    <a href="{% url 'dispositions:list' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-amber-50 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg font-bold">
+                            <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base font-bold shadow-xs">
                                 <i class="bi bi-send-fill"></i>
                             </div>
                             <div>
-                                <span class="font-bold block text-xs text-slate-900 dark:text-slate-100 group-hover:text-amber-600 transition-colors">Kotak Disposisi Digital</span>
-                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Proses / Teruskan Disposisi Pimpinan</span>
+                                <span class="font-extrabold block text-xs text-slate-900 dark:text-slate-100 group-hover:text-amber-600 transition-colors">Kotak Disposisi Digital</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">Proses / Teruskan Instruksi Pimpinan</span>
                             </div>
                         </div>
-                        <i class="bi bi-chevron-right text-slate-400 group-hover:text-amber-600 transition-colors text-xs"></i>
+                        <i class="bi bi-arrow-right-short text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all text-lg"></i>
+                    </a>
+
+                    <a href="{% url 'internal_meetings:create' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-sky-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center text-base font-bold shadow-xs">
+                                <i class="bi bi-calendar-event-fill"></i>
+                            </div>
+                            <div>
+                                <span class="font-extrabold block text-xs text-slate-900 dark:text-slate-100 group-hover:text-sky-600 transition-colors">Agenda Rapat Internal</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">Jadwalkan Rapat & Input Notulensi</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-arrow-right-short text-slate-400 group-hover:text-sky-600 group-hover:translate-x-1 transition-all text-lg"></i>
+                    </a>
+
+                    <a href="{% url 'surat_tugas:create' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-base font-bold shadow-xs">
+                                <i class="bi bi-file-earmark-plus-fill"></i>
+                            </div>
+                            <div>
+                                <span class="font-extrabold block text-xs text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">Buat Surat Tugas & SPPD</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">Terbitkan Dokumen Penugasan Amil</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-arrow-right-short text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all text-lg"></i>
                     </a>
 
                     {% if user.is_superadmin and not request.session.active_pov %}
-                    <a href="{% url 'users:list' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-sky-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group">
+                    <a href="{% url 'users:list' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-purple-50 dark:hover:bg-purple-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center text-lg font-bold">
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base font-bold shadow-xs">
                                 <i class="bi bi-people-fill"></i>
                             </div>
                             <div>
-                                <span class="font-bold block text-xs text-slate-900 dark:text-slate-100 group-hover:text-sky-600 transition-colors">Kelola User & Role</span>
-                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Manajemen Hak Akses Amil/Staf</span>
+                                <span class="font-extrabold block text-xs text-slate-900 dark:text-slate-100 group-hover:text-purple-600 transition-colors">Kelola User & Amil</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">Manajemen Hak Akses & Akun</span>
                             </div>
                         </div>
-                        <i class="bi bi-chevron-right text-slate-400 group-hover:text-sky-600 transition-colors text-xs"></i>
+                        <i class="bi bi-arrow-right-short text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all text-lg"></i>
                     </a>
                     {% endif %}
                 </div>
