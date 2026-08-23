@@ -157,8 +157,11 @@
         </div>
         <div class="col-lg-5 text-lg-end">
             <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                <a href="{% url 'agendas:create' %}" class="gcal-create-btn text-decoration-none">
-                    <i class="bi bi-plus-lg fs-5"></i> Buat Agenda Baru
+                <a href="{% url 'agendas:create' %}" class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-sm shadow-lg shadow-emerald-600/30 hover:shadow-xl hover:shadow-emerald-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all text-decoration-none group border border-white/20">
+                    <span class="w-7 h-7 rounded-xl bg-white/20 text-white flex items-center justify-center font-black text-base shadow-xs group-hover:scale-110 group-hover:bg-white group-hover:text-emerald-700 transition-all">
+                        <i class="bi bi-plus-lg"></i>
+                    </span>
+                    <span class="tracking-tight">Buat Agenda Baru</span>
                 </a>
                 <a href="{% url 'agendas:list' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
                     <i class="bi bi-list-task me-1"></i> Daftar Agenda Master
