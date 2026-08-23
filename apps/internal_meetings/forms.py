@@ -7,14 +7,37 @@ from users.models import Employee
 def get_ordered_employee_queryset():
     return Employee.objects.filter(is_active=True).annotate(
         rank=Case(
+            When(position__icontains='wakil ketua iv', then=Value(5)),
+            When(position__icontains='wakil ketua 4', then=Value(5)),
+            When(position__icontains='waka iv', then=Value(5)),
+            When(position__icontains='waka 4', then=Value(5)),
+            When(position__icontains='wakil ketua iii', then=Value(4)),
+            When(position__icontains='wakil ketua 3', then=Value(4)),
+            When(position__icontains='waka iii', then=Value(4)),
+            When(position__icontains='waka 3', then=Value(4)),
+            When(position__icontains='wakil ketua ii', then=Value(3)),
+            When(position__icontains='wakil ketua 2', then=Value(3)),
+            When(position__icontains='waka ii', then=Value(3)),
+            When(position__icontains='waka 2', then=Value(3)),
+            When(position__icontains='wakil ketua i', then=Value(2)),
+            When(position__icontains='wakil ketua 1', then=Value(2)),
+            When(position__icontains='waka i', then=Value(2)),
+            When(position__icontains='waka 1', then=Value(2)),
             When(position__icontains='ketua', then=Value(1)),
-            When(position__icontains='waka', then=Value(2)),
-            When(position__icontains='kabid', then=Value(3)),
-            When(position__icontains='kepala', then=Value(3)),
-            When(position__icontains='kasubid', then=Value(4)),
-            When(position__icontains='staf', then=Value(5)),
-            When(position__icontains='pelaksana', then=Value(5)),
-            default=Value(6),
+            When(position__icontains='kabid iv', then=Value(9)),
+            When(position__icontains='kabid 4', then=Value(9)),
+            When(position__icontains='kabid iii', then=Value(8)),
+            When(position__icontains='kabid 3', then=Value(8)),
+            When(position__icontains='kabid ii', then=Value(7)),
+            When(position__icontains='kabid 2', then=Value(7)),
+            When(position__icontains='kabid i', then=Value(6)),
+            When(position__icontains='kabid 1', then=Value(6)),
+            When(position__icontains='kabid', then=Value(10)),
+            When(position__icontains='kepala', then=Value(10)),
+            When(position__icontains='sekretaris', then=Value(11)),
+            When(position__icontains='staf', then=Value(12)),
+            When(position__icontains='pelaksana', then=Value(12)),
+            default=Value(13),
             output_field=IntegerField(),
         )
     ).order_by('rank', 'full_name')
@@ -60,6 +83,12 @@ class InternalMeetingForm(forms.ModelForm):
         required=False,
         label="Peserta Rapat Internal (Amil / Pegawai BAZNAS)"
     )
+    send_wa = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Kirim Notifikasi Undangan WA Gateway ke Pimpinan & Peserta Rapat",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch'})
+    )
 
     class Meta:
         model = InternalMeeting
@@ -103,18 +132,12 @@ class NotulensiForm(forms.ModelForm):
         required=False,
         label="Notulis Rapat"
     )
-    participants = EmployeeChoiceField(
-        queryset=Employee.objects.none(),
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        required=False,
-        label="Peserta Hadir Rapat"
-    )
 
     class Meta:
         model = InternalMeeting
         fields = [
             'notulensi_summary', 'notulensi_decision', 'notulensi_action_items',
-            'notulis', 'participants', 'notulensi_file', 'status'
+            'notulis', 'notulensi_file', 'status'
         ]
         widgets = {
             'notulensi_summary': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Tuliskan ringkasan pembahasan & dinamika rapat...'}),
@@ -127,6 +150,3 @@ class NotulensiForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['notulis'].queryset = get_ordered_employee_queryset()
-        self.fields['participants'].queryset = get_ordered_employee_queryset()
-        if self.instance and self.instance.pk:
-            self.fields['participants'].initial = self.instance.participants.all()

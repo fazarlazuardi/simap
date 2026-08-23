@@ -1,240 +1,452 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
 
-{% block title %}Detail Rapat - {{ meeting.title }} - BAZNAS{% endblock %}
+{% block title %}Detail Rapat - {{ meeting.title }} - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 <style>
-    .notulensi-content ol, .notulensi-content ul {
-        padding-left: 1.5rem;
-        margin-bottom: 0.5rem;
-    }
-    .notulensi-content ul {
-        list-style-type: disc !important;
-    }
-    .notulensi-content ol {
-        list-style-type: decimal;
-    }
-    .notulensi-content li[data-list="bullet"],
-    .notulensi-content ol li[data-list="bullet"],
-    .notulensi-content ul li[data-list="bullet"] {
-        list-style-type: disc !important;
-    }
-    .notulensi-content li[data-list="ordered"],
-    .notulensi-content ol li[data-list="ordered"],
-    .notulensi-content ul li[data-list="ordered"] {
-        list-style-type: decimal !important;
-    }
-    .notulensi-content ol ul, .notulensi-content ul ul, .notulensi-content ol li ul {
-        list-style-type: disc !important;
-        padding-left: 1.5rem;
-    }
-    .notulensi-content ol[type="a"], .notulensi-content ol[type="a" i], .notulensi-content ol.type-a, .notulensi-content ol ol {
-        list-style-type: lower-alpha;
-    }
-    .notulensi-content ol[type="I"], .notulensi-content ol[type="I" i], .notulensi-content ol ol ol {
-        list-style-type: lower-roman;
-    }
-    .notulensi-content li.ql-indent-1, .notulensi-content .ql-indent-1 { padding-left: 1.5em; }
-    .notulensi-content li.ql-indent-2, .notulensi-content .ql-indent-2 { padding-left: 3.0em; }
-    .notulensi-content li.ql-indent-3, .notulensi-content .ql-indent-3 { padding-left: 4.5em; }
-    .notulensi-content p {
-        margin-bottom: 0.35rem;
-    }
-    .notulensi-content p:last-child {
-        margin-bottom: 0;
-    }
+    /* Rich Notulensi Reader Typography */
+    .notulensi-content ol, .notulensi-content ul { padding-left: 1.5rem; margin-bottom: 0.5rem; }
+    .notulensi-content ul { list-style-type: disc !important; }
+    .notulensi-content ol { list-style-type: decimal; }
+    .notulensi-content li[data-list="bullet"], .notulensi-content ol li[data-list="bullet"], .notulensi-content ul li[data-list="bullet"] { list-style-type: disc !important; }
+    .notulensi-content li[data-list="ordered"], .notulensi-content ol li[data-list="ordered"], .notulensi-content ul li[data-list="ordered"] { list-style-type: decimal !important; }
+    .notulensi-content p { margin-bottom: 0.35rem; }
+    .notulensi-content p:last-child { margin-bottom: 0; }
 
     /* Quill Editor Theme Styling & Dark Mode Compatibility */
     .ql-container {
-        border-bottom-left-radius: 0.5rem;
-        border-bottom-right-radius: 0.5rem;
+        border-bottom-left-radius: 0.75rem;
+        border-bottom-right-radius: 0.75rem;
         font-family: inherit;
-        font-size: 0.95rem;
-        min-height: 140px;
+        font-size: 0.925rem;
+        min-height: 120px;
     }
     .ql-toolbar {
-        border-top-left-radius: 0.5rem;
-        border-top-right-radius: 0.5rem;
-        background-color: var(--surface-alt, #f8f9fa);
-        border-color: var(--border-color, #dee2e6) !important;
+        border-top-left-radius: 0.75rem;
+        border-top-right-radius: 0.75rem;
+        background-color: var(--surface-alt, #F8FAFC);
+        border-color: var(--border-color, #E2E8F0) !important;
     }
     .ql-container.ql-snow {
-        border-color: var(--border-color, #dee2e6) !important;
-        background-color: var(--card-bg, #ffffff);
-        color: var(--text-primary, #212529);
+        border-color: var(--border-color, #E2E8F0) !important;
+        background-color: var(--card-bg, #FFFFFF);
+        color: var(--text-primary, #0F172A);
     }
-    [data-theme="dark"] .ql-toolbar {
+    html[data-theme="dark"] .ql-toolbar { background-color: #1E293B !important; border-color: #334155 !important; }
+    html[data-theme="dark"] .ql-toolbar .ql-stroke { stroke: #F8FAFC !important; }
+    html[data-theme="dark"] .ql-toolbar .ql-fill { fill: #F8FAFC !important; }
+    html[data-theme="dark"] .ql-toolbar .ql-picker { color: #F8FAFC !important; }
+    html[data-theme="dark"] .ql-toolbar .ql-picker-options { background-color: #1E293B !important; border-color: #334155 !important; color: #F8FAFC !important; }
+    html[data-theme="dark"] .ql-container.ql-snow { background-color: #0F172A !important; border-color: #334155 !important; color: #F8FAFC !important; }
+    html[data-theme="dark"] .ql-editor.ql-blank::before { color: #94A3B8 !important; }
+
+    /* RIGOROUS DARK MODE THEME OVERRIDES (ZERO UNWANTED WHITE) */
+    html[data-theme="dark"] .bg-white,
+    html[data-theme="dark"] .bg-slate-50,
+    html[data-theme="dark"] .bg-emerald-50,
+    html[data-theme="dark"] .bg-cyan-50,
+    html[data-theme="dark"] .bg-blue-50,
+    html[data-theme="dark"] .bg-amber-50,
+    html[data-theme="dark"] .bg-rose-50 {
+        background-color: #0F172A !important;
+        color: #F8FAFC !important;
+    }
+
+    html[data-theme="dark"] .border-slate-200,
+    html[data-theme="dark"] .border-slate-100,
+    html[data-theme="dark"] .border-emerald-200,
+    html[data-theme="dark"] .border-cyan-200,
+    html[data-theme="dark"] .border-blue-200,
+    html[data-theme="dark"] .border-amber-200 {
+        border-color: #334155 !important;
+    }
+
+    html[data-theme="dark"] input[type="text"],
+    html[data-theme="dark"] select,
+    html[data-theme="dark"] textarea,
+    html[data-theme="dark"] .form-control,
+    html[data-theme="dark"] .form-select {
         background-color: #1E293B !important;
-        border-color: #374151 !important;
+        color: #F8FAFC !important;
+        border-color: #334155 !important;
     }
-    [data-theme="dark"] .ql-toolbar .ql-stroke {
-        stroke: #F8FAFC !important;
-    }
-    [data-theme="dark"] .ql-toolbar .ql-fill {
-        fill: #F8FAFC !important;
-    }
-    [data-theme="dark"] .ql-toolbar .ql-picker {
+
+    html[data-theme="dark"] .text-slate-900,
+    html[data-theme="dark"] .text-slate-800,
+    html[data-theme="dark"] .text-slate-700,
+    html[data-theme="dark"] .text-dark {
         color: #F8FAFC !important;
     }
-    [data-theme="dark"] .ql-toolbar .ql-picker-options {
-        background-color: #1E293B !important;
-        border-color: #374151 !important;
-        color: #F8FAFC !important;
+
+    html[data-theme="dark"] .text-slate-600,
+    html[data-theme="dark"] .text-slate-500,
+    html[data-theme="dark"] .text-muted {
+        color: #94A3B8 !important;
     }
-    [data-theme="dark"] .ql-container.ql-snow {
-        background-color: #111827 !important;
-        border-color: #374151 !important;
-        color: #F8FAFC !important;
+
+    html[data-theme="dark"] .modal-content-card {
+        background-color: #0F172A !important;
+        border-color: #334155 !important;
     }
-    [data-theme="dark"] .ql-editor.ql-blank::before {
-        color: #9CA3AF !important;
+
+    /* CORPORATE ENTERPRISE HERO BANNER */
+    .hero-banner-enterprise {
+        background: linear-gradient(135deg, #022C22 0%, #064E3B 40%, #0D8A52 80%, #0F172A 100%);
+        border-radius: 1.5rem;
+        padding: 2rem 2.25rem;
+        box-shadow: 0 20px 40px -15px rgba(6, 78, 59, 0.4);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .hero-banner-enterprise::before {
+        content: '';
+        position: absolute;
+        top: -40%;
+        right: -10%;
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, rgba(52, 211, 153, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* ENTERPRISE CARDS WITH HOVER LIFT ANIMATION */
+    .card-enterprise {
+        background: var(--card-bg, #ffffff);
+        border: 1px solid var(--border-color, #E2E8F0);
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
+    }
+    .card-enterprise:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px -8px rgba(13, 138, 82, 0.15);
+        border-color: rgba(16, 185, 129, 0.35);
+    }
+    html[data-theme="dark"] .card-enterprise {
+        background: #0F172A !important;
+        border-color: #334155 !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    html[data-theme="dark"] .card-enterprise:hover {
+        border-color: rgba(52, 211, 153, 0.35) !important;
+        box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5);
+    }
+
+    .decision-callout-enterprise {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.04) 100%);
+        border-left: 4px solid #10B981 !important;
+        border-radius: 1rem;
+        padding: 1.25rem 1.5rem;
+        box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.03);
+    }
+    html[data-theme="dark"] .decision-callout-enterprise {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.06) 100%) !important;
+        border-left: 4px solid #34D399 !important;
+    }
+
+    .avatar-corporate {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10B981 0%, #047857 100%);
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+        transition: transform 0.2s ease;
+    }
+    .avatar-corporate:hover {
+        transform: scale(1.1);
+    }
+
+    /* 🚀 NARROW SLEEK ENTERPRISE MODAL BACKDROP 🚀 */
+    .enterprise-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100000 !important;
+        background-color: rgba(15, 23, 42, 0.65) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    @keyframes modalPopInFigma {
+        0% { opacity: 0; transform: scale(0.96) translateY(8px); }
+        100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-dialog-futuristic {
+        animation: modalPopInFigma 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    /* CUSTOM ELEGANT SCROLLBAR FOR INNER MODAL LISTS */
+    .custom-scroll-container::-webkit-scrollbar {
+        width: 5px;
+    }
+    .custom-scroll-container::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.03);
+        border-radius: 8px;
+    }
+    .custom-scroll-container::-webkit-scrollbar-thumb {
+        background: #10B981;
+        border-radius: 8px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-2">
-    <!-- Header Navigation & Actions -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb m-0 bg-transparent p-0 small">
-                    <li class="breadcrumb-item"><a href="{% url 'internal_meetings:list' %}" class="text-decoration-none" style="color: var(--primary);">Rapat Internal</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ meeting.meeting_number|default:"Detail Rapat" }}</li>
-                </ol>
-            </nav>
-            <h4 class="fw-bold m-0" style="color: var(--text-primary);">
-                <i class="bi bi-people-fill me-2 text-success"></i>{{ meeting.title }}
-            </h4>
-        </div>
-        <div class="d-flex gap-2 flex-wrap">
-            <a href="{% url 'internal_meetings:list' %}" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
-                <i class="bi bi-arrow-left me-1"></i> Kembali
-            </a>
-            <a href="{% url 'internal_meetings:print' meeting.pk %}" target="_blank" class="btn btn-outline-primary rounded-pill px-3 fw-bold">
-                <i class="bi bi-printer me-1"></i> Cetak Notulensi
-            </a>
-            <button type="button" class="btn btn-outline-success rounded-pill px-3 fw-bold" onclick="openWANotifyModal()">
-                <i class="bi bi-whatsapp me-1"></i> Kirim WA Undangan
-            </button>
-            <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="openDetailNotulensiModal()">
-                <i class="bi bi-pencil-square me-1"></i> {% if meeting.is_notulensi_completed %}Edit Notulensi{% else %}Input Notulensi{% endif %}
-            </button>
-            <a href="{% url 'internal_meetings:edit' meeting.pk %}" class="btn btn-warning text-dark rounded-pill px-3 fw-bold">
-                <i class="bi bi-pencil me-1"></i> Edit Agenda
-            </a>
-        </div>
-    </div>
+    <!-- EXECUTIVE HERO BANNER -->
+    <div class="hero-banner-enterprise mb-6">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-xs font-semibold text-emerald-200">
+                    <a href="{% url 'internal_meetings:list' %}" class="hover:text-white transition-colors flex items-center gap-1 text-emerald-200 no-underline">
+                        <i class="bi bi-people-fill text-amber-300"></i> Rapat Internal
+                    </a>
+                    <span>/</span>
+                    <span class="text-white font-extrabold tracking-wide">{{ meeting.meeting_number|default:"Detail Risalah" }}</span>
+                </div>
 
-    <div class="row g-4">
-        <!-- LEFT COLUMN: DETAIL AGENDA RAPAT -->
-        <div class="col-lg-8">
-            <!-- CARD 1: INFORMASI UTAMA RAPAT -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background-color: var(--card-bg);">
-                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
-                    <h6 class="fw-bold mb-0 text-primary">
-                        <i class="bi bi-info-circle-fill me-2"></i>Informasi Pelaksanaan Rapat
-                    </h6>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 backdrop-blur-md uppercase tracking-wider">
+                        <i class="bi bi-tag-fill text-amber-300 me-1"></i> {{ meeting.get_meeting_type_display }}
+                    </span>
                     {% if meeting.status == 'selesai' %}
-                        <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Selesai (Notulensi Terbit)</span>
+                        <span class="px-3.5 py-1 rounded-full text-xs font-extrabold bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 flex items-center gap-1.5">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                            </span>
+                            SELESAI & NOTULENSI TERBIT
+                        </span>
                     {% elif meeting.status == 'berlangsung' %}
-                        <span class="badge bg-primary rounded-pill px-3 py-2"><i class="bi bi-record-fill me-1 text-danger"></i> Sedang Berlangsung</span>
+                        <span class="px-3.5 py-1 rounded-full text-xs font-extrabold bg-rose-500 text-white shadow-lg shadow-rose-500/30 flex items-center gap-1.5">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                            </span>
+                            SEDANG BERLANGSUNG
+                        </span>
+                    {% elif meeting.status == 'dibatalkan' %}
+                        <span class="px-3.5 py-1 rounded-full text-xs font-extrabold bg-slate-700 text-slate-200 flex items-center gap-1.5">
+                            <i class="bi bi-x-circle-fill"></i> DIBATALKAN
+                        </span>
                     {% else %}
-                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-clock me-1"></i> Terjadwal</span>
+                        <span class="px-3.5 py-1 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950 flex items-center gap-1.5">
+                            <i class="bi bi-clock-history"></i> TERJADWAL
+                        </span>
                     {% endif %}
                 </div>
 
-                <div class="card-body p-4">
-                    <div class="row g-3 mb-4">
-                        <div class="col-sm-6">
-                            <span class="text-secondary small d-block fw-bold text-uppercase">Nomor Risalah / Agenda:</span>
-                            <span class="fw-bold text-primary fs-6">{{ meeting.meeting_number|default:"-" }}</span>
-                        </div>
-                        <div class="col-sm-6">
-                            <span class="text-secondary small d-block fw-bold text-uppercase">Jenis Rapat:</span>
-                            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-bold">{{ meeting.get_meeting_type_display }}</span>
-                        </div>
-                        <div class="col-sm-6">
-                            <span class="text-secondary small d-block fw-bold text-uppercase">Waktu Pelaksanaan:</span>
-                            <span class="fw-bold text-dark"><i class="bi bi-calendar-event me-1 text-success"></i>{{ meeting.scheduled_at|date:"l, d F Y" }} - Jam {{ meeting.scheduled_at|date:"H:i" }} WIB</span>
-                        </div>
-                        <div class="col-sm-6">
-                            <span class="text-secondary small d-block fw-bold text-uppercase">Tempat / Ruang:</span>
-                            <span class="fw-bold text-dark"><i class="bi bi-geo-alt me-1 text-danger"></i>{{ meeting.location }}</span>
-                        </div>
-                        <div class="col-sm-6">
-                            <span class="text-secondary small d-block fw-bold text-uppercase">Pimpinan Rapat:</span>
-                            <span class="fw-bold text-dark"><i class="bi bi-person-badge me-1 text-primary"></i>{{ meeting.leader_names_display }}</span>
-                        </div>
-                        <div class="col-sm-6">
-                            <span class="text-secondary small d-block fw-bold text-uppercase">Dibuat Oleh:</span>
-                            <span class="fw-semibold text-secondary">{{ meeting.created_by.username }} ({{ meeting.created_at|date:"d/m/Y H:i" }})</span>
-                        </div>
-                    </div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight m-0">
+                    {{ meeting.title }}
+                </h1>
 
-                    <div class="mb-4">
-                        <span class="text-secondary small d-block fw-bold text-uppercase mb-2">Agenda & Poin Pembahasan:</span>
-                        <div class="p-3 bg-light rounded-3 border fw-semibold text-dark" style="white-space: pre-line;">{{ meeting.agenda_topics }}</div>
-                    </div>
-
-                    {% if meeting.attachment %}
-                    <div class="mb-2">
-                        <span class="text-secondary small d-block fw-bold text-uppercase mb-2">Berkas Undangan / Lampiran:</span>
-                        <a href="{{ meeting.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                            <i class="bi bi-paperclip me-1"></i> Unduh Lampiran Berkas
-                        </a>
-                    </div>
-                    {% endif %}
+                <div class="flex items-center gap-4 text-xs font-medium text-emerald-100/90 flex-wrap pt-0.5">
+                    <span class="flex items-center gap-1.5"><i class="bi bi-calendar-event text-amber-300"></i> {{ meeting.scheduled_at|date:"l, d F Y" }} (Jam {{ meeting.scheduled_at|date:"H:i" }} WIB)</span>
+                    <span class="flex items-center gap-1.5"><i class="bi bi-geo-alt text-cyan-300"></i> {{ meeting.location }}</span>
+                    <span class="flex items-center gap-1.5"><i class="bi bi-person-badge text-white"></i> {{ meeting.leader_names_display }}</span>
                 </div>
             </div>
 
-            <!-- CARD 2: HASIL NOTULENSI RAPAT -->
-            <div class="card border-0 shadow-sm rounded-4" style="background-color: var(--card-bg);">
-                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
-                    <h6 class="fw-bold mb-0 text-success">
-                        <i class="bi bi-journal-text me-2"></i>Hasil Risalah & Notulensi Rapat Internal
-                    </h6>
-                    {% if meeting.notulensi_created_at %}
-                    <span class="small text-muted"><i class="bi bi-clock me-1"></i>Disimpan: {{ meeting.notulensi_created_at|date:"d/m/Y H:i" }}</span>
-                    {% endif %}
+            <!-- ACTION TOOLBAR WITH HOVER ELEVATION -->
+            <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                <a href="{% url 'internal_meetings:list' %}" class="px-4 py-2.5 rounded-full text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md shadow-sm transition-all duration-200 hover:-translate-y-0.5 flex items-center gap-1.5 no-underline">
+                    <i class="bi bi-arrow-left"></i> Kembali
+                </a>
+                <a href="{% url 'internal_meetings:print' meeting.pk %}" target="_blank" class="px-4 py-2.5 rounded-full text-xs font-extrabold bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md transition-all duration-200 hover:-translate-y-0.5 flex items-center gap-1.5 no-underline">
+                    <i class="bi bi-printer-fill"></i> Cetak Risalah PDF
+                </a>
+                <button type="button" onclick="openWANotifyModal()" class="px-4 py-2.5 rounded-full text-xs font-extrabold bg-emerald-500/20 hover:bg-emerald-500 text-white border border-emerald-400/30 backdrop-blur-md shadow-sm transition-all duration-200 hover:-translate-y-0.5 flex items-center gap-1.5 cursor-pointer">
+                    <i class="bi bi-whatsapp"></i> Undangan WA
+                </button>
+                <button type="button" onclick="openDetailNotulensiModal()" class="px-5 py-2.5 rounded-full text-xs font-extrabold bg-emerald-500 hover:bg-emerald-400 text-white shadow-lg shadow-emerald-500/30 transition-all duration-200 hover:-translate-y-0.5 flex items-center gap-1.5 cursor-pointer border-0">
+                    <i class="bi bi-pencil-square"></i> {% if meeting.is_notulensi_completed %}Edit Notulensi{% else %}Input Notulensi{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 EXECUTIVE METRIC CARDS WITH HOVER LIFT -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="card-enterprise p-4 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg font-bold">
+                <i class="bi bi-hash"></i>
+            </div>
+            <div>
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Nomor Agenda</span>
+                <span class="font-extrabold text-slate-900 dark:text-white text-sm font-mono">{{ meeting.meeting_number|default:"-" }}</span>
+            </div>
+        </div>
+
+        <div class="card-enterprise p-4 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg font-bold">
+                <i class="bi bi-calendar-event"></i>
+            </div>
+            <div>
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Jadwal Pelaksanaan</span>
+                <span class="font-bold text-slate-900 dark:text-white text-xs block">{{ meeting.scheduled_at|date:"d M Y" }} - {{ meeting.scheduled_at|date:"H:i" }} WIB</span>
+            </div>
+        </div>
+
+        <div class="card-enterprise p-4 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg font-bold">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <div>
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Lokasi Ruangan</span>
+                <span class="font-bold text-slate-900 dark:text-white text-xs block truncate max-w-[150px]">{{ meeting.location }}</span>
+            </div>
+        </div>
+
+        <div class="card-enterprise p-4 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg font-bold">
+                <i class="bi bi-people"></i>
+            </div>
+            <div>
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Presensi Amil Hadir</span>
+                <span class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm block">{{ meeting.participants.count }} Amil Recorded</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CORPORATE 3-STEP WORKFLOW TIMELINE -->
+    <div class="card-enterprise p-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <!-- TAHAP 1 -->
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 transition-all hover:scale-[1.01]">
+                <div class="w-8 h-8 min-w-[32px] rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-xs shadow-md shadow-emerald-600/30">1</div>
+                <div>
+                    <span class="font-extrabold text-xs text-emerald-900 dark:text-emerald-300 block">1. Penjadwalan & Undangan</span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Agenda Rapat & Undangan WA</span>
                 </div>
+            </div>
+            <!-- TAHAP 2 -->
+            <div class="flex items-center gap-3 p-3 rounded-xl {% if meeting.participants.exists or meeting.leaders.exists %}bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800{% else %}bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800{% endif %} transition-all hover:scale-[1.01]">
+                <div class="w-8 h-8 min-w-[32px] rounded-full {% if meeting.participants.exists or meeting.leaders.exists %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-400 text-white{% endif %} flex items-center justify-center font-extrabold text-xs">2</div>
+                <div>
+                    <span class="font-extrabold text-xs text-slate-900 dark:text-slate-200 block">2. Presensi Kehadiran</span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 block">
+                        {% if meeting.participants.exists %}{{ meeting.participants.count }} Amil/Pegawai Hadir{% else %}Presensi Pimpinan & Pegawai{% endif %}
+                    </span>
+                </div>
+            </div>
+            <!-- TAHAP 3 -->
+            <div class="flex items-center gap-3 p-3 rounded-xl {% if meeting.is_notulensi_completed %}bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800{% else %}bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800{% endif %} transition-all hover:scale-[1.01]">
+                <div class="w-8 h-8 min-w-[32px] rounded-full {% if meeting.is_notulensi_completed %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-400 text-white{% endif %} flex items-center justify-center font-extrabold text-xs">3</div>
+                <div>
+                    <span class="font-extrabold text-xs text-slate-900 dark:text-slate-200 block">3. Risalah Notulensi Digital</span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 block">
+                        {% if meeting.is_notulensi_completed %}Terbit di Agenda Kerja{% else %}Simpan & Terbitkan Risalah{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="card-body p-4">
+    <!-- MAIN BODY GRID (8 COLS & 4 COLS) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        <!-- LEFT COLUMN: SEGMENTED TABS CONTENT (8 COLS) -->
+        <div class="lg:col-span-8 space-y-6">
+            <!-- TAB NAVIGATION SYSTEM WITH HOVER ANIMATION -->
+            <div class="card-enterprise p-2">
+                <div class="flex flex-wrap gap-2" id="detailTabList">
+                    <button type="button" onclick="switchDetailTab('notulensi')" id="btn-tab-notulensi" class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer border-0 {% if meeting.is_notulensi_completed %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/25{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800{% endif %}">
+                        <i class="bi bi-journal-check me-1.5"></i> 📜 Risalah Notulensi Resmi
+                    </button>
+                    <button type="button" onclick="switchDetailTab('info')" id="btn-tab-info" class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer border-0 {% if not meeting.is_notulensi_completed %}bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/25{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800{% endif %}">
+                        <i class="bi bi-info-circle me-1.5"></i> 📋 Informasi & Agenda Rapat
+                    </button>
+                    <button type="button" onclick="switchDetailTab('action')" id="btn-tab-action" class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer border-0 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5">
+                        <i class="bi bi-lightning-charge text-amber-500"></i> ⚡ Action Plan
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">{{ action_items|length }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 1: RISALAH NOTULENSI RESMI -->
+            <div id="pane-tab-notulensi" class="tab-pane {% if not meeting.is_notulensi_completed %}hidden{% endif %}">
+                <div class="card-enterprise p-6 space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 flex-wrap gap-2">
+                        <div>
+                            <h3 class="text-base font-extrabold text-emerald-600 dark:text-emerald-400 m-0 flex items-center gap-2">
+                                <i class="bi bi-journal-text"></i> Dokumen Risalah & Notulensi Digital
+                            </h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 block mt-1">
+                                <i class="bi bi-clock me-1"></i>Terakhir Disimpan: {{ meeting.notulensi_created_at|date:"d/m/Y H:i"|default:"-" }}
+                            </span>
+                        </div>
+                        {% if meeting.is_notulensi_completed %}
+                        <a href="{% url 'internal_meetings:print' meeting.pk %}" target="_blank" class="px-4 py-2 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition-all duration-200 hover:-translate-y-0.5 flex items-center gap-1.5 no-underline">
+                            <i class="bi bi-printer"></i> Cetak Versi Resmi
+                        </a>
+                        {% endif %}
+                    </div>
+
                     {% if meeting.is_notulensi_completed %}
-                        <div class="mb-4">
-                            <span class="text-secondary small d-block fw-bold text-uppercase mb-2 text-primary"><i class="bi bi-chat-left-text me-1"></i> 1. Ringkasan Pembahasan & Risalah Rapat:</span>
-                            <div class="p-3 bg-light rounded-3 border text-dark notulensi-content">{{ meeting.notulensi_summary|default:"-"|safe }}</div>
+                        <!-- 1. RINGKASAN PEMBAHASAN -->
+                        <div>
+                            <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-2">
+                                <i class="bi bi-chat-left-text-fill me-1"></i> 1. Ringkasan Pembahasan & Risalah Rapat:
+                            </span>
+                            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 notulensi-content text-sm">
+                                {{ meeting.notulensi_summary|default:"-"|safe }}
+                            </div>
                         </div>
 
-                        <div class="mb-4">
-                            <span class="text-secondary small d-block fw-bold text-uppercase mb-2 text-success"><i class="bi bi-check-circle-fill me-1"></i> 2. Kesimpulan & Keputusan Rapat:</span>
-                            <div class="p-3 rounded-3 border text-dark notulensi-content" style="background-color: rgba(13, 138, 82, 0.05); border-color: rgba(13, 138, 82, 0.2) !important;">{{ meeting.notulensi_decision|default:"-"|safe }}</div>
+                        <!-- 2. KESIMPULAN & KEPUTUSAN -->
+                        <div>
+                            <span class="text-xs font-extrabold text-emerald-500 dark:text-emerald-400 uppercase tracking-wider block mb-2">
+                                <i class="bi bi-check-circle-fill me-1"></i> 2. Kesimpulan & Poin Keputusan Rapat:
+                            </span>
+                            <div class="decision-callout-enterprise text-slate-900 dark:text-slate-100 notulensi-content text-sm">
+                                {{ meeting.notulensi_decision|default:"-"|safe }}
+                            </div>
                         </div>
 
-                        <div class="mb-4">
-                            <span class="text-secondary small d-block fw-bold text-uppercase mb-2 text-warning"><i class="bi bi-list-task me-1"></i> 3. Rencana Tindak Lanjut (Action Plan):</span>
-                            <div class="p-3 bg-light rounded-3 border text-dark notulensi-content">{{ meeting.notulensi_action_items|default:"-"|safe }}</div>
+                        <!-- 3. RENCANA TINDAK LANJUT -->
+                        <div>
+                            <span class="text-xs font-extrabold text-amber-500 dark:text-amber-400 uppercase tracking-wider block mb-2">
+                                <i class="bi bi-list-task me-1"></i> 3. Rencana Tindak Lanjut (Action Items Summary):
+                            </span>
+                            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 notulensi-content text-sm">
+                                {{ meeting.notulensi_action_items|default:"-"|safe }}
+                            </div>
                         </div>
 
-                        <div class="row g-3 border-top pt-3">
-                            <div class="col-sm-6">
-                                <span class="text-secondary small d-block fw-bold text-uppercase">Notulis Rapat:</span>
-                                <span class="fw-bold text-dark"><i class="bi bi-pen me-1 text-primary"></i>{{ meeting.notulis_name_display }}</span>
+                        <!-- NOTULIS & DOKUMEN BUKTI -->
+                        <div class="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3">
+                            <div>
+                                <span class="text-xs font-bold text-slate-500 uppercase block">Notulis Rapat:</span>
+                                <span class="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-1.5 mt-0.5">
+                                    <i class="bi bi-pen-fill text-emerald-600"></i> {{ meeting.notulis_name_display }}
+                                </span>
                             </div>
                             {% if meeting.notulensi_file or meeting.notulensi_attachments.exists %}
-                            <div class="col-12 mt-2">
-                                <span class="text-secondary small d-block fw-bold text-uppercase mb-2"><i class="bi bi-paperclip text-success me-1"></i> Dokumen Bukti & Foto Notulensi:</span>
-                                <div class="d-flex flex-wrap gap-2">
+                            <div>
+                                <span class="text-xs font-bold text-slate-500 uppercase block mb-2">Dokumen Bukti & Foto Risalah Lampiran:</span>
+                                <div class="flex flex-wrap gap-2">
                                     {% if meeting.notulensi_file %}
-                                    <a href="{{ meeting.notulensi_file.url }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold">
-                                        <i class="bi bi-file-earmark-arrow-down me-1"></i> Berkas Utama Notulensi
+                                    <a href="{{ meeting.notulensi_file.url }}" target="_blank" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition-all duration-200 hover:-translate-y-0.5 flex items-center gap-1.5 no-underline">
+                                        <i class="bi bi-file-earmark-arrow-down"></i> Berkas Utama Notulensi
                                     </a>
                                     {% endif %}
                                     {% for att in meeting.notulensi_attachments.all %}
-                                    <a href="{{ att.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
-                                        <i class="bi bi-paperclip me-1"></i> {{ att.file_name|default:"Foto / Dokumen Notulensi" }}
+                                    <a href="{{ att.file.url }}" target="_blank" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-cyan-50 text-cyan-700 hover:bg-cyan-600 hover:text-white border border-cyan-200 transition-all duration-200 hover:-translate-y-0.5 flex items-center gap-1.5 no-underline">
+                                        <i class="bi bi-paperclip"></i> {{ att.file_name|default:"Foto / Dokumen Notulensi" }}
                                     </a>
                                     {% endfor %}
                                 </div>
@@ -242,449 +454,641 @@
                             {% endif %}
                         </div>
                     {% else %}
-                        <div class="text-center py-4">
-                            <i class="bi bi-journal-x display-4 text-muted mb-2"></i>
-                            <h6 class="fw-bold text-secondary mb-2">Belum Ada Notulensi Diterbitkan</h6>
-                            <p class="small text-muted mb-3">Notulensi rapat belum diisi. Klik tombol di bawah ini untuk menginput risalah rapat.</p>
-                            <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="openDetailNotulensiModal()">
-                                <i class="bi bi-pencil-square me-1"></i> Input Notulensi Rapat
-                            </button>
+                        <!-- EMPTY STATE -->
+                        <div class="text-center py-12 space-y-3">
+                            <div class="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto text-2xl">
+                                <i class="bi bi-journal-plus"></i>
+                            </div>
+                            <h4 class="font-extrabold text-slate-900 dark:text-white text-base m-0">Belum Ada Risalah Notulensi Diterbitkan</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto m-0">
+                                Notulensi rapat ini belum diisi oleh Notulis. Klik tombol di bawah untuk menulis risalah pembahasan, keputusan rapat, dan action plan.
+                            </p>
+                            <div class="pt-2">
+                                <button type="button" onclick="openDetailNotulensiModal()" class="px-5 py-2.5 rounded-full text-xs font-extrabold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer border-0 inline-flex items-center gap-2">
+                                    <i class="bi bi-pencil-square"></i> Input Notulensi Rapat Sekarang
+                                </button>
+                            </div>
                         </div>
                     {% endif %}
                 </div>
             </div>
-        </div>
 
-        <!-- RIGHT COLUMN: DAFTAR PESERTA & AKSI -->
-        <div class="col-lg-4">
-            <!-- DAFTAR PESERTA -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background-color: var(--card-bg);">
-                <div class="card-header bg-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background-color: var(--card-bg) !important; border-bottom: 1px solid var(--border-color);">
-                    <div class="d-flex align-items-center gap-2">
-                        <h6 class="fw-bold mb-0 text-dark">
-                            <i class="bi bi-people-fill text-primary me-2"></i>Peserta Rapat Hadir
-                        </h6>
-                        <span class="badge bg-primary rounded-circle">{{ meeting.participants.count }}</span>
-                    </div>
-                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" onclick="openAttendanceModal()">
-                        <i class="bi bi-person-gear me-1"></i> Sesuaikan Presensi
-                    </button>
-                </div>
+            <!-- TAB 2: INFORMASI RAPAT & AGENDA -->
+            <div id="pane-tab-info" class="tab-pane {% if meeting.is_notulensi_completed %}hidden{% endif %}">
+                <div class="card-enterprise p-6 space-y-6">
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3 m-0 flex items-center gap-2">
+                        <i class="bi bi-info-circle-fill text-emerald-500"></i> Informasi Pelaksanaan & Agenda Rapat
+                    </h3>
 
-                <div class="card-body p-3">
-                    <div class="d-flex flex-column gap-2" style="max-height: 350px; overflow-y: auto;">
-                        {% for participant in meeting.ordered_participants %}
-                        <div class="p-2 border rounded-3 d-flex align-items-center justify-content-between bg-light">
-                            <div>
-                                <span class="fw-bold d-block small text-dark">{{ participant.full_name }}</span>
-                                <span class="small text-muted" style="font-size: 0.75rem;">{{ participant.position|default:"Staff Pelaksana" }}</span>
-                            </div>
-                            <i class="bi bi-check-circle-fill text-success"></i>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 transition-all hover:scale-[1.01]">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase block">Nomor Risalah / Agenda:</span>
+                            <span class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm font-mono">{{ meeting.meeting_number|default:"-" }}</span>
                         </div>
-                        {% empty %}
-                        <div class="text-center text-muted small py-3">
-                            <i class="bi bi-person-plus text-primary fs-4 d-block mb-1"></i>
-                            Belum ada presensi peserta di-ceklis.<br>
-                            <button type="button" class="btn btn-link btn-sm fw-bold text-decoration-none" onclick="openAttendanceModal()">
-                                Klik di sini untuk menandai peserta yang hadir
-                            </button>
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 transition-all hover:scale-[1.01]">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase block">Jenis Rapat:</span>
+                            <span class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-600 text-white">{{ meeting.get_meeting_type_display }}</span>
                         </div>
-                        {% endfor %}
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 transition-all hover:scale-[1.01]">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase block">Waktu Pelaksanaan:</span>
+                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5 mt-1">
+                                <i class="bi bi-calendar-event text-emerald-500"></i> {{ meeting.scheduled_at|date:"l, d F Y" }} - Jam {{ meeting.scheduled_at|date:"H:i" }} WIB
+                            </span>
+                        </div>
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 transition-all hover:scale-[1.01]">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase block">Tempat / Ruang:</span>
+                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5 mt-1">
+                                <i class="bi bi-geo-alt text-rose-500"></i> {{ meeting.location }}
+                            </span>
+                        </div>
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 transition-all hover:scale-[1.01]">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase block">Pimpinan Rapat:</span>
+                            <span class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5 mt-1">
+                                <i class="bi bi-person-badge text-cyan-500"></i> {{ meeting.leader_names_display }}
+                            </span>
+                        </div>
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 transition-all hover:scale-[1.01]">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase block">Dibuat Oleh:</span>
+                            <span class="font-semibold text-slate-600 dark:text-slate-400 text-xs mt-1 block">{{ meeting.created_by.username }} ({{ meeting.created_at|date:"d/m/Y H:i" }})</span>
+                        </div>
                     </div>
+
+                    <div>
+                        <span class="text-xs font-bold text-slate-500 uppercase block mb-2">Agenda & Poin Pembahasan:</span>
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-sm whitespace-pre-line font-medium">
+                            {{ meeting.agenda_topics }}
+                        </div>
+                    </div>
+
+                    {% if meeting.guest_names %}
+                    <div>
+                        <span class="text-xs font-bold text-slate-500 uppercase block mb-2"><i class="bi bi-building text-amber-500 me-1"></i> Peserta Eksternal / Tamu Undangan:</span>
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs whitespace-pre-line">
+                            {{ meeting.guest_names }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if meeting.attachment %}
+                    <div>
+                        <span class="text-xs font-bold text-slate-500 uppercase block mb-2">Berkas Undangan / Lampiran:</span>
+                        <a href="{{ meeting.attachment.url }}" target="_blank" class="px-4 py-2 rounded-full text-xs font-bold bg-cyan-50 text-cyan-700 hover:bg-cyan-600 hover:text-white border border-cyan-200 transition-all duration-200 hover:-translate-y-0.5 inline-flex items-center gap-1.5 no-underline">
+                            <i class="bi bi-paperclip"></i> Unduh Lampiran Berkas Undangan
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- CARD HAPUS -->
-            <div class="card border-0 shadow-sm rounded-4 p-4 text-center" style="background-color: var(--card-bg);">
-                <form action="{% url 'internal_meetings:delete' meeting.pk %}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menghapus agenda rapat ini?');">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger w-100 rounded-pill fw-bold">
-                        <i class="bi bi-trash me-1"></i> Hapus Agenda Rapat
+            <!-- TAB 3: MONITORING ACTION PLAN -->
+            <div id="pane-tab-action" class="tab-pane hidden">
+                <div class="card-enterprise p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 flex-wrap gap-2">
+                        <div>
+                            <h3 class="text-base font-extrabold text-emerald-600 dark:text-emerald-400 m-0 flex items-center gap-2">
+                                <i class="bi bi-lightning-charge-fill text-amber-500"></i> Monitoring Action Plan (Tindak Lanjut)
+                            </h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">Pantau realisasi tugas & penanggung jawab hasil rapat secara real-time.</span>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                            {{ action_stats.completed }} dari {{ action_stats.total }} Selesai ({{ action_stats.percentage }}%)
+                        </span>
+                    </div>
+
+                    <!-- PROGRESS BAR -->
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2.5 rounded-full transition-all duration-500" style="width: {{ action_stats.percentage }}%;"></div>
+                    </div>
+
+                    <!-- TABEL ACTION ITEMS -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left text-slate-700 dark:text-slate-300">
+                            <thead class="bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase text-[10px] font-extrabold">
+                                <tr>
+                                    <th class="p-3.5 rounded-l-xl">Tugas / Action Item</th>
+                                    <th class="p-3.5">Penanggung Jawab (PIC)</th>
+                                    <th class="p-3.5">Target Waktu</th>
+                                    <th class="p-3.5 text-right rounded-r-xl">Status Realisasi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                {% for item in action_items %}
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all duration-150">
+                                    <td class="p-3.5 font-semibold text-slate-900 dark:text-white">
+                                        {{ item.title }}
+                                        {% if item.notes %}<span class="text-[10px] text-slate-400 block font-normal mt-0.5"><i class="bi bi-chat-left-text me-1"></i>{{ item.notes }}</span>{% endif %}
+                                    </td>
+                                    <td class="p-3.5">
+                                        {% if item.pic %}
+                                        <div class="flex items-center gap-2">
+                                            <div class="avatar-corporate">{{ item.pic.full_name|slice:":1" }}</div>
+                                            <div>
+                                                <span class="font-bold block text-slate-900 dark:text-white text-[11px]">{{ item.pic.full_name }}</span>
+                                                <span class="text-[10px] text-slate-400 block">{{ item.pic.position|default:"Staff" }}</span>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-slate-400">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="p-3.5">
+                                        {% if item.due_date %}
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1">
+                                                <i class="bi bi-calendar-event text-emerald-500"></i>{{ item.due_date|date:"d/m/Y" }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-slate-400">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="p-3.5 text-right">
+                                        {% if item.status == 'completed' %}
+                                            <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 inline-flex items-center gap-1">
+                                                <i class="bi bi-check-circle-fill"></i> Selesai
+                                            </span>
+                                            {% if item.proof_file %}
+                                                <a href="{{ item.proof_file.url }}" target="_blank" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200 hover:bg-cyan-600 hover:text-white transition-all inline-flex items-center gap-0.5 ml-1 no-underline">
+                                                    <i class="bi bi-paperclip"></i> Bukti
+                                                </a>
+                                            {% endif %}
+                                        {% elif item.status == 'in_progress' %}
+                                            <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-blue-500/10 text-blue-500 border border-blue-500/30 inline-flex items-center gap-1">
+                                                <i class="bi bi-arrow-repeat animate-spin"></i> Proses
+                                            </span>
+                                        {% else %}
+                                            <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-500 border border-amber-500/30 inline-flex items-center gap-1">
+                                                <i class="bi bi-clock"></i> Tertunda
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="p-6 text-center text-slate-400">
+                                        <i class="bi bi-list-check text-2xl block mb-1"></i>
+                                        Belum ada Action Item spesifik dicatat untuk rapat ini.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: PRESENSI HADIR & ADMINISTRASI (4 COLS) -->
+        <div class="lg:col-span-4 space-y-6">
+            <!-- CARD DAFTAR PRESENSI PESERTA HADIR WITH HOVER EFFECT -->
+            <div class="card-enterprise p-5 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white m-0 flex items-center gap-1.5">
+                            <i class="bi bi-people-fill text-emerald-500"></i> Presensi Amil Hadir
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500 text-white shadow-sm">{{ meeting.participants.count }}</span>
+                    </div>
+                    <button type="button" onclick="openAttendanceModal()" class="px-3 py-1.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer">
+                        <i class="bi bi-person-gear me-1"></i> Sesuaikan
                     </button>
-                </form>
+                </div>
+
+                <input type="text" id="search_side_participant" class="w-full px-3.5 py-2 rounded-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white" placeholder="🔍 Cari nama amil / jabatan...">
+
+                <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1" id="side_participant_list">
+                    {% for participant in meeting.ordered_participants %}
+                    <div class="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex items-center justify-between side-participant-item transition-all duration-200 hover:translate-x-1 hover:bg-emerald-50/40 dark:hover:bg-slate-800">
+                        <div class="flex items-center gap-2.5">
+                            <div class="avatar-corporate">{{ participant.full_name|slice:":1" }}</div>
+                            <div>
+                                <span class="font-extrabold text-xs text-slate-900 dark:text-white block leading-tight participant-name">{{ participant.full_name }}</span>
+                                <span class="text-[10px] text-slate-400 block leading-tight mt-0.5">{{ participant.position|default:"Staff Pelaksana" }}</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-check-circle-fill text-emerald-500 text-base"></i>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-slate-400 space-y-2">
+                        <i class="bi bi-person-plus text-2xl text-emerald-500 block"></i>
+                        <span class="text-xs block">Belum ada presensi peserta di-ceklis.</span>
+                        <button type="button" onclick="openAttendanceModal()" class="text-xs font-extrabold text-emerald-500 hover:underline cursor-pointer border-0 bg-transparent">
+                            Klik di sini untuk menandai peserta hadir
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- CARD ZONA ADMINISTRASI RAPAT -->
+            <div class="card-enterprise p-5 space-y-3">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block text-center">Opsi Administrasi Agenda</span>
+                <div class="flex flex-col gap-2">
+                    <a href="{% url 'internal_meetings:edit' meeting.pk %}" class="w-full py-2 px-4 rounded-full text-xs font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500 hover:text-slate-950 transition-all duration-200 hover:-translate-y-0.5 text-center no-underline">
+                        <i class="bi bi-pencil me-1"></i> Edit Agenda Rapat
+                    </a>
+                    {% if meeting.status != 'dibatalkan' %}
+                    <button type="button" onclick="openModal('modalCancelMeeting')" class="w-full py-2 px-4 rounded-full text-xs font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-rose-50 hover:text-rose-600 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer">
+                        <i class="bi bi-x-circle me-1"></i> Batalkan Agenda Rapat
+                    </button>
+                    {% endif %}
+                    <form action="{% url 'internal_meetings:delete' meeting.pk %}" method="post" onsubmit="return confirm('Apakah Anda yakin ingin menghapus agenda rapat ini? Data yang dihapus tidak dapat dikembalikan.');">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full py-2 px-4 rounded-full text-xs font-extrabold bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-600 hover:text-white transition-all duration-200 hover:-translate-y-0.5 cursor-pointer">
+                            <i class="bi bi-trash me-1"></i> Hapus Permanen Rapat
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL INPUT / EDIT NOTULENSI -->
-<div class="modal fade" id="modalInputNotulensi" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-success text-white rounded-top-4 py-3">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-pencil-square me-2"></i>Formulir Notulensi & Risalah Rapat
-                </h5>
-                <button type="button" class="btn-close btn-close-white" onclick="closeAllMeetingsModalsPure()" aria-label="Close"></button>
+<!-- ========================================================================= -->
+<!-- 🎨 FIGMA & ODOO ULTRA-SLIM ENTERPRISE MODALS (NARROW 320PX - 480PX) 🎨 -->
+<!-- ========================================================================= -->
+
+<!-- 1. MODAL INPUT / EDIT NOTULENSI (LARGE ENTERPRISE SPEC - MAX-W-[640PX]) -->
+<div id="modalInputNotulensi" class="enterprise-modal-backdrop hidden" style="display: none;">
+    <div class="relative w-full max-w-[640px] modal-content-card bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto modal-dialog-futuristic flex flex-col max-h-[88vh]">
+        <!-- FIGMA HEADER -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950 text-white shrink-0">
+            <h3 class="text-base font-extrabold text-white flex items-center gap-2.5 m-0 tracking-tight">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                    <i class="bi bi-pencil-square text-lg"></i>
+                </div>
+                <span>Formulir Notulensi & Risalah Rapat</span>
+            </h3>
+            <button type="button" onclick="closeModal('modalInputNotulensi')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors flex items-center justify-center border-0 cursor-pointer">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+        </div>
+
+        <form id="formNotulensiModal" method="post" action="{% url 'internal_meetings:notulensi' meeting.pk %}" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden m-0">
+            {% csrf_token %}
+            <div class="p-6 space-y-4 overflow-y-auto flex-1 custom-scroll-container">
+                <div class="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-xl text-xs text-emerald-900 dark:text-emerald-200 font-medium flex items-center gap-2.5">
+                    <i class="bi bi-info-circle-fill text-emerald-600 text-lg"></i>
+                    <div>Rapat: <strong class="font-extrabold">{{ meeting.title }}</strong> ({{ meeting.scheduled_at|date:"d M Y" }})</div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="{{ notulensi_form.notulis.id_for_label }}" class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 font-mono uppercase tracking-wider">Notulis Rapat <span class="text-rose-500">*</span></label>
+                        {{ notulensi_form.notulis }}
+                    </div>
+                    <div>
+                        <label for="{{ notulensi_form.status.id_for_label }}" class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 font-mono uppercase tracking-wider">Status Rapat</label>
+                        {{ notulensi_form.status }}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ notulensi_form.notulensi_summary.id_for_label }}" class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 font-mono uppercase tracking-wider">1. Ringkasan Pembahasan & Risalah Rapat <span class="text-rose-500">*</span></label>
+                    <div id="quill-editor-summary" class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden"></div>
+                    <div class="hidden">{{ notulensi_form.notulensi_summary }}</div>
+                </div>
+
+                <div>
+                    <label for="{{ notulensi_form.notulensi_decision.id_for_label }}" class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 font-mono uppercase tracking-wider">2. Kesimpulan & Keputusan Rapat</label>
+                    <div id="quill-editor-decision" class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden"></div>
+                    <div class="hidden">{{ notulensi_form.notulensi_decision }}</div>
+                </div>
+
+                <div>
+                    <label for="{{ notulensi_form.notulensi_action_items.id_for_label }}" class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 font-mono uppercase tracking-wider">3. Rencana Tindak Lanjut (Action Items)</label>
+                    <div id="quill-editor-action-items" class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden"></div>
+                    <div class="hidden">{{ notulensi_form.notulensi_action_items }}</div>
+                </div>
+
+                <!-- DYNAMIC UPLOAD BERKAS -->
+                <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 space-y-3">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <label class="text-xs font-extrabold text-slate-800 dark:text-slate-200 m-0 uppercase font-mono tracking-wider">
+                            <i class="bi bi-paperclip text-emerald-600 me-1"></i> Upload Dokumen Bukti
+                        </label>
+                        <button type="button" class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-all cursor-pointer border-0" id="btn_add_notulensi_file">
+                            <i class="bi bi-plus-circle-fill me-1"></i> Berkas Baru
+                        </button>
+                    </div>
+
+                    <div id="notulensi_file_inputs_container" class="space-y-2">
+                        <div class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 notulensi-file-row">
+                            <div class="grid grid-cols-1 gap-2 items-center">
+                                <div>
+                                    <input type="file" name="notulensi_files" class="input-enterprise py-1.5 text-xs">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" name="notulensi_file_labels[]" class="input-enterprise py-1.5 text-xs" placeholder="Keterangan Berkas">
+                                    <button type="button" class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all btn-remove-notulensi-file hidden border-0 cursor-pointer shrink-0">
+                                        <i class="bi bi-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if meeting.notulensi_file or meeting.notulensi_attachments.exists %}
+                    <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase block font-mono"><i class="bi bi-folder-check text-emerald-600 me-1"></i> Berkas Lampiran Tersimpan:</span>
+                        <div class="flex flex-wrap gap-2">
+                            {% if meeting.notulensi_file %}
+                            <a href="{{ meeting.notulensi_file.url }}" target="_blank" class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 no-underline shadow-sm">
+                                <i class="bi bi-file-earmark-check"></i> Berkas Utama
+                            </a>
+                            {% endif %}
+                            {% for att in meeting.notulensi_attachments.all %}
+                            <div class="inline-flex items-center rounded-lg border border-cyan-200 bg-cyan-50 text-xs overflow-hidden shadow-sm">
+                                <a href="{{ att.file.url }}" target="_blank" class="px-3 py-1 font-bold text-cyan-700 no-underline">
+                                    <i class="bi bi-paperclip"></i> {{ att.file_name|default:"Foto / Dokumen" }}
+                                </a>
+                                <button type="submit" form="formDeleteAtt_{{ att.id }}" class="px-2 py-1 text-rose-600 hover:bg-rose-600 hover:text-white transition-colors border-0 cursor-pointer" onclick="return confirm('Hapus berkas ini?');">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            <form id="formNotulensiModal" method="post" action="{% url 'internal_meetings:notulensi' meeting.pk %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <div class="alert alert-success d-flex align-items-center mb-3">
-                        <i class="bi bi-info-circle-fill fs-5 me-2"></i>
-                        <div>Rapat: <strong>{{ meeting.title }}</strong> ({{ meeting.scheduled_at|date:"d M Y" }})</div>
-                    </div>
 
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label for="{{ notulensi_form.notulis.id_for_label }}" class="form-label fw-bold text-dark">Notulis Rapat <span class="text-danger">*</span></label>
-                            {{ notulensi_form.notulis }}
-                        </div>
-                        <div class="col-md-6">
-                            <label for="{{ notulensi_form.status.id_for_label }}" class="form-label fw-bold text-dark">Status Rapat</label>
-                            {{ notulensi_form.status }}
+            <!-- FIGMA FOOTER -->
+            <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0 rounded-b-2xl">
+                <button type="button" onclick="closeModal('modalInputNotulensi')" class="btn-slate-secondary text-xs px-4 py-2.5">
+                    Batal
+                </button>
+                <button type="submit" class="btn-emerald-primary text-xs px-6 py-2.5">
+                    <i class="bi bi-send-fill me-1.5"></i> Simpan Notulensi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. MODAL PENYESUAIAN PRESENSI PIMPINAN & PESERTA HADIR (LARGE ENTERPRISE SPEC - MAX-W-[640PX]) -->
+<div id="modalAttendanceAdjustment" class="enterprise-modal-backdrop hidden" style="display: none;">
+    <div class="relative w-full max-w-[640px] modal-content-card bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto modal-dialog-futuristic flex flex-col max-h-[88vh]">
+        <!-- FIGMA HEADER -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950 text-white shrink-0">
+            <h3 class="text-base font-extrabold text-white flex items-center gap-2.5 m-0 tracking-tight">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                    <i class="bi bi-person-gear text-lg"></i>
+                </div>
+                <span>Penyesuaian Presensi Hadir Pimpinan & Amil</span>
+            </h3>
+            <button type="button" onclick="closeModal('modalAttendanceAdjustment')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors flex items-center justify-center border-0 cursor-pointer">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+        </div>
+
+        <form method="post" action="{% url 'internal_meetings:update_attendance' meeting.pk %}" class="flex flex-col flex-1 overflow-hidden m-0">
+            {% csrf_token %}
+            <div class="p-6 space-y-4 overflow-y-auto flex-1 custom-scroll-container">
+                <div class="p-3 bg-cyan-50/70 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800/80 rounded-xl text-xs text-cyan-900 dark:text-cyan-200 font-medium flex items-center gap-2.5">
+                    <i class="bi bi-info-circle-fill text-cyan-600 text-lg"></i>
+                    <div>Tandai Pimpinan Rapat dan Amil/Pegawai BAZNAS yang <strong>hadir</strong> pada pelaksanaan rapat ini.</div>
+                </div>
+
+                <!-- PIMPINAN RAPAT -->
+                <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 space-y-3">
+                    <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 m-0 font-mono uppercase tracking-wider">
+                        <i class="bi bi-person-badge text-emerald-600 me-1"></i> Pimpinan Rapat / Presidium
+                    </label>
+                    <input type="text" id="search_modal_leader" class="input-enterprise py-2 text-xs" placeholder="🔍 Cari nama pimpinan rapat...">
+                    <div class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 max-h-[140px] overflow-y-auto custom-scroll-container">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {% for emp in employees %}
+                            {% if 'ketua' in emp.position|lower or 'waka' in emp.position|lower or 'kabid' in emp.position|lower or 'kepala' in emp.position|lower %}
+                            <div class="modal-leader-item">
+                                <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 cursor-pointer m-0 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors">
+                                    <input type="checkbox" name="leaders" value="{{ emp.id }}" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4" {% if emp in meeting.leaders.all %}checked{% endif %}>
+                                    <span class="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">{{ emp.full_name }}</span>
+                                </label>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
                         </div>
                     </div>
+                </div>
 
-                    <!-- Bagian Edit Peserta Hadir Rapat -->
-                    <div class="mb-3 p-3 border rounded-3 bg-light">
-                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                            <label class="form-label fw-bold text-dark m-0"><i class="bi bi-people-fill text-success me-1"></i> Peserta Rapat Hadir</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" id="modal_btn_select_all">
+                <!-- PESERTA HADIR WITH BIDANG FILTER -->
+                <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 space-y-3">
+                    <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 m-0 font-mono uppercase tracking-wider">
+                        <i class="bi bi-people-fill text-emerald-600 me-1"></i> Peserta Rapat (Amil / Pegawai Hadir)
+                    </label>
+
+                    <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <div class="p-1 rounded-xl bg-slate-100 dark:bg-slate-800 inline-flex flex-wrap gap-1 border border-slate-200 dark:border-slate-700" id="presensiModalBidangNav">
+                                <button type="button" class="btn-presensi-bidang px-2.5 py-1 text-xs font-bold rounded-lg border-0 cursor-pointer bg-emerald-600 text-white shadow-sm" data-filter="all">Semua</button>
+                                <button type="button" class="btn-presensi-bidang px-2.5 py-1 text-xs font-semibold rounded-lg border-0 cursor-pointer text-slate-600 dark:text-slate-300" data-filter="bidang_1">Bd I</button>
+                                <button type="button" class="btn-presensi-bidang px-2.5 py-1 text-xs font-semibold rounded-lg border-0 cursor-pointer text-slate-600 dark:text-slate-300" data-filter="bidang_2">Bd II</button>
+                                <button type="button" class="btn-presensi-bidang px-2.5 py-1 text-xs font-semibold rounded-lg border-0 cursor-pointer text-slate-600 dark:text-slate-300" data-filter="bidang_3">Bd III</button>
+                                <button type="button" class="btn-presensi-bidang px-2.5 py-1 text-xs font-semibold rounded-lg border-0 cursor-pointer text-slate-600 dark:text-slate-300" data-filter="bidang_4">Bd IV</button>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" class="px-3 py-1 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition-all cursor-pointer border-0 shadow-sm inline-flex items-center gap-1" onclick="togglePresensiBidangCheckboxes(true)">
                                     <i class="bi bi-check-all me-1"></i> Pilih Semua
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" id="modal_btn_deselect_all">
-                                    <i class="bi bi-x-circle me-1"></i> Batal Semua
+                                <button type="button" class="px-3 py-1 text-xs font-bold rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 hover:bg-rose-600 hover:text-white transition-all cursor-pointer border-0 inline-flex items-center gap-1" onclick="togglePresensiBidangCheckboxes(false)">
+                                    <i class="bi bi-x-circle me-1"></i> Reset
                                 </button>
-                                <span class="badge bg-success rounded-pill px-3" id="modal_participant_counter">0 Hadir</span>
-                            </div>
-                        </div>
-                        <!-- BAR FILTER BIDANG PEGAWAI PADA MODAL NOTULENSI -->
-                        <div class="d-flex align-items-center gap-1 flex-wrap mb-2 p-2 rounded-3 bg-light border" id="modal_bidang_filter_bar">
-                            <span class="small fw-bold text-secondary me-1"><i class="bi bi-funnel-fill text-success me-1"></i>Filter Bidang:</span>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold btn-modal-bidang-filter active btn-primary" data-filter="all">Semua</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter btn-light border" data-filter="bidang_1">Bidang I</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter btn-light border" data-filter="bidang_2">Bidang II</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter btn-light border" data-filter="bidang_3">Bidang III</button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold btn-modal-bidang-filter btn-light border" data-filter="bidang_4">Bidang IV</button>
-                        </div>
-
-                        <input type="text" id="modal_search_participant" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari nama / jabatan peserta rapat...">
-                        
-                        <div class="p-2 rounded-3 border bg-white" style="max-height: 180px; overflow-y: auto;">
-                            <div class="row g-2" id="modal_participant_list">
-                                {% for checkbox in notulensi_form.participants %}
-                                <div class="col-md-6 modal-participant-item" data-emp-id="{{ checkbox.choice_value }}">
-                                    <label class="form-check-label d-flex align-items-center gap-2 m-0 border p-2 rounded-3 w-100 bg-light" style="cursor: pointer;">
-                                        {{ checkbox.tag }}
-                                        <span class="small fw-semibold text-dark">{{ checkbox.choice_label }}</span>
-                                    </label>
-                                </div>
-                                {% endfor %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="{{ notulensi_form.notulensi_summary.id_for_label }}" class="form-label fw-bold text-dark">1. Ringkasan Pembahasan & Risalah Rapat <span class="text-danger">*</span></label>
-                        <div id="quill-editor-summary" class="bg-white"></div>
-                        <div class="d-none">{{ notulensi_form.notulensi_summary }}</div>
+                    <input type="text" id="search_modal_participant" class="input-enterprise py-2 text-xs" placeholder="🔍 Cari nama amil / pegawai...">
+                    
+                    <div class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 max-h-[200px] overflow-y-auto custom-scroll-container">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="presensiModalParticipantContainer">
+                            {% for emp in employees %}
+                            <div class="modal-participant-item presensi-participant-card" data-emp-id="{{ emp.id }}">
+                                <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors m-0">
+                                    <input type="checkbox" name="participants" value="{{ emp.id }}" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 presensi-emp-checkbox" {% if emp in meeting.participants.all %}checked{% endif %}>
+                                    <span class="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">{{ emp.full_name }}</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label for="{{ notulensi_form.notulensi_decision.id_for_label }}" class="form-label fw-bold text-dark">2. Kesimpulan & Keputusan Rapat</label>
-                        <div id="quill-editor-decision" class="bg-white"></div>
-                        <div class="d-none">{{ notulensi_form.notulensi_decision }}</div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                    <input class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer" type="checkbox" id="send_wa_check" name="send_wa" value="on" checked>
+                    <label class="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer m-0" for="send_wa_check">
+                        <i class="bi bi-whatsapp text-emerald-600 me-1"></i> Kirim Notifikasi WA Undangan Otomatis
+                    </label>
+                </div>
+            </div>
+
+            <!-- FIGMA FOOTER -->
+            <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0 rounded-b-2xl">
+                <button type="button" onclick="closeModal('modalAttendanceAdjustment')" class="btn-slate-secondary text-xs px-4 py-2.5">
+                    Batal
+                </button>
+                <button type="submit" class="btn-emerald-primary text-xs px-6 py-2.5">
+                    <i class="bi bi-save me-1.5"></i> Simpan Presensi Hadir
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+                    <i class="bi bi-save me-1"></i> Simpan Presensi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. MODAL KIRIM NOTIFIKASI WA GATEWAY (LARGE ENTERPRISE SPEC - MAX-W-[640PX]) -->
+<div id="modalSendWA" class="enterprise-modal-backdrop hidden" style="display: none;">
+    <div class="relative w-full max-w-[640px] modal-content-card bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto modal-dialog-futuristic flex flex-col max-h-[88vh]">
+        <!-- FIGMA HEADER -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950 text-white shrink-0">
+            <h3 class="text-base font-extrabold text-white flex items-center gap-2.5 m-0 tracking-tight">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                    <i class="bi bi-whatsapp text-lg"></i>
+                </div>
+                <span>Kirim Undangan / Notifikasi WA Gateway</span>
+            </h3>
+            <button type="button" onclick="closeModal('modalSendWA')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors flex items-center justify-center border-0 cursor-pointer">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+        </div>
+
+        <form method="post" action="{% url 'internal_meetings:notify' meeting.pk %}" class="flex flex-col flex-1 overflow-hidden m-0">
+            {% csrf_token %}
+            <!-- FIGMA BODY CONTAINER WITH SMART FLEXIBLE SCROLLING -->
+            <div class="p-6 space-y-5 overflow-y-auto flex-1 custom-scroll-container">
+                <div class="space-y-2.5">
+                    <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-mono">
+                        <i class="bi bi-people-fill text-emerald-600 me-1"></i> Pilih Target Penerima Notifikasi WA:
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/80">
+                        <label class="flex flex-col justify-between gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-emerald-500 transition-colors m-0 shadow-sm relative group">
+                            <div class="flex items-center justify-between">
+                                <input type="radio" name="recipient_type" value="participants" checked class="text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                                <span class="px-2 py-0.5 rounded-full text-[11px] bg-emerald-600 text-white font-extrabold shadow-sm">{{ meeting.participants.count|add:meeting.ordered_leaders|length }}</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-xs text-slate-900 dark:text-white block">Peserta Hadir</span>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Pimpinan & Peserta Rapat</span>
+                            </div>
+                        </label>
+
+                        <label class="flex flex-col justify-between gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-emerald-500 transition-colors m-0 shadow-sm relative group">
+                            <div class="flex items-center justify-between">
+                                <input type="radio" name="recipient_type" value="specific" class="text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                                <span class="px-2 py-0.5 rounded-full text-[11px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/20">Custom</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-xs text-slate-900 dark:text-white block">Spesifik Amil</span>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Centang manual amil</span>
+                            </div>
+                        </label>
+
+                        <label class="flex flex-col justify-between gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-emerald-500 transition-colors m-0 shadow-sm relative group">
+                            <div class="flex items-center justify-between">
+                                <input type="radio" name="recipient_type" value="all" class="text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                                <span class="px-2 py-0.5 rounded-full text-[11px] bg-cyan-600 text-white font-extrabold shadow-sm">All</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-xs text-slate-900 dark:text-white block">Seluruh Amil</span>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Broadcast pegawai</span>
+                            </div>
+                        </label>
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label for="{{ notulensi_form.notulensi_action_items.id_for_label }}" class="form-label fw-bold text-dark">3. Rencana Tindak Lanjut (Action Items)</label>
-                        <div id="quill-editor-action-items" class="bg-white"></div>
-                        <div class="d-none">{{ notulensi_form.notulensi_action_items }}</div>
-                    </div>
-
-                    <!-- BAGIAN DYNAMIC UPLOAD BERKAS & FOTO NOTULENSI (+ TAMBAH BERKAS) -->
-                    <div class="mb-3 p-3 border rounded-3 bg-light">
-                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                            <label class="form-label fw-bold text-dark m-0">
-                                <i class="bi bi-paperclip text-success me-1"></i> Upload Dokumen Bukti & Foto Notulensi <span class="text-muted fw-normal">(Opsional)</span>
-                            </label>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold shadow-sm" id="btn_add_notulensi_file">
-                                <i class="bi bi-plus-circle-fill me-1"></i> Tambah Berkas / Foto Baru
+                <!-- SPESIFIK PEGAWAI CONTAINER (FIGMA SLEEK COMPACT SCROLLBOX) -->
+                <div class="space-y-3 hidden p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80" id="container_specific_employees">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <label class="block text-xs font-bold text-emerald-900 dark:text-emerald-200 m-0"><i class="bi bi-person-check-fill text-emerald-600 me-1"></i> Centang Pegawai WA:</label>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all cursor-pointer border-0 shadow-sm" id="wa_btn_select_all">
+                                <i class="bi bi-check-all me-1"></i> Pilih Semua
+                            </button>
+                            <button type="button" class="px-3 py-1 rounded-lg text-xs font-bold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 hover:bg-rose-600 hover:text-white transition-all cursor-pointer border-0" id="wa_btn_deselect_all">
+                                <i class="bi bi-x-circle me-1"></i> Reset
                             </button>
                         </div>
+                    </div>
 
-                        <!-- KONTEN DINAMIS DAFTAR FILE INPUT -->
-                        <div id="notulensi_file_inputs_container" class="d-flex flex-column gap-2 mb-2">
-                            <div class="card border p-2 rounded-3 bg-white notulensi-file-row">
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-md-6">
-                                        <input type="file" name="notulensi_files" class="form-control form-control-sm rounded-pill px-3">
-                                    </div>
-                                    <div class="col-md-5">
-                                        <input type="text" name="notulensi_file_labels[]" class="form-control form-control-sm rounded-pill px-3" placeholder="Nama / Keterangan Berkas (misal: Foto Suasana Rapat)">
-                                    </div>
-                                    <div class="col-md-1 text-end">
-                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle btn-remove-notulensi-file d-none" title="Hapus Baris Ini">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                    <input type="text" id="search_wa_emp" class="input-enterprise py-2 text-xs" placeholder="🔍 Cari nama amil / pegawai...">
+                    
+                    <!-- INDEPENDENT FIGMA SCROLLBOX (2 COLUMNS) -->
+                    <div class="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 max-h-[190px] overflow-y-auto custom-scroll-container">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="wa_emp_list">
+                            {% for emp in employees %}
+                            <div class="wa-emp-item">
+                                <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors m-0">
+                                    <input type="checkbox" name="specific_employees" value="{{ emp.id }}" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 wa-emp-checkbox">
+                                    <span class="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">{{ emp.full_name }}</span>
+                                </label>
                             </div>
+                            {% endfor %}
                         </div>
-
-                        <div class="form-text small text-muted"><i class="bi bi-info-circle me-1"></i> Klik tombol <strong>+ Tambah Berkas / Foto Baru</strong> di atas jika ingin menambah lebih dari 1 file lampiran.</div>
-
-                        {% if meeting.notulensi_file or meeting.notulensi_attachments.exists %}
-                        <div class="mt-3 p-3 bg-white rounded-3 border">
-                            <span class="small fw-bold text-secondary d-block mb-2"><i class="bi bi-folder-check text-primary me-1"></i> Berkas & Foto Lampiran Tersimpan Saat Ini:</span>
-                            <div class="d-flex flex-wrap gap-2">
-                                {% if meeting.notulensi_file %}
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ meeting.notulensi_file.url }}" target="_blank" class="btn btn-outline-success rounded-pill px-3 fw-bold">
-                                        <i class="bi bi-file-earmark-check me-1"></i> Berkas Utama
-                                    </a>
-                                </div>
-                                {% endif %}
-
-                                {% for att in meeting.notulensi_attachments.all %}
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ att.file.url }}" target="_blank" class="btn btn-outline-primary rounded-start-pill px-3">
-                                        <i class="bi bi-paperclip me-1"></i> {{ att.file_name|default:"Foto / Dokumen" }}
-                                    </a>
-                                    <button type="submit" form="formDeleteAtt_{{ att.id }}" class="btn btn-outline-danger rounded-end-pill px-2" title="Hapus Berkas Ini" onclick="return confirm('Apakah Anda yakin ingin menghapus berkas lampiran ini?');">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
 
-                <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" onclick="closeAllMeetingsModalsPure()">Batal</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="bi bi-send-fill me-1"></i> Simpan & Terbitkan Notulensi
-                    </button>
+                <div>
+                    <label for="custom_message" class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 font-mono uppercase tracking-wider">Catatan Tambahan Pesan WA (Opsional)</label>
+                    <textarea name="custom_message" id="custom_message" class="input-enterprise py-2.5 text-xs" rows="3" placeholder="Tuliskan pesan khusus, catatan risalah, atau arahan penting yang akan disertakan pada WhatsApp broadcast..."></textarea>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- FIGMA FOOTER -->
+            <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0 rounded-b-2xl">
+                <button type="button" onclick="closeModal('modalSendWA')" class="btn-slate-secondary text-xs px-4 py-2.5">
+                    Batal
+                </button>
+                <button type="submit" class="btn-emerald-primary text-xs px-6 py-2.5">
+                    <i class="bi bi-send-fill me-1.5"></i> Kirim Broadcast WA
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- MODAL PENYESUAIAN PRESENSI PIMPINAN & PESERTA HADIR -->
-<div class="modal fade" id="modalAttendanceAdjustment" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-primary text-white rounded-top-4 py-3">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-person-gear me-2"></i>Penyesuaian Presensi Pimpinan & Peserta Hadir
-                </h5>
-                <button type="button" class="btn-close btn-close-white" onclick="closeAllMeetingsModalsPure()" aria-label="Close"></button>
-            </div>
-            <form method="post" action="{% url 'internal_meetings:update_attendance' meeting.pk %}">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <div class="alert alert-info border-0 rounded-3 py-2 px-3 mb-3 small shadow-sm">
-                        <i class="bi bi-info-circle-fill me-1"></i> Tandai Pimpinan Rapat dan daftar Amil yang <strong>benar-benar hadir</strong> dalam rapat ini.
-                    </div>
-
-                    <!-- 1. Pimpinan Rapat -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark mb-1">
-                            <i class="bi bi-person-badge-fill text-primary me-1"></i> Pimpinan Rapat
-                        </label>
-                        <input type="text" id="search_modal_leader" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari pimpinan rapat...">
-                        <div class="p-3 rounded-3 border" style="max-height: 160px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
-                            <div class="row g-2">
-                                {% for emp in employees %}
-                                {% if 'ketua' in emp.position|lower or 'waka' in emp.position|lower or 'kabid' in emp.position|lower or 'kepala' in emp.position|lower %}
-                                <div class="col-md-6 modal-leader-item">
-                                    <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1">
-                                        <input type="checkbox" name="leaders" value="{{ emp.id }}" class="form-check-input" {% if emp in meeting.leaders.all %}checked{% endif %}>
-                                        <span class="small fw-semibold text-dark">{{ emp.full_name }} <span class="text-muted">({{ emp.position|default:"Pimpinan" }})</span></span>
-                                    </label>
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. Peserta Rapat Hadir (Dengan Filter Bidang & Quick Select) -->
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                            <label class="form-label fw-bold text-dark m-0">
-                                <i class="bi bi-people-fill text-success me-1"></i> Peserta Rapat (Amil Hadir)
-                            </label>
-                        </div>
-
-                        <!-- BAR FILTER BIDANG & QUICK SELECT PRESENSI -->
-                        <div class="p-3 mb-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-                            <div class="flex items-center justify-between flex-wrap gap-2">
-                                <div class="p-1 rounded-xl bg-slate-100 dark:bg-slate-800 inline-flex flex-wrap gap-1" id="presensiModalBidangNav">
-                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-extrabold rounded-lg transition-all border-0 cursor-pointer bg-emerald-600 text-white shadow-sm" data-filter="all">Semua Bidang</button>
-                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-bold rounded-lg transition-all border-0 cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-filter="bidang_1">Bidang I</button>
-                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-bold rounded-lg transition-all border-0 cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-filter="bidang_2">Bidang II</button>
-                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-bold rounded-lg transition-all border-0 cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-filter="bidang_3">Bidang III</button>
-                                    <button type="button" class="btn-presensi-bidang px-3 py-1.5 text-xs font-bold rounded-lg transition-all border-0 cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-filter="bidang_4">Bidang IV</button>
-                                </div>
-                                <div class="flex items-center gap-1.5">
-                                    <button type="button" class="px-3 py-1.5 text-[11px] font-extrabold rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 transition-all cursor-pointer inline-flex items-center gap-1" onclick="togglePresensiBidangCheckboxes(true)">
-                                        <i class="bi bi-check-all"></i> Pilih Bidang Ini
-                                    </button>
-                                    <button type="button" class="px-3 py-1.5 text-[11px] font-extrabold rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white border border-rose-200 transition-all cursor-pointer inline-flex items-center gap-1" onclick="togglePresensiBidangCheckboxes(false)">
-                                        <i class="bi bi-x-circle"></i> Batal Bidang Ini
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <input type="text" id="search_modal_participant" class="form-control form-control-sm rounded-pill px-3 mb-2" placeholder="🔍 Cari nama atau jabatan amil...">
-                        <div class="p-3 rounded-3 border" style="max-height: 240px; overflow-y: auto; background-color: var(--surface-alt, #F8FAFC);">
-                            <div class="row g-2" id="presensiModalParticipantContainer">
-                                {% for emp in employees %}
-                                <div class="col-md-6 modal-participant-item presensi-participant-card" data-emp-id="{{ emp.id }}">
-                                    <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1.5 px-2 rounded-2 border border-slate-200 dark:border-slate-700 cursor-pointer">
-                                        <input type="checkbox" name="participants" value="{{ emp.id }}" class="form-check-input presensi-emp-checkbox" {% if emp in meeting.participants.all %}checked{% endif %}>
-                                        <span class="small fw-semibold text-dark dark:text-white">{{ emp.full_name }} <span class="text-muted">({{ emp.position|default:"Staff" }})</span></span>
-                                    </label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-check form-switch p-3 bg-light rounded-3 border">
-                        <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="send_wa_check" name="send_wa" value="on" checked>
-                        <label class="form-check-label fw-bold small text-dark" for="send_wa_check">
-                            <i class="bi bi-whatsapp text-success me-1"></i> Kirim Notifikasi WA Undangan / Pemberitahuan ke HP Peserta Hadir
-                        </label>
-                    </div>
-                </div>
-
-                <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" onclick="closeAllMeetingsModalsPure()">Batal</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="bi bi-save me-1"></i> Simpan Presensi & Hadir
-                    </button>
-                </div>
-            </form>
+<!-- 4. MODAL KONFIRMASI BATALKAN RAPAT (SLIM COMPACT - MAX-W-[320PX]) -->
+<div id="modalCancelMeeting" class="enterprise-modal-backdrop hidden" style="display: none;">
+    <div class="relative w-full max-w-[320px] modal-content-card bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto modal-dialog-futuristic flex flex-col">
+        <!-- FIGMA HEADER -->
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 m-0">
+                <i class="bi bi-x-circle-fill text-rose-500"></i> Pembatalan Rapat
+            </h3>
+            <button type="button" onclick="closeModal('modalCancelMeeting')" class="w-7 h-7 rounded-lg bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center justify-center border-0 cursor-pointer">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
         </div>
-    </div>
-</div>
 
-<!-- MODAL KIRIM NOTIFIKASI WA GATEWAY UNTUK PEGAWAI BAZNAS -->
-<div class="modal fade" id="modalSendWA" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-success text-white rounded-top-4 py-3">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-whatsapp me-2"></i>Kirim Notifikasi WA Gateway Undangan Rapat
-                </h5>
-                <button type="button" class="btn-close btn-close-white" onclick="closeAllMeetingsModalsPure()" aria-label="Close"></button>
+        <form method="post" action="{% url 'internal_meetings:cancel' meeting.pk %}" class="m-0 flex flex-col">
+            {% csrf_token %}
+            <div class="p-5 text-center space-y-2.5">
+                <div class="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center mx-auto text-lg">
+                    <i class="bi bi-calendar-x"></i>
+                </div>
+                <h4 class="font-bold text-slate-900 dark:text-white text-sm m-0">Apakah Anda yakin ingin membatalkan rapat ini?</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 m-0 leading-relaxed">
+                    Status Rapat <strong>"{{ meeting.title }}"</strong> akan diubah menjadi <span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 font-bold text-[10px]">Dibatalkan</span>.
+                </p>
             </div>
-            <form method="post" action="{% url 'internal_meetings:notify' meeting.pk %}">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <!-- Target Recipients Section -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark mb-2">
-                            <i class="bi bi-people-fill text-success me-1"></i> Target Penerima Notifikasi WA:
-                        </label>
-                        <div class="d-flex flex-column gap-2 p-3 bg-light rounded-3 border">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="recipient_type" id="rec_participants" value="participants" checked>
-                                <label class="form-check-label fw-bold text-dark" for="rec_participants">
-                                    Pimpinan & Peserta Hadir Rapat Ini <span class="badge bg-success rounded-pill ms-1">{{ meeting.participants.count|add:meeting.ordered_leaders|length }} Pegawai</span>
-                                </label>
-                                <div class="form-text small text-muted">Dikirimkan khusus ke HP Pimpinan dan Peserta yang tercantum dalam agenda rapat ini.</div>
-                            </div>
-                            <hr class="my-1 text-muted">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="recipient_type" id="rec_specific" value="specific">
-                                <label class="form-check-label fw-bold text-dark" for="rec_specific">
-                                    Pilih Spesifik Pegawai / Amil Terterntu
-                                </label>
-                                <div class="form-text small text-muted">Pilih beberapa nama amil secara khusus dari daftar pegawai BAZNAS.</div>
-                            </div>
-                            <hr class="my-1 text-muted">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="recipient_type" id="rec_all" value="all">
-                                <label class="form-check-label fw-bold text-dark" for="rec_all">
-                                    Broadcast Seluruh Pegawai & Amil BAZNAS <span class="badge bg-primary rounded-pill ms-1">{{ employees|length }} Pegawai</span>
-                                </label>
-                                <div class="form-text small text-muted">Disarankan untuk rapat pleno umum atau pengumuman penting seluruh BAZNAS.</div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Dynamic Container Checkbox Pegawai Spesifik -->
-                    <div id="container_specific_employees" class="mb-4 d-none">
-                        <div class="p-3 border rounded-3 bg-white">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label fw-bold small text-dark m-0">Centang Pegawai Yang Ingin Dikirimkan WA:</label>
-                                <input type="text" id="search_wa_emp" class="form-control form-control-sm rounded-pill px-3" style="max-width: 220px;" placeholder="🔍 Cari nama amil...">
-                            </div>
-                            <div class="p-2 border rounded-3 bg-light" style="max-height: 180px; overflow-y: auto;">
-                                <div class="row g-2">
-                                    {% for emp in employees %}
-                                    <div class="col-md-6 wa-emp-item">
-                                        <label class="participant-checkbox-card d-flex align-items-center gap-2 m-0 w-100 py-1">
-                                            <input type="checkbox" name="specific_employees" value="{{ emp.id }}" class="form-check-input" {% if emp in meeting.participants.all or emp in meeting.ordered_leaders %}checked{% endif %}>
-                                            <span class="small fw-semibold text-dark">{{ emp.full_name }} <span class="text-muted">({{ emp.position|default:"Staff" }})</span></span>
-                                        </label>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Additional Custom Message Field -->
-                    <div class="mb-4">
-                        <label for="custom_message" class="form-label fw-bold text-dark">
-                            <i class="bi bi-pencil-square text-primary me-1"></i> Catatan / Pesan Tambahan <span class="text-muted fw-normal">(Opsional)</span>
-                        </label>
-                        <textarea name="custom_message" id="custom_message" class="form-control" rows="2" placeholder="Contoh: Harap membawa berkas Laporan Pendistribusian Triwulan dan Laptop masing-masing..."></textarea>
-                    </div>
-
-                    <!-- Live Preview WhatsApp Chat Message Card -->
-                    <div class="mb-2">
-                        <label class="form-label fw-bold text-dark mb-1">
-                            <i class="bi bi-chat-dots-fill text-success me-1"></i> Pratinjau Teks Pesan WA Gateway (Format Resmi Islami & Humanis):
-                        </label>
-                        <div class="p-3 rounded-4 shadow-sm text-dark position-relative border" style="background-color: #E7F6E7; font-family: system-ui, -apple-system, sans-serif; font-size: 0.88rem; line-height: 1.5;">
-                            <div class="fw-bold text-success mb-1" style="font-size: 0.78rem;"><i class="bi bi-whatsapp me-1"></i> PESAN MASUK WA GATEWAY SIMAP</div>
-                            <div class="p-3 bg-white rounded-3 shadow-sm text-dark border-start border-success border-4" style="white-space: pre-wrap;">Assalamu'alaikum Warahmatullahi Wabarakatuh,
-
-Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,
-
-Undangan Rapat Internal BAZNAS Kabupaten Tangerang:
-
-• *Judul Rapat:* {{ meeting.title }}
-• *No. Risalah:* {{ meeting.meeting_number|default:"-" }}
-• *Waktu:* {{ meeting.scheduled_at|date:"d/m/Y H:i" }} WIB
-• *Tempat:* {{ meeting.location }}
-• *Pimpinan Rapat:* {{ meeting.leader_names_display }}
-
-• *Agenda Pembahasan:*
-{{ meeting.agenda_topics|default:"-" }}
-
-Mohon untuk dapat bersiap dan menghadiri rapat tepat waktu.
-
-Atas perhatian dan kehadirannya, kami ucapkan terima kasih.
-Wassalamu'alaikum Warahmatullahi Wabarakatuh.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer bg-light rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" onclick="closeAllMeetingsModalsPure()">Batal</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="bi bi-send-fill me-2"></i> Kirim Notifikasi WA Sekarang
-                    </button>
-                </div>
-            </form>
-        </div>
+            <!-- FIGMA FOOTER -->
+            <div class="px-5 py-3 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 shrink-0 rounded-b-2xl">
+                <button type="button" onclick="closeModal('modalCancelMeeting')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 shadow-sm hover:shadow transition-all border-0 cursor-pointer">
+                    <i class="bi bi-x-circle-fill me-1"></i> Batalkan Rapat
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 {% for att in meeting.notulensi_attachments.all %}
-<form id="formDeleteAtt_{{ att.id }}" method="post" action="{% url 'internal_meetings:delete_attachment' att.id %}" class="d-none">
+<form id="formDeleteAtt_{{ att.id }}" method="post" action="{% url 'internal_meetings:delete_attachment' att.id %}" class="hidden">
     {% csrf_token %}
 </form>
 {% endfor %}
@@ -695,66 +1099,106 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.</div>
 <script>
 var quillSummary, quillDecision, quillActionItems;
 
-function openDetailNotulensiModal() {
-    var modalEl = document.getElementById('modalInputNotulensi');
+// =========================================================================
+// 🚀 BULLETPROOF ENTERPRISE MODAL CONTROLLER (100% CLICKABLE & POP-IN) 🚀
+// =========================================================================
+window.openModal = function(modalId) {
+    var modalEl = document.getElementById(modalId);
     if (modalEl) {
-        if (modalEl.parentElement !== document.body) {
-            document.body.appendChild(modalEl);
-        }
-        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.show();
+        modalEl.style.display = 'flex';
+        modalEl.classList.remove('hidden', 'd-none');
+        document.body.style.overflow = 'hidden';
     }
-}
+};
 
-function openAttendanceModal() {
-    var modalEl = document.getElementById('modalAttendanceAdjustment');
+window.closeModal = function(modalId) {
+    var modalEl = document.getElementById(modalId);
     if (modalEl) {
-        if (modalEl.parentElement !== document.body) {
-            document.body.appendChild(modalEl);
-        }
-        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.show();
+        modalEl.style.display = 'none';
+        modalEl.classList.add('hidden');
+        document.body.style.overflow = '';
     }
-}
+};
 
-function openWANotifyModal() {
-    var modalEl = document.getElementById('modalSendWA');
-    if (modalEl) {
-        if (modalEl.parentElement !== document.body) {
-            document.body.appendChild(modalEl);
+window.closeAllModals = function() {
+    ['modalInputNotulensi', 'modalAttendanceAdjustment', 'modalSendWA', 'modalCancelMeeting'].forEach(function(id) {
+        window.closeModal(id);
+    });
+    document.body.style.overflow = '';
+};
+
+window.closeAllMeetingsModalsPure = window.closeAllModals;
+
+window.openDetailNotulensiModal = function() { window.openModal('modalInputNotulensi'); };
+window.openAttendanceModal = function() { window.openModal('modalAttendanceAdjustment'); };
+window.openWANotifyModal = function() { window.openModal('modalSendWA'); };
+
+// Switch Detail Nav Tabs
+window.switchDetailTab = function(tabName) {
+    ['notulensi', 'info', 'action'].forEach(function(t) {
+        var btn = document.getElementById('btn-tab-' + t);
+        var pane = document.getElementById('pane-tab-' + t);
+
+        if (t === tabName) {
+            if (btn) {
+                btn.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer border-0 bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/25';
+            }
+            if (pane) pane.classList.remove('hidden');
+        } else {
+            if (btn) {
+                btn.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer border-0 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+            }
+            if (pane) pane.classList.add('hidden');
         }
-        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.show();
-    }
-}
+    });
+};
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Pindahkan elemen modal langsung ke document.body agar terbebas dari CSS stacking context container-wrapper
-    var modalNotulensi = document.getElementById('modalInputNotulensi');
-    if (modalNotulensi && modalNotulensi.parentElement !== document.body) {
-        document.body.appendChild(modalNotulensi);
-    }
-    var modalAttendance = document.getElementById('modalAttendanceAdjustment');
-    if (modalAttendance && modalAttendance.parentElement !== document.body) {
-        document.body.appendChild(modalAttendance);
-    }
-    var modalSendWA = document.getElementById('modalSendWA');
-    if (modalSendWA && modalSendWA.parentElement !== document.body) {
-        document.body.appendChild(modalSendWA);
+    // Esc key modal close
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            window.closeAllModals();
+        }
+    });
+
+    // Click outside backdrop modal close
+    ['modalInputNotulensi', 'modalAttendanceAdjustment', 'modalSendWA', 'modalCancelMeeting'].forEach(function(id) {
+        var modalEl = document.getElementById(id);
+        if (modalEl) {
+            modalEl.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    window.closeModal(id);
+                }
+            });
+        }
+    });
+
+    // Interactive side participant quick search
+    var searchSideParticipant = document.getElementById('search_side_participant');
+    if (searchSideParticipant) {
+        searchSideParticipant.addEventListener('input', function() {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('.side-participant-item').forEach(function(item) {
+                var txt = item.innerText.toLowerCase();
+                item.style.display = txt.includes(q) ? 'flex' : 'none';
+            });
+        });
     }
 
-    // Toggle radio penerima spesifik di modal WA
+    // Toggle radio recipient modal WA
     var radiosRecipient = document.querySelectorAll('input[name="recipient_type"]');
     var containerSpecific = document.getElementById('container_specific_employees');
     var searchWaEmp = document.getElementById('search_wa_emp');
+    var waBtnSelectAll = document.getElementById('wa_btn_select_all');
+    var waBtnDeselectAll = document.getElementById('wa_btn_deselect_all');
 
     if (radiosRecipient && containerSpecific) {
         radiosRecipient.forEach(function(radio) {
             radio.addEventListener('change', function() {
                 if (this.value === 'specific') {
-                    containerSpecific.classList.remove('d-none');
+                    containerSpecific.classList.remove('hidden');
                 } else {
-                    containerSpecific.classList.add('d-none');
+                    containerSpecific.classList.add('hidden');
                 }
             });
         });
@@ -763,32 +1207,49 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchWaEmp) {
         searchWaEmp.addEventListener('input', function() {
             var q = this.value.toLowerCase();
-            document.querySelectorAll('.wa-emp-item').forEach(function(item) {
+            document.querySelectorAll('#wa_emp_list .wa-emp-item').forEach(function(item) {
                 var txt = item.innerText.toLowerCase();
                 item.style.display = txt.includes(q) ? 'block' : 'none';
             });
         });
     }
 
-    // 2. DYNAMIC UPLOAD BERKAS & FOTO NOTULENSI (+ TAMBAH BERKAS)
+    if (waBtnSelectAll) {
+        waBtnSelectAll.addEventListener('click', function() {
+            document.querySelectorAll('#wa_emp_list .wa-emp-item').forEach(function(item) {
+                if (item.style.display !== 'none') {
+                    var cb = item.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = true;
+                }
+            });
+        });
+    }
+
+    if (waBtnDeselectAll) {
+        waBtnDeselectAll.addEventListener('click', function() {
+            document.querySelectorAll('#wa_emp_list input[type="checkbox"]').forEach(function(cb) {
+                cb.checked = false;
+            });
+        });
+    }
+
+    // Dynamic Upload File Inputs
     var btnAddFile = document.getElementById('btn_add_notulensi_file');
     var fileContainer = document.getElementById('notulensi_file_inputs_container');
 
     if (btnAddFile && fileContainer) {
         btnAddFile.addEventListener('click', function() {
             var newRow = document.createElement('div');
-            newRow.className = 'card border p-2 rounded-3 bg-white notulensi-file-row';
+            newRow.className = 'p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 notulensi-file-row';
             newRow.innerHTML = `
-                <div class="row g-2 align-items-center">
-                    <div class="col-md-6">
-                        <input type="file" name="notulensi_files" class="form-control form-control-sm rounded-pill px-3">
+                <div class="grid grid-cols-1 gap-2 items-center">
+                    <div>
+                        <input type="file" name="notulensi_files" class="w-full text-[11px] rounded-md px-2.5 py-1 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white">
                     </div>
-                    <div class="col-md-5">
-                        <input type="text" name="notulensi_file_labels[]" class="form-control form-control-sm rounded-pill px-3" placeholder="Nama / Keterangan Berkas (misal: Foto Absensi Physical)">
-                    </div>
-                    <div class="col-md-1 text-end">
-                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle btn-remove-notulensi-file" title="Hapus Baris Ini">
-                            <i class="bi bi-trash"></i>
+                    <div class="flex items-center gap-2">
+                        <input type="text" name="notulensi_file_labels[]" class="w-full text-[11px] rounded-md px-2.5 py-1 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white" placeholder="Keterangan Berkas">
+                        <button type="button" class="w-6 h-6 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all btn-remove-notulensi-file border-0 cursor-pointer shrink-0">
+                            <i class="bi bi-trash text-xs"></i>
                         </button>
                     </div>
                 </div>
@@ -814,9 +1275,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 var btn = row.querySelector('.btn-remove-notulensi-file');
                 if (btn) {
                     if (rows.length > 1) {
-                        btn.classList.remove('d-none');
+                        btn.classList.remove('hidden');
                     } else {
-                        btn.classList.add('d-none');
+                        btn.classList.add('hidden');
                     }
                 }
             });
@@ -836,7 +1297,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     quillSummary = new Quill('#quill-editor-summary', {
         theme: 'snow',
-        placeholder: 'Tuliskan ringkasan pembahasan & dinamika rapat (Gunakan toolbar penomoran 1,2,3 / a,b,c)...',
+        placeholder: 'Tuliskan ringkasan pembahasan & dinamika rapat...',
         modules: { toolbar: toolbarOptions }
     });
 
@@ -852,13 +1313,11 @@ document.addEventListener('DOMContentLoaded', function() {
         modules: { toolbar: toolbarOptions }
     });
 
-    // Helper konversi Markdown (hilangkan ** dan ubah jadi <strong>)
     function convertMarkdownToHTML(text) {
         if (!text) return text;
         return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     }
 
-    // Helper penanganan Smart Paste dari WhatsApp / ChatGPT / MS Word
     function setupSmartPaste(quillObj) {
         quillObj.root.addEventListener('paste', function(e) {
             var clipboardData = e.clipboardData || window.clipboardData;
@@ -866,7 +1325,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var text = clipboardData.getData('text/plain');
             var html = clipboardData.getData('text/html');
 
-            // Jika paste berupa teks polos dengan simbol ** atau penomoran 1. 2. a. b.
             if (!html && text && (text.includes('**') || /^(\d+|\[?[a-zA-Z]\]?)[\.\)]\s+/m.test(text) || /^[\-\*\•]\s+/m.test(text))) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -917,7 +1375,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSmartPaste(quillDecision);
     setupSmartPaste(quillActionItems);
 
-    // Filter, Select All, & Counter Peserta Hadir pada Modal
     var modalCheckboxes = document.querySelectorAll('#modal_participant_list input[type="checkbox"]');
     var modalCounter = document.getElementById('modal_participant_counter');
     var modalSearch = document.getElementById('modal_search_participant');
@@ -986,10 +1443,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     updateModalParticipantCounter();
 
-    // --- SMART BIDANG FILTER PADA MODAL NOTULENSI ---
+    // SMART BIDANG FILTER
     var empBidangMapModal = JSON.parse('{{ employee_bidang_json|default:"{}"|escapejs }}');
-    var userBidangModal = '{{ user_bidang|default:"all" }}';
-    var meetingTypeVal = '{{ meeting.meeting_type }}';
 
     document.querySelectorAll('.modal-participant-item').forEach(function(item) {
         var inputCb = item.querySelector('input[type="checkbox"]');
@@ -1003,11 +1458,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function filterModalParticipantsByBidang(bidangCode) {
         document.querySelectorAll('.btn-modal-bidang-filter').forEach(function(btn) {
             if (btn.getAttribute('data-filter') === bidangCode) {
-                btn.classList.add('active', 'btn-primary');
-                btn.classList.remove('btn-light', 'border');
+                btn.className = 'px-2 py-0.5 rounded-md text-[11px] font-bold btn-modal-bidang-filter bg-emerald-600 text-white border-0 cursor-pointer';
             } else {
-                btn.classList.remove('active', 'btn-primary');
-                btn.classList.add('btn-light', 'border');
+                btn.className = 'px-2 py-0.5 rounded-md text-[11px] font-bold btn-modal-bidang-filter bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border-0 cursor-pointer';
             }
         });
 
@@ -1036,10 +1489,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Default to 'all' so employees from ALL Bidangs (1, 2, 3, 4) are visible for presensi
     filterModalParticipantsByBidang('all');
 
-    // Helper untuk load konten awal (HTML / Plain Text legacy)
     function setInitialContent(quillObj, rawVal) {
         if (!rawVal) return;
         var trimmed = rawVal.trim();
@@ -1058,7 +1509,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (decisionInput) setInitialContent(quillDecision, decisionInput.value);
     if (actionItemsInput) setInitialContent(quillActionItems, actionItemsInput.value);
 
-    // Sync back ke textarea saat submit form (dan bersihkan sisa ** jika ada)
     var notulensiForm = document.getElementById('formNotulensiModal');
     if (notulensiForm) {
         notulensiForm.addEventListener('submit', function() {
@@ -1074,6 +1524,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 var htmlAct = convertMarkdownToHTML(quillActionItems.root.innerHTML);
                 actionItemsInput.value = (htmlAct === '<p><br></p>') ? '' : htmlAct;
             }
+
+            var submitBtn = notulensiForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                setTimeout(function() {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Menyimpan Notulensi...';
+                }, 50);
+            }
         });
     }
 
@@ -1081,11 +1539,9 @@ document.addEventListener('DOMContentLoaded', function() {
         openDetailNotulensiModal();
     }
 
-    // Interactive Bidang Filter & Quick Select Controller for Modal Sesuaikan Presensi Hadir
     const presensiNavBtns = document.querySelectorAll('#presensiModalBidangNav .btn-presensi-bidang');
     const presensiCards = document.querySelectorAll('.presensi-participant-card');
 
-    // Attach data-bidang to presensi participant cards
     presensiCards.forEach(card => {
         const empId = card.getAttribute('data-emp-id');
         if (empId) {
@@ -1099,12 +1555,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const filterCode = this.getAttribute('data-filter');
 
             presensiNavBtns.forEach(b => {
-                b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm', 'font-extrabold');
-                b.classList.add('text-slate-600', 'dark:text-slate-300', 'font-bold');
+                b.className = 'btn-presensi-bidang px-2 py-0.5 text-[11px] font-semibold rounded-md border-0 cursor-pointer text-slate-600 dark:text-slate-300';
             });
 
-            this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm', 'font-extrabold');
-            this.classList.remove('text-slate-600', 'dark:text-slate-300', 'font-bold');
+            this.className = 'btn-presensi-bidang px-2 py-0.5 text-[11px] font-bold rounded-md border-0 cursor-pointer bg-emerald-600 text-white';
 
             presensiCards.forEach(card => {
                 const cardBidang = card.getAttribute('data-bidang');

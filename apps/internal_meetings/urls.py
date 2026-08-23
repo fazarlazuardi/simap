@@ -14,8 +14,10 @@ urlpatterns = [
     path('<int:pk>/notulensi/', views.meeting_notulensi, name='notulensi'),
     path('<int:pk>/action-items/<int:item_id>/toggle/', views.toggle_action_item_status, name='toggle_action_item_status'),
     path('<int:pk>/print/', views.meeting_print_notulensi, name='print'),
+    path('<int:pk>/print-notulensi/', views.meeting_print_notulensi, name='print_notulensi'),
     path('<int:pk>/notify/', views.meeting_notify, name='notify'),
     path('<int:pk>/update-attendance/', views.meeting_update_attendance, name='update_attendance'),
+    path('<int:pk>/cancel/', views.meeting_cancel, name='cancel'),
     path('<int:pk>/delete/', views.meeting_delete, name='delete'),
     path('attachments/<int:attachment_id>/delete/', views.delete_notulensi_attachment, name='delete_attachment'),
 ]

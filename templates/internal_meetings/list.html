@@ -195,19 +195,34 @@
                             </td>
 
                             <!-- Pemimpin & Notulis -->
-                            <td>
-                                <div class="mb-1">
-                                    <span class="badge-employee-tag">
-                                        <i class="bi bi-person-fill text-emerald me-1"></i>Pimpinan: {{ mtg.leader_names_display }}
-                                    </span>
+                            <td class="align-middle">
+                                <div class="space-y-1.5 min-w-[190px] max-w-[250px]">
+                                    <div>
+                                        {% with leaders=mtg.ordered_leaders %}
+                                        {% if leaders %}
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-2xs max-w-full cursor-help" title="Pimpinan Rapat: {{ mtg.leader_names_display }}">
+                                                <i class="bi bi-person-badge-fill text-emerald-600 dark:text-emerald-400 text-xs shrink-0"></i>
+                                                <span class="truncate">{{ leaders.0.full_name }}</span>
+                                                {% if leaders|length > 1 %}
+                                                <span class="px-1.5 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-extrabold shrink-0 shadow-2xs">+{{ leaders|length|add:"-1" }}</span>
+                                                {% endif %}
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                                <i class="bi bi-person-fill text-slate-400"></i> Pimpinan BAZNAS
+                                            </span>
+                                        {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    {% if mtg.notulis %}
+                                    <div>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 shadow-2xs max-w-full" title="Notulis Rapat: {{ mtg.notulis.full_name }}">
+                                            <i class="bi bi-pencil-square text-cyan-600 dark:text-cyan-400 text-xs shrink-0"></i>
+                                            <span class="truncate">{{ mtg.notulis.full_name }}</span>
+                                        </span>
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% if mtg.notulis %}
-                                <div>
-                                    <span class="badge-employee-tag">
-                                        <i class="bi bi-pencil-square text-primary me-1"></i>Notulis: {{ mtg.notulis.full_name }}
-                                    </span>
-                                </div>
-                                {% endif %}
                             </td>
 
                             <!-- Status Notulensi -->
@@ -297,19 +312,34 @@
                             </td>
 
                             <!-- Pemimpin & Notulis -->
-                            <td>
-                                <div class="mb-1">
-                                    <span class="badge-employee-tag">
-                                        <i class="bi bi-person-fill text-emerald me-1"></i>Pimpinan: {{ mtg.leader_names_display }}
-                                    </span>
+                            <td class="align-middle">
+                                <div class="space-y-1.5 min-w-[190px] max-w-[250px]">
+                                    <div>
+                                        {% with leaders=mtg.ordered_leaders %}
+                                        {% if leaders %}
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-2xs max-w-full cursor-help" title="Pimpinan Rapat: {{ mtg.leader_names_display }}">
+                                                <i class="bi bi-person-badge-fill text-emerald-600 dark:text-emerald-400 text-xs shrink-0"></i>
+                                                <span class="truncate">{{ leaders.0.full_name }}</span>
+                                                {% if leaders|length > 1 %}
+                                                <span class="px-1.5 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-extrabold shrink-0 shadow-2xs">+{{ leaders|length|add:"-1" }}</span>
+                                                {% endif %}
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                                <i class="bi bi-person-fill text-slate-400"></i> Pimpinan BAZNAS
+                                            </span>
+                                        {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    {% if mtg.notulis %}
+                                    <div>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 shadow-2xs max-w-full" title="Notulis Rapat: {{ mtg.notulis.full_name }}">
+                                            <i class="bi bi-pencil-square text-cyan-600 dark:text-cyan-400 text-xs shrink-0"></i>
+                                            <span class="truncate">{{ mtg.notulis.full_name }}</span>
+                                        </span>
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% if mtg.notulis %}
-                                <div>
-                                    <span class="badge-employee-tag">
-                                        <i class="bi bi-pencil-square text-primary me-1"></i>Notulis: {{ mtg.notulis.full_name }}
-                                    </span>
-                                </div>
-                                {% endif %}
                             </td>
 
                             <!-- Capaian Action Plan -->

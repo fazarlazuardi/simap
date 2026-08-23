@@ -164,13 +164,12 @@ class InternalMeeting(models.Model):
     @property
     def ordered_leaders(self):
         """Mengembalikan daftar pimpinan rapat terurut berdasarkan hirarki jabatan struktural (Ketua -> Waka I -> Waka II -> Waka III -> Waka IV -> Kabid)."""
-        leaders_set = set()
-        if self.leader:
-            leaders_set.add(self.leader)
-        for l in self.leaders.all():
-            leaders_set.add(l)
-
-        leaders_list = list(leaders_set)
+        if self.leaders.exists():
+            leaders_list = list(self.leaders.all())
+        elif self.leader:
+            leaders_list = [self.leader]
+        else:
+            leaders_list = []
 
         def get_rank(emp):
             pos = (emp.position or "").lower().strip()

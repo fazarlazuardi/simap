@@ -832,6 +832,115 @@
         </div>
     </div>
 
+    <!-- ========================================================================= -->
+    <!-- HALAMAN LAMPIRAN BERKAS & FOTO DOKUMENTASI (BUNDEL SATU DOKUMEN CETAK) -->
+    <!-- ========================================================================= -->
+    {% if meeting.notulensi_file or meeting.notulensi_attachments.exists or meeting.attachment %}
+    <div class="page-sheet">
+        <div class="sheet-content">
+            <!-- KOP SURAT FORMAL BERKOTAK -->
+            <div class="kop-box-container">
+                <table class="kop-table">
+                    <tr>
+                        <td class="kop-logo-td">
+                            <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS"
+                                onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="kop-instansi">BADAN AMIL ZAKAT NASIONAL</span><br>
+                            <span class="kop-subinstansi">KABUPATEN TANGERANG</span><br>
+                            <span class="kop-alamat">Jl. Somawinata No. 1, Kel. Kadu Agung, Kec. Tigaraksa, Kabupaten Tangerang, Banten 15720</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- HEADER BUNDEL LAMPIRAN -->
+            <div class="doc-header-box" style="margin-bottom: 15px; border-left: 4px solid #000; padding-left: 10px;">
+                <h3 style="margin: 0; font-size: 11pt; text-transform: uppercase; font-weight: bold; font-family: 'Times New Roman', serif;">
+                    LAMPIRAN DOKUMEN & BUKTI FOTO DOKUMENTASI (SATU BUNDEL)
+                </h3>
+                <span style="font-size: 9pt; font-style: italic;">
+                    Risalah Rapat / Notulensi Nomor: {{ meeting.meeting_number|default:"-" }} — {{ meeting.title }}
+                </span>
+            </div>
+
+            <div style="flex: 1;">
+                <!-- 1. LAMPIRAN UTAMA NOTULENSI -->
+                {% if meeting.notulensi_file %}
+                <div style="border: 1px solid #000; padding: 10px; margin-bottom: 15px; background: #fff;">
+                    <strong style="font-size: 9.5pt; display: block; margin-bottom: 6px; text-transform: uppercase; border-bottom: 1px dashed #000; padding-bottom: 4px;">
+                        📌 Lampiran Berkas Utama Notulensi:
+                    </strong>
+                    <div style="font-size: 9pt; margin-bottom: 8px;">
+                        <strong>Nama File:</strong> {{ meeting.notulensi_file.name }}<br>
+                        <strong>Tipe/URL:</strong> <a href="{{ meeting.notulensi_file.url }}" target="_blank" style="color: #000; font-weight: bold; text-decoration: underline;">{{ meeting.notulensi_file.url }}</a>
+                    </div>
+                    {% if ".jpg" in meeting.notulensi_file.url|lower or ".jpeg" in meeting.notulensi_file.url|lower or ".png" in meeting.notulensi_file.url|lower or ".webp" in meeting.notulensi_file.url|lower %}
+                    <div style="margin-top: 10px; text-align: center;">
+                        <img src="{{ meeting.notulensi_file.url }}" style="max-width: 100%; max-height: 180mm; border: 1px solid #000; display: block; margin: 0 auto; object-fit: contain;">
+                    </div>
+                    {% else %}
+                    <iframe src="{{ meeting.notulensi_file.url }}" style="width: 100%; height: 160mm; border: 1px solid #000; margin-top: 8px;"></iframe>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- 2. LAMPIRAN FOTO & DOKUMEN TAMBAHAN -->
+                {% if meeting.notulensi_attachments.exists %}
+                <div style="border: 1px solid #000; padding: 10px; margin-bottom: 15px;">
+                    <strong style="font-size: 9.5pt; display: block; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px dashed #000; padding-bottom: 4px;">
+                        📸 Dokumentasi Foto & Lampiran Tambahan ({{ meeting.notulensi_attachments.count }} Berkas):
+                    </strong>
+                    {% for att in meeting.notulensi_attachments.all %}
+                    <div style="margin-bottom: 12px; border: 1px solid #ccc; padding: 8px; background: #fafafa;">
+                        <span style="font-size: 9pt; font-weight: bold; display: block; margin-bottom: 4px;">
+                            Berkas #{{ forloop.counter }}: {{ att.file_name|default:"Lampiran Dokumentasi" }}
+                        </span>
+                        {% if ".jpg" in att.file.url|lower or ".jpeg" in att.file.url|lower or ".png" in att.file.url|lower or ".webp" in att.file.url|lower %}
+                        <div style="text-align: center; margin-top: 6px;">
+                            <img src="{{ att.file.url }}" style="max-width: 100%; max-height: 160mm; border: 1px solid #000; display: block; margin: 0 auto; object-fit: contain;">
+                        </div>
+                        {% else %}
+                        <div style="font-size: 8.5pt; margin-top: 4px;">
+                            Tipe Berkas: {{ att.file.name }} — <a href="{{ att.file.url }}" target="_blank" style="color: #000; text-decoration: underline; font-weight: bold;">Buka / Unduh Berkas PDF</a>
+                        </div>
+                        <iframe src="{{ att.file.url }}" style="width: 100%; height: 150mm; border: 1px solid #000; margin-top: 6px;"></iframe>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- 3. UNDANGAN RAPAT ORIGINAL (JIKA ADA) -->
+                {% if meeting.attachment %}
+                <div style="border: 1px solid #000; padding: 10px; margin-bottom: 10px;">
+                    <strong style="font-size: 9.5pt; display: block; margin-bottom: 6px; text-transform: uppercase; border-bottom: 1px dashed #000; padding-bottom: 4px;">
+                        📄 Lampiran Surat Undangan Rapat / Audiensi:
+                    </strong>
+                    <div style="font-size: 8.5pt; margin-bottom: 6px;">
+                        Berkas: {{ meeting.attachment.name }}
+                    </div>
+                    {% if ".jpg" in meeting.attachment.url|lower or ".jpeg" in meeting.attachment.url|lower or ".png" in meeting.attachment.url|lower or ".webp" in meeting.attachment.url|lower %}
+                    <div style="text-align: center;">
+                        <img src="{{ meeting.attachment.url }}" style="max-width: 100%; max-height: 160mm; border: 1px solid #000; display: block; margin: 0 auto;">
+                    </div>
+                    {% else %}
+                    <iframe src="{{ meeting.attachment.url }}" style="width: 100%; height: 150mm; border: 1px solid #000;"></iframe>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="sheet-footer">
+                <div style="font-size: 8pt; font-style: italic; border-top: 1px solid #000; padding-top: 4px; text-align: right;">
+                    Halaman Bundel Lampiran — SIMAP BAZNAS Kabupaten Tangerang
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- SCRIPT GENERATOR QR CODE 600X600 ULTRA-HD & DOWNLOAD PDF MURNI -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {

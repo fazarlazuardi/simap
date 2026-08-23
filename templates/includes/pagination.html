@@ -1,32 +1,44 @@
 {% if page_obj.paginator.num_pages > 1 %}
-<nav aria-label="Navigasi halaman" class="d-flex justify-content-end w-100">
-    <ul class="pagination pagination-sm justify-content-end mb-0 mt-2">
+<nav aria-label="Navigasi halaman" class="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100 mt-4 pt-3 border-top" style="border-color: var(--border-color, #E2E8F0) !important;">
+    <div class="small text-muted font-mono">
+        Menampilkan halaman <strong class="text-emerald-600 dark:text-emerald-400">{{ page_obj.number }}</strong> dari <strong class="text-emerald-600 dark:text-emerald-400">{{ page_obj.paginator.num_pages }}</strong>
+    </div>
+
+    <ul class="pagination pagination-sm mb-0 flex-wrap gap-1">
         {% if page_obj.has_previous %}
         <li class="page-item">
-            <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}" aria-label="Sebelumnya">
-                <span aria-hidden="true">&laquo;</span>
+            <a class="page-link rounded-xl px-3 py-1.5 font-bold shadow-sm transition-all" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}" aria-label="Sebelumnya">
+                <i class="bi bi-chevron-left me-1"></i> Prev
             </a>
         </li>
         {% else %}
-        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+        <li class="page-item disabled">
+            <span class="page-link rounded-xl px-3 py-1.5 opacity-50"><i class="bi bi-chevron-left me-1"></i> Prev</span>
+        </li>
         {% endif %}
 
         {% for num in page_obj.paginator.page_range %}
             {% if num == page_obj.number %}
-            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            <li class="page-item active">
+                <span class="page-link rounded-xl px-3 py-1.5 font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-0 shadow-md">{{ num }}</span>
+            </li>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ num }}">{{ num }}</a></li>
+            <li class="page-item">
+                <a class="page-link rounded-xl px-3 py-1.5 font-bold transition-all" href="?{{ request.GET.urlencode }}&page={{ num }}">{{ num }}</a>
+            </li>
             {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
         <li class="page-item">
-            <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}" aria-label="Selanjutnya">
-                <span aria-hidden="true">&raquo;</span>
+            <a class="page-link rounded-xl px-3 py-1.5 font-bold shadow-sm transition-all" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}" aria-label="Selanjutnya">
+                Next <i class="bi bi-chevron-right ms-1"></i>
             </a>
         </li>
         {% else %}
-        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        <li class="page-item disabled">
+            <span class="page-link rounded-xl px-3 py-1.5 opacity-50">Next <i class="bi bi-chevron-right ms-1"></i></span>
+        </li>
         {% endif %}
     </ul>
 </nav>

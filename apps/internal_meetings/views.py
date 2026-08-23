@@ -59,9 +59,30 @@ def resolve_user_bidang(request):
 
 
 
+def _dispatch_wa_notifications_bg(target_phones, message_text, target_url, meeting_pk):
+    """
+    Background worker thread to dispatch WA notifications asynchronously.
+    """
+    try:
+        from notifications.tasks import send_wa_message
+        for phone in target_phones:
+            try:
+                send_wa_message.delay(phone, message_text, metadata={'meeting_id': meeting_pk})
+            except Exception:
+                if target_url:
+                    try:
+                        import requests
+                        requests.post(target_url, json={'to': phone, 'message': message_text, 'metadata': {'meeting_id': meeting_pk}}, timeout=3)
+                    except Exception as err_req:
+                        print("WA gateway request error:", err_req)
+    except Exception as err:
+        print("Error in background WA dispatch:", err)
+
+
 def send_meeting_wa_notifications(meeting, is_notulensi=False, custom_message=None, custom_phones=None):
     """
     Kirim Notifikasi WA Gateway islami & humanis tanpa garis ke Pimpinan & Peserta Rapat.
+    Dijalankan secara non-blocking via Background Thread agar HTTP response instan.
     """
     try:
         if custom_phones is not None:
@@ -113,29 +134,14 @@ def send_meeting_wa_notifications(meeting, is_notulensi=False, custom_message=No
             )
 
         from django.conf import settings
-        import requests
+        import threading
         wa_url = getattr(settings, 'WA_GATEWAY_URL', '')
 
-        import threading
-
-        def _async_fallback_wa(target_phones, message_text, target_url, meeting_pk):
-            for phone in target_phones:
-                try:
-                    requests.post(target_url, json={'to': phone, 'message': message_text, 'metadata': {'meeting_id': meeting_pk}}, timeout=3)
-                except Exception as err_req:
-                    print("WA gateway request error:", err_req)
-
-        try:
-            from notifications.tasks import send_wa_message
-            for phone in phones:
-                try:
-                    send_wa_message.delay(phone, msg, metadata={'meeting_id': meeting.pk})
-                except Exception:
-                    if wa_url:
-                        threading.Thread(target=_async_fallback_wa, args=([phone], msg, wa_url, meeting.pk), daemon=True).start()
-        except Exception:
-            if wa_url:
-                threading.Thread(target=_async_fallback_wa, args=(phones, msg, wa_url, meeting.pk), daemon=True).start()
+        threading.Thread(
+            target=_dispatch_wa_notifications_bg,
+            args=(phones, msg, wa_url, meeting.pk),
+            daemon=True
+        ).start()
     except Exception as err:
         print("Error in send_meeting_wa_notifications:", err)
 
@@ -272,7 +278,8 @@ def meeting_create(request):
                 meeting.leaders.set(selected_leaders)
 
             sync_meeting_to_agenda(meeting)
-            send_meeting_wa_notifications(meeting, is_notulensi=False)
+            if form.cleaned_data.get('send_wa'):
+                send_meeting_wa_notifications(meeting, is_notulensi=False)
 
             AuditService.log_action(request.user, f"Buat Agenda Rapat Internal: {meeting.title}", request)
             messages.success(request, f"Agenda Rapat Internal '{meeting.title}' berhasil dibuat & tercatat di Agenda Kerja.")
@@ -307,7 +314,8 @@ def meeting_detail(request, pk):
         InternalMeeting.objects.select_related('leader', 'notulis', 'created_by').prefetch_related('leaders', 'participants'),
         pk=pk
     )
-    employees = Employee.objects.filter(is_active=True).order_by('full_name')
+    from .forms import get_ordered_employee_queryset
+    employees = get_ordered_employee_queryset()
     notulensi_form = NotulensiForm(instance=meeting)
     action_items = meeting.action_items.select_related('pic', 'completed_by').all()
     action_stats = meeting.action_plan_stats
@@ -390,12 +398,8 @@ def meeting_notulensi(request, pk):
             meeting_obj.save()
             form.save_m2m()
 
-            # Process Multiple Notulensi Attachment Files
-            uploaded_files = request.FILES.getlist('notulensi_files')
-            single_file = request.FILES.get('notulensi_file')
-            if single_file:
-                uploaded_files.append(single_file)
-
+            # Process Multiple Notulensi Attachment Files (hanya berkas lampiran tambahan notulensi_files)
+            uploaded_files = [f for f in request.FILES.getlist('notulensi_files') if f]
             uploaded_labels = request.POST.getlist('notulensi_file_labels[]')
 
             for idx, f in enumerate(uploaded_files):
@@ -406,57 +410,70 @@ def meeting_notulensi(request, pk):
                     file_name=label_val
                 )
 
-            # Process Dynamic Action Plan Items
+            # Process Dynamic Action Plan Items (Optimized Batch Queries)
             action_titles = request.POST.getlist('action_title[]')
             action_pics = request.POST.getlist('action_pic[]')
             action_due_dates = request.POST.getlist('action_due_date[]')
             action_ids = request.POST.getlist('action_id[]')
 
+            # Pre-fetch all referenced PICs in 1 query
+            pic_ids = [int(p) for p in action_pics if p and str(p).isdigit()]
+            pic_map = {emp.pk: emp for emp in Employee.objects.filter(pk__in=pic_ids)} if pic_ids else {}
+
+            # Pre-fetch existing action items for this meeting in 1 query
+            existing_items_map = {item.pk: item for item in meeting_obj.action_items.all()}
+
             processed_ids = []
+            items_to_update = []
+            items_to_create = []
+
             for i, title in enumerate(action_titles):
                 title_str = title.strip()
                 if not title_str:
                     continue
 
-                item_id = action_ids[i] if i < len(action_ids) else None
-                pic_id = action_pics[i] if i < len(action_pics) and action_pics[i] else None
+                item_id_raw = action_ids[i] if i < len(action_ids) else None
+                pic_id_raw = action_pics[i] if i < len(action_pics) and action_pics[i] else None
                 due_date_val = action_due_dates[i] if i < len(action_due_dates) and action_due_dates[i] else None
-                
-                # Checkbox check: is_tracked checkbox per row
+
+                item_id = int(item_id_raw) if item_id_raw and str(item_id_raw).isdigit() else None
+                pic_id = int(pic_id_raw) if pic_id_raw and str(pic_id_raw).isdigit() else None
+                pic_obj = pic_map.get(pic_id) if pic_id else None
+
                 is_tracked_val = request.POST.get(f'action_is_tracked_{i}') == 'on' or request.POST.get(f'action_is_tracked_existing_{item_id}') == 'on'
-                # If checkbox not sent or default, default to True if user filled in action item
                 if f'action_is_tracked_{i}' not in request.POST and f'action_is_tracked_existing_{item_id}' not in request.POST:
                     is_tracked_val = True
 
-                pic_obj = Employee.objects.filter(pk=pic_id).first() if pic_id else None
+                if item_id and item_id in existing_items_map:
+                    item = existing_items_map[item_id]
+                    item.title = title_str
+                    item.pic = pic_obj
+                    item.due_date = due_date_val if due_date_val else None
+                    item.is_tracked = is_tracked_val
+                    items_to_update.append(item)
+                    processed_ids.append(item.pk)
+                else:
+                    new_item = MeetingActionItem(
+                        meeting=meeting_obj,
+                        title=title_str,
+                        pic=pic_obj,
+                        due_date=due_date_val if due_date_val else None,
+                        is_tracked=is_tracked_val
+                    )
+                    items_to_create.append(new_item)
 
-                if item_id and item_id.isdigit():
-                    item = MeetingActionItem.objects.filter(pk=int(item_id), meeting=meeting_obj).first()
-                    if item:
-                        item.title = title_str
-                        item.pic = pic_obj
-                        if due_date_val:
-                            item.due_date = due_date_val
-                        item.is_tracked = is_tracked_val
-                        item.save()
-                        processed_ids.append(item.pk)
-                        continue
+            if items_to_update:
+                MeetingActionItem.objects.bulk_update(items_to_update, fields=['title', 'pic', 'due_date', 'is_tracked'])
 
-                new_item = MeetingActionItem.objects.create(
-                    meeting=meeting_obj,
-                    title=title_str,
-                    pic=pic_obj,
-                    due_date=due_date_val if due_date_val else None,
-                    is_tracked=is_tracked_val
-                )
-                processed_ids.append(new_item.pk)
+            if items_to_create:
+                created_objs = MeetingActionItem.objects.bulk_create(items_to_create)
+                processed_ids.extend([obj.pk for obj in created_objs])
 
             # Option: Delete items explicitly removed by user in form if action_titles array was provided
             if 'has_action_items_form' in request.POST:
                 meeting_obj.action_items.exclude(pk__in=processed_ids).delete()
 
             sync_meeting_to_agenda(meeting_obj)
-            send_meeting_wa_notifications(meeting_obj, is_notulensi=True)
 
             AuditService.log_action(request.user, f"Input Notulensi Rapat: {meeting.title}", request)
             messages.success(request, f"Notulensi Rapat '{meeting.title}' berhasil disimpan & diterbitkan di Agenda Kerja.")
@@ -466,7 +483,8 @@ def meeting_notulensi(request, pk):
                 return redirect('agendas:list')
             return redirect('internal_meetings:detail', pk=meeting.pk)
         else:
-            messages.error(request, "Terjadi kesalahan saat menyimpan Notulensi Rapat.")
+            err_msg = ", ".join([f"{f}: {e[0]}" for f, e in form.errors.items()])
+            messages.error(request, f"Gagal menyimpan Notulensi: {err_msg}")
 
     return redirect('internal_meetings:detail', pk=pk)
 
@@ -542,14 +560,14 @@ def meeting_print_notulensi(request, pk):
         pk=pk
     )
 
-    # Auto-fill fallback jika leader/leaders belum terisi
+    # Auto-fill fallback jika leader/leaders belum terisi (Hanya Pimpinan: Ketua / Waka)
     if not meeting.ordered_leaders:
         from agendas.models import Agenda
         agenda = Agenda.objects.filter(description__icontains=f"InternalMeetingID:{meeting.pk}").first()
         if agenda and agenda.assigned_employees.exists():
-            meeting.leaders.set(agenda.assigned_employees.all())
-        elif meeting.notulis:
-            meeting.leader = meeting.notulis
+            pimpinan_qs = agenda.assigned_employees.filter(position__icontains='ketua') | agenda.assigned_employees.filter(position__icontains='waka')
+            if pimpinan_qs.exists():
+                meeting.leaders.set(pimpinan_qs)
 
     title_lower = (meeting.title or '').lower()
     is_audiensi = (
@@ -788,4 +806,21 @@ def action_plan_print(request):
         'action_items': items_qs,
         'printed_at': timezone.now(),
     })
+
+
+@login_required
+@require_POST
+def meeting_cancel(request, pk):
+    """
+    Membatalkan Agenda Rapat Internal secara resmi & menyelaraskan status ke Agenda Kerja.
+    """
+    meeting = get_object_or_404(InternalMeeting, pk=pk)
+    meeting.status = 'dibatalkan'
+    meeting.save()
+    
+    sync_meeting_to_agenda(meeting)
+    
+    AuditService.log_action(request.user, f"Batalkan Agenda Rapat: {meeting.title}", request)
+    messages.success(request, f"Agenda Rapat '{meeting.title}' telah berhasil dibatalkan.")
+    return redirect('internal_meetings:detail', pk=pk)
 

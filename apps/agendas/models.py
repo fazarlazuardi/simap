@@ -245,15 +245,16 @@ class Agenda(models.Model):
         super().save(*args, **kwargs)
 
         try:
-            from notifications.tasks import create_calendar_event, send_wa_message
-            # Create/update calendar event
-            if self.scheduled_at:
-                create_calendar_event.delay('agenda', self.pk, self.title, self.scheduled_at.isoformat(), None, self.location)
+            import threading
+            agenda_pk = self.pk
+            agenda_title = self.title
+            sched_iso = self.scheduled_at.isoformat() if self.scheduled_at else None
+            loc = self.location
+            sched_fmt = self.formatted_schedule
 
-            # If agenda just created or status changed to terjadwal, send notifications
+            # Collect phones
+            phones = []
             if is_new or (old_status != self.status and self.status == 'terjadwal'):
-                phones = []
-                # gather from assigned_to users' employee.phone if exists
                 for u in self.assigned_to.all():
                     emp = getattr(u, 'employee', None)
                     if emp and hasattr(emp, 'phone') and emp.phone:
@@ -263,9 +264,30 @@ class Agenda(models.Model):
                         if emp.phone not in phones:
                             phones.append(emp.phone)
 
-                message = f"Agenda: {self.title} - {self.formatted_schedule}. Lokasi: {self.location}"
-                for p in phones:
-                    send_wa_message.delay(p, message, metadata={'agenda_id': self.pk})
+            def _bg_agenda_notifications(pk_val, title_val, dt_iso, loc_val, fmt_val, phone_list):
+                try:
+                    from notifications.tasks import create_calendar_event, send_wa_message
+                    if dt_iso:
+                        try:
+                            create_calendar_event.delay('agenda', pk_val, title_val, dt_iso, None, loc_val)
+                        except Exception as e_ev:
+                            print("Error creating agenda calendar event:", e_ev)
+
+                    if phone_list:
+                        msg_text = f"Agenda: {title_val} - {fmt_val}. Lokasi: {loc_val}"
+                        for p in phone_list:
+                            try:
+                                send_wa_message.delay(p, msg_text, metadata={'agenda_id': pk_val})
+                            except Exception as e_wa:
+                                print("Error sending agenda WA:", e_wa)
+                except Exception as err_bg:
+                    print("Error in background agenda post-save:", err_bg)
+
+            threading.Thread(
+                target=_bg_agenda_notifications,
+                args=(agenda_pk, agenda_title, sched_iso, loc, sched_fmt, phones),
+                daemon=True
+            ).start()
         except Exception as e:
             print('Error in Agenda post-save integration:', e)
 

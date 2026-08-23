@@ -5,6 +5,62 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer components {
+  /* Tombol Enterprise (Tahap 1 Spec) */
+  .btn-emerald-primary {
+    @apply bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2 text-sm border-0 cursor-pointer;
+  }
+
+  .btn-slate-secondary {
+    @apply bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-semibold py-2.5 px-4 rounded-xl shadow-sm transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2 text-sm border border-slate-200 dark:border-slate-700 cursor-pointer;
+  }
+
+  .btn-ghost {
+    @apply text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 font-semibold py-2 px-3 rounded-xl transition-all inline-flex items-center justify-center gap-2 text-sm cursor-pointer;
+  }
+
+  /* Input Form Enterprise (Dengan Focus Ring Emerald Glowing) */
+  .input-enterprise {
+    @apply w-full px-4 py-2.5 rounded-xl text-sm font-medium bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/25 focus:border-emerald-500 shadow-sm transition-all;
+  }
+
+  .select-enterprise {
+    @apply w-full px-4 py-2.5 rounded-xl text-sm font-medium bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-emerald-500/25 focus:border-emerald-500 shadow-sm transition-all cursor-pointer;
+  }
+
+  .label-enterprise {
+    @apply block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 font-mono;
+  }
+
+  /* Modal Enterprise (Sudut Rounded 20px, Glassmorphism, Backdrop Blur) */
+  .modal-enterprise {
+    @apply bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-[20px] shadow-2xl overflow-hidden transition-all;
+  }
+
+  .modal-enterprise-backdrop {
+    @apply fixed inset-0 z-[1080] bg-slate-950/60 backdrop-blur-md transition-opacity;
+  }
+
+  .modal-enterprise-panel {
+    @apply fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1090] w-full max-w-lg bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-[20px] shadow-2xl overflow-hidden transition-all;
+  }
+
+  .modal-enterprise-header {
+    @apply px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950 text-white flex items-center justify-between;
+  }
+
+  /* Status Badges (Tahap 1 Spec) */
+  .badge-pill-emerald {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono;
+  }
+
+  .badge-pill-amber {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-mono;
+  }
+
+  .badge-pill-sky {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 font-mono;
+  }
+
   .btn-tailwind-emerald {
     @apply bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-bold py-2.5 px-4 rounded-full shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2;
   }
