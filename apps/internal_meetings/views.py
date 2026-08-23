@@ -201,19 +201,17 @@ def sync_meeting_to_agenda(meeting):
             meeting.agenda_id = agenda.pk
             meeting.save(update_fields=['agenda'])
 
-        # Sync pegawai yang ditugaskan ke agenda (Notulis, Pimpinan & Peserta)
-        assigned_set = set()
+        # Sync pegawai yang ditugaskan ke agenda (Hanya PIC Notulis / Pimpinan Utama)
+        pic_set = set()
         if meeting.notulis:
-            assigned_set.add(meeting.notulis)
-        if meeting.leader:
-            assigned_set.add(meeting.leader)
-        for l in meeting.leaders.all():
-            assigned_set.add(l)
-        for p in meeting.participants.all():
-            assigned_set.add(p)
+            pic_set.add(meeting.notulis)
+        elif meeting.leader:
+            pic_set.add(meeting.leader)
         
-        if assigned_set:
-            agenda.assigned_employees.set(list(assigned_set))
+        if pic_set:
+            agenda.assigned_employees.set(list(pic_set))
+        else:
+            agenda.assigned_employees.clear()
 
         return agenda
     except Exception as err:
