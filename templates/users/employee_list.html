@@ -218,8 +218,13 @@
             </tbody>
         </table>
 
-        <div class="mt-4">
-            {% include 'includes/pagination.html' %}
+        <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 pt-4">
+            <div class="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono">
+                Menampilkan halaman <span class="text-emerald-600 dark:text-emerald-400 fw-extrabold">{{ page_obj.number }}</span> dari <span class="fw-extrabold">{{ page_obj.paginator.num_pages }}</span> (Total <span class="text-slate-900 dark:text-white font-black">{{ total_employees }}</span> data pegawai)
+            </div>
+            <div class="w-full sm:w-auto flex justify-end">
+                {% include 'includes/pagination.html' %}
+            </div>
         </div>
     </div>
 </div>

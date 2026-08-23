@@ -1,6 +1,6 @@
 {% if page_obj.paginator.num_pages > 1 %}
-<nav aria-label="Navigasi halaman">
-    <ul class="pagination pagination-sm justify-content-center mb-0 mt-3">
+<nav aria-label="Navigasi halaman" class="d-flex justify-content-end w-100">
+    <ul class="pagination pagination-sm justify-content-end mb-0 mt-2">
         {% if page_obj.has_previous %}
         <li class="page-item">
             <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}" aria-label="Sebelumnya">
