@@ -497,8 +497,11 @@ def user_list(request):
     })
 
 @login_required
-@user_passes_test(superuser_only)
+@login_required
 def user_create(request):
+    if not (getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_superadmin', False)) or request.session.get('active_pov'):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak menambah pengguna.")
+        return redirect('users:employee_list')
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -518,7 +521,7 @@ def user_create(request):
                 role=role_code
             )
             messages.success(request, f"Pengguna {username} berhasil ditambahkan.")
-            return redirect('users:list')
+            return redirect('users:employee_list')
     roles = User.ROLE_CHOICES
     return render(request, 'users/create.html', {'roles': roles})
 
@@ -528,8 +531,10 @@ def wa_health_check(request):
     return JsonResponse(health)
 
 @login_required
-@user_passes_test(superuser_only)
 def user_edit(request, pk):
+    if not (getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_superadmin', False)) or request.session.get('active_pov'):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak mengedit pengguna.")
+        return redirect('users:employee_list')
     user_obj = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
         user_obj.username = request.POST.get('username'); user_obj.email = request.POST.get('email')
@@ -538,19 +543,21 @@ def user_edit(request, pk):
         new_password = request.POST.get('password')
         if new_password: user_obj.set_password(new_password)
         user_obj.save(); messages.success(request, f"Data pengguna {user_obj.username} diperbarui.")
-        return redirect('users:list')
+        return redirect('users:employee_list')
     roles = User.ROLE_CHOICES
     return render(request, 'users/edit.html', {'user_obj': user_obj, 'roles': roles})
 
 @login_required
-@user_passes_test(superuser_only)
 def user_delete(request, pk):
+    if not (getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_superadmin', False)) or request.session.get('active_pov'):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak menghapus pengguna.")
+        return redirect('users:employee_list')
     if request.method == 'POST':
         user_obj = get_object_or_404(User, pk=pk)
         if not user_obj.is_superuser:
             username = user_obj.username; user_obj.delete()
             messages.success(request, f"Pengguna {username} dihapus.")
-    return redirect('users:list')
+    return redirect('users:employee_list')
 
 @login_required
 def employee_position_json(request, pk):

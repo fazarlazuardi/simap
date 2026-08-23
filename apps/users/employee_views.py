@@ -6,9 +6,19 @@ from .models import Employee, User, Department
 from .decorators import superadmin_required
 
 
+def is_pure_superadmin(request):
+    if not request.user.is_authenticated:
+        return False
+    if request.session.get('active_pov'):
+        return False
+    return getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_superadmin', False)
+
+
 @login_required
-@superadmin_required
 def employee_master(request):
+    if not is_pure_superadmin(request):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak mengelola data pegawai.")
+        return redirect('users:employee_list')
     employees = Employee.objects.select_related('dept_relation').all().order_by('-created_at')
     users = {
         u.employee_id: u 
@@ -32,8 +42,10 @@ def employee_master(request):
 
 
 @login_required
-@superadmin_required
 def employee_create_user(request, emp_pk):
+    if not is_pure_superadmin(request):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak membuat akun.")
+        return redirect('users:employee_list')
     emp = get_object_or_404(Employee, pk=emp_pk)
     
     if request.method == 'POST':
@@ -55,8 +67,10 @@ def employee_create_user(request, emp_pk):
 
 
 @login_required
-@superadmin_required
 def employee_delete_user(request, emp_pk):
+    if not is_pure_superadmin(request):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak menghapus akun.")
+        return redirect('users:employee_list')
     emp = get_object_or_404(Employee, pk=emp_pk)
     user = User.objects.filter(employee=emp).first()
     
@@ -82,8 +96,10 @@ def employee_detail(request, pk):
 
 
 @login_required
-@superadmin_required
 def employee_edit_master(request, pk):
+    if not is_pure_superadmin(request):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak mengedit data pegawai.")
+        return redirect('users:employee_list')
     emp = get_object_or_404(Employee, pk=pk)
     user = User.objects.filter(employee=emp).first()
     departments = Department.objects.all()
@@ -226,8 +242,10 @@ def employee_list(request):
 
 
 @login_required
-@superadmin_required
 def employee_create(request):
+    if not is_pure_superadmin(request):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak menambah data pegawai.")
+        return redirect('users:employee_list')
     departments = Department.objects.all()
     form_data = {}
 
@@ -279,8 +297,10 @@ def employee_create(request):
 
 
 @login_required
-@superadmin_required
 def employee_edit(request, pk):
+    if not is_pure_superadmin(request):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak mengedit data pegawai.")
+        return redirect('users:employee_list')
     emp = get_object_or_404(Employee, pk=pk)
     departments = Department.objects.all()
     
@@ -337,8 +357,10 @@ def employee_edit(request, pk):
 
 
 @login_required
-@superadmin_required
 def employee_delete(request, pk):
+    if not is_pure_superadmin(request):
+        messages.error(request, "Akses Ditolak: Hanya Superadmin yang berhak menghapus data pegawai.")
+        return redirect('users:employee_list')
     if request.method == 'POST':
         emp = get_object_or_404(Employee, pk=pk)
         name = emp.full_name

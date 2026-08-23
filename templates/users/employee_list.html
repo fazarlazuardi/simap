@@ -192,7 +192,7 @@
                             <a href="{% url 'users:employee_detail' emp.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Lihat Profil Lengkap">
                                 <i class="bi bi-eye-fill"></i> Detail Profil
                             </a>
-                            {% if user.is_superuser or user.is_superadmin %}
+                            {% if user.is_superadmin and not request.session.active_pov %}
                             <a href="{% url 'users:employee_edit' emp.pk %}" class="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit Data Pegawai">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </a>
