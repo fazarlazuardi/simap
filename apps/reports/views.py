@@ -22,6 +22,7 @@ from .models import Report, ReportAttachment, MonthlyBackup
 from services.archives.numbering_service import NumberingService
 from services.audit_logs.audit_service import AuditService
 from services.integrations.gateway_service import GoogleIntegrationService
+from services.workflows.workflow_engine import WorkflowEngine
 from users.decorators import sdm_required
 
 
@@ -342,11 +343,22 @@ def report_create(request, dispo_pk):
         title = request.POST.get('title')
         content = request.POST.get('content')
         
+        raw_amount = request.POST.get('amount_disbursed') or '0'
+        clean_amount = raw_amount.replace('.', '').replace(',', '.').strip()
+        try:
+            amount_val = float(clean_amount)
+        except ValueError:
+            amount_val = 0.0
+
+        disb_type = request.POST.get('disbursement_type', 'transfer')
+        
         report = Report.objects.create(
             disposition=dispo,
             report_number=report_number,
             title=title,
             content=content,
+            amount_disbursed=amount_val,
+            disbursement_type=disb_type,
             created_by=request.user
         )
         
@@ -437,9 +449,28 @@ def report_create(request, dispo_pk):
     report_type = request.GET.get('type') or request.GET.get('st_type')
     default_title = ""
     default_content = ""
+    is_bantuan_doc = WorkflowEngine.is_bantuan(dispo.archive) if dispo and dispo.archive else False
+
     if report_type == 'penyaluran' and dispo and dispo.archive:
         default_title = f"Laporan Hasil Penyaluran Bantuan Mustahik: {dispo.archive.title}"
         default_content = f"Telah dilaksanakan penyaluran / pentasyarufan bantuan BAZNAS secara langsung (pentasyarufan direct) untuk permohonan '{dispo.archive.title}'."
+    elif report_type == 'survei' and dispo and dispo.archive:
+        default_title = f"Laporan Hasil Survei Lapangan Mustahik: {dispo.archive.title}"
+        default_content = f"Telah dilaksanakan peninjauan / verifikasi kelayakan lokasi & kondisi mustahik untuk permohonan '{dispo.archive.title}'."
+
+    nominal_param = request.GET.get('nominal')
+    default_nominal = int(float(nominal_param)) if (nominal_param and nominal_param.replace('.', '', 1).isdigit()) else 0
+
+    if default_nominal > 0 and dispo:
+        Report.objects.update_or_create(
+            disposition=dispo,
+            defaults={
+                'amount_disbursed': default_nominal,
+                'title': default_title or f"Penyaluran Bantuan: {dispo.archive.title if dispo.archive else ''}",
+                'content': default_content or f"Pentasyarufan Bantuan BAZNAS dengan Nominal Rp {default_nominal:,.0f}",
+                'created_by': request.user
+            }
+        )
 
     default_report_number = NumberingService.get_default_number('report')
     return render(request, 'reports/create.html', {
@@ -447,7 +478,10 @@ def report_create(request, dispo_pk):
         'default_report_number': default_report_number,
         'default_title': default_title,
         'default_content': default_content,
+        'default_nominal': default_nominal,
+        'is_penyaluran_lhp': (report_type == 'penyaluran'),
         'is_penyaluran_direct': (report_type == 'penyaluran'),
+        'is_bantuan_doc': is_bantuan_doc,
     })
 
 @login_required
@@ -462,6 +496,16 @@ def report_edit(request, pk):
         report.report_number = request.POST.get('report_number')
         report.title = request.POST.get('title')
         report.content = request.POST.get('content')
+        
+        raw_amount = request.POST.get('amount_disbursed') or '0'
+        clean_amount = raw_amount.replace('.', '').replace(',', '.').strip()
+        try:
+            amount_val = float(clean_amount)
+        except ValueError:
+            amount_val = 0.0
+
+        report.amount_disbursed = amount_val
+        report.disbursement_type = request.POST.get('disbursement_type', 'transfer')
         report.save()
         
         # Handle deletion of old attachments
@@ -874,11 +918,15 @@ def rekap_bantuan_view(request):
         if emp and emp.dept_relation and ('pendistribusian' in emp.dept_relation.name.lower() or 'bidang ii' in emp.dept_relation.name.lower() or 'bidang 2' in emp.dept_relation.name.lower()):
             is_waka_or_kabid_2 = True
 
+    can_handle_bidang_2 = is_waka_or_kabid_2 or getattr(request.user, 'is_superadmin', False) or request.user.is_superuser
+
     bantuan_analytics = ReportingService.get_bantuan_analytics(year=year, month=month, all_time=all_time)
     
     return render(request, 'reports/rekap_bantuan.html', {
         'analytics': bantuan_analytics,
         'bantuan_records': bantuan_analytics['bantuan_details'],
+        'penyaluran_records': bantuan_analytics['penyaluran_details'],
+        'survei_records': bantuan_analytics['survei_details'],
         'umum_records': bantuan_analytics['umum_details'],
         'bantuan_chart_labels': bantuan_analytics['bantuan_chart_labels'],
         'bantuan_chart_series': bantuan_analytics['bantuan_chart_series'],
@@ -888,12 +936,231 @@ def rekap_bantuan_view(request):
         'selected_month': month or timezone.now().month,
         'all_time': all_time,
         'is_waka_or_kabid_2': is_waka_or_kabid_2,
+        'can_handle_bidang_2': can_handle_bidang_2,
         'month_names': [
             (1, 'Januari'), (2, 'Februari'), (3, 'Maret'), (4, 'April'),
             (5, 'Mei'), (6, 'Juni'), (7, 'Juli'), (8, 'Agustus'),
             (9, 'September'), (10, 'Oktober'), (11, 'November'), (12, 'Desember')
         ],
     })
+
+@login_required
+def penanganan_bidang2_view(request):
+    """
+    Endpoint penanganan disposisi permohonan bantuan khusus Bidang II (Waka II, Kabid II, Superadmin).
+    """
+    import re
+    from django.views.decorators.http import require_POST
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Metode HTTP harus POST.'}, status=405)
+
+    user = request.user
+    active_pov = request.session.get('active_pov')
+    
+    # 1. RBAC Validation
+    is_waka_2 = getattr(user, 'is_waka_2', False)
+    is_kabid_2 = getattr(user, 'is_kabid_2', False)
+    is_superadmin = getattr(user, 'is_superadmin', False) or user.is_superuser
+    is_pov_b2 = active_pov in ['waka_2', 'kabid_2']
+    
+    emp = getattr(user, 'employee', None)
+    is_b2_dept = False
+    if emp and emp.dept_relation:
+        dept_name = (emp.dept_relation.name or "").lower()
+        if any(k in dept_name for k in ['pendistribusian', 'bidang ii', 'bidang 2']):
+            is_b2_dept = True
+
+    if not (is_waka_2 or is_kabid_2 or is_superadmin or is_pov_b2 or is_b2_dept):
+        return JsonResponse({
+            'success': False,
+            'message': 'Akses Ditolak. Fitur penanganan ini hanya dapat diakses oleh Waka II, Kabid II, atau Superadmin.'
+        }, status=403)
+
+    # 2. Input extraction & validation
+    dispo_id = request.POST.get('disposition_id')
+    raw_amount = request.POST.get('amount_disbursed') or '0'
+    action_choice = request.POST.get('action_choice')  # 'survei', 'langsung', or 'tolak'
+    disbursement_method = request.POST.get('disbursement_method', 'kantor')  # 'kantor' or 'luar_kantor'
+    rejection_note = request.POST.get('rejection_note', '').strip()
+
+    if not dispo_id:
+        return JsonResponse({'success': False, 'message': 'ID Disposisi tidak ditemukan.'}, status=400)
+
+    if action_choice == 'tolak':
+        if not rejection_note:
+            return JsonResponse({'success': False, 'message': 'Alasan penolakan permohonan wajib diisi dengan jelas.'}, status=400)
+        amount_val = 0.0
+    else:
+        try:
+            clean_str = re.sub(r'[^\d.]', '', raw_amount.replace(',', ''))
+            amount_val = float(clean_str) if clean_str else 0.0
+        except (ValueError, TypeError):
+            amount_val = 0.0
+
+        if amount_val <= 0:
+            return JsonResponse({'success': False, 'message': 'Nominal bantuan wajib diisi dan harus lebih besar dari Rp 0.'}, status=400)
+
+    try:
+        disposition = get_object_or_404(Disposition, pk=dispo_id)
+        archive = disposition.archive
+
+        # 3. Create/Update Report record
+        report = Report.objects.filter(disposition=disposition).first()
+        if not report:
+            report = Report(
+                disposition=disposition,
+                title=f"Penanganan Bantuan Bidang II: {archive.title if archive else ''}",
+                content=f"Nominal bantuan disetujui sebesar Rp {amount_val:,.0f}" if action_choice != 'tolak' else f"Permohonan Ditolak oleh Bidang II: {rejection_note}",
+                amount_disbursed=amount_val,
+                created_by=user
+            )
+            report.save(skip_status_update=True)
+        else:
+            report.amount_disbursed = amount_val
+            report.save(skip_status_update=True)
+
+        st_created = None
+        message_text = ""
+
+        from surat_tugas.models import SuratTugas
+
+        # 4. Branching Business Logic
+        if action_choice == 'tolak':
+            # Scenario C: Ditolak oleh Waka II / Kabid II
+            report.amount_disbursed = 0.0
+            report.report_number = ''
+            actor_name = user.get_full_name() or user.username
+            report.content = f"Permohonan Bantuan Ditolak oleh Bidang II ({actor_name}). Alasan: {rejection_note}"
+            report.save(skip_status_update=True)
+
+            if archive:
+                archive.status = 'ditolak'
+                archive.rejection_note = f"[Ditolak Bidang II: {actor_name}] {rejection_note}"
+                archive.updated_at = timezone.now()
+                archive.save(update_fields=['status', 'rejection_note', 'updated_at'])
+
+            disposition.status = 'selesai'
+            disposition.completed_at = timezone.now()
+            disposition.save(update_fields=['status', 'completed_at', 'updated_at'])
+
+            message_text = f"❌ Permohonan Bantuan berhasil DITOLAK oleh Bidang II. Alasan: '{rejection_note}'. Status dokumen diselaraskan menjadi DITOLAK."
+
+        elif action_choice == 'survei':
+            # Scenario A: Perlu Survei (Status dalam_survei, Belum Terbit LHP)
+            report.disbursement_type = 'cash'
+            report.report_number = ''
+            report.save(skip_status_update=True)
+
+            if archive:
+                archive.status = 'dalam_survei'
+                archive.updated_at = timezone.now()
+                archive.save(update_fields=['status', 'updated_at'])
+            
+            disposition.status = 'proses'
+            disposition.save(update_fields=['status', 'updated_at'])
+
+            # Terbitkan Surat Tugas oleh Kabid II / Waka II untuk Survei
+            st_created = SuratTugas.objects.create(
+                disposition=disposition,
+                tentang=f"Survei Lapangan / Verifikasi Kelayakan Bantuan Mustahik: {archive.title if archive else ''}",
+                lokasi_tujuan=(archive.address if archive else '') or "Lokasi Mustahik",
+                created_by=user,
+            )
+
+            if archive and archive.status != 'dalam_survei':
+                archive.status = 'dalam_survei'
+                archive.save(update_fields=['status', 'updated_at'])
+
+            message_text = f"✅ Keputusan 'Perlu Survei' berhasil disimpan (Nominal Rp {amount_val:,.0f}). Surat Tugas '{st_created.nomor_surat}' diterbitkan Kabid II dan siap ditindaklanjuti Bidang IV untuk penerbitan SPPD."
+
+        elif action_choice == 'langsung':
+            from services.archives.numbering_service import NumberingService
+            if not report.report_number:
+                try:
+                    report.report_number = NumberingService.generate_number('report')
+                except Exception:
+                    pass
+
+            if disbursement_method == 'kantor':
+                # Scenario B1: Langsung Disalurkan - Transfer Bank / Pengambilan di Kantor
+                report.disbursement_type = 'transfer'
+                report.content = f"Penyaluran Bantuan Langsung (Transfer/Kantor) sebesar Rp {amount_val:,.0f} disetujui."
+                report.save(skip_status_update=True)
+
+                if archive:
+                    archive.status = 'selesai'
+                    archive.updated_at = timezone.now()
+                    archive.save(update_fields=['status', 'updated_at'])
+
+                disposition.status = 'selesai'
+                disposition.completed_at = timezone.now()
+                disposition.save(update_fields=['status', 'completed_at', 'updated_at'])
+
+                message_text = f"✅ Penyaluran Langsung (Transfer/Kantor) Rp {amount_val:,.0f} berhasil diproses. Status dokumen otomatis SELESAI (Tanpa Surat Tugas & SPPD)."
+
+            else:
+                # Scenario B2: Langsung Disalurkan - Penyerahan Langsung ke Lokasi Mustahik (Luar Kantor)
+                report.disbursement_type = 'cash'
+                report.save(skip_status_update=True)
+
+                if archive:
+                    archive.status = 'telah_disalurkan'
+                    archive.updated_at = timezone.now()
+                    archive.save(update_fields=['status', 'updated_at'])
+
+                disposition.status = 'proses'
+                disposition.save(update_fields=['status', 'updated_at'])
+
+                # Terbitkan Surat Tugas oleh Kabid II / Waka II untuk Pentasyarufan
+                st_created = SuratTugas.objects.create(
+                    disposition=disposition,
+                    tentang=f"Pentasyarufan / Penyerahan Langsung Bantuan Mustahik: {archive.title if archive else ''}",
+                    lokasi_tujuan=(archive.address if archive else '') or "Lokasi Mustahik",
+                    created_by=user,
+                )
+
+                if archive and archive.status != 'telah_disalurkan':
+                    archive.status = 'telah_disalurkan'
+                    archive.save(update_fields=['status', 'updated_at'])
+
+                message_text = f"✅ Penyaluran Langsung di Luar Kantor Rp {amount_val:,.0f} berhasil diproses. Surat Tugas '{st_created.nomor_surat}' diterbitkan Kabid II dan siap ditindaklanjuti Bidang IV untuk penerbitan SPPD."
+
+        else:
+            return JsonResponse({'success': False, 'message': 'Pilihan keputusan tidak valid.'}, status=400)
+
+        # Catat ke Audit Log jika AuditService tersedia
+        try:
+            AuditService.log(
+                user=user,
+                action='tindakan_bidang2',
+                module='reports',
+                description=message_text,
+                archive=archive,
+                disposition=disposition
+            )
+        except Exception:
+            pass
+
+        redirect_url = None
+        if st_created:
+            redirect_url = f"/surat-tugas/{st_created.pk}/edit/"
+
+        return JsonResponse({
+            'success': True,
+            'message': message_text,
+            'st_number': st_created.nomor_surat if st_created else None,
+            'new_status': archive.status if archive else 'selesai',
+            'redirect_url': redirect_url
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Gagal memproses penanganan: {str(e)}'
+        }, status=500)
+
+
 
 @login_required
 def export_rekap_bantuan_excel(request):
@@ -1002,28 +1269,32 @@ def export_rekap_bantuan_excel(request):
     ws_bantuan.title = "Permohonan Bantuan"
     apply_kop_surat(ws_bantuan, "LAPORAN REKAPITULASI PENANGANAN PERMOHONAN BANTUAN (MUSTAHIK)")
 
-    ws_bantuan.merge_cells('B7:F7')
-    ws_bantuan['B7'].value = "RINGKASAN STATISTIK DOKUMEN & BANTUAN"
+    ws_bantuan.merge_cells('B7:H7')
+    ws_bantuan['B7'].value = "RINGKASAN STATISTIK PENTASYARUFAN & DOKUMEN BANTUAN (BIDANG II)"
     ws_bantuan['B7'].font = font_subhead
     ws_bantuan['B7'].fill = fill_subhead
 
-    ws_bantuan.cell(row=8, column=2, value="Total Volume Dokumen Masuk").font = Font(bold=True)
-    ws_bantuan.cell(row=8, column=3, value=analytics['total_documents']).alignment = align_center_wrap
-    ws_bantuan.cell(row=8, column=5, value="Total Permohonan Bantuan").font = Font(bold=True)
-    ws_bantuan.cell(row=8, column=6, value=analytics['total_bantuan']).alignment = align_center_wrap
+    ws_bantuan.cell(row=8, column=2, value="Total Volume Permohonan").font = Font(bold=True)
+    ws_bantuan.cell(row=8, column=3, value=analytics['total_bantuan']).alignment = align_center_wrap
+    ws_bantuan.cell(row=8, column=5, value="Bantuan via Survei Lapangan").font = Font(bold=True)
+    ws_bantuan.cell(row=8, column=6, value=f"{analytics['survei_count']} Dokumen").alignment = align_center_wrap
+    ws_bantuan.cell(row=8, column=7, value="Penyaluran Direct / Emergency").font = Font(bold=True)
+    ws_bantuan.cell(row=8, column=8, value=f"{analytics['direct_count']} Dokumen").alignment = align_center_wrap
 
-    ws_bantuan.cell(row=9, column=2, value="Bantuan Selesai Terekap").font = Font(bold=True)
+    ws_bantuan.cell(row=9, column=2, value="Bantuan Selesai Disalurkan").font = Font(bold=True)
     ws_bantuan.cell(row=9, column=3, value=analytics['bantuan_completed']).alignment = align_center_wrap
-    ws_bantuan.cell(row=9, column=5, value="Tingkat Penyelesaian Selesai").font = Font(bold=True)
-    ws_bantuan.cell(row=9, column=6, value=f"{analytics['completion_rate']}%").alignment = align_center_wrap
+    ws_bantuan.cell(row=9, column=5, value="Dengan SPPD Penyaluran").font = Font(bold=True)
+    ws_bantuan.cell(row=9, column=6, value=f"{analytics['sppd_penyaluran_count']} Perjalanan").alignment = align_center_wrap
+    ws_bantuan.cell(row=9, column=7, value="Transfer Bank / Non-SPPD").font = Font(bold=True)
+    ws_bantuan.cell(row=9, column=8, value=f"{analytics['transfer_penyaluran_count']} Pentasyarufan").alignment = align_center_wrap
 
     for r in range(7, 10):
-        for c in range(2, 7):
+        for c in range(2, 9):
             ws_bantuan.cell(row=r, column=c).border = thin_border
 
-    bantuan_headers = ['NO', 'TANGGAL MASUK', 'NO. DOKUMEN', 'PERIHAL / JUDUL PROPOSAL', 'SUB-KATEGORI BANTUAN', 'STATUS WORKFLOW']
+    bantuan_headers = ['NO', 'TANGGAL MASUK', 'NO. DOKUMEN', 'MUSTAHIK / PERIHAL PROPOSAL', 'ALAMAT LENGKAP MUSTAHIK', 'PROGRAM / SUB-KATEGORI', 'NOMINAL DISALURKAN (RP)', 'SKEMA PENYALURAN (BIDANG II)', 'NO. ST SURVEI', 'NO. SPPD', 'NO. LHP / BUKTI', 'STATUS WORKFLOW']
     row_idx = 11
-    ws_bantuan.row_dimensions[row_idx].height = 25
+    ws_bantuan.row_dimensions[row_idx].height = 26
 
     for col_i, h_text in enumerate(bantuan_headers, 1):
         c = ws_bantuan.cell(row=row_idx, column=col_i, value=h_text)
@@ -1049,21 +1320,48 @@ def export_rekap_bantuan_excel(request):
         c4 = ws_bantuan.cell(row=row_idx, column=4, value=arc.title or '-')
         c4.alignment = align_left_wrap
 
-        c5 = ws_bantuan.cell(row=row_idx, column=5, value=item['sub_category'])
-        c5.alignment = align_center_wrap
+        c5 = ws_bantuan.cell(row=row_idx, column=5, value=arc.address or '-')
+        c5.alignment = align_left_wrap
 
-        c6 = ws_bantuan.cell(row=row_idx, column=6, value=arc.workflow_status_display)
+        c6 = ws_bantuan.cell(row=row_idx, column=6, value=item['sub_category'])
         c6.alignment = align_center_wrap
 
-        for col_i in range(1, 7):
+        c7 = ws_bantuan.cell(row=row_idx, column=7, value=item['amount_disbursed'])
+        c7.number_format = '#,##0'
+        c7.alignment = align_center_wrap
+
+        c8 = ws_bantuan.cell(row=row_idx, column=8, value=item['scheme_label'])
+        c8.alignment = align_center_wrap
+
+        c9 = ws_bantuan.cell(row=row_idx, column=9, value=item['st_number'])
+        c9.alignment = align_center_wrap
+
+        c10 = ws_bantuan.cell(row=row_idx, column=10, value=item['sppd_number'])
+        c10.alignment = align_center_wrap
+
+        c11 = ws_bantuan.cell(row=row_idx, column=11, value=item['report_number'])
+        c11.alignment = align_center_wrap
+
+        c12 = ws_bantuan.cell(row=row_idx, column=12, value=arc.workflow_status_display)
+        c12.alignment = align_center_wrap
+
+        for col_i in range(1, 13):
             ws_bantuan.cell(row=row_idx, column=col_i).border = thin_border
 
     ws_bantuan.column_dimensions['A'].width = 6
     ws_bantuan.column_dimensions['B'].width = 16
     ws_bantuan.column_dimensions['C'].width = 22
-    ws_bantuan.column_dimensions['D'].width = 42
-    ws_bantuan.column_dimensions['E'].width = 26
-    ws_bantuan.column_dimensions['F'].width = 28
+    ws_bantuan.column_dimensions['D'].width = 38
+    ws_bantuan.column_dimensions['E'].width = 35
+    ws_bantuan.column_dimensions['F'].width = 26
+    ws_bantuan.column_dimensions['G'].width = 24
+    ws_bantuan.column_dimensions['H'].width = 32
+    ws_bantuan.column_dimensions['I'].width = 20
+    ws_bantuan.column_dimensions['J'].width = 22
+    ws_bantuan.column_dimensions['K'].width = 22
+    ws_bantuan.column_dimensions['L'].width = 22
+    ws_bantuan.column_dimensions['I'].width = 20
+    ws_bantuan.column_dimensions['J'].width = 24
 
     # ---------------------------------------------------------
     # SHEET 2: DOKUMEN UMUM

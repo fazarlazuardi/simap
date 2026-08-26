@@ -4,253 +4,357 @@
 {% block title %}Konsol Outbox WA & Matriks Kontrol - BAZNAS SIMAP{% endblock %}
 
 {% block content %}
-<!-- GLASS BANNER KONTROL WA -->
-<div class="glass-banner-enterprise mb-4">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-8">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold font-mono" style="letter-spacing: 0.05em; font-size: 0.72rem;">
-                    <i class="bi bi-whatsapp me-1 text-warning"></i> WhatsApp Gateway Dispatch Center
-                </span>
-                <span class="badge bg-success bg-opacity-30 text-white rounded-pill px-3 py-1 text-uppercase fw-bold font-mono" style="font-size: 0.72rem;">
-                    <i class="bi bi-sliders me-1"></i> Control Matrix Active
-                </span>
-            </div>
-            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Konsol Outbox Notifikasi WA & Matriks Pengiriman</h3>
-            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 680px;">
-                Atur mode pengiriman per kategori kejadian (Otomatis vs Manual), pantau log outbox pengiriman pesan WhatsApp resmi BAZNAS, dan eksekusi pengiriman pesan manual dalam 1-klik.
-            </p>
-        </div>
-        <div class="col-lg-4 text-lg-end">
-            <div class="badge bg-white text-dark rounded-4 p-3 shadow-sm text-start" style="min-width: 220px;">
-                <small class="text-uppercase text-secondary d-block fw-bold extra-small mb-1"><i class="bi bi-broadcast text-success me-1"></i> Status Gateway WA</small>
-                <span class="fw-bold font-mono fs-6 d-block mb-1 {% if wa_health.status == 'connected' %}text-success{% else %}text-danger{% endif %}">
-                    {% if wa_health.status == 'connected' %}
-                        <i class="bi bi-check-circle-fill me-1"></i> Gateway Ready & Online
-                    {% else %}
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ wa_health.message }}
-                    {% endif %}
-                </span>
-                <small class="text-muted extra-small font-mono">Fonnte / Baileys Node API</small>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="w-full space-y-6" x-data="{
+    searchQuery: '{{ query|default:'' }}',
+    statusFilter: '{{ status_filter|default:'' }}',
+    previewModal: false,
+    previewMsg: '',
+    previewTitle: '',
+    previewRecipient: '',
+    openPreview(title, recipient, msg) {
+        this.previewTitle = title;
+        this.previewRecipient = recipient;
+        this.previewMsg = msg;
+        this.previewModal = true;
+    }
+}">
+    <!-- ⚡ HEADER BANNER ENTERPRISE GLASSMORPHISM ⚡ -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/30 p-6 md:p-8 shadow-2xl text-white">
+        <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute left-1/3 -top-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-<!-- STATISTIK OUTBOX KPI CARDS -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-sm-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-4 p-3 bg-primary bg-opacity-10 text-primary">
-                <i class="bi bi-chat-left-text-fill fs-3"></i>
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black tracking-wider uppercase font-mono">
+                    <i class="bi bi-whatsapp text-emerald-400"></i> WhatsApp Gateway Dispatch Center
+                    <span class="opacity-50">•</span>
+                    <i class="bi bi-sliders text-amber-400"></i> Control Matrix Active
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+                    Konsol Outbox Notifikasi WA & Matriks Pengiriman
+                </h1>
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    Atur mode pengiriman per kategori kejadian (Otomatis Server vs Manual 1-Click), pantau log outbox pesan WhatsApp resmi BAZNAS, dan eksekusi pengiriman pesan manual secara instan.
+                </p>
             </div>
-            <div>
-                <small class="text-secondary text-uppercase fw-bold extra-small d-block">Total Outbox WA</small>
-                <span class="fs-4 fw-extrabold text-primary font-mono">{{ total_count }}</span>
-                <small class="text-muted d-block extra-small">Riwayat Pesan</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-4 p-3 bg-success bg-opacity-10 text-success">
-                <i class="bi bi-check-circle-fill fs-3"></i>
-            </div>
-            <div>
-                <small class="text-secondary text-uppercase fw-bold extra-small d-block">Terkirim Otomatis</small>
-                <span class="fs-4 fw-extrabold text-success font-mono">{{ sent_count }}</span>
-                <small class="text-muted d-block extra-small">Auto-Dispatched</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-4 p-3 bg-warning bg-opacity-10 text-warning">
-                <i class="bi bi-whatsapp fs-3"></i>
-            </div>
-            <div>
-                <small class="text-secondary text-uppercase fw-bold extra-small d-block">Draf Manual Ready</small>
-                <span class="fs-4 fw-extrabold text-dark font-mono">{{ manual_count }}</span>
-                <small class="text-muted d-block extra-small">1-Click Direct Link</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-4 p-3 bg-danger bg-opacity-10 text-danger">
-                <i class="bi bi-exclamation-triangle-fill fs-3"></i>
-            </div>
-            <div>
-                <small class="text-secondary text-uppercase fw-bold extra-small d-block">Gagal Terkirim</small>
-                <span class="fs-4 fw-extrabold text-danger font-mono">{{ failed_count }}</span>
-                <small class="text-muted d-block extra-small">Siap Kirim Ulang</small>
-            </div>
-        </div>
-    </div>
-</div>
 
-{% if user.is_superadmin or user.is_superuser %}
-<!-- MATRIKS KONTROL MODE NOTIFIKASI WA (AUTOMATIC VS MANUAL) -->
-<div class="card-enterprise p-4 mb-4">
-    <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
-        <div>
-            <h5 class="fw-bold mb-1 text-emerald"><i class="bi bi-sliders me-2 text-warning"></i>Matriks Kontrol Mode Notifikasi WA</h5>
-            <p class="text-secondary small mb-0">Tentukan apakah notifikasi untuk setiap jenis kejadian dikirim secara **Otomatis oleh server**, **Manual (Draft Direct WA Link)**, atau **Nonaktif**.</p>
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
+                <div class="p-4 rounded-2xl bg-white/10 dark:bg-slate-900/60 border border-white/20 backdrop-blur-md space-y-1 min-w-[220px]">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                        <i class="bi bi-broadcast text-emerald-400"></i> Status Gateway WA
+                    </div>
+                    <div class="font-bold text-xs flex items-center gap-1.5 {% if wa_health.status == 'connected' %}text-emerald-300{% else %}text-rose-300{% endif %}">
+                        {% if wa_health.status == 'connected' %}
+                            <i class="bi bi-check-circle-fill text-emerald-400"></i> Gateway Ready & Online
+                        {% else %}
+                            <i class="bi bi-exclamation-triangle-fill text-rose-400"></i> {{ wa_health.message|default:"Offline / Standby" }}
+                        {% endif %}
+                    </div>
+                    <div class="text-[9px] font-mono text-slate-400">Node Gateway API • BAZNAS</div>
+                </div>
+            </div>
         </div>
-        <span class="badge bg-emerald text-white rounded-pill px-3 py-1 fw-bold small">Mode Matrix Configuration</span>
     </div>
 
-    <form method="post" action="{% url 'notifications:wa_outbox' %}">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="update_wa_matrix">
-        
-        <div class="row g-3">
-            {% for setting in wa_settings %}
-            <div class="col-md-6 col-lg-4">
-                <div class="p-3 border rounded-4 h-100 bg-body-tertiary d-flex flex-column justify-content-between shadow-xs">
-                    <div class="mb-3">
-                        <span class="fw-bold text-dark d-block mb-1">
-                            <i class="bi bi-bell-fill text-warning me-1.5"></i>{{ setting.get_category_display }}
+    <!-- ⚡ STATISTIK OUTBOX KPI CARDS ⚡ -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Outbox WA -->
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center text-xl">
+                <i class="bi bi-chat-left-text-fill"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Total Outbox</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ total_count }}</span>
+            </div>
+        </div>
+
+        <!-- Terkirim Otomatis -->
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Terkirim Otomatis</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ sent_count }}</span>
+            </div>
+        </div>
+
+        <!-- Draf Manual Ready -->
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl">
+                <i class="bi bi-whatsapp"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">Draf Manual Ready</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ manual_count }}</span>
+            </div>
+        </div>
+
+        <!-- Gagal Terkirim -->
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 block">Gagal Terkirim</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ failed_count }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% if user.is_superadmin or user.is_superuser %}
+    <!-- ⚡ MATRIKS KONTROL MODE NOTIFIKASI WA (AUTOMATIC VS MANUAL) ⚡ -->
+    <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div>
+                <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 mb-1">
+                    <i class="bi bi-sliders text-amber-500"></i> Matriks Kontrol Mode Notifikasi WhatsApp
+                </h3>
+                <p class="text-slate-500 dark:text-slate-400 text-xs mb-0">Tentukan apakah notifikasi untuk setiap jenis kejadian dikirim secara Otomatis oleh server, Manual (Draft Direct WA Link), atau Nonaktif.</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wider font-mono self-start sm:self-auto">
+                Mode Matrix Config
+            </span>
+        </div>
+
+        <form method="post" action="{% url 'notifications:wa_outbox' %}" class="space-y-5 mb-0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_wa_matrix">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {% for setting in wa_settings %}
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between space-y-3 hover:border-emerald-500/40 transition-all">
+                    <div class="space-y-1">
+                        <span class="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <i class="bi bi-bell-fill text-amber-500 text-xs"></i>
+                            <span>{{ setting.get_category_display }}</span>
                         </span>
-                        <small class="text-secondary extra-small d-block">{{ setting.description }}</small>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mb-0">{{ setting.description }}</p>
                     </div>
 
-                    <div>
-                        <label class="form-label extra-small fw-bold text-uppercase text-secondary mb-1">Pilih Mode Pengiriman:</label>
-                        <select name="mode_{{ setting.category }}" class="form-select custom-input font-mono fw-bold">
-                            <option value="auto" {% if setting.dispatch_mode == 'auto' %}selected{% endif %}>🤖 Otomatis (Auto-Dispatch Queue)</option>
-                            <option value="manual" {% if setting.dispatch_mode == 'manual' %}selected{% endif %}>💬 Manual (1-Click Direct WA Link)</option>
-                            <option value="disabled" {% if setting.dispatch_mode == 'disabled' %}selected{% endif %}>🚫 Nonaktifkan Notifikasi WA</option>
+                    <div class="space-y-1 pt-2 border-t border-slate-200 dark:border-slate-700/50">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Pilih Mode Pengiriman:</label>
+                        <select name="mode_{{ setting.category }}" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="auto" {% if setting.dispatch_mode == 'auto' %}selected{% endif %}>🤖 Otomatis (Auto-Dispatch)</option>
+                            <option value="manual" {% if setting.dispatch_mode == 'manual' %}selected{% endif %}>💬 Manual (1-Click WA Link)</option>
+                            <option value="disabled" {% if setting.dispatch_mode == 'disabled' %}selected{% endif %}>🚫 Nonaktifkan WA</option>
                         </select>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
 
-        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-            <button type="submit" class="btn btn-enterprise-primary px-4 py-2 rounded-pill fw-bold shadow-sm">
-                <i class="bi bi-save-fill me-1.5"></i> Simpan Perubahan Matriks Mode Notifikasi
-            </button>
-        </div>
-    </form>
-</div>
-{% endif %}
-
-<!-- KONSOL TABLE RIWAYAT OUTBOX WA -->
-<div class="card-enterprise p-4">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border-bottom pb-3 mb-4">
-        <div>
-            <h5 class="fw-bold mb-1 text-emerald"><i class="bi bi-journal-text me-2 text-primary"></i>Riwayat & Konsol Pemantauan Outbox WA</h5>
-            <p class="text-secondary small mb-0">Daftar lengkap seluruh notifikasi WhatsApp terkirim, draf manual, dan log kegagalan.</p>
-        </div>
-
-        <!-- FILTER FORM -->
-        <form method="get" class="d-flex flex-wrap align-items-center gap-2">
-            <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm custom-input" placeholder="Cari nama, WA, judul..." style="width: 180px; height: 38px;">
-            <select name="status" class="form-select form-select-sm custom-input" style="width: 150px; height: 38px;">
-                <option value="">-- Semua Status --</option>
-                <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>🟢 Terkirim</option>
-                <option value="draft_manual" {% if status_filter == 'draft_manual' %}selected{% endif %}>🟡 Manual Draft</option>
-                <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>🔴 Gagal</option>
-                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>⏳ Pending</option>
-            </select>
-            <button type="submit" class="btn btn-emerald btn-sm rounded-pill px-3 fw-bold" style="height: 38px;">
-                <i class="bi bi-filter me-1"></i> Filter
-            </button>
+            <div class="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 cursor-pointer">
+                    <i class="bi bi-save-fill"></i>
+                    <span>Simpan Perubahan Matriks Mode Notifikasi</span>
+                </button>
+            </div>
         </form>
     </div>
+    {% endif %}
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle small w-100">
-            <thead class="bg-body-tertiary">
-                <tr>
-                    <th class="border-0">Waktu</th>
-                    <th class="border-0">Penerima & No. WA</th>
-                    <th class="border-0">Kategori & Judul</th>
-                    <th class="border-0">Isi Pesan WA</th>
-                    <th class="border-0 text-center">Mode & Status</th>
-                    <th class="border-0 text-end">Aksi Cepat</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for log in wa_logs %}
-                <tr>
-                    <td class="font-mono text-nowrap extra-small">
-                        <i class="bi bi-calendar-event me-1 text-emerald"></i>{{ log.created_at|date:"d/m/Y H:i" }} WIB
-                    </td>
-                    <td>
-                        <span class="fw-bold text-dark d-block">
-                            {% if log.employee %}{{ log.employee.full_name }}{% elif log.user %}{{ log.user.get_full_name|default:log.user.username }}{% else %}Penerima Fisik{% endif %}
-                        </span>
-                        <span class="font-mono text-emerald extra-small"><i class="bi bi-whatsapp me-1"></i>{{ log.recipient_phone|default:"-" }}</span>
-                    </td>
-                    <td>
-                        <span class="badge bg-secondary bg-opacity-20 text-dark rounded-pill px-2.5 py-0.5 extra-small font-mono d-inline-block mb-1">
-                            {{ log.get_category_display }}
-                        </span>
-                        <span class="fw-bold text-dark d-block text-truncate" style="max-width: 180px;">{{ log.title }}</span>
-                    </td>
-                    <td>
-                        <div class="text-truncate extra-small text-secondary" style="max-width: 260px;" title="{{ log.message }}">
-                            {{ log.message }}
-                        </div>
-                    </td>
-                    <td class="text-center text-nowrap">
-                        <span class="badge {% if log.dispatch_mode == 'manual' %}bg-warning text-dark{% else %}bg-primary text-white{% endif %} rounded-pill px-2 py-0.5 extra-small font-mono mb-1 d-block">
-                            {% if log.dispatch_mode == 'manual' %}💬 MANUAL{% else %}🤖 OTOMATIS{% endif %}
-                        </span>
+    <!-- ⚡ KONSOL TABLE RIWAYAT OUTBOX WA ⚡ -->
+    <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+            <div>
+                <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 mb-1">
+                    <i class="bi bi-journal-text text-emerald-500"></i> Riwayat & Konsol Pemantauan Outbox WA
+                </h3>
+                <p class="text-slate-500 dark:text-slate-400 text-xs mb-0">Daftar lengkap seluruh notifikasi WhatsApp terkirim, draf manual, dan log kegagalan.</p>
+            </div>
 
-                        {% if log.status == 'sent' %}
-                            <span class="badge bg-success text-white rounded-pill px-2.5 py-1 extra-small font-mono"><i class="bi bi-check-circle-fill me-1"></i> Terkirim</span>
-                        {% elif log.status == 'draft_manual' %}
-                            <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 extra-small font-mono"><i class="bi bi-whatsapp me-1"></i> Ready Manual</span>
-                        {% elif log.status == 'failed' %}
-                            <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 extra-small font-mono" title="{{ log.error_log }}"><i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal</span>
-                        {% else %}
-                            <span class="badge bg-secondary text-white rounded-pill px-2.5 py-1 extra-small font-mono">⏳ Pending</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-end text-nowrap">
-                        <div class="inline-flex items-center gap-1.5 justify-end">
-                            {% if user.is_superadmin or user.is_superuser %}
-                                {% if log.wa_direct_link %}
-                                <a href="{{ log.wa_direct_link }}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Kirim Langsung via WA Web/Mobile">
-                                    <i class="bi bi-whatsapp"></i> Kirim WA
-                                </a>
-                                {% endif %}
+            <!-- Filter Form -->
+            <form method="get" class="flex flex-wrap items-center gap-2.5 mb-0">
+                <div class="relative min-w-[200px]">
+                    <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                    <input type="text"
+                           name="q"
+                           value="{{ query }}"
+                           placeholder="Cari nama, WA, judul..."
+                           class="w-full pl-9 pr-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                </div>
 
-                                {% if log.status == 'failed' or log.status == 'draft_manual' %}
-                                <form action="{% url 'notifications:resend_wa' log.pk %}" method="post" class="inline mb-0">
-                                    {% csrf_token %}
-                                    <button type="submit" class="p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-600 text-sky-600 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Coba Kirim Ulang via Gateway">
-                                        <i class="bi bi-arrow-repeat text-xs"></i>
-                                    </button>
-                                </form>
-                                {% endif %}
+                <select name="status" class="px-3 py-2 rounded-2xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" onchange="this.form.submit()">
+                    <option value="">-- Semua Status --</option>
+                    <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>🟢 Terkirim</option>
+                    <option value="draft_manual" {% if status_filter == 'draft_manual' %}selected{% endif %}>🟡 Manual Draft</option>
+                    <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>🔴 Gagal</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>⏳ Pending</option>
+                </select>
 
-                                <form action="{% url 'notifications:delete_wa' log.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus log notifikasi WA ini?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Log Notifikasi WA">
-                                        <i class="bi bi-trash-fill text-xs"></i>
-                                    </button>
-                                </form>
+                <button type="submit" class="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center gap-1.5 cursor-pointer">
+                    <i class="bi bi-funnel-fill"></i> Filter
+                </button>
+
+                {% if query or status_filter %}
+                <a href="{% url 'notifications:wa_outbox' %}" class="px-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all no-underline inline-flex items-center justify-center" title="Reset Filter">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                    <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
+                        <th class="py-3.5 px-4 rounded-l-2xl" style="width: 140px;">Waktu Kirim</th>
+                        <th class="py-3.5 px-4" style="min-width: 180px;">Penerima & No. WA</th>
+                        <th class="py-3.5 px-4" style="min-width: 180px;">Kategori & Judul</th>
+                        <th class="py-3.5 px-4" style="min-width: 240px;">Isi Pesan WA</th>
+                        <th class="py-3.5 px-4 text-center" style="width: 150px;">Mode & Status</th>
+                        <th class="py-3.5 px-4 text-end rounded-r-2xl" style="min-width: 160px;">Aksi Cepat</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    {% for log in wa_logs %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
+                        <!-- Waktu Kirim -->
+                        <td class="py-3.5 px-4 font-mono text-[11px] text-slate-700 dark:text-slate-300 text-nowrap">
+                            <span class="flex items-center gap-1.5">
+                                <i class="bi bi-calendar-event text-emerald-500"></i>
+                                <span>{{ log.created_at|date:"d/m/Y H:i" }} WIB</span>
+                            </span>
+                        </td>
+
+                        <!-- Penerima & No. WA -->
+                        <td class="py-3.5 px-4 space-y-0.5">
+                            <span class="font-extrabold text-slate-900 dark:text-white block">
+                                {% if log.employee %}{{ log.employee.full_name }}{% elif log.user %}{{ log.user.get_full_name|default:log.user.username }}{% else %}Penerima Fisik{% endif %}
+                            </span>
+                            {% if log.recipient_phone %}
+                            <a href="https://wa.me/{{ log.recipient_phone }}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-[11px] hover:underline no-underline">
+                                <i class="bi bi-whatsapp"></i> {{ log.recipient_phone }}
+                            </a>
                             {% else %}
-                                <span class="text-slate-400 font-mono text-[10px] italic"><i class="bi bi-lock-fill me-1"></i>Akses Terkunci</span>
+                            <span class="text-slate-400 font-mono text-[10px]">-</span>
                             {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
-                        <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
-                        <span>Belum ada log notifikasi WhatsApp yang tersimpan.</span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+
+                        <!-- Kategori & Judul -->
+                        <td class="py-3.5 px-4 space-y-1">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-mono">
+                                {{ log.get_category_display }}
+                            </span>
+                            <span class="font-extrabold text-xs text-slate-900 dark:text-white block truncate max-w-[190px]" title="{{ log.title }}">{{ log.title }}</span>
+                        </td>
+
+                        <!-- Isi Pesan WA -->
+                        <td class="py-3.5 px-4">
+                            <div @click="openPreview('{{ log.title|escapejs }}', '{% if log.employee %}{{ log.employee.full_name|escapejs }}{% elif log.user %}{{ log.user.username|escapejs }}{% else %}Penerima{% endif %}', '{{ log.message|escapejs }}')"
+                                 class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 text-[11px] line-clamp-2 max-w-[280px] cursor-pointer hover:border-emerald-500/50 hover:bg-emerald-50/20 transition-all font-sans leading-relaxed"
+                                 title="Klik untuk membaca pesan lengkap">
+                                {{ log.message }}
+                            </div>
+                        </td>
+
+                        <!-- Mode & Status -->
+                        <td class="py-3.5 px-4 text-center space-y-1">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold font-mono uppercase tracking-wider"
+                                  :class="'{{ log.dispatch_mode }}' === 'manual' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30'">
+                                {% if log.dispatch_mode == 'manual' %}💬 MANUAL{% else %}🤖 OTOMATIS{% endif %}
+                            </span>
+
+                            <div>
+                                {% if log.status == 'sent' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase font-mono">
+                                    <i class="bi bi-check-circle-fill"></i> Terkirim
+                                </span>
+                                {% elif log.status == 'draft_manual' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 uppercase font-mono">
+                                    <i class="bi bi-whatsapp"></i> Ready Manual
+                                </span>
+                                {% elif log.status == 'failed' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 uppercase font-mono" title="{{ log.error_log }}">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Gagal
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30 uppercase font-mono">
+                                    ⏳ Pending
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- Aksi Cepat -->
+                        <td class="py-3.5 px-4 text-end">
+                            <div class="inline-flex items-center gap-1.5 justify-end">
+                                {% if user.is_superadmin or user.is_superuser %}
+                                    {% if log.wa_direct_link %}
+                                    <a href="{{ log.wa_direct_link }}" target="_blank" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all no-underline inline-flex items-center gap-1" title="Kirim Langsung via WA Web/Mobile">
+                                        <i class="bi bi-whatsapp"></i> Kirim WA
+                                    </a>
+                                    {% endif %}
+
+                                    {% if log.status == 'failed' or log.status == 'draft_manual' %}
+                                    <form action="{% url 'notifications:resend_wa' log.pk %}" method="post" class="inline mb-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="p-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-600 text-sky-600 hover:text-white font-bold text-xs transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Coba Kirim Ulang via Gateway">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+
+                                    <form action="{% url 'notifications:delete_wa' log.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus log notifikasi WA ini?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-bold text-xs transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Log Notifikasi WA">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-slate-400 font-mono text-[10px] italic"><i class="bi bi-lock-fill me-1"></i>Akses Terkunci</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-400">
+                            <i class="bi bi-inbox text-4xl block mb-2 opacity-50"></i>
+                            <p class="text-xs font-semibold mb-0">Belum ada log notifikasi WhatsApp yang tersimpan.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ⚡ POPUP MODAL PREVIEW DETAIL PESAN WA (ALPINE.JS) ⚡ -->
+    <div x-show="previewModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs" x-transition.opacity>
+        <div @click.away="previewModal = false" class="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden" x-transition.scale>
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0">Pratinjau Pesan WhatsApp</h3>
+                </div>
+                <button @click="previewModal = false" class="w-8 h-8 rounded-full bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all border-0 cursor-pointer">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+                <div class="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 space-y-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Penerima Pesan:</span>
+                    <h4 class="font-extrabold text-sm text-slate-900 dark:text-white mb-0" x-text="previewRecipient"></h4>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold" x-text="previewTitle"></span>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="font-bold text-slate-400 uppercase tracking-wider text-[10px] block">Konten Lengkap Pesan WA:</label>
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 font-mono text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto" x-text="previewMsg">
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-end">
+                <button @click="previewModal = false" type="button" class="px-5 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 cursor-pointer">
+                    Tutup Pratinjau
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

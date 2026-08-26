@@ -11,37 +11,39 @@
      class="drawer-backdrop backdrop-blur-sm bg-slate-950/40 fixed inset-0 z-[1070]"></div>
 
 <div x-data 
+     x-show="$store.drawer.isOpen"
      class="slide-over-drawer shadow-2xl border-l border-slate-200 dark:border-slate-800" 
      :class="{ 'open': $store.drawer.isOpen }" 
      x-cloak>
     
     <!-- Drawer Header -->
-    <div class="p-4 border-b border-slate-200 dark:border-slate-800 d-flex align-items-center justify-content-between bg-gradient-to-r from-slate-900 to-emerald-950 text-white">
-        <div class="d-flex align-items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 d-inline-flex align-items-center justify-content-center border border-emerald-500/30">
-                <i class="bi bi-layout-sidebar-reverse fs-5"></i>
+    <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-slate-900 to-emerald-950 text-white">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 inline-flex items-center justify-center border border-emerald-500/30">
+                <i class="bi bi-layout-sidebar-reverse text-lg"></i>
             </div>
             <div>
-                <h5 class="mb-0 fw-bold tracking-tight text-white" x-text="$store.drawer.title">Detail Data</h5>
+                <h3 class="mb-0 font-bold tracking-tight text-white text-base" x-text="$store.drawer.title">Detail Data</h3>
                 <p class="mb-0 text-slate-400 text-xs font-mono" x-text="$store.drawer.subtitle"></p>
             </div>
         </div>
-        <button type="button" @click="$store.drawer.close()" class="btn-close btn-close-white opacity-75 hover-opacity-100" aria-label="Close"></button>
+        <button type="button" @click="$store.drawer.close()" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-all cursor-pointer" aria-label="Close">
+            <i class="bi bi-x-lg text-xs"></i>
+        </button>
     </div>
 
     <!-- Drawer Body Content -->
-    <div class="p-4 overflow-auto flex-grow-1 custom-scrollbar" id="drawerBodyContent" x-html="$store.drawer.contentHtml">
-        <div class="text-center py-5 text-muted">
-            <div class="spinner-border text-emerald-500 mb-3" role="status"></div>
-            <p class="mb-0 font-medium">Memuat detail data SIMAP...</p>
+    <div class="p-4 overflow-y-auto flex-1 custom-scrollbar" id="drawerBodyContent" x-html="$store.drawer.contentHtml">
+        <div class="text-center py-12 text-slate-400">
+            <div class="inline-block w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p class="mb-0 font-medium text-xs">Memuat detail data SIMAP...</p>
         </div>
     </div>
 
     <!-- Drawer Footer Actions -->
-    <div class="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 d-flex justify-content-end gap-2">
-        <button type="button" @click="$store.drawer.close()" class="btn btn-sm btn-outline-secondary rounded-xl px-4 font-bold">
-            <i class="bi bi-x-lg me-1"></i> Tutup
+    <div class="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex justify-end gap-2">
+        <button type="button" @click="$store.drawer.close()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all border border-slate-700 cursor-pointer inline-flex items-center gap-1.5">
+            <i class="bi bi-x-lg"></i> Tutup
         </button>
     </div>
 </div>
-

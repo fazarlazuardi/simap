@@ -1,101 +1,88 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}{% if reschedule or agenda %}Jadwal Ulang Agenda{% else %}Buat Agenda Baru{% endif %} - BAZNAS{% endblock %}
-
-{% block extra_css %}
-<style>
-    .emp-grid { max-height: 240px; overflow-y: auto; }
-    .emp-grid::-webkit-scrollbar { width: 6px; }
-    .emp-grid::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-
-    .emp-card {
-        border-radius: 10px;
-        border: 1px solid var(--border-color);
-        background: var(--surface-hover);
-        transition: all 0.15s ease;
-        cursor: pointer;
-        padding: 8px 12px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        user-select: none;
-    }
-    .emp-card:hover { border-color: var(--color-emerald-500); background: rgba(16, 185, 129, 0.08); }
-    .emp-card.checked { border-color: var(--color-emerald-500); background: rgba(16, 185, 129, 0.14); }
-    .emp-card input[type="checkbox"] { accent-color: var(--color-emerald-600); width: 16px; height: 16px; flex-shrink: 0; }
-    .emp-name { font-size: 0.84rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
-    .emp-pos { font-size: 0.7rem; color: var(--text-secondary); }
-
-    .wa-section {
-        border: 2px dashed var(--color-emerald-500);
-        border-radius: 16px;
-        background: rgba(16, 185, 129, 0.06);
-        padding: 20px;
-    }
-</style>
-{% endblock %}
+{% block title %}{% if reschedule or agenda %}Jadwal Ulang Agenda{% else %}Buat Agenda Baru{% endif %} - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
-<div class="glass-banner-enterprise mb-4">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-8">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item"><a href="{% url 'agendas:list' %}" class="text-white text-opacity-75 text-decoration-none"><i class="bi bi-calendar3 me-1"></i>Kalender Kerja</a></li>
-                    <li class="breadcrumb-item text-white active" aria-current="page">{% if reschedule or agenda %}Edit Agenda{% else %}Buat Agenda Baru{% endif %}</li>
+<div class="w-full space-y-6">
+    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50">
+        <div class="relative z-10">
+            <nav class="flex mb-2" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-2 text-xs font-semibold">
+                    <li class="inline-flex items-center">
+                        <a href="{% url 'agendas:list' %}" class="text-slate-300 hover:text-white no-underline inline-flex items-center gap-1">
+                            <i class="bi bi-calendar3"></i> Kalender Kerja
+                        </a>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="bi bi-chevron-right text-slate-500 mx-1 text-[10px]"></i>
+                            <span class="text-white">{% if reschedule or agenda %}Edit Agenda{% else %}Buat Agenda Baru{% endif %}</span>
+                        </div>
+                    </li>
                 </ol>
             </nav>
-            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">{% if reschedule or agenda %}Jadwalkan Ulang / Edit Agenda{% else %}Buat Agenda Kerja Baru{% endif %}</h3>
-            <p class="text-white text-opacity-80 mb-0 small">
+            <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">
+                {% if reschedule or agenda %}Jadwalkan Ulang / Edit Agenda{% else %}Buat Agenda Kerja Baru{% endif %}
+            </h1>
+            <p class="text-slate-300 text-sm max-w-2xl mb-0">
                 Tambahkan jadwal kegiatan, tentukan penanggung jawab, pilih dokumen acuan, dan setel notifikasi pengingat WhatsApp.
             </p>
         </div>
     </div>
-</div>
 
-<div class="row justify-content-center mb-5">
-    <div class="col-lg-11">
-        <div class="card-enterprise p-4">
+    <div class="max-w-4xl mx-auto">
+        <div class="p-6 sm:p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
             {% if reschedule %}
-            <div class="card-enterprise p-3 mb-4" style="background-color: var(--surface-hover); border-left: 4px solid var(--color-amber-500) !important;">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-clock-history fs-5 text-warning"></i>
-                    <span class="small fw-semibold text-emerald">Anda sedang memperbarui jadwal agenda <strong>{{ agenda.title }}</strong>. Status agenda akan disesuaikan menjadi <strong>Diundur</strong>.</span>
-                </div>
+            <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 border border-amber-200 dark:border-amber-800 flex items-center gap-3">
+                <i class="bi bi-clock-history text-amber-500 text-xl shrink-0"></i>
+                <span class="text-xs font-semibold text-amber-900 dark:text-amber-200">Anda sedang memperbarui jadwal agenda <strong>{{ agenda.title }}</strong>. Status agenda akan disesuaikan menjadi <strong>Diundur</strong>.</span>
             </div>
             {% endif %}
 
-            <form method="post" enctype="multipart/form-data" id="agendaForm">
+            {% if selected_archive %}
+            <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-link-45deg text-emerald-500 text-2xl shrink-0"></i>
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Terhubung Otomatis dengan Dokumen Acuan:</span>
+                        <strong class="font-mono text-slate-900 dark:text-white text-xs">{{ selected_archive.archive_number|default:"Arsip" }} — {{ selected_archive.title }}</strong>
+                    </div>
+                </div>
+                <span class="px-3 py-1 rounded-full text-[10px] font-black bg-emerald-500 text-white font-mono shadow-2xs">AUTO-LINKED</span>
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" id="agendaForm" class="space-y-6">
                 {% csrf_token %}
                 
-                <div class="row g-3 mb-4">
-                    <div class="col-md-8">
-                        <label for="title" class="form-label fw-bold">Judul Kegiatan / Nama Agenda <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input fw-semibold" id="title" name="title" required
-                               placeholder="Contoh: Rapat Pleno Pimpinan Penetapan Mustahik Bantuan Rutilahu"
-                               value="{% if agenda %}{{ agenda.title }}{% endif %}">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="md:col-span-8">
+                        <label for="title" class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Judul Kegiatan / Nama Agenda <span class="text-rose-500">*</span></label>
+                        <input type="text" class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold" id="title" name="title" required
+                               placeholder="Contoh: Rapat Pleno Pimpinan / Audiensi Pemohon Bantuan"
+                               value="{% if agenda %}{{ agenda.title }}{% elif selected_archive %}{{ selected_archive.title }}{% endif %}">
                     </div>
-                    <div class="col-md-4">
-                        <label for="scheduled_at" class="form-label fw-bold">Waktu & Tanggal Kegiatan <span class="text-danger">*</span></label>
-                        <input type="datetime-local" class="form-control custom-input font-mono fw-semibold" id="scheduled_at" name="scheduled_at" required
+                    <div class="md:col-span-4">
+                        <label for="scheduled_at" class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Waktu & Tanggal Kegiatan <span class="text-rose-500">*</span></label>
+                        <input type="datetime-local" class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold" id="scheduled_at" name="scheduled_at" required
                                value="{% if agenda %}{{ agenda.scheduled_at|date:'Y-m-d\TH:i' }}{% endif %}">
                     </div>
                 </div>
 
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label for="location" class="form-label fw-bold">Lokasi Tujuan / Tempat Rapat</label>
-                        <input type="text" class="form-control custom-input" id="location" name="location"
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="location" class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Lokasi Tujuan / Tempat Rapat</label>
+                        <input type="text" class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium" id="location" name="location"
                                placeholder="Contoh: Ruang Rapat Lt.2 BAZNAS Kabupaten Tangerang"
-                               value="{% if agenda %}{{ agenda.location }}{% endif %}">
+                               value="{% if agenda %}{{ agenda.location }}{% elif selected_archive and selected_archive.address %}{{ selected_archive.address }}{% else %}Ruang Rapat BAZNAS Kabupaten Tangerang{% endif %}">
                     </div>
-                    <div class="col-md-6">
-                        <label for="archive_id" class="form-label fw-bold">Hubungkan dengan Dokumen Acuan</label>
-                        <select class="form-select custom-input" id="archive_id" name="archive_id">
+                    <div>
+                        <label for="archive_id" class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Hubungkan dengan Dokumen Acuan</label>
+                        <select class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold" id="archive_id" name="archive_id">
                             <option value="">-- Berdiri Sendiri (Tanpa Dokumen Acuan) --</option>
                             {% for arc in archives %}
-                            <option value="{{ arc.id }}" {% if agenda and agenda.archive_id == arc.id %}selected{% endif %}>
+                            <option value="{{ arc.id }}" {% if agenda and agenda.archive_id == arc.id or selected_archive and selected_archive.id == arc.id %}selected{% endif %}>
                                 {{ arc.archive_number|default:"Arsip" }} - {{ arc.title|truncatechars:45 }}
                             </option>
                             {% endfor %}
@@ -103,32 +90,34 @@
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="description" class="form-label fw-bold">Keterangan / Agenda Pembahasan</label>
-                    <textarea class="form-control p-3" id="description" name="description" rows="3"
+                <div>
+                    <label for="description" class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Keterangan / Agenda Pembahasan</label>
+                    <textarea class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium" id="description" name="description" rows="3"
                               placeholder="Tuliskan catatan perihal pembahasan atau instruksi kegiatan...">{% if agenda %}{{ agenda.description }}{% endif %}</textarea>
                 </div>
 
                 <!-- Multi-Select Pegawai Ditugaskan -->
-                <div class="card-enterprise p-4 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <label class="form-label fw-bold text-emerald mb-0"><i class="bi bi-people-fill me-1 text-primary"></i> Pegawai Ditugaskan / Peserta Rapat</label>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" id="btnSelectAll">Pilih Semua</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" id="btnClearAll">Hapus Pilihan</button>
+                <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div class="flex justify-between items-center flex-wrap gap-2">
+                        <label class="block text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mb-0 flex items-center gap-1.5">
+                            <i class="bi bi-people-fill text-sky-500"></i> Pegawai Ditugaskan / Peserta Rapat
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <button type="button" class="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold text-[11px] border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-200 transition-all cursor-pointer" id="btnSelectAll">Pilih Semua</button>
+                            <button type="button" class="px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] hover:bg-slate-300 transition-all cursor-pointer" id="btnClearAll">Hapus Pilihan</button>
                         </div>
                     </div>
                     
-                    <input type="text" id="empSearch" class="form-control custom-input mb-3" placeholder="🔍 Cari nama pegawai / jabatan...">
+                    <input type="text" id="empSearch" class="w-full px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" placeholder="🔍 Cari nama pegawai / jabatan...">
                     
-                    <div class="emp-grid row g-2" id="empGrid">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto custom-scrollbar p-1" id="empGrid">
                         {% for emp in employees %}
-                        <div class="col-md-4 emp-item" data-name="{{ emp.full_name|lower }}" data-pos="{{ emp.position|lower }}">
-                            <label class="emp-card w-100 {% if emp.id in assigned_emp_ids %}checked{% endif %}">
-                                <input type="checkbox" name="assigned_employees" value="{{ emp.id }}" {% if emp.id in assigned_emp_ids %}checked{% endif %}>
-                                <div>
-                                    <div class="emp-name">{{ emp.full_name }}</div>
-                                    <div class="emp-pos">{{ emp.position|default:"Staf BAZNAS" }}</div>
+                        <div class="emp-item" data-name="{{ emp.full_name|lower }}" data-pos="{{ emp.position|lower }}">
+                            <label class="emp-card flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-emerald-500 transition-all cursor-pointer select-none {% if emp.id in assigned_emp_ids %}bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500{% endif %}">
+                                <input type="checkbox" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0" name="assigned_employees" value="{{ emp.id }}" {% if emp.id in assigned_emp_ids %}checked{% endif %}>
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{{ emp.full_name }}</div>
+                                    <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ emp.position|default:"Staf BAZNAS" }}</div>
                                 </div>
                             </label>
                         </div>
@@ -137,21 +126,20 @@
                 </div>
 
                 <!-- Pengingat WhatsApp -->
-                <div class="wa-section mb-4">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="send_wa" name="send_wa" value="1" checked style="width: 2.2em; height: 1.2em;">
-                        <label class="form-check-label fw-bold text-emerald ms-2" for="send_wa">
-                            <i class="bi bi-whatsapp me-1 text-success"></i> Kirim Notifikasi Pengingat WhatsApp Otomatis ke Pegawai Ditugaskan
-                        </label>
-                    </div>
+                <div class="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-500/30 flex items-center gap-3">
+                    <input class="w-5 h-5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0" type="checkbox" id="send_wa" name="send_wa" value="1" checked>
+                    <label class="text-xs font-extrabold text-emerald-800 dark:text-emerald-300 cursor-pointer flex items-center gap-1.5 mb-0" for="send_wa">
+                        <i class="bi bi-whatsapp text-emerald-500 text-base"></i> Kirim Notifikasi Pengingat WhatsApp Otomatis ke Pegawai Ditugaskan
+                    </label>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                    <a href="{% url 'agendas:list' %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                <!-- Tombol Aksi -->
+                <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <a href="{% url 'agendas:list' %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-all no-underline">
                         <i class="bi bi-arrow-left me-1"></i> Batal
                     </a>
-                    <button type="submit" class="btn btn-enterprise-primary px-5 py-2.5 rounded-pill shadow-lg">
-                        <i class="bi bi-check-circle-fill me-2"></i>
+                    <button type="submit" class="px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all border-0 cursor-pointer inline-flex items-center gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
                         {% if reschedule or agenda %}Simpan Perubahan Agenda{% else %}Simpan & Terbitkan Agenda{% endif %}
                     </button>
                 </div>
@@ -164,21 +152,6 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const empCards = document.querySelectorAll('.emp-card');
-    empCards.forEach(card => {
-        const checkbox = card.querySelector('input[type="checkbox"]');
-        card.addEventListener('click', function(e) {
-            if (e.target !== checkbox) {
-                checkbox.checked = !checkbox.checked;
-            }
-            if (checkbox.checked) {
-                card.classList.add('checked');
-            } else {
-                card.classList.remove('checked');
-            }
-        });
-    });
-
     const searchInput = document.getElementById('empSearch');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
@@ -202,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const card = item.querySelector('.emp-card');
                 const cb = item.querySelector('input[type="checkbox"]');
                 cb.checked = true;
-                card.classList.add('checked');
+                card.classList.add('bg-emerald-50', 'dark:bg-emerald-950/60', 'border-emerald-500');
             }
         });
     });
@@ -211,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.emp-card').forEach(card => {
             const cb = card.querySelector('input[type="checkbox"]');
             cb.checked = false;
-            card.classList.remove('checked');
+            card.classList.remove('bg-emerald-50', 'dark:bg-emerald-950/60', 'border-emerald-500');
         });
     });
 });

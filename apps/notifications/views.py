@@ -81,7 +81,9 @@ def wa_outbox_list(request):
         ('bantuan_penyaluran', 'LHP Penyaluran Direct (Bidang II)', 'Pemberitahuan laporan pentasyarufan bantuan langsung.'),
         ('sppd', 'SPPD & Perjalanan Dinas', 'Penerbitan Surat Perintah Perjalanan Dinas amil.'),
         ('internal_meeting', 'Risalah & Notulensi Rapat Internal', 'Undangan dan risalah kegiatan rapat internal BAZNAS.'),
+        ('agenda', 'Agenda Kerja & Pengingat', 'Notifikasi pengingat jadwal agenda dan kegiatan amil.'),
         ('archive', 'Notifikasi Arsip Baru', 'Pengunggahan dokumen arsip baru oleh Front Office.'),
+        ('general', 'Notifikasi Umum / System', 'Pengiriman notifikasi umum sistem.'),
     ]
 
     for cat_code, cat_label, cat_desc in categories:

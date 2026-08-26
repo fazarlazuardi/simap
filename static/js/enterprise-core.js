@@ -16,15 +16,21 @@ document.addEventListener('alpine:init', () => {
         },
         apply(t) {
             document.documentElement.setAttribute('data-theme', t);
+            if (t === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
             localStorage.setItem('theme', t);
             var icon = document.getElementById('themeIconGlobal');
             var text = document.getElementById('themeTextGlobal');
             if (icon) {
-                icon.className = t === 'dark' ? 'bi bi-sun-fill text-warning fs-6' : 'bi bi-moon-stars-fill text-warning fs-6';
+                icon.className = t === 'dark' ? 'bi bi-sun-fill text-amber-400 text-sm font-extrabold' : 'bi bi-moon-stars-fill text-amber-500 text-sm font-extrabold';
             }
             if (text) {
                 text.textContent = t === 'dark' ? 'Mode Gelap' : 'Mode Terang';
             }
+            window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: t } }));
         }
     });
 
@@ -54,7 +60,7 @@ document.addEventListener('alpine:init', () => {
         open(title, subtitle, contentHtml) {
             this.title = title || 'Detail Data';
             this.subtitle = subtitle || '';
-            this.contentHtml = contentHtml || '<p class="text-muted">Loading detail...</p>';
+            this.contentHtml = contentHtml || '<p class="text-slate-400">Loading detail...</p>';
             this.isOpen = true;
         },
         close() {
@@ -62,6 +68,22 @@ document.addEventListener('alpine:init', () => {
         }
     });
 });
+
+window.toggleThemeGlobal = function() {
+    if (window.Alpine && Alpine.store('themeStore')) {
+        Alpine.store('themeStore').toggle();
+    } else {
+        const current = localStorage.getItem('theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        if (next === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('theme', next);
+    }
+};
 
 // Global Keyboard Listener for Ctrl + K / Cmd + K
 document.addEventListener('keydown', (e) => {
@@ -231,15 +253,9 @@ window.showEnterpriseNotificationToast = function(title, body, icon = 'info', li
     }
 };
 
-
 // SILKY SMOOTH ENTERPRISE MODULE NAVIGATION INTERCEPTOR
 document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('module-page-container');
-    if (container) {
-        container.style.opacity = '1';
-    }
-
-    // Intercept internal link clicks for smooth fade
+    // Intercept internal link clicks for progress bar feedback
     document.addEventListener('click', (e) => {
         const link = e.target.closest('a');
         if (!link) return;
@@ -249,18 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Only intercept standard internal navigation links
         if (href && href.startsWith('/') && !href.startsWith('//') && target !== '_blank' && !href.includes('#') && !link.hasAttribute('download')) {
-            const container = document.getElementById('module-page-container');
             const progressBar = document.getElementById('htmx-progress-bar');
-
             if (progressBar) {
                 progressBar.classList.remove('finished');
                 progressBar.classList.add('loading');
-            }
-
-            if (container) {
-                container.style.transition = 'opacity 120ms ease-out, transform 120ms ease-out';
-                container.style.opacity = '0.7';
-                container.style.transform = 'translateY(2px)';
             }
         }
     });

@@ -1,45 +1,41 @@
 {% if page_obj.paginator.num_pages > 1 %}
-<nav aria-label="Navigasi halaman" class="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100 mt-4 pt-3 border-top" style="border-color: var(--border-color, #E2E8F0) !important;">
-    <div class="small text-muted font-mono">
-        Menampilkan halaman <strong class="text-emerald-600 dark:text-emerald-400">{{ page_obj.number }}</strong> dari <strong class="text-emerald-600 dark:text-emerald-400">{{ page_obj.paginator.num_pages }}</strong>
+<nav aria-label="Navigasi halaman" class="flex flex-col sm:flex-row items-center justify-between gap-3 w-full mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+    <div class="text-xs text-slate-500 dark:text-slate-400 font-mono">
+        Menampilkan halaman <strong class="text-emerald-600 dark:text-emerald-400 font-black">{{ page_obj.number }}</strong> dari <strong class="text-emerald-600 dark:text-emerald-400 font-black">{{ page_obj.paginator.num_pages }}</strong>
     </div>
 
-    <ul class="pagination pagination-sm mb-0 flex-wrap gap-1">
+    <div class="flex items-center gap-1.5 flex-wrap">
         {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link rounded-xl px-3 py-1.5 font-bold shadow-sm transition-all" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}" aria-label="Sebelumnya">
-                <i class="bi bi-chevron-left me-1"></i> Prev
-            </a>
-        </li>
+        <a href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 text-slate-700 dark:text-slate-200 hover:text-white text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 no-underline shadow-2xs inline-flex items-center gap-1">
+            <i class="bi bi-chevron-left"></i> Prev
+        </a>
         {% else %}
-        <li class="page-item disabled">
-            <span class="page-link rounded-xl px-3 py-1.5 opacity-50"><i class="bi bi-chevron-left me-1"></i> Prev</span>
-        </li>
+        <span class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/40 text-slate-400 text-xs font-bold border border-slate-200 dark:border-slate-800 opacity-50 cursor-not-allowed inline-flex items-center gap-1">
+            <i class="bi bi-chevron-left"></i> Prev
+        </span>
         {% endif %}
 
         {% for num in page_obj.paginator.page_range %}
             {% if num == page_obj.number %}
-            <li class="page-item active">
-                <span class="page-link rounded-xl px-3 py-1.5 font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-0 shadow-md">{{ num }}</span>
-            </li>
+            <span class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black shadow-md border border-emerald-400/40">
+                {{ num }}
+            </span>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <li class="page-item">
-                <a class="page-link rounded-xl px-3 py-1.5 font-bold transition-all" href="?{{ request.GET.urlencode }}&page={{ num }}">{{ num }}</a>
-            </li>
+            <a href="?{{ request.GET.urlencode }}&page={{ num }}" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 no-underline">
+                {{ num }}
+            </a>
             {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link rounded-xl px-3 py-1.5 font-bold shadow-sm transition-all" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}" aria-label="Selanjutnya">
-                Next <i class="bi bi-chevron-right ms-1"></i>
-            </a>
-        </li>
+        <a href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 text-slate-700 dark:text-slate-200 hover:text-white text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 no-underline shadow-2xs inline-flex items-center gap-1">
+            Next <i class="bi bi-chevron-right"></i>
+        </a>
         {% else %}
-        <li class="page-item disabled">
-            <span class="page-link rounded-xl px-3 py-1.5 opacity-50">Next <i class="bi bi-chevron-right ms-1"></i></span>
-        </li>
+        <span class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/40 text-slate-400 text-xs font-bold border border-slate-200 dark:border-slate-800 opacity-50 cursor-not-allowed inline-flex items-center gap-1">
+            Next <i class="bi bi-chevron-right"></i>
+        </span>
         {% endif %}
-    </ul>
+    </div>
 </nav>
 {% endif %}

@@ -5,111 +5,105 @@
 
 {% block extra_css %}
 <style>
-    table.dataTable > thead > tr > th { 
-        border-bottom: 1px solid var(--border-color, #E2E8F0) !important; 
-        color: var(--text-primary, #0F172A) !important; 
-        font-weight: 800 !important;
-        font-size: 0.72rem !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.03em !important;
-        background-color: var(--surface-alt, #F1F5F9) !important;
-        padding: 10px 8px !important;
-        vertical-align: middle !important;
-        white-space: nowrap !important;
+    /* Custom DataTables Tailwind Integration & Zero-Overflow Styling */
+    #report-table {
+        width: 100% !important;
+        table-layout: auto !important;
     }
-    [data-theme="dark"] table.dataTable > thead > tr > th {
-        background-color: #1E293B !important;
-        color: #F8FAFC !important;
-        border-bottom-color: #334155 !important;
+    #report-table_wrapper {
+        width: 100% !important;
+        overflow-x: hidden !important;
     }
-    table.dataTable.no-footer { border-bottom: 1px solid var(--border-color, #E2E8F0) !important; }
-    table.dataTable tbody td {
-        padding: 10px 8px !important;
-        vertical-align: middle !important;
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        background-color: var(--card-bg, #ffffff);
+        border: 1px solid var(--border-color, #cbd5e1);
+        border-radius: 0.75rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+        color: var(--text-primary, #0f172a);
+        outline: none;
     }
-    div.dataTables_wrapper div.dataTables_info,
-    div.dataTables_wrapper div.dataTables_paginate { padding-top: 0.75rem !important; color: var(--text-secondary, #64748B) !important; font-weight: 600 !important; font-size: 0.78rem !important; }
-    div.dataTables_wrapper .dataTables_length select,
-    div.dataTables_wrapper .dataTables_filter input,
-    div.dataTables_wrapper .dataTables_paginate .paginate_button {
-        background-color: var(--card-bg, #FFFFFF) !important;
-        color: var(--text-primary, #0F172A) !important;
-        border-color: var(--border-color, #E2E8F0) !important;
-        border-radius: 8px !important;
-        padding: 4px 8px !important;
-        font-size: 0.78rem !important;
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
     }
-    div.dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
-        color: #fff !important;
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.75rem;
+        color: var(--text-secondary, #64748b) !important;
+        padding-top: 1rem !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        border-radius: 0.5rem !important;
+        border: 1px solid var(--border-color, #cbd5e1) !important;
+        background: var(--card-bg, #ffffff) !important;
+        color: var(--text-primary, #0f172a) !important;
+        font-weight: 700 !important;
+        padding: 0.25rem 0.65rem !important;
+        margin: 0 2px !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: #059669 !important;
+        color: #ffffff !important;
         border-color: #059669 !important;
-        font-weight: 800 !important;
-        box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25) !important;
-    }
-
-    .trace-node-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.25rem 0.55rem;
-        border-radius: 9999px;
-        font-size: 0.7rem;
-        font-weight: 800;
-        transition: all 0.2s ease;
-        line-height: 1;
-        white-space: nowrap !important;
-    }
-    .trace-node-dispatched {
-        background-color: rgba(217, 119, 6, 0.12);
-        color: #D97706;
-        border: 1px solid rgba(217, 119, 6, 0.25);
-    }
-    .trace-node-verified {
-        background-color: rgba(16, 185, 129, 0.12);
-        color: #059669;
-        border: 1px solid rgba(16, 185, 129, 0.25);
-    }
-    .trace-node-st {
-        background-color: rgba(14, 165, 233, 0.12);
-        color: #0284C7;
-        border: 1px solid rgba(14, 165, 233, 0.25);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER EKSEKUTIF PRO GLASSMORPHISM (STANDAR ENTERPRISE) -->
-<div class="glass-banner-enterprise mb-3.5 p-4 sm:p-5 rounded-2xl shadow-lg">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-7">
-            <div class="d-flex align-items-center gap-2 mb-1.5">
-                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-xs font-extrabold shadow-sm">
-                    <i class="bi bi-diagram-3-fill text-amber-300 text-sm"></i>
-                    <span class="text-white tracking-wide uppercase">Audit & Traceability Alur Kerja SIMAP</span>
+<div class="w-full space-y-6" x-data="{
+    openBackupModal: false,
+    backupMonth: '',
+    backupYear: '{{ now_year|default:'' }}',
+    backupCount: null,
+    loadingCount: false,
+    fetchBackupCount() {
+        if (this.backupMonth && this.backupYear) {
+            this.loadingCount = true;
+            fetch('{% url 'reports:backup_count_documents' %}?month=' + this.backupMonth + '&year=' + this.backupYear)
+                .then(res => res.json())
+                .then(data => {
+                    this.loadingCount = false;
+                    this.backupCount = data.error ? null : data.count;
+                })
+                .catch(() => {
+                    this.loadingCount = false;
+                    this.backupCount = null;
+                });
+        } else {
+            this.backupCount = null;
+        }
+    }
+}">
+    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+                <span class="px-3.5 py-1 text-xs font-bold uppercase rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
+                    <i class="bi bi-diagram-3-fill text-emerald-400"></i> Audit & Traceability Alur Kerja SIMAP
                 </span>
+                <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">Traceability Pengelolaan Arsip & Dokumen</h1>
+                <p class="text-slate-300 text-xs md:text-sm max-w-2xl mb-0">
+                    Pantau rekam jejak perjalanan dokumen dari registrasi, verifikasi, disposisi pimpinan, penugasan survei/penyaluran, hingga terbitnya LHP realtime.
+                </p>
             </div>
-            <h2 class="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-tight m-0 mb-1">
-                Traceability Pengelolaan Arsip & Dokumen
-            </h2>
-            <p class="text-emerald-50 text-xs font-medium m-0 max-w-xl">
-                Pantau rekam jejak perjalanan dokumen dari registrasi, verifikasi, disposisi pimpinan, penugasan survei/penyaluran, hingga terbitnya LHP realtime.
-            </p>
-        </div>
-        <div class="col-lg-5 text-lg-end">
-            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+
+            <div class="flex items-center gap-2.5 flex-shrink-0 flex-wrap">
                 {% if user.is_superadmin %}
-                <a href="{% url 'audit_logs:list' %}" class="btn btn-outline-light rounded-pill px-3 py-1.5 font-bold text-xs shadow-sm">
-                    <i class="bi bi-clock-history me-1"></i> Audit Logs
+                <a href="{% url 'audit_logs:list' %}" class="px-4 py-2.5 rounded-full border border-white/20 text-white hover:bg-white/10 text-xs font-bold transition-all no-underline inline-flex items-center gap-1.5 shadow-sm">
+                    <i class="bi bi-clock-history me-1 text-emerald-400"></i> Audit Logs
                 </a>
                 {% endif %}
                 
                 {% if drive_backup_enabled %}
-                <button type="button" class="btn btn-warning text-slate-950 rounded-pill px-3 py-1.5 font-bold text-xs shadow-sm" onclick="openPureBackupModal()">
-                    <i class="bi bi-cloud-arrow-up-fill me-1"></i> Backup Bulanan
+                <button type="button" @click="openBackupModal = true; fetchBackupCount()" class="px-4 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-md transition-all border-0 cursor-pointer inline-flex items-center gap-1.5">
+                    <i class="bi bi-cloud-arrow-up-fill"></i> Backup Bulanan
                 </button>
                 {% endif %}
 
-                <form method="get" class="d-inline">
+                <form method="get" class="inline mb-0">
                     <input type="hidden" name="export" value="1">
                     {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
                     {% if pj %}<input type="hidden" name="pj" value="{{ pj }}">{% endif %}
@@ -117,243 +111,361 @@
                     {% if date_from %}<input type="hidden" name="date_from" value="{{ date_from }}">{% endif %}
                     {% if date_to %}<input type="hidden" name="date_to" value="{{ date_to }}">{% endif %}
                     {% if current_type %}<input type="hidden" name="type" value="{{ current_type }}">{% endif %}
-                    <button type="submit" class="btn btn-light rounded-pill px-3.5 py-1.5 font-bold text-xs shadow-sm" style="color: var(--color-emerald-700);">
-                        <i class="bi bi-file-earmark-excel-fill me-1 text-success"></i> Export Excel
+                    <button type="submit" class="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow-md transition-all border-0 cursor-pointer inline-flex items-center gap-1.5">
+                        <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
                     </button>
                 </form>
             </div>
         </div>
     </div>
-</div>
 
-<!-- FILTER PANEL RINGKAS -->
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 shadow-sm mb-3">
-    <form method="get" class="row g-2 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label font-bold text-[11px] text-uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                <i class="bi bi-search me-1 text-emerald-600"></i> Cari Dokumen
-            </label>
-            <input type="text" name="q" class="form-control custom-input py-1.5 px-3 text-xs" placeholder="No. Dokumen / Judul / Perihal" value="{{ q|default:'' }}">
-        </div>
-        <div class="col-md-3">
-            <label class="form-label font-bold text-[11px] text-uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                <i class="bi bi-person me-1 text-primary"></i> Penanggung Jawab
-            </label>
-            <select name="pj" class="form-select custom-input py-1.5 px-3 text-xs">
-                <option value="">Semua Pegawai / Waka</option>
-                {% for u in users %}
-                <option value="{{ u.id }}" {% if pj == u.id|stringformat:'s' %}selected{% endif %}>{{ u.employee.full_name|default:u.username }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label font-bold text-[11px] text-uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                <i class="bi bi-flag me-1 text-warning"></i> Status Dokumen
-            </label>
-            <select name="status" class="form-select custom-input py-1.5 px-3 text-xs">
-                <option value="">Semua Status</option>
-                {% for code, label in status_choices %}
-                <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label font-bold text-[11px] text-uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                <i class="bi bi-calendar-range me-1 text-info"></i> Periode Update
-            </label>
-            <input type="date" name="date_from" class="form-control custom-input py-1.5 px-3 text-xs" value="{{ date_from }}">
-        </div>
-        <div class="col-md-2 d-flex gap-1.5">
-            <button type="submit" class="btn btn-enterprise-primary w-100 rounded-xl px-3 py-1.5 font-bold text-xs shadow-sm">
-                <i class="bi bi-funnel-fill me-1"></i> Filter
-            </button>
-            <a href="{% url 'reports:index' %}" class="btn btn-outline-secondary rounded-xl px-2.5 py-1.5 text-xs font-bold" title="Reset Filter">
-                <i class="bi bi-arrow-counterclockwise"></i>
+    <!-- FILTER PANEL RINGKAS GLASS -->
+    <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-end">
+            <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    <i class="bi bi-search me-1 text-emerald-600"></i> Cari Dokumen
+                </label>
+                <input type="text" name="q" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" placeholder="No. Dokumen / Judul / Perihal" value="{{ q|default:'' }}">
+            </div>
+            <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    <i class="bi bi-person me-1 text-emerald-500"></i> Penanggung Jawab
+                </label>
+                <select name="pj" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+                    <option value="">Semua Pegawai / Waka</option>
+                    {% for u in users %}
+                    <option value="{{ u.id }}" {% if pj == u.id|stringformat:'s' %}selected{% endif %}>{{ u.employee.full_name|default:u.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    <i class="bi bi-flag me-1 text-amber-500"></i> Status Dokumen
+                </label>
+                <select name="status" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+                    <option value="">Semua Status</option>
+                    {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    <i class="bi bi-calendar-range me-1 text-sky-500"></i> Periode Update
+                </label>
+                <input type="date" name="date_from" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ date_from }}">
+            </div>
+            <div class="md:col-span-2 flex gap-2">
+                <button type="submit" class="flex-1 py-2 px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="bi bi-funnel-fill"></i> Filter
+                </button>
+                <a href="{% url 'reports:index' %}" class="px-3.5 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-all inline-flex items-center justify-center no-underline" title="Reset Filter">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- KATEGORI PILLS FUTURISTIK RINGKAS -->
+    <div class="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="flex gap-2 flex-wrap items-center">
+            <span class="font-black text-emerald-600 dark:text-emerald-400 text-xs me-1 flex items-center gap-1.5 uppercase tracking-wider font-mono">
+                <i class="bi bi-folder-fill text-amber-500"></i> Kategori:
+            </span>
+            <a href="{% url 'reports:index' %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all no-underline {% if not current_type %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                <i class="bi bi-grid-3x3-gap me-1"></i> Semua Jenis Dokumen
             </a>
+            {% for code, label in archive_types %}
+            <a href="{% url 'reports:index' %}?type={{ code }}{% if q %}&q={{ q }}{% endif %}{% if pj %}&pj={{ pj }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all no-underline {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                {{ label }}
+            </a>
+            {% endfor %}
         </div>
-    </form>
-</div>
-
-<!-- KATEGORI PILLS FUTURISTIK RINGKAS -->
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2.5 shadow-sm mb-3">
-    <div class="d-flex gap-1.5 flex-wrap align-items-center">
-        <span class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider me-1">
-            <i class="bi bi-folder-fill me-1 text-warning"></i> Kategori:
-        </span>
-        <a href="{% url 'reports:index' %}" class="btn btn-sm rounded-xl px-3 py-1 font-bold text-xs transition-all {% if not current_type %}btn-enterprise-primary shadow-sm{% else %}btn-outline-secondary{% endif %}">
-            <i class="bi bi-grid-3x3-gap me-1"></i> Semua Jenis Dokumen
-        </a>
-        {% for code, label in archive_types %}
-        <a href="{% url 'reports:index' %}?type={{ code }}{% if q %}&q={{ q }}{% endif %}{% if pj %}&pj={{ pj }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="btn btn-sm rounded-xl px-3 py-1 font-bold text-xs transition-all {% if current_type == code %}btn-enterprise-primary shadow-sm{% else %}btn-outline-secondary{% endif %}">
-            {{ label }}
-        </a>
-        {% endfor %}
     </div>
-</div>
 
-<!-- DATA GRID TABEL TRACEABILITY (100% FIT NATURAL, STATUS WHITESPACE-NOWRAP SATU BARIS) -->
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-lg mb-5">
-    <div class="w-100">
-        <table id="report-table" class="table table-hover align-middle w-100 text-xs m-0">
-            <thead>
-                <tr class="text-slate-600 dark:text-slate-300 text-[11px] font-black uppercase tracking-wider">
-                    <th class="border-0 text-start py-2.5 px-2" style="width: 12%;">No. Dokumen</th>
-                    <th class="border-0 text-start py-2.5 px-2" style="width: 22%;">Perihal / Judul</th>
-                    <th class="border-0 text-start py-2.5 px-2" style="width: 11%;">Pengirim</th>
-                    <th class="border-0 text-center py-2.5 px-2" style="width: 10%;">No. Disposisi</th>
-                    <th class="border-0 text-start py-2.5 px-2" style="width: 11%;">Penanggung Jawab</th>
-                    <th class="border-0 text-center py-2.5 px-2" style="width: 8%;">Tgl Agenda</th>
-                    <th class="border-0 text-center py-2.5 px-2" style="width: 9%;">No. ST / SPPD</th>
-                    <th class="border-0 text-center py-2.5 px-2" style="width: 9%;">No. LHP</th>
-                    <th class="border-0 text-center py-2.5 px-2" style="width: 8%;">Status</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                {% for arc in archives %}
-                {% with dispo=arc.latest_dispo surat_tugas_obj=arc.latest_st sppd_obj=arc.latest_sppd report_obj=arc.latest_report %}
-                <tr class="transition-all hover:bg-emerald-50/40 dark:hover:bg-slate-800/60">
-                    <!-- No. Dokumen -->
-                    <td class="font-bold py-2.5 px-2 whitespace-nowrap">
-                        <a href="{% url 'archives:detail' arc.pk %}" class="text-decoration-none text-emerald-600 dark:text-emerald-400 font-extrabold font-mono hover:underline">
-                            {{ arc.archive_number|default:"(DRAFT)" }}
-                        </a>
-                    </td>
+    <!-- DATA GRID TABEL TRACEABILITY (ENHANCED FUTURISTIC & PROFESSIONAL TABLE) -->
+    <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
+            <div>
+                <h3 class="font-black text-base text-slate-900 dark:text-white uppercase tracking-wider mb-0 flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shadow-xs">
+                        <i class="bi bi-diagram-3"></i>
+                    </span>
+                    Matriks Traceability Rekam Jejak Dokumen
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-0 mt-0.5">Pemantauan status mutasi berkas, disposisi, surat tugas, SPPD lapangan, hingga pelaporan akhir LHP.</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono border border-emerald-500/20">
+                    Total: {{ archives|length }} Dokumen Terlacak
+                </span>
+            </div>
+        </div>
 
-                    <!-- Perihal / Judul -->
-                    <td class="font-bold text-slate-900 dark:text-white py-2.5 px-2" title="{{ arc.title }}">
-                        <div class="line-clamp-2 leading-tight text-xs">{{ arc.title }}</div>
-                    </td>
-                    
-                    <!-- Pengirim -->
-                    <td class="py-2.5 px-2">
-                        {% if arc.sender %}
-                            <div class="font-semibold text-slate-600 dark:text-slate-300 text-[11px] leading-tight flex items-center gap-1" title="{{ arc.sender }}">
-                                <i class="bi bi-building text-slate-400 shrink-0 text-xs"></i>
-                                <span class="line-clamp-1">{{ arc.sender }}</span>
+        <div class="w-full overflow-x-auto touch-pan-x custom-scrollbar">
+            <table id="report-table" class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 font-extrabold">
+                        <th class="py-3.5 px-3">No. Dokumen & Kategori</th>
+                        <th class="py-3.5 px-3">Perihal / Judul & Pemohon</th>
+                        <th class="py-3.5 px-3 text-center">Disposisi</th>
+                        <th class="py-3.5 px-3">Penanggung Jawab</th>
+                        <th class="py-3.5 px-3 text-center">Agenda</th>
+                        <th class="py-3.5 px-3 text-center">Surat Tugas & SPPD</th>
+                        <th class="py-3.5 px-3 text-center">LHP</th>
+                        <th class="py-3.5 px-3 text-center">Status Alur Kerja</th>
+                        <th class="py-3.5 px-3 text-end">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
+                    {% for arc in archives %}
+                    {% with dispo=arc.latest_dispo surat_tugas_obj=arc.latest_st sppd_obj=arc.latest_sppd report_obj=arc.latest_report %}
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-all {% if arc.status == 'ditolak' %}bg-rose-500/5 opacity-75{% endif %}">
+                        <!-- No. Dokumen & Kategori -->
+                        <td class="py-3.5 px-3 whitespace-nowrap">
+                            <div class="space-y-1">
+                                <div>
+                                    {% if arc.archive_type == 'proposal' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-extrabold rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                        <i class="bi bi-file-earmark-medical"></i> Proposal
+                                    </span>
+                                    {% elif arc.archive_type == 'surat_masuk' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-extrabold rounded-full bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30">
+                                        <i class="bi bi-envelope-open"></i> Surat Masuk
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-extrabold rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
+                                        <i class="bi bi-send"></i> Surat Keluar
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'archives:detail' arc.pk %}" class="no-underline text-emerald-600 dark:text-emerald-400 font-black font-mono hover:underline block text-xs">
+                                    {{ arc.archive_number|default:"(DRAFT)" }}
+                                </a>
                             </div>
-                        {% else %}
-                            <span class="text-slate-400 text-xs">-</span>
-                        {% endif %}
-                    </td>
+                        </td>
 
-                    <!-- Disposisi -->
-                    <td class="text-center py-2.5 px-2 whitespace-nowrap">
-                        {% if dispo %}
-                            <a href="{% url 'dispositions:detail' dispo.pk %}" class="trace-node-pill trace-node-dispatched text-decoration-none">
-                                <i class="bi bi-signpost-split"></i>{% if dispo.disposition_number %}{{ dispo.disposition_number }}{% else %}DISP-{{ dispo.id }}{% endif %}
-                            </a>
-                        {% else %}
-                            <span class="text-slate-400 font-mono text-[11px]">-</span>
-                        {% endif %}
-                    </td>
+                        <!-- Perihal / Judul & Pemohon -->
+                        <td class="py-3.5 px-3">
+                            <div class="space-y-1 max-w-xs md:max-w-sm">
+                                <h4 class="font-bold text-slate-900 dark:text-white text-xs mb-0 line-clamp-2 leading-snug" title="{{ arc.title }}">
+                                    {{ arc.title }}
+                                </h4>
+                                {% if arc.sender_receiver or arc.sender %}
+                                <div class="font-semibold text-slate-500 dark:text-slate-400 text-[11px] flex items-center gap-1 truncate" title="{{ arc.sender_receiver|default:arc.sender }}">
+                                    <i class="bi bi-person-fill text-slate-400 shrink-0"></i>
+                                    <span class="truncate">{{ arc.sender_receiver|default:arc.sender }}</span>
+                                </div>
+                                {% else %}
+                                <span class="text-slate-400 text-xs italic">-</span>
+                                {% endif %}
+                            </div>
+                        </td>
 
-                    <!-- Penanggung Jawab -->
-                    <td class="py-2.5 px-2">
-                        {% if arc.current_assignees %}
-                            <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1 whitespace-nowrap">
-                                <i class="bi bi-person-fill text-emerald-600 shrink-0 text-[10px]"></i>
-                                <span class="line-clamp-1">{{ arc.current_assignee_names }}</span>
-                            </span>
-                            {% if dispo and dispo.is_stage_waka %}
-                                <small class="text-primary block mt-0.5 font-bold text-[10px]">
-                                    (Waka IV)
-                                </small>
+                        <!-- Disposisi Pimpinan -->
+                        <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                            {% if dispo %}
+                                <a href="{% url 'dispositions:detail' dispo.pk %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-extrabold rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 no-underline hover:bg-amber-500/25 transition-all font-mono">
+                                    <i class="bi bi-signpost-split text-amber-500"></i>{% if dispo.disposition_number %}{{ dispo.disposition_number }}{% else %}DISP-{{ dispo.id }}{% endif %}
+                                </a>
+                            {% else %}
+                                <span class="text-slate-400 font-mono text-[11px]">—</span>
                             {% endif %}
-                        {% else %}
-                            <span class="text-slate-400 text-xs">-</span>
-                        {% endif %}
-                    </td>
-                    
-                    <!-- Tgl Agenda -->
-                    <td class="text-center whitespace-nowrap py-2.5 px-2">
-                        {% if arc.latest_agenda_date %}
-                            <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px] inline-flex items-center gap-1">
-                                <i class="bi bi-calendar-event text-emerald-500"></i>{{ arc.latest_agenda_date|date:"d/m/Y" }}
-                            </span>
-                        {% else %}
-                            <span class="text-slate-400 text-xs">-</span>
-                        {% endif %}
-                    </td>
+                        </td>
 
-                    <!-- No. SPPD / ST -->
-                    <td class="text-center py-2.5 px-2 whitespace-nowrap">
-                        {% if sppd_obj %}
-                            <span class="trace-node-pill trace-node-st"><i class="bi bi-briefcase"></i>{{ sppd_obj.sppd_number }}</span>
-                        {% elif surat_tugas_obj %}
-                            <span class="trace-node-pill trace-node-st"><i class="bi bi-file-earmark-text"></i>{{ surat_tugas_obj.nomor_surat }}</span>
-                        {% else %}
-                            <span class="text-slate-400 text-xs">-</span>
-                        {% endif %}
-                    </td>
+                        <!-- Penanggung Jawab / Alur Disposisi Amil -->
+                        <td class="py-3.5 px-3">
+                            <div class="space-y-1.5 min-w-[190px]">
+                                <!-- Pengirim / Pimpinan Tingkat 1 -->
+                                <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-800 dark:text-slate-200">
+                                    <span class="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] shrink-0 font-bold">
+                                        <i class="bi bi-person-badge"></i>
+                                    </span>
+                                    <span class="truncate">
+                                        {% if dispo %}
+                                            {{ dispo.sender_label|default:dispo.display_sender_name }}
+                                        {% else %}
+                                            Ketua BAZNAS
+                                        {% endif %}
+                                    </span>
+                                </div>
 
-                    <!-- No. LHP -->
-                    <td class="text-center py-2.5 px-2 whitespace-nowrap">
-                        {% if report_obj %}
-                            <a href="{% url 'reports:detail' report_obj.pk %}" class="trace-node-pill trace-node-verified text-decoration-none">
-                                <i class="bi bi-file-earmark-check-fill"></i>{{ report_obj.report_number }}
+                                <!-- Penanda Arah Waka IV (Jika ada tahap lanjutan) -->
+                                {% if dispo and dispo.is_stage_waka or dispo and dispo.display_waka_name %}
+                                <div class="flex items-center gap-1.5 text-[10px] font-semibold text-sky-600 dark:text-sky-400 pl-2.5 border-l-2 border-sky-500/40">
+                                    <i class="bi bi-arrow-return-right text-sky-500"></i>
+                                    <span>Waka IV: <strong class="font-bold">{{ dispo.display_waka_name }}</strong></span>
+                                </div>
+                                {% endif %}
+
+                                <!-- Penanda Arah Penerima / Tim Amil Pelaksana -->
+                                <div class="flex items-start gap-1.5 pl-2.5 border-l-2 border-emerald-500/40">
+                                    <i class="bi bi-arrow-return-right text-emerald-500 text-xs shrink-0 mt-0.5"></i>
+                                    <div class="flex flex-wrap gap-1">
+                                        {% if dispo and dispo.waka_forwarded_to.exists %}
+                                            {% for emp in dispo.waka_forwarded_to.all %}
+                                            <span class="px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold inline-flex items-center gap-1">
+                                                <i class="bi bi-person-fill text-emerald-500 text-[9px]"></i>{{ emp.full_name }}
+                                            </span>
+                                            {% endfor %}
+                                        {% elif dispo and dispo.forwarded_to.exists %}
+                                            {% for emp in dispo.forwarded_to.all %}
+                                            <span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                                <i class="bi bi-person-fill text-emerald-500 text-[9px]"></i>{{ emp.full_name }}
+                                            </span>
+                                            {% endfor %}
+                                        {% elif arc.current_assignees %}
+                                            <span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                                <i class="bi bi-person-fill text-emerald-500 text-[9px]"></i>{{ arc.current_assignee_names }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-slate-400 text-[10px] italic">Belum ditentukan</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- Tgl Agenda -->
+                        <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                            {% if arc.latest_agenda_date %}
+                                <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px] inline-flex items-center gap-1 font-mono">
+                                    <i class="bi bi-calendar-event text-emerald-600 dark:text-emerald-400"></i> {{ arc.latest_agenda_date|date:"d/m/Y" }}
+                                </span>
+                            {% else %}
+                                <span class="text-slate-400 text-xs">—</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- No. ST & SPPD (Dua Baris Vertikal Rapi) -->
+                        <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                            <div class="flex flex-col items-center gap-1.5 min-w-[140px]">
+                                <!-- Baris 1: Surat Tugas -->
+                                {% if surat_tugas_obj %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-extrabold rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-mono shadow-2xs" title="Surat Tugas: {{ surat_tugas_obj.nomor_surat }}">
+                                    <i class="bi bi-file-earmark-text text-purple-600 dark:text-purple-400"></i> ST: {{ surat_tugas_obj.nomor_surat }}
+                                </span>
+                                {% else %}
+                                <span class="text-slate-400 text-[10px] font-mono italic">ST: —</span>
+                                {% endif %}
+
+                                <!-- Baris 2: SPPD -->
+                                {% if sppd_obj %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-extrabold rounded-full bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30 font-mono shadow-2xs" title="SPPD: {{ sppd_obj.sppd_number }}">
+                                    <i class="bi bi-car-front-fill text-sky-600 dark:text-sky-400"></i> SPPD: {{ sppd_obj.sppd_number }}
+                                </span>
+                                {% else %}
+                                <span class="text-slate-400 text-[10px] font-mono italic">SPPD: —</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- No. LHP -->
+                        <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                            {% if report_obj and report_obj.report_number and arc.status in 'selesai,telah_disalurkan' %}
+                                <a href="{% url 'reports:detail' report_obj.pk %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-extrabold rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 no-underline hover:bg-emerald-500/25 transition-all font-mono">
+                                    <i class="bi bi-file-earmark-check-fill text-emerald-600"></i> {{ report_obj.report_number }}
+                                </a>
+                            {% elif arc.status in 'selesai,telah_disalurkan' and dispo %}
+                                <a href="{% url 'reports:create' dispo.pk %}" class="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white text-[10px] font-extrabold transition-all no-underline inline-flex items-center gap-1 shadow-2xs">
+                                    <i class="bi bi-plus-circle-fill"></i> Input LHP
+                                </a>
+                            {% else %}
+                                <span class="text-slate-400 text-xs">—</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Status Alur Kerja -->
+                        <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                            {% if arc.status == 'selesai' %}
+                                <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-emerald-600 text-white inline-flex items-center gap-1 shadow-sm font-mono">
+                                    <i class="bi bi-check-all text-xs"></i> SELESAI
+                                </span>
+                            {% elif arc.status == 'ditolak' %}
+                                <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-rose-600 text-white inline-flex items-center gap-1 shadow-sm font-mono">
+                                    <i class="bi bi-x-circle text-xs"></i> DITOLAK
+                                </span>
+                            {% elif arc.status == 'baru' %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200 whitespace-nowrap font-mono">
+                                    BARU
+                                </span>
+                            {% elif 'PENYALURAN' in arc.workflow_status_display|upper or arc.status == 'telah_disalurkan' %}
+                                <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-purple-600 text-white inline-flex items-center gap-1.5 shadow-sm font-mono">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> PENYALURAN
+                                </span>
+                            {% elif 'SURVEI' in arc.workflow_status_display|upper or arc.status == 'dalam_survei' or arc.archive_type == 'proposal' %}
+                                <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-amber-500 text-slate-950 inline-flex items-center gap-1.5 shadow-sm font-mono">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping"></span> SURVEI LAPANGAN
+                                </span>
+                            {% else %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30 whitespace-nowrap font-mono">
+                                    {{ arc.workflow_status_display|default:arc.get_status_display|upper }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Aksi -->
+                        <td class="py-3.5 px-3 text-end whitespace-nowrap">
+                            <a href="{% url 'archives:detail' arc.pk %}" class="w-8 h-8 rounded-full bg-emerald-500/15 hover:bg-emerald-600 text-emerald-600 dark:text-emerald-400 hover:text-white inline-flex items-center justify-center text-xs transition-all no-underline shadow-2xs" title="Lihat Detail Arsip & Lacak Alur">
+                                <i class="bi bi-eye-fill"></i>
                             </a>
-                        {% elif dispo %}
-                            <a href="{% url 'reports:create' dispo.pk %}" class="btn btn-outline-success btn-xs rounded-pill px-2 py-0.5 font-bold text-[10px] whitespace-nowrap">
-                                + Input LHP
-                            </a>
-                        {% else %}
-                            <span class="text-slate-400 text-xs">-</span>
-                        {% endif %}
-                    </td>
-
-                    <!-- Status Dokumen (PASTIKAN WHITESPACE-NOWRAP 1 BARIS RAPAT) -->
-                    <td class="text-center py-2.5 px-2 whitespace-nowrap">
-                        {% if arc.status == 'selesai' %}
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-600 text-white shadow-2xs inline-flex items-center gap-1 whitespace-nowrap">
-                                <i class="bi bi-check-all"></i> SELESAI
-                            </span>
-                        {% elif arc.status == 'ditolak' %}
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-600 text-white inline-flex items-center gap-1 whitespace-nowrap">
-                                <i class="bi bi-x-circle"></i> DITOLAK
-                            </span>
-                        {% elif arc.status == 'baru' %}
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200 whitespace-nowrap">BARU</span>
-                        {% elif arc.status == 'dalam_survei' or 'SURVEI' in arc.activity_name|upper or arc.archive_type == 'proposal' or 'BANTUAN' in arc.category.name|upper %}
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-400 text-slate-950 shadow-2xs inline-flex items-center gap-1 whitespace-nowrap">
-                                <i class="bi bi-geo-alt-fill"></i>{% if arc.activity_name %}{{ arc.activity_name|upper }}{% else %}{{ arc.get_status_display|upper }}{% endif %}
-                            </span>
-                        {% else %}
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 whitespace-nowrap">
-                                {% if arc.activity_name %}{{ arc.activity_name|upper }}{% else %}{{ arc.get_status_display|upper }}{% endif %}
-                            </span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endwith %}
-                {% empty %}
-                <tr>
-                    <td colspan="9" class="text-center py-5 text-slate-400 font-medium">Belum ada data dokumen yang diproses dalam alur kerja.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-8 text-slate-400 font-medium">Belum ada data dokumen yang diproses dalam alur kerja.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 
-<!-- MODAL BACKUP BULANAN -->
-{% if drive_backup_enabled %}
-<div class="modal fade" id="backupMonthlyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl">
+    <!-- 100% ALPINE.JS MODAL: BACKUP BULANAN KE GOOGLE DRIVE -->
+    {% if drive_backup_enabled %}
+    <div x-show="openBackupModal" 
+         x-cloak 
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+
+        <div class="relative w-full max-w-lg transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 text-left shadow-2xl transition-all border border-slate-200 dark:border-slate-800"
+             @click.away="openBackupModal = false"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95">
+            
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-extrabold text-xl shadow-inner">
+                        <i class="bi bi-cloud-arrow-up-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-black text-slate-900 dark:text-white text-base m-0">Backup Bulanan ke Google Drive</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 m-0">Ekspor rekapitulasi data ke spreadsheet Google Drive.</p>
+                    </div>
+                </div>
+                <button type="button" @click="openBackupModal = false" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all border-0 cursor-pointer">
+                    <i class="bi bi-x-lg text-sm"></i>
+                </button>
+            </div>
+
             <form method="post" action="{% url 'reports:drive_backup_monthly' %}">
                 {% csrf_token %}
-                <div class="modal-header border-b border-slate-200 dark:border-slate-800 p-4">
-                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-base flex items-center gap-2">
-                        <i class="bi bi-cloud-arrow-up-fill text-success"></i> Backup Bulanan ke Google Drive
-                    </h5>
-                    <button type="button" class="btn-close" onclick="closePureBackupModal()" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-5 space-y-4">
-                    <p class="text-slate-500 dark:text-slate-400 text-xs mb-3">Pilih periode bulan dan tahun untuk mengekspor dan membackup data laporan ke Google Sheets.</p>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label font-bold text-xs text-slate-700 dark:text-slate-300">Bulan <span class="text-rose-500">*</span></label>
-                            <select name="month" id="backup-month" class="form-select custom-input" required>
+                <div class="py-4 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Bulan <span class="text-rose-500">*</span></label>
+                            <select name="month" x-model="backupMonth" @change="fetchBackupCount()" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500" required>
                                 <option value="">Pilih Bulan...</option>
                                 <option value="1">Januari</option>
                                 <option value="2">Februari</option>
@@ -369,9 +481,9 @@
                                 <option value="12">Desember</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label font-bold text-xs text-slate-700 dark:text-slate-300">Tahun <span class="text-rose-500">*</span></label>
-                            <select name="year" id="backup-year" class="form-select custom-input" required>
+                        <div>
+                            <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Tahun <span class="text-rose-500">*</span></label>
+                            <select name="year" x-model="backupYear" @change="fetchBackupCount()" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500" required>
                                 <option value="">Pilih Tahun...</option>
                                 {% for y in backup_years %}
                                 <option value="{{ y }}" {% if y|stringformat:'s' == now_year|stringformat:'s' %}selected{% endif %}>{{ y }}</option>
@@ -379,24 +491,24 @@
                             </select>
                         </div>
                     </div>
-                    
-                    <div id="backup-count-info" class="mt-3 d-none">
-                        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl">
+
+                    <div x-show="backupCount !== null" x-cloak class="mt-3">
+                        <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
                             <p class="text-xs font-bold text-emerald-800 dark:text-emerald-300 m-0">
-                                <i class="bi bi-file-earmark-text-fill me-1 text-success"></i>
-                                Jumlah dokumen yang akan dibackup: <span id="backup-doc-count" class="font-extrabold text-sm text-emerald-600 dark:text-emerald-400">0</span>
+                                <i class="bi bi-file-earmark-text-fill me-1 text-emerald-600"></i>
+                                Jumlah dokumen yang akan dibackup: <span class="font-extrabold text-sm text-emerald-600 dark:text-emerald-400" x-text="backupCount">0</span>
                             </p>
                         </div>
                     </div>
 
                     {% if existing_backups %}
-                    <div class="mt-3 p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl">
-                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1"><i class="bi bi-info-circle-fill me-1 text-warning"></i> Backup yang sudah ada:</p>
+                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1"><i class="bi bi-info-circle-fill me-1 text-amber-500"></i> Backup yang sudah ada:</p>
                         {% for b in existing_backups %}
                         <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
                             <strong class="text-emerald-600 dark:text-emerald-400">{{ b.month_name }} {{ b.year }}</strong>
                             {% if b.spreadsheet_url %}
-                            <a href="{{ b.spreadsheet_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none ms-1 font-bold text-success">
+                            <a href="{{ b.spreadsheet_url }}" target="_blank" rel="noopener noreferrer" class="no-underline ms-1 font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
                                 <i class="bi bi-box-arrow-up-right me-1"></i>Lihat Spreadsheet
                             </a>
                             {% endif %}
@@ -406,26 +518,25 @@
                     </div>
                     {% endif %}
                 </div>
-                <div class="modal-footer border-t border-slate-200 dark:border-slate-800 p-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 font-bold text-xs" onclick="closePureBackupModal()">Batal</button>
-                    <button type="submit" class="btn btn-enterprise-primary rounded-pill px-4 py-2 font-bold text-xs shadow-sm">
-                        <i class="bi bi-cloud-arrow-up-fill me-1"></i> Backup Sekarang
+
+                <div class="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-800 mt-2">
+                    <button type="button" @click="openBackupModal = false" class="px-5 py-2.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs border-0 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-1.5 transition-all">
+                        <i class="bi bi-cloud-arrow-up-fill"></i> Backup Sekarang
                     </button>
                 </div>
             </form>
         </div>
     </div>
+    {% endif %}
 </div>
-{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
     $(document).ready(function () {
-        if ($('#backupMonthlyModal').length) {
-            $('#backupMonthlyModal').appendTo('body');
-        }
-
         if ($('#report-table tbody tr').length > 0 && !$('#report-table tbody tr td').hasClass('text-center')) {
             $('#report-table').DataTable({
                 pagingType: "full_numbers",
@@ -447,64 +558,10 @@
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Semua']],
                 order: [[0, 'desc']],
                 columnDefs: [
-                    { orderable: false, targets: [4, 8] }
+                    { orderable: false, targets: [3, 8] }
                 ]
             });
         }
-
-        function checkBackupCount() {
-            var month = $('#backup-month').val();
-            var year = $('#backup-year').val();
-            var $info = $('#backup-count-info');
-            var $count = $('#backup-doc-count');
-
-            if (month && year) {
-                $.getJSON('{% url "reports:backup_count_documents" %}', { month: month, year: year }, function(data) {
-                    if (data.error) {
-                        $info.addClass('d-none');
-                        return;
-                    }
-                    $count.text(data.count);
-                    $info.removeClass('d-none');
-                }).fail(function() {
-                    $info.addClass('d-none');
-                });
-            } else {
-                $info.addClass('d-none');
-            }
-        }
-
-        $('#backupMonthlyModal').on('shown.bs.modal show.bs.modal', function() {
-            checkBackupCount();
-        });
-
-        $('#backup-month, #backup-year').on('change', function() {
-            checkBackupCount();
-        });
     });
-
-    function openPureBackupModal() {
-        var modalEl = document.getElementById('backupMonthlyModal');
-        if (modalEl) {
-            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                var bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                bsModal.show();
-            } else {
-                $(modalEl).modal('show');
-            }
-        }
-    }
-
-    function closePureBackupModal() {
-        var modalEl = document.getElementById('backupMonthlyModal');
-        if (modalEl) {
-            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                var bsModal = bootstrap.Modal.getInstance(modalEl);
-                if (bsModal) bsModal.hide();
-            } else {
-                $(modalEl).modal('hide');
-            }
-        }
-    }
 </script>
 {% endblock %}

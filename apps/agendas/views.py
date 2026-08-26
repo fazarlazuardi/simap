@@ -360,6 +360,9 @@ def agenda_list(request):
 
     agenda_dates_json = json.dumps(agenda_dates_map)
 
+    from services.calendar.calendar_service import CalendarService
+    events = CalendarService.get_calendar_events()
+
     return render(request, 'agendas/list.html', {
         'page_obj': page_obj,
         'agendas': page_obj,
@@ -376,6 +379,7 @@ def agenda_list(request):
         'employees': Employee.objects.filter(is_active=True).order_by('full_name'),
         'google_calendar_direct_url': google_cal_url,
         'agenda_dates_json': agenda_dates_json,
+        'events_json': json.dumps(events),
         'can_manage_agenda': is_superadmin_or_kabid_4(request.user),
     })
 
@@ -406,17 +410,14 @@ def agenda_complete(request, pk):
                 agenda.sppd_ref.report_file = uploaded_file
             agenda.sppd_ref.save()
 
-        # 3. KELOLA STATUS ARSIP (Tetap 'proses' jika masih dalam alur SPPD)
+        # 3. KELOLA STATUS ARSIP (Otomatis SELESAI jika notulensi agenda diselesaikan)
         if agenda.archive:
-            SPPD.objects.filter(
-                disposition__archive=agenda.archive, 
-                sppd_ref=agenda.sppd_ref if hasattr(agenda, 'sppd_ref') else None,
-                status__in=['draft', 'disetujui', 'berlangsung']
-            ).update(status='selesai')
-
+            agenda.archive.status = 'selesai'
+            update_fields = ['status', 'updated_at']
             if uploaded_file and hasattr(agenda.archive, 'file_path') and not agenda.archive.file_path:
                 agenda.archive.file_path = uploaded_file
-                agenda.archive.save(update_fields=['file_path'])
+                update_fields.append('file_path')
+            agenda.archive.save(update_fields=update_fields)
         else:
             if uploaded_file or notes:
                 new_archive = Archive.objects.create(
@@ -597,7 +598,7 @@ def agenda_create(request):
         location = request.POST.get('location')
         description = request.POST.get('description')
         scheduled_at = request.POST.get('scheduled_at')
-        archive_id = request.POST.get('archive')
+        archive_id = request.POST.get('archive_id') or request.POST.get('archive')
         assigned_emp_ids = request.POST.getlist('assigned_to')
         wa_emp_ids = request.POST.getlist('wa_recipients')
         send_wa = request.POST.get('send_wa') == 'on'

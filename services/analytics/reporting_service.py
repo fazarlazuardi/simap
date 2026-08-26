@@ -17,17 +17,26 @@ class ReportingService:
     def get_sppd_recap(cls, year: int = None, month: int = None) -> List[Dict[str, Any]]:
         """
         Rekap SPPD Pegawai bulanan/tahunan untuk ranking frekuensi perjalanan dinas.
-        Termasuk Pegawai Ditugaskan Utama dan Pengikut. Optimized single-query (<5ms).
+        Termasuk Pegawai Ditugaskan Utama dan Pengikut. Fallback ke rekap akumulatif jika bulan ini belum ada data.
         """
         now = timezone.now()
-        target_year = year or now.year
-        target_month = month or now.month
+        sppds_qs = SPPD.objects.filter(is_cancelled=False).select_related('disposition__archive').prefetch_related('assigned_employees', 'followers')
 
-        sppds = list(SPPD.objects.filter(
-            departure_date__year=target_year,
-            departure_date__month=target_month,
-            is_cancelled=False
-        ).select_related('disposition__archive').prefetch_related('assigned_employees', 'followers'))
+        if year and month:
+            sppds = list(sppds_qs.filter(
+                Q(departure_date__year=year, departure_date__month=month) |
+                Q(created_at__year=year, created_at__month=month)
+            ).distinct())
+        else:
+            # Utamakan data SPPD bulan berjalan
+            sppds = list(sppds_qs.filter(
+                Q(departure_date__year=now.year, departure_date__month=now.month) |
+                Q(created_at__year=now.year, created_at__month=now.month)
+            ).distinct())
+            
+            # Jika bulan berjalan belum ada SPPD terbit, tampilkan rekap akumulatif seluruh data SPPD aktif
+            if not sppds:
+                sppds = list(sppds_qs.distinct())
 
         emp_map = {}
         for sppd in sppds:
@@ -62,7 +71,7 @@ class ReportingService:
         Tersinkronisasi secara dinamis 100% dengan Kategori Arsip dari Database.
         """
         from archives.models import Category
-        archives = Archive.objects.select_related('category', 'uploaded_by')
+        archives = Archive.objects.select_related('category', 'uploaded_by').prefetch_related('dispositions__surat_tugas', 'dispositions__sppd_list', 'dispositions__report')
 
         if not all_time:
             if year:
@@ -72,6 +81,10 @@ class ReportingService:
 
         total_umum = 0
         total_bantuan = 0
+        survei_count = 0
+        direct_count = 0
+        sppd_penyaluran_count = 0
+        transfer_penyaluran_count = 0
         
         # Ambil seluruh kategori terkini dari database untuk inisialisasi count
         db_categories = list(Category.objects.all())
@@ -130,10 +143,146 @@ class ReportingService:
                 if cat_name not in bantuan_subcat_counts:
                     bantuan_subcat_counts[cat_name] = 0
                 bantuan_subcat_counts[cat_name] += 1
-                bantuan_details.append({
+
+                # Analisis Skema Penyaluran Bidang II (4 Skema Operasional)
+                st_list = []
+                sppd_list = []
+                dispos = list(arc.dispositions.all())
+                for d in dispos:
+                    if hasattr(d, 'surat_tugas'):
+                        st_list.extend(list(d.surat_tugas.all()))
+                    if hasattr(d, 'sppd_list'):
+                        sppd_list.extend(list(d.sppd_list.all()))
+                
+                has_survei_st = any('survei' in (getattr(st, 'tentang', '') or '').lower() for st in st_list)
+                has_survei_sppd = any('survei' in (getattr(s, 'maksud_perjalanan', '') or '').lower() for s in sppd_list)
+                is_via_survei = has_survei_st or has_survei_sppd or (len(st_list) > 1 and not has_survei_st)
+
+                has_penyaluran_sppd = any('penyaluran' in (getattr(s, 'maksud_perjalanan', '') or '').lower() or 'pengantaran' in (getattr(s, 'maksud_perjalanan', '') or '').lower() for s in sppd_list)
+                if not has_penyaluran_sppd and len(sppd_list) > 0 and (not is_via_survei or len(sppd_list) >= 2):
+                    has_penyaluran_sppd = True
+
+                if is_via_survei:
+                    survei_count += 1
+                    if has_penyaluran_sppd:
+                        scheme_code = 'S-1'
+                        scheme_label = '📋 SURVEI ➔ 🚗 SPPD LAPANGAN'
+                        scheme_badge = 'amber'
+                        sppd_penyaluran_count += 1
+                    else:
+                        scheme_code = 'S-2'
+                        scheme_label = '📋 SURVEI ➔ 💳 TRANSFER BANK'
+                        scheme_badge = 'sky'
+                        transfer_penyaluran_count += 1
+                else:
+                    direct_count += 1
+                    if has_penyaluran_sppd:
+                        scheme_code = 'D-1'
+                        scheme_label = '⚡ DIRECT ➔ 🚗 SPPD LAPANGAN'
+                        scheme_badge = 'purple'
+                        sppd_penyaluran_count += 1
+                    else:
+                        scheme_code = 'D-2'
+                        scheme_label = '⚡ DIRECT ➔ 💳 TRANSFER / KANTOR'
+                        scheme_badge = 'emerald'
+                        transfer_penyaluran_count += 1
+
+                if has_penyaluran_sppd and arc.status not in ['selesai', 'telah_disalurkan']:
+                    arc.status = 'telah_disalurkan'
+
+                latest_st = st_list[-1] if st_list else None
+                latest_sppd = sppd_list[-1] if sppd_list else None
+                latest_report = None
+                latest_dispo = arc.dispositions.order_by('-created_at').first()
+                for d in arc.dispositions.all():
+                    try:
+                        rep = getattr(d, 'report', None)
+                        if rep:
+                            latest_report = rep
+                            break
+                    except Exception:
+                        pass
+                    if not latest_report:
+                        from reports.models import Report
+                        rep = Report.objects.filter(disposition=d).first()
+                        if rep:
+                            latest_report = rep
+                            break
+
+                amil_names = "-"
+                survei_st = None
+                for st in st_list:
+                    if 'survei' in (getattr(st, 'tentang', '') or '').lower() or 'survei' in (getattr(st, 'maksud', '') or '').lower():
+                        survei_st = st
+                        break
+                target_st = survei_st or latest_st
+                if target_st and hasattr(target_st, 'pegawai_ditugaskan'):
+                    names = [e.full_name for e in target_st.pegawai_ditugaskan.all() if hasattr(e, 'full_name')]
+                    if names:
+                        amil_names = ", ".join(names)
+
+                # Extract Survey Specific Files & Notes
+                survei_files = []
+                survei_notes = ""
+                is_survei_completed = False
+
+                for s in sppd_list:
+                    if s.sppd_type == 'survei' or 'survei' in (s.purpose or '').lower() or 'verifikasi' in (s.purpose or '').lower():
+                        if s.status == 'selesai':
+                            is_survei_completed = True
+                        if s.report_notes:
+                            survei_notes = s.report_notes
+                        if s.report_file:
+                            survei_files.append({'url': s.report_file.url, 'name': 'Dokumen Laporan Hasil Survei'})
+                        if hasattr(s, 'attachments'):
+                            for att in s.attachments.all():
+                                if att.file:
+                                    survei_files.append({'url': att.file.url, 'name': att.title or 'Lampiran / Foto Survei'})
+
+                # Extract Final Disbursement LHP Files (Only when disbursed/completed)
+                report_files = []
+                has_completed_lhp = False
+                if arc.status in ['selesai', 'telah_disalurkan']:
+                    has_completed_lhp = True
+
+                if latest_report and has_completed_lhp:
+                    if latest_report.file:
+                        report_files.append({'url': latest_report.file.url, 'name': 'Dokumen Utama LHP Penyaluran'})
+                    if hasattr(latest_report, 'attachments'):
+                        for att in latest_report.attachments.all():
+                            if att.file:
+                                report_files.append({'url': att.file.url, 'name': att.description or 'Lampiran Bukti Penyaluran'})
+                    report_num = latest_report.report_number or 'LHP Terbit'
+                else:
+                    report_num = '-'
+
+                amount_disbursed = float(getattr(latest_report, 'amount_disbursed', 0) or 0) if latest_report else 0.0
+                disbursement_type = getattr(latest_report, 'disbursement_type', 'transfer') if latest_report else 'transfer'
+
+                item_dict = {
                     'archive': arc,
                     'sub_category': cat_name,
-                })
+                    'scheme_code': scheme_code,
+                    'scheme_label': scheme_label,
+                    'scheme_badge': scheme_badge,
+                    'is_via_survei': is_via_survei,
+                    'has_penyaluran_sppd': has_penyaluran_sppd,
+                    'st_number': latest_st.nomor_surat if latest_st else '-',
+                    'sppd_number': latest_sppd.sppd_number if latest_sppd else '-',
+                    'report_number': report_num,
+                    'dispo_pk': latest_dispo.pk if latest_dispo else None,
+                    'dispo_number': latest_dispo.disposition_number if latest_dispo else (arc.archive_number or 'DISPOSISI'),
+                    'amil_names': amil_names,
+                    'survei_files': survei_files,
+                    'survei_files_count': len(survei_files),
+                    'survei_notes': survei_notes,
+                    'is_survei_completed': is_survei_completed,
+                    'report_files': report_files,
+                    'report_files_count': len(report_files),
+                    'amount_disbursed': amount_disbursed,
+                    'disbursement_type': disbursement_type,
+                }
+                bantuan_details.append(item_dict)
             else:
                 total_umum += 1
                 if is_done:
@@ -151,6 +300,31 @@ class ReportingService:
         bantuan_pct = round((total_bantuan / total_docs * 100), 1) if total_docs > 0 else 0
         umum_pct = round((total_umum / total_docs * 100), 1) if total_docs > 0 else 0
 
+        # Sub-list untuk Penyaluran Bantuan & Survei Lapangan
+        penyaluran_details = [item for item in bantuan_details if item['archive'].status in ['selesai', 'telah_disalurkan']]
+        survei_details = [item for item in bantuan_details if item['is_via_survei'] or item['archive'].status == 'dalam_survei']
+        total_nominal_disbursed = sum(item['amount_disbursed'] for item in penyaluran_details)
+
+        # Ensure complete category catalog is represented with real-time truthful counts
+        complete_bantuan_counts = {k: 0 for k in bantuan_subcat_counts.keys()}
+        for item in bantuan_details:
+            sc = item.get('sub_category') or 'Bantuan Lainnya'
+            complete_bantuan_counts[sc] = complete_bantuan_counts.get(sc, 0) + 1
+        
+        # Sort descending by count, then alphabetically
+        sorted_bantuan = sorted(complete_bantuan_counts.items(), key=lambda x: (x[1], x[0]), reverse=True)
+        b_chart_labels = [k for k, v in sorted_bantuan]
+        b_chart_series = [v for k, v in sorted_bantuan]
+
+        complete_umum_counts = {k: 0 for k in umum_subcat_counts.keys()}
+        for item in umum_details:
+            sc = item.get('sub_category') or 'Permohonan Umum'
+            complete_umum_counts[sc] = complete_umum_counts.get(sc, 0) + 1
+        
+        sorted_umum = sorted(complete_umum_counts.items(), key=lambda x: (x[1], x[0]), reverse=True)
+        u_chart_labels = [k for k, v in sorted_umum]
+        u_chart_series = [v for k, v in sorted_umum]
+
         return {
             'year': year,
             'month': month,
@@ -164,13 +338,20 @@ class ReportingService:
             'umum_pct': umum_pct,
             'bantuan_completed': bantuan_completed,
             'umum_completed': umum_completed,
-            'bantuan_subcat_counts': bantuan_subcat_counts,
-            'bantuan_chart_labels': list(bantuan_subcat_counts.keys()),
-            'bantuan_chart_series': list(bantuan_subcat_counts.values()),
-            'umum_subcat_counts': umum_subcat_counts,
-            'umum_chart_labels': list(umum_subcat_counts.keys()),
-            'umum_chart_series': list(umum_subcat_counts.values()),
+            'survei_count': survei_count,
+            'direct_count': direct_count,
+            'sppd_penyaluran_count': sppd_penyaluran_count,
+            'transfer_penyaluran_count': transfer_penyaluran_count,
+            'total_nominal_disbursed': total_nominal_disbursed,
+            'bantuan_subcat_counts': complete_bantuan_counts,
+            'bantuan_chart_labels': b_chart_labels,
+            'bantuan_chart_series': b_chart_series,
+            'umum_subcat_counts': complete_umum_counts,
+            'umum_chart_labels': u_chart_labels,
+            'umum_chart_series': u_chart_series,
             'bantuan_details': bantuan_details,
+            'penyaluran_details': penyaluran_details,
+            'survei_details': survei_details,
             'umum_details': umum_details,
         }
 

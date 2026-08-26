@@ -3,82 +3,116 @@
 {% block title %}Detail Surat Tugas - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2">
-    <div class="row justify-content-center">
-        <div class="col-lg-9">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-success text-white py-3 px-4 rounded-top-4 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2"></i> Detail Surat Tugas</h5>
-                    <span class="badge bg-light text-success fw-semibold">BAZNAS Kab. Tangerang</span>
-                </div>
-                
-                <div class="card-body p-4">
-                    <div class="mb-4">
-                        <label class="text-muted small d-block">Nomor Surat</label>
-                        <span class="fw-bold fs-6 text-success">{{ surat.nomor_surat|default:"Draft / Belum Ada" }}</span>
-                    </div>
+<div class="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
+    <!-- Header Banner -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900 text-white p-6 shadow-xl border border-emerald-700/50">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <span class="px-3 py-1 text-[11px] font-extrabold uppercase rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
+                    <i class="bi bi-file-earmark-text-fill"></i> DETAIL SURAT TUGAS RESMI
+                </span>
+                <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight m-0">
+                    {{ surat.nomor_surat|default:"Draft / Belum Ada Nomor" }}
+                </h1>
+                <p class="text-slate-300 text-xs mt-1 mb-0">BAZNAS Kabupaten Tangerang</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{% url 'surat_tugas:print' surat.pk %}" target="_blank" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black shadow-md transition-all no-underline inline-flex items-center gap-1.5">
+                    <i class="bi bi-printer-fill text-sm"></i> Print / Cetak PDF
+                </a>
+            </div>
+        </div>
+    </div>
 
-                    <div class="mb-4">
-                        <label class="text-muted small d-block">Perihal / Tentang Penugasan</label>
-                        <div class="p-3 bg-light rounded-3 fw-semibold">{{ surat.tentang }}</div>
-                    </div>
+    <!-- Main Content Card -->
+    <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-6 sm:p-8 space-y-6">
+        
+        <!-- Perihal / Tentang Penugasan -->
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-1.5">
+            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Perihal / Tentang Penugasan:</span>
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white m-0 leading-relaxed">
+                {{ surat.tentang }}
+            </h3>
+        </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Hari & Tanggal Mulai</label>
-                            <span class="fw-semibold">{{ surat.hari_kegiatan|default:"-" }} / {{ surat.tanggal_mulai|date:"d F Y"|default:"-" }}</span>
+        <!-- Meta Information Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Hari & Tanggal Pelaksanaan:</span>
+                <span class="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <i class="bi bi-calendar-event text-emerald-500"></i>
+                    {{ surat.hari_kegiatan|default:"-" }} / {{ surat.tanggal_mulai|date:"d F Y"|default:"-" }}
+                </span>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Lokasi / Tempat Tujuan:</span>
+                <span class="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <i class="bi bi-geo-alt-fill text-amber-500"></i>
+                    {{ surat.lokasi_tujuan|default:"-" }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Daftar Pegawai Ditugaskan -->
+        <div class="space-y-2">
+            <label class="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2 m-0">
+                <i class="bi bi-people-fill text-emerald-500"></i> Tim Pegawai / Amil yang Ditugaskan
+            </label>
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80">
+                <div class="flex flex-wrap gap-2">
+                    {% for pegawai in surat.pegawai_ditugaskan.all %}
+                    <div class="px-3.5 py-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center">
+                            <i class="bi bi-person-fill"></i>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Lokasi / Tempat Tujuan</label>
-                            <span class="fw-semibold">{{ surat.lokasi_tujuan }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Daftar Pegawai yang Ditugaskan -->
-                    <div class="mb-4">
-                        <label class="text-muted small d-block mb-2">Pegawai yang Ditugaskan (Notifikasi WA Otomatis Terkirim)</label>
-                        <div class="border rounded-3 p-3 bg-light">
-                            <ul class="mb-0 ps-3">
-                                {% for pegawai in surat.pegawai_ditugaskan.all %}
-                                <li class="py-1">
-                                    <strong>{{ pegawai.full_name }}</strong> 
-                                    <span class="text-muted small">({{ pegawai.position|default:"Amil" }} - {{ pegawai.dept_relation.name|default:"Bidang Umum" }})</span>
-                                    {% if pegawai.phone %}
-                                        <span class="text-success small ms-2"><i class="bi bi-whatsapp"></i> {{ pegawai.phone }}</span>
-                                    {% endif %}
-                                </li>
-                                {% empty %}
-                                <li class="text-muted">Tidak ada pegawai yang dipilih.</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Informasi Pejabat Penandatangan -->
-                    <div class="mb-4 p-3 border rounded-3 bg-light">
-                        <label class="text-muted small d-block mb-1">Pejabat Penandatangan</label>
-                        <span class="fw-bold fs-6 text-dark">{{ surat.pejabat_penandatangan }}</span><br>
-                        <span class="text-success fw-semibold small">{{ surat.jabatan_penandatangan }}</span>
-                    </div>
-
-                    <!-- Tombol Aksi -->
-                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                        <a href="{% url 'surat_tugas:list' %}" class="btn btn-outline-secondary px-4 rounded-3">
-                            <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
-                        </a>
                         <div>
-                            <a href="{% url 'surat_tugas:update' surat.pk %}" class="btn btn-warning px-3 rounded-3 me-2 fw-semibold">
-                                <i class="bi bi-pencil-square me-1"></i> Edit
-                            </a>
-                            <a href="{% url 'surat_tugas:print' surat.pk %}" target="_blank" class="btn btn-success px-4 rounded-3 fw-bold shadow-sm">
-                                <i class="bi bi-printer me-1"></i> Print / Cetak Surat
-                            </a>
+                            <span class="block text-xs font-black text-slate-900 dark:text-white">{{ pegawai.full_name }}</span>
+                            <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                                {{ pegawai.position|default:"Amil" }} ({{ pegawai.dept_relation.name|default:"Bidang Umum" }})
+                            </span>
                         </div>
+                        {% if pegawai.phone %}
+                        <a href="https://wa.me/{{ pegawai.phone }}" target="_blank" class="ms-2 text-emerald-600 dark:text-emerald-400 text-xs no-underline hover:scale-110 transition-transform" title="WhatsApp Amil">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                        {% endif %}
                     </div>
-
+                    {% empty %}
+                    <span class="text-xs text-slate-400 font-medium italic">Tidak ada pegawai yang ditugaskan.</span>
+                    {% endfor %}
                 </div>
             </div>
         </div>
+
+        <!-- Pejabat Penandatangan -->
+        <div class="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-1">
+            <span class="text-[10px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block">Pejabat Otorisator Penandatangan:</span>
+            <span class="text-sm font-black text-slate-900 dark:text-white block">{{ surat.pejabat_penandatangan }}</span>
+            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 block">{{ surat.jabatan_penandatangan }}</span>
+        </div>
+
+        <!-- Action Footer Buttons -->
+        <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <a href="{% url 'surat_tugas:list' %}" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all no-underline inline-flex items-center gap-1.5">
+                <i class="bi bi-arrow-left"></i> Kembali ke Daftar
+            </a>
+
+            <div class="flex items-center gap-2 flex-wrap">
+                {% if surat.disposition %}
+                <a href="{% url 'sppd_service:create_with_st' surat.pk %}" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-md transition-all no-underline inline-flex items-center gap-1.5">
+                    <i class="bi bi-car-front-fill"></i> Terbitkan SPPD
+                </a>
+                {% endif %}
+                <a href="{% url 'surat_tugas:update' surat.pk %}" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-sm transition-all no-underline inline-flex items-center gap-1.5">
+                    <i class="bi bi-pencil-square"></i> Edit
+                </a>
+                <a href="{% url 'surat_tugas:print' surat.pk %}" target="_blank" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all no-underline inline-flex items-center gap-1.5">
+                    <i class="bi bi-printer-fill"></i> Print / Cetak
+                </a>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

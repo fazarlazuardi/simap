@@ -25,16 +25,44 @@ from services.audit_logs.audit_service import AuditService
 archive_repo = ArchiveRepository()
 archive_service = ArchiveService(archive_repo)
 
-def can_view_arsip_sdm(request):
+def can_manage_archive(request):
+    """
+    Menentukan apakah user memiliki hak akses melakukan aksi/tindakan pada arsip
+    (Upload, Edit, Verifikasi Kabid IV, Teruskan ke Ketua, Penolakan, dsb):
+    HANYA Waka IV, Kabid IV, Front Office (Staff SDM Bidang IV), dan Superadmin IT.
+    Pengguna/bidang lainnya berstatus READ-ONLY.
+    """
     user = request.user
+    if not user.is_authenticated:
+        return False
+
     active_pov = request.session.get('active_pov')
     if active_pov:
-        if active_pov in ['waka_4', 'kabid_4', 'sdm']:
-            return True
-        return False
-    if getattr(user, 'is_superadmin', False) or getattr(user, 'is_superuser', False):
+        # Dalam mode POV, hanya pov Waka IV, Kabid IV, Front Office / SDM, dan Admin yang dapat beraksi
+        return active_pov in ['waka_4', 'kabid_4', 'sdm', 'front_office', 'fo', 'admin']
+
+    if getattr(user, 'is_superadmin', False) or getattr(user, 'is_superuser', False) or getattr(user, 'role', '') == 'admin':
         return True
-    return getattr(user, 'is_sdm', False)
+
+    if getattr(user, 'is_waka_4', False) or getattr(user, 'is_kabid_4', False):
+        return True
+
+    if getattr(user, 'is_sdm', False):
+        return True
+
+    emp = getattr(user, 'employee', None)
+    if emp and emp.dept_relation:
+        dept_name = (emp.dept_relation.name or "").lower()
+        if any(k in dept_name for k in ['front office', 'resepsionis', 'sekretariat', 'sdm', 'administrasi', 'bidang iv', 'bidang 4']):
+            return True
+
+    return False
+
+def can_view_arsip_sdm(request):
+    """
+    Seluruh akun / seluruh bidang yang login dapat melihat (read) modul manajemen arsip.
+    """
+    return request.user.is_authenticated
 
 def can_upload_archive(request):
     """
@@ -42,12 +70,14 @@ def can_upload_archive(request):
     dan Superadmin IT (dalam mode default / tanpa POV) yang dapat mengunggah arsip baru.
     """
     user = request.user
+    if not user.is_authenticated:
+        return False
+
     active_pov = request.session.get('active_pov')
-    
     if active_pov:
-        return active_pov in ['sdm', 'front_office']
+        return active_pov in ['sdm', 'front_office', 'fo', 'admin']
         
-    if getattr(user, 'is_superadmin', False) or getattr(user, 'is_superuser', False):
+    if getattr(user, 'is_superadmin', False) or getattr(user, 'is_superuser', False) or getattr(user, 'role', '') == 'admin':
         return True
         
     # Pimpinan & Kabid (Ketua, Waka 4, Kabid 4, Waka 2, Kabid 2, dll) TIDAK BOLEH upload
@@ -57,7 +87,7 @@ def can_upload_archive(request):
     emp = getattr(user, 'employee', None)
     if emp and emp.dept_relation:
         dept_name = (emp.dept_relation.name or "").lower()
-        if any(k in dept_name for k in ['front office', 'resepsionis', 'sekretariat', 'sdm']):
+        if any(k in dept_name for k in ['front office', 'resepsionis', 'sekretariat', 'sdm', 'administrasi', 'bidang iv', 'bidang 4']):
             return True
             
     return getattr(user, 'is_sdm', False)
@@ -67,20 +97,24 @@ def can_upload_archive(request):
 def archive_list(request):
     """
     Archive list with client-side DataTables handling.
+    Dapat diakses oleh seluruh akun / seluruh bidang (Read-Only bagi non-Bidang IV/Admin).
     """
-    if not can_view_arsip_sdm(request):
-        messages.error(request, "Modul Arsip SDM hanya dapat diakses oleh Bidang IV (Administrasi, SDM & Umum) dan Superadmin IT.")
-        return redirect('users:dashboard')
-
     archives = Archive.objects.all().select_related('category', 'uploaded_by').order_by('-created_at')
 
     status_filter = request.GET.get('status', 'all')
     if status_filter == 'perlu_verifikasi':
         archives = archives.filter(Q(verified_by_kabid=False) | Q(status__in=['baru', 'pending', 'masuk', 'verifikasi_kabid'])).exclude(status__in=['selesai', 'ditolak'])
     elif status_filter == 'belum_disposition':
-        archives = archives.filter(status__in=['terverifikasi', 'disposisi_pimpinan', 'meja_waka4', 'disposisi_waka'])
+        archives = archives.filter(
+            Q(status__in=['terverifikasi', 'disposisi_pimpinan', 'meja_waka4', 'disposisi_waka', 'baru']) |
+            Q(dispositions__isnull=True) |
+            Q(dispositions__status='baru', dispositions__note='')
+        ).exclude(status__in=['didisposisikan', 'proses', 'sudah_ditugaskan', 'dalam_survei', 'telah_disalurkan', 'selesai']).distinct()
     elif status_filter == 'sudah_disposition':
-        archives = archives.filter(status__in=['didisposisikan', 'proses', 'sudah_ditugaskan', 'dalam_survei', 'telah_disalurkan', 'selesai'])
+        archives = archives.filter(
+            Q(status__in=['didisposisikan', 'proses', 'sudah_ditugaskan', 'dalam_survei', 'telah_disalurkan', 'selesai']) |
+            Q(dispositions__status__in=['didisposisi_ketua', 'proses', 'selesai'])
+        ).exclude(status__in=['baru', 'terverifikasi', 'disposisi_pimpinan'], dispositions__isnull=True).distinct()
 
     archive_type_filter = request.GET.get('type')
     if archive_type_filter:
@@ -126,6 +160,13 @@ def archive_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    uploaded_id = request.GET.get('uploaded_id') or request.GET.get('success_id')
+    uploaded_archive = None
+    if uploaded_id:
+        uploaded_archive = Archive.objects.filter(pk=uploaded_id).first()
+
+    can_manage = can_manage_archive(request)
+
     return render(request, 'archives/list.html', {
         'page_obj': page_obj,
         'archives': page_obj,
@@ -134,6 +175,8 @@ def archive_list(request):
         'status_filter': status_filter,
         'is_waka_or_kabid_2': is_waka_or_kabid_2,
         'can_upload': can_upload_archive(request),
+        'can_manage': can_manage,
+        'uploaded_archive': uploaded_archive,
     })
 
 @login_required
@@ -143,7 +186,10 @@ def archive_quick_detail(request, pk):
         Archive.objects.select_related('category', 'uploaded_by').prefetch_related('dispositions', 'dispositions__sender'),
         pk=pk
     )
-    return render(request, 'archives/quick_detail.html', {'archive': archive})
+    return render(request, 'archives/quick_detail.html', {
+        'archive': archive,
+        'can_manage': can_manage_archive(request)
+    })
 
 
 @login_required
@@ -243,22 +289,8 @@ def archive_upload(request):
 
         AuditService.log_action(request.user, f"Upload Arsip Baru ({initial_status}): {title}", request)
 
-        # Buat draf disposisi & Notifikasi ke Ketua BAZNAS jika status terverifikasi/disposisi_pimpinan
+        # Notifikasi ke Ketua BAZNAS & Pimpinan untuk mengisi disposisi jika status terverifikasi/disposisi_pimpinan
         if initial_status in ['disposisi_pimpinan', 'terverifikasi'] or auto_verify:
-            dispo = archive.latest_dispo
-            if not dispo:
-                dispo_number = NumberingService.generate_number('disposition')
-                from dispositions.models import Disposition
-                dispo = Disposition.objects.create(
-                    archive=archive,
-                    sender=request.user,
-                    disposition_number=dispo_number,
-                    status='baru',
-                    disposition_stage='ketua',
-                    note=''
-                )
-            
-            # Kirim notifikasi sistem ke Ketua BAZNAS & Pimpinan untuk mengisi disposisi
             from notifications.models import Notification
             from django.db.models import Q
             ketua_users = User.objects.filter(
@@ -280,13 +312,13 @@ def archive_upload(request):
 
             # Notifikasi ke Waka II & Kabid II jika dokumen bersifat bantuan
             from services.notifications.notification_service import NotificationService
-            NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
+            NotificationService.notify_bidang2_for_bantuan_document(archive)
 
         if auto_verify:
             messages.success(request, "Dokumen berhasil diunggah & terverifikasi (Siap Disposisi Ketua BAZNAS).")
         else:
             messages.success(request, "Dokumen berhasil diunggah dengan status BARU.")
-        return redirect(f"/archives/upload/?success_id={archive.pk}")
+        return redirect(f"/archives/?uploaded_id={archive.pk}")
     
     # --- Handling GET Method ---
     categories = Category.objects.all()
@@ -369,9 +401,12 @@ def archive_print_disposition(request, pk):
 
 @login_required
 def archive_reject(request, pk):
-    if not request.user.is_pimpinan and not request.user.is_superadmin:
-        messages.error(request, "Akses ditolak.")
-        return redirect('archives:list')
+    """
+    Penolakan Dokumen: Hanya Waka IV, Kabid IV, Front Office, dan Superadmin.
+    """
+    if not can_manage_archive(request):
+        messages.error(request, "Akses ditolak. Aksi penolakan dokumen hanya dapat dilakukan oleh Waka IV, Kabid IV, Front Office, dan Superadmin IT.")
+        return redirect('archives:detail', pk=pk)
     if request.method == 'POST':
         archive = get_object_or_404(Archive, pk=pk)
         if archive.status == 'baru':
@@ -387,10 +422,11 @@ def archive_reject(request, pk):
 def archive_edit(request, pk):
     """
     Allow editing file if status is 'baru'.
+    Hanya Waka IV, Kabid IV, Front Office, dan Superadmin.
     """
-    if not can_view_arsip_sdm(request):
-        messages.error(request, "Modul Arsip SDM hanya dapat diakses oleh Bidang IV (Administrasi, SDM & Umum) dan Superadmin IT.")
-        return redirect('users:dashboard')
+    if not can_manage_archive(request):
+        messages.error(request, "Akses ditolak. Aksi edit data arsip hanya dapat dilakukan oleh Waka IV, Kabid IV, Front Office, dan Superadmin IT.")
+        return redirect('archives:detail', pk=pk)
 
     archive = get_object_or_404(Archive, pk=pk)
     if archive.status != 'baru' and not request.user.is_superadmin:
@@ -423,15 +459,33 @@ def archive_edit(request, pk):
 
 @login_required
 def archive_detail(request, pk):
-    if not can_view_arsip_sdm(request):
-        messages.error(request, "Modul Arsip SDM hanya dapat diakses oleh Bidang IV (Administrasi, SDM & Umum) dan Superadmin IT.")
-        return redirect('users:dashboard')
+    """
+    Detail Arsip & Berkas Digital.
+    Dapat diakses oleh seluruh akun / seluruh bidang (Read-Only bagi non-Bidang IV/Admin).
+    """
     from services.workflows.workflow_engine import WorkflowEngine
     from services.timeline.timeline_service import TimelineService
-    archive = get_object_or_404(Archive, pk=pk)
+    archive = get_object_or_404(
+        Archive.objects.select_related('uploaded_by', 'category')
+        .prefetch_related(
+            'dispositions__sender__employee',
+            'dispositions__forwarded_to',
+            'dispositions__waka_forwarded_to',
+            'dispositions__surat_tugas',
+            'dispositions__sppd_list',
+            'dispositions__report'
+        ),
+        pk=pk
+    )
 
-    # Handle Upload Berkas Digital Langsung di Halaman Detail
+    can_manage = can_manage_archive(request)
+
+    # Handle Upload Berkas Digital Langsung di Halaman Detail (Hanya Waka IV, Kabid IV, FO, Superadmin)
     if request.method == 'POST' and request.FILES.get('file_path'):
+        if not can_manage:
+            messages.error(request, "Akses ditolak. Mengunggah atau mengganti berkas digital hanya dapat dilakukan oleh Waka IV, Kabid IV, Front Office, dan Superadmin IT.")
+            return redirect('archives:detail', pk=pk)
+
         archive.file_path = request.FILES.get('file_path')
         archive.save(update_fields=['file_path', 'updated_at'])
         AuditService.log_action(request.user, f"Upload Berkas Digital: {archive.archive_number or archive.title}", request)
@@ -460,13 +514,12 @@ def archive_detail(request, pk):
         archive.save(update_fields=['status', 'updated_at'])
         workflow_info = WorkflowEngine.get_workflow_info(archive)
 
-    from sppd_service.views import determine_smart_purpose
     for s in sppd_list:
         if "survei" in (s.purpose or '').lower() or "mustahik" in (s.purpose or '').lower():
+            from sppd_service.views import determine_smart_purpose
             correct_p, _ = determine_smart_purpose(archive=archive, dispo=s.disposition, st=s.surat_tugas)
-            if correct_p != s.purpose:
+            if correct_p and correct_p != s.purpose:
                 s.purpose = correct_p
-                s.save(update_fields=['purpose'])
 
     latest_sppd = sppd_list[-1] if sppd_list else None
 
@@ -483,6 +536,7 @@ def archive_detail(request, pk):
         'sppd_list': sppd_list,
         'latest_sppd': latest_sppd,
         'latest_report': latest_report,
+        'can_manage': can_manage,
         'default_archive_number': NumberingService.get_default_number('archive', {'archive_type': archive.archive_type}),
     })
 
@@ -490,11 +544,12 @@ def archive_detail(request, pk):
 def archive_verify(request, pk):
     """
     Verifikasi Dokumen Berjenjang (Kabid IV -> Terverifikasi / Siap Diteruskan ke Ketua BAZNAS).
+    HANYA Waka IV, Kabid IV, Front Office, dan Superadmin.
     BARU -> TERVERIFIKASI
     """
-    if not (request.user.is_pimpinan or request.user.is_kabid or request.user.is_superadmin or request.user.is_sdm or getattr(request.user, 'is_fo', False) or request.session.get('active_pov') == 'fo'):
-        messages.error(request, "Akses ditolak. Membutuhkan kewenangan Front Office / Kabid IV / Pimpinan.")
-        return redirect('archives:list')
+    if not can_manage_archive(request):
+        messages.error(request, "Akses ditolak. Verifikasi dokumen hanya dapat dilakukan oleh Kabid IV, Waka IV, Front Office, dan Superadmin IT.")
+        return redirect('archives:detail', pk=pk)
 
     if request.method == 'POST':
         archive = get_object_or_404(Archive, pk=pk)
@@ -521,10 +576,11 @@ def archive_verify(request, pk):
 def forward_to_ketua(request, pk):
     """
     Penerusan Dokumen Terverifikasi oleh Front Office / Kabid IV ke Ketua BAZNAS (Siap Disposisi Pimpinan).
+    HANYA Waka IV, Kabid IV, Front Office, dan Superadmin.
     TERVERIFIKASI -> DISPOSISI_PIMPINAN
     """
-    if not (request.user.is_sdm or request.user.is_kabid or request.user.is_superadmin):
-        messages.error(request, "Akses ditolak. Penerusan ke Ketua BAZNAS hanya dilakukan oleh Front Office atau Kabid IV.")
+    if not can_manage_archive(request):
+        messages.error(request, "Akses ditolak. Penerusan ke Ketua BAZNAS hanya dilakukan oleh Front Office, Kabid IV, Waka IV, dan Superadmin IT.")
         return redirect('archives:detail', pk=pk)
 
     if request.method == 'POST':
@@ -557,11 +613,14 @@ def forward_to_ketua(request, pk):
 
 @login_required
 def batch_verify_view(request):
-    if not (request.user.is_pimpinan or request.user.is_kabid or request.user.is_superadmin):
-        messages.error(request, "Akses ditolak.")
+    """
+    Verifikasi Massal: Hanya Waka IV, Kabid IV, Front Office, dan Superadmin.
+    """
+    if not can_manage_archive(request):
+        messages.error(request, "Akses ditolak. Verifikasi massal hanya dapat dilakukan oleh Waka IV, Kabid IV, Front Office, dan Superadmin IT.")
         return redirect('archives:list')
     if request.method == 'POST':
-        ids = request.POST.getlist('ids')
+        ids = request.POST.getlist('ids') or request.POST.getlist('archive_ids')
         if ids:
             archives = Archive.objects.filter(id__in=ids, status='baru')
             count = 0
@@ -569,6 +628,7 @@ def batch_verify_view(request):
                 if not arc.archive_number:
                     arc.archive_number = NumberingService.generate_number('archive', {'archive_type': arc.archive_type})
                 arc.status = 'terverifikasi'
+                arc.verified_by_kabid = True
                 arc.save()
                 count += 1
             messages.success(request, f"Berhasil memverifikasi {count} dokumen (Siap Disposisi).")

@@ -94,13 +94,17 @@ def sppd_list(request):
             Q(archive__verified_by_kabid=True) | ~Q(archive__status='baru')
         )
 
-    # Syarat SPPD Multi-tahap: Dokumen Bantuan dengan 1 SPPD (Survei) tetap boleh diterbitkan SPPD Tahap 2 (Penyaluran)
+    # Syarat SPPD Multi-tahap: Dokumen Bantuan dengan 1 SPPD (Survei) tetap boleh diterbitkan SPPD Tahap 2 (Penyaluran) jika ada Surat Tugas Penyaluran!
     valid_dispo_ids = []
     for d in raw_dispositions:
         arch = d.archive
         sppds_item_list = list(d.sppd_list.all())
         cnt = len(sppds_item_list)
         
+        st_list = list(d.surat_tugas.all()) if hasattr(d, 'surat_tugas') else list(SuratTugas.objects.filter(disposition=d))
+        used_st_ids = [sp.surat_tugas_id for sp in sppds_item_list if sp.surat_tugas_id]
+        has_unused_st = any(st.id not in used_st_ids for st in st_list)
+
         is_bantuan = False
         if arch:
             from services.workflows.workflow_engine import WorkflowEngine
@@ -111,7 +115,7 @@ def sppd_list(request):
 
         max_sppd = 2 if is_bantuan else 1
 
-        if cnt < max_sppd:
+        if has_unused_st or cnt < len(st_list) or cnt < max_sppd:
             valid_dispo_ids.append(d.id)
 
     dispositions = Disposition.objects.filter(id__in=valid_dispo_ids).select_related('archive', 'sender').prefetch_related('forwarded_to', 'sppd_list')
@@ -142,8 +146,9 @@ def sppd_list(request):
 
     from services.analytics.reporting_service import ReportingService
     sppd_recap = ReportingService.get_sppd_recap()
-    sppd_chart_labels = [item['employee'].full_name for item in sppd_recap[:7]]
-    sppd_chart_series = [item['total_sppd'] for item in sppd_recap[:7]]
+    top_employees = [(item['employee'], item['total_sppd']) for item in sppd_recap[:10]]
+    sppd_chart_labels = [item['employee'].full_name for item in sppd_recap[:10]]
+    sppd_chart_series = [item['total_sppd'] for item in sppd_recap[:10]]
 
     can_create_sppd = not (is_waka_or_kabid_2 and not getattr(request.user, 'is_superadmin', False))
 
@@ -158,6 +163,7 @@ def sppd_list(request):
         'archive_types': Archive.TYPE_CHOICES,
         'current_type': archive_type or '',
         'sppd_recap': sppd_recap,
+        'top_employees': top_employees,
         'sppd_chart_labels': sppd_chart_labels,
         'sppd_chart_series': sppd_chart_series,
         'can_create_sppd': can_create_sppd,
@@ -266,10 +272,16 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
             messages.warning(request, "Dokumen ini sudah mencapai batas maksimal 2 tahap SPPD.")
             return redirect('sppd_service:list')
 
-        # Syarat SPPD 2 Langkah: Dokumen harus memiliki histori SPPD Survei!
-        has_survei_history = any(
-            sp.sppd_type == 'survei' or any(k in ((sp.purpose or '') + ' ' + (sp.sppd_type or '')).lower() for k in ['survei', 'peninjauan', 'verifikasi', 'lapangan'])
-            for sp in existing_sppds
+        # Syarat SPPD Multi-tahap: Dokumen memiliki histori SPPD/ST Survei atau ST Penyaluran terbit!
+        has_survei_history = (
+            any(
+                sp.sppd_type == 'survei' or any(k in ((sp.purpose or '') + ' ' + (sp.sppd_type or '')).lower() for k in ['survei', 'peninjauan', 'verifikasi', 'lapangan'])
+                for sp in existing_sppds
+            ) or 
+            (dispo and dispo.surat_tugas.filter(tentang__icontains='survei').exists()) or
+            (dispo and dispo.surat_tugas.count() >= 2) or
+            (st and any(k in (st.tentang or '').lower() for k in ['penyaluran', 'pentasyarufan', 'disalurkan'])) or
+            (dispo and dispo.archive and dispo.archive.status in ['dalam_survei', 'telah_disurvei', 'telah_disalurkan', 'selesai'])
         )
         if not has_survei_history:
             messages.warning(
@@ -285,12 +297,16 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
         is_agenda_done = Agenda.objects.filter(archive=dispo.archive, status='selesai').exists()
 
     if last_sppd and last_sppd.status not in ['selesai', 'dibatalkan'] and not is_agenda_done:
-        messages.warning(
-            request,
-            f"SPPD tahap {last_sppd.tahap} ({last_sppd.sppd_number}) masih aktif (status: {last_sppd.get_status_display()}). "
-            f"Selesaikan dulu sebelum membuat SPPD tahap {next_tahap}."
-        )
-        return redirect('sppd_service:list')
+        if st and st != last_sppd.surat_tugas:
+            last_sppd.status = 'selesai'
+            last_sppd.save(update_fields=['status'])
+        else:
+            messages.warning(
+                request,
+                f"SPPD tahap {last_sppd.tahap} ({last_sppd.sppd_number}) masih aktif (status: {last_sppd.get_status_display()}). "
+                f"Selesaikan dulu sebelum membuat SPPD tahap {next_tahap}."
+            )
+            return redirect('sppd_service:list')
     
     if last_sppd and is_agenda_done and last_sppd.status not in ['selesai', 'dibatalkan']:
         last_sppd.status = 'selesai'
@@ -501,14 +517,27 @@ def sppd_complete(request, pk):
         if hasattr(sppd, 'agenda_set'):
             sppd.agenda_set.filter(status='terjadwal').update(status='selesai', is_completed=True)
 
-        if sppd.sppd_type == 'survei':
-            messages.success(request, f"LHP Survei Tersimpan! Lanjutkan tindakan berikutnya (Penyaluran / Laporan Akhir).")
-        else:
-            messages.success(request, f"LHP Tersimpan! SPPD {sppd.sppd_number} berhasil dinyatakan SELESAI.")
-
+        is_survei_sppd = sppd.sppd_type == 'survei' or 'survei' in (sppd.purpose or '').lower() or 'verifikasi' in (sppd.purpose or '').lower()
         
-        if hasattr(sppd, 'disposition') and sppd.disposition and hasattr(sppd.disposition, 'archive') and sppd.disposition.archive:
-            return redirect('archives:detail', pk=sppd.disposition.archive.pk)
+        archive_obj = None
+        if hasattr(sppd, 'disposition') and sppd.disposition and hasattr(sppd.disposition, 'archive'):
+            archive_obj = sppd.disposition.archive
+        elif hasattr(sppd, 'surat_tugas') and sppd.surat_tugas and hasattr(sppd.surat_tugas, 'disposition') and sppd.surat_tugas.disposition:
+            archive_obj = sppd.surat_tugas.disposition.archive
+
+        if is_survei_sppd:
+            if archive_obj and archive_obj.status == 'dalam_survei':
+                archive_obj.status = 'telah_disurvei'
+                archive_obj.save(update_fields=['status', 'updated_at'])
+            messages.success(request, f"📋 Laporan Hasil Survei Lapangan Tersimpan! Status dokumen kini: 'Telah Disurvei'. Hasil survei dapat ditinjau di rekap penanganan untuk keputusan Penyaluran Bantuan.")
+        else:
+            if archive_obj and archive_obj.status != 'selesai':
+                archive_obj.status = 'selesai'
+                archive_obj.save(update_fields=['status', 'updated_at'])
+            messages.success(request, f"Laporan Hasil Penyaluran (LHP) Tersimpan! SPPD {sppd.sppd_number} berhasil dinyatakan SELESAI.")
+
+        if archive_obj:
+            return redirect('archives:detail', pk=archive_obj.pk)
             
     return redirect('sppd_service:list')
 

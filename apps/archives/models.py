@@ -391,31 +391,66 @@ class Archive(models.Model):
     @property
     def workflow_status_display(self):
         """Label status yang dipakai konsisten di detail dokumen dan dashboard tracker."""
-        if self.status in ['selesai', 'telah_disalurkan']:
+        if self.status == 'selesai':
             return 'SELESAI & TEREKAP'
+
+        if self.status == 'telah_disalurkan':
+            return 'PENYALURAN BANTUAN'
 
         if self.status == 'ditolak':
             return 'DITOLAK / DIKEMBALIKAN'
 
         sppd = self.latest_sppd
+        st = self.latest_st
+
+        # 1. Prioritas Penyaluran Bantuan jika ada SPPD / Surat Tugas Penyaluran
+        has_penyaluran_sppd = False
+        if sppd:
+            purp_lower = ((sppd.purpose or '') + ' ' + (sppd.sppd_type or '')).lower()
+            if sppd.sppd_type == 'penyaluran' or any(k in purp_lower for k in ['penyaluran', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin', 'bedah rumah', 'kursi roda']):
+                has_penyaluran_sppd = True
+
+        has_penyaluran_st = False
+        if st:
+            st_text = (st.tentang or '').lower()
+            if any(k in st_text for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
+                has_penyaluran_st = True
+
+        if has_penyaluran_sppd or has_penyaluran_st:
+            return 'PENYALURAN BANTUAN'
+
+        # 2. Prioritas Survei Lapangan Mustahik
+        if self.status == 'dalam_survei':
+            return 'SURVEI LAPANGAN MUSTAHIK'
+
+        if self.status == 'telah_disurvei':
+            return 'TELAH DISURVEI (SIAP PENYALURAN)'
+
         if sppd:
             purp_lower = (sppd.purpose or '').lower()
             if any(k in purp_lower for k in ['survei', 'peninjauan', 'lokasi', 'lapangan', 'cek', 'mustahik']):
                 return 'SURVEI LAPANGAN MUSTAHIK'
             elif any(k in purp_lower for k in ['hadir', 'undangan', 'audiensi', 'rapat', 'acara']):
                 return 'MENGHADIRI UNDANGAN / RAPAT'
-            elif any(k in purp_lower for k in ['bantuan', 'penyaluran', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin']):
-                return 'PENYALURAN BANTUAN / PENTASYARUFAN'
             elif sppd.purpose:
                 return f'PELAKSANAAN SPPD: {sppd.purpose[:35].upper()}'
             return 'PELAKSANAAN SPPD (PERJALANAN DINAS)'
 
-        if self.latest_st:
+        if st:
+            st_text = (st.tentang or '').lower()
+            if 'survei' in st_text:
+                return 'SURVEI LAPANGAN MUSTAHIK'
             return 'TAHAP PENUGASAN (SURAT TUGAS TERBIT)'
 
-        # Status 'proses' atau saat Waka IV sudah mendisposisikan
+        if self.status == 'sudah_ditugaskan':
+            return 'TAHAP PENUGASAN (SURAT TUGAS TERBIT)'
+
+        # 3. Status 'proses' atau saat Waka IV sudah mendisposisikan
         if self.status in ['proses', 'didisposisikan'] or (self.latest_dispo and self.latest_dispo.is_stage_waka):
             return 'PROSES BIDANG II (PENYALURAN BANTUAN)' if self.is_proposal_bantuan else 'DIPROSES BIDANG TERKAIT'
+
+        if self.verified_by_kabid or self.status in ['verifikasi_kabid', 'terverifikasi']:
+            return 'TERVERIFIKASI KABID IV'
 
         return self.get_status_display().upper()
 

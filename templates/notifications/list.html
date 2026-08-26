@@ -1,99 +1,128 @@
 {% extends 'layouts/base.html' %}
+{% load static %}
 
 {% block title %}Riwayat Notifikasi - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <!-- Header Banner -->
-            <div class="glass-banner-enterprise mb-4">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <div>
-                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold mb-2" style="font-size: 0.7rem;">PUSAT NOTIFIKASI</span>
-                        <h3 class="fw-bold mb-1 text-white">Riwayat Notifikasi & Aktivitas</h3>
-                        <p class="mb-0 text-white opacity-75 small">Kelola seluruh pengumuman, pemberitahuan disposisi, SPPD, dan arsip dokumen.</p>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <form action="{% url 'notifications:mark_all_as_read' %}" method="post" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3">
-                                <i class="bi bi-check2-all me-1"></i> Tandai Semua Dibaca
-                            </button>
-                        </form>
-                        <form action="{% url 'notifications:clear_all' %}" method="post" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh notifikasi?');">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm">
-                                <i class="bi bi-trash me-1"></i> Hapus Semua
-                            </button>
-                        </form>
-                    </div>
+<div class="w-full space-y-6">
+    <!-- ⚡ HEADER BANNER ENTERPRISE GLASSMORPHISM ⚡ -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/30 p-6 md:p-8 shadow-2xl text-white">
+        <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute left-1/3 -top-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black tracking-wider uppercase font-mono">
+                    <i class="bi bi-bell-fill text-amber-400"></i> Pusat Notifikasi SIMAP
                 </div>
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+                    Riwayat Notifikasi & Aktivitas
+                </h1>
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed mb-0">
+                    Kelola seluruh pengumuman, pemberitahuan disposisi surat, SPPD, dan arsip dokumen resmi BAZNAS Kabupaten Tangerang.
+                </p>
             </div>
 
-            <!-- Filter Pills -->
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <div class="d-flex gap-2">
-                    <a href="{% url 'notifications:list' %}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'all' %}btn-emerald{% else %}btn-outline-secondary{% endif %}">
-                        Semua Notifikasi
-                    </a>
-                    <a href="{% url 'notifications:list' %}?status=unread" class="btn btn-sm rounded-pill px-3 {% if current_status == 'unread' %}btn-emerald{% else %}btn-outline-secondary{% endif %}">
-                        Belum Dibaca <span class="badge bg-danger ms-1">{{ unread_count }}</span>
-                    </a>
-                    <a href="{% url 'notifications:list' %}?status=read" class="btn btn-sm rounded-pill px-3 {% if current_status == 'read' %}btn-emerald{% else %}btn-outline-secondary{% endif %}">
-                        Sudah Dibaca
-                    </a>
-                </div>
+            <div class="flex items-center gap-2.5 shrink-0">
+                <form action="{% url 'notifications:mark_all_as_read' %}" method="post" class="inline mb-0">
+                    {% csrf_token %}
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs shadow-md transition-all border-0 cursor-pointer">
+                        <i class="bi bi-check2-all text-sm"></i>
+                        <span>Tandai Semua Dibaca</span>
+                    </button>
+                </form>
+                <form action="{% url 'notifications:clear_all' %}" method="post" class="inline mb-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh notifikasi?');">
+                    {% csrf_token %}
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md shadow-rose-900/30 transition-all border-0 cursor-pointer">
+                        <i class="bi bi-trash-fill"></i>
+                        <span>Hapus Semua</span>
+                    </button>
+                </form>
             </div>
+        </div>
+    </div>
 
-            <!-- Notifications List Card -->
-            <div class="card-enterprise p-3 mb-4">
-                <div class="list-group list-group-flush">
-                    {% for notif in notifications %}
-                    <div class="list-group-item p-3 border-bottom d-flex align-items-center justify-content-between {% if notif.status == 'unread' %}bg-emerald-subtle bg-opacity-10{% endif %}">
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="rounded-circle p-2 bg-emerald-subtle text-emerald flex-shrink-0 mt-1" style="width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;">
-                                {% if notif.category == 'disposition' %}
-                                    <i class="bi bi-send-fill text-primary fs-5"></i>
-                                {% elif notif.category == 'sppd' %}
-                                    <i class="bi bi-car-front-fill text-warning fs-5"></i>
-                                {% elif notif.category == 'archive' %}
-                                    <i class="bi bi-folder-fill text-success fs-5"></i>
-                                {% else %}
-                                    <i class="bi bi-bell-fill text-info fs-5"></i>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <h6 class="fw-bold mb-0 text-primary">{{ notif.title|default:notif.get_category_display }}</h6>
-                                    {% if notif.status == 'unread' %}
-                                        <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">Belum Dibaca</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary bg-opacity-25 text-secondary rounded-pill" style="font-size: 0.65rem;">Sudah Dibaca</span>
-                                    {% endif %}
-                                </div>
-                                <p class="mb-1 text-dark small">{{ notif.message }}</p>
-                                <span class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-clock me-1"></i>{{ notif.created_at|date:"d M Y, H:i" }} WIB ({{ notif.created_at|timesince }} yang lalu)</span>
-                            </div>
-                        </div>
+    <!-- ⚡ FILTER PILLS & NOTIFICATIONS LIST ⚡ -->
+    <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+        <!-- Segmented Filter Pills -->
+        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <a href="{% url 'notifications:list' %}"
+               class="px-4 py-2 rounded-2xl text-xs font-black transition-all no-underline inline-flex items-center gap-1.5 {% if current_status == 'all' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Semua Notifikasi
+            </a>
+            <a href="{% url 'notifications:list' %}?status=unread"
+               class="px-4 py-2 rounded-2xl text-xs font-black transition-all no-underline inline-flex items-center gap-1.5 {% if current_status == 'unread' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <span>Belum Dibaca</span>
+                {% if unread_count > 0 %}
+                <span class="px-2 py-0.2 rounded-full text-[10px] font-mono bg-rose-500 text-white">{{ unread_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'notifications:list' %}?status=read"
+               class="px-4 py-2 rounded-2xl text-xs font-black transition-all no-underline inline-flex items-center gap-1.5 {% if current_status == 'read' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Sudah Dibaca
+            </a>
+        </div>
 
-                        <div class="ms-3 flex-shrink-0">
-                            {% if notif.link_url %}
-                                <a href="{% url 'notifications:read_and_redirect' notif.pk %}" class="btn btn-sm btn-outline-emerald rounded-pill px-3">
-                                    Buka Detail <i class="bi bi-arrow-right ms-1"></i>
-                                </a>
+        <!-- Notifications Items -->
+        <div class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for notif in notifications %}
+            <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 {% if notif.status == 'unread' %}bg-emerald-500/5 -mx-4 px-4 rounded-2xl{% endif %}">
+                <div class="flex items-start gap-3.5">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 mt-0.5
+                        {% if notif.category == 'disposition' %}bg-sky-500/15 text-sky-600 dark:text-sky-400
+                        {% elif notif.category == 'sppd' %}bg-amber-500/15 text-amber-600 dark:text-amber-400
+                        {% elif notif.category == 'archive' %}bg-emerald-500/15 text-emerald-600 dark:text-emerald-400
+                        {% else %}bg-purple-500/15 text-purple-600 dark:text-purple-400{% endif %}">
+                        {% if notif.category == 'disposition' %}
+                            <i class="bi bi-send-fill"></i>
+                        {% elif notif.category == 'sppd' %}
+                            <i class="bi bi-car-front-fill"></i>
+                        {% elif notif.category == 'archive' %}
+                            <i class="bi bi-folder-fill"></i>
+                        {% else %}
+                            <i class="bi bi-bell-fill"></i>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h4 class="font-extrabold text-xs md:text-sm text-slate-900 dark:text-white mb-0">
+                                {{ notif.title|default:notif.get_category_display }}
+                            </h4>
+                            {% if notif.status == 'unread' %}
+                            <span class="px-2 py-0.2 rounded-full text-[9px] font-extrabold uppercase font-mono bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">
+                                Belum Dibaca
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-0.2 rounded-full text-[9px] font-bold font-mono bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                Sudah Dibaca
+                            </span>
                             {% endif %}
                         </div>
+
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-0">{{ notif.message }}</p>
+                        <span class="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+                            <i class="bi bi-clock"></i> {{ notif.created_at|date:"d M Y, H:i" }} WIB ({{ notif.created_at|timesince }} yang lalu)
+                        </span>
                     </div>
-                    {% empty %}
-                    <div class="p-5 text-center text-muted">
-                        <i class="bi bi-bell-slash fs-1 d-block text-secondary opacity-50 mb-3"></i>
-                        <h5 class="fw-bold">Tidak Ada Notifikasi</h5>
-                        <p class="small text-muted mb-0">Belum ada riwayat notifikasi pada kategori yang dipilih.</p>
-                    </div>
-                    {% endfor %}
+                </div>
+
+                <div class="sm:shrink-0 self-end sm:self-center">
+                    {% if notif.link_url %}
+                    <a href="{% url 'notifications:read_and_redirect' notif.pk %}" class="inline-flex items-center gap-1 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-sm transition-all no-underline">
+                        <span>Buka Detail</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
+            {% empty %}
+            <div class="py-16 text-center text-slate-400">
+                <i class="bi bi-bell-slash text-4xl block mb-2 opacity-50"></i>
+                <h4 class="font-bold text-sm text-slate-700 dark:text-slate-300 mb-1">Tidak Ada Notifikasi</h4>
+                <p class="text-xs mb-0">Belum ada riwayat notifikasi pada kategori yang dipilih.</p>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>

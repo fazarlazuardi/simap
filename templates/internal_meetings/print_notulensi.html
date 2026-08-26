@@ -841,24 +841,26 @@
             <!-- KOP SURAT FORMAL BERKOTAK -->
             <div class="kop-box-container">
                 <table class="kop-table">
-                    <tr>
-                        <td class="kop-logo-td">
-                            <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS"
-                                onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
-                        </td>
-                        <td style="text-align: center;">
-                            <span class="kop-instansi">BADAN AMIL ZAKAT NASIONAL</span><br>
-                            <span class="kop-subinstansi">KABUPATEN TANGERANG</span><br>
-                            <span class="kop-alamat">Jl. Somawinata No. 1, Kel. Kadu Agung, Kec. Tigaraksa, Kabupaten Tangerang, Banten 15720</span>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+                    <td class="kop-logo-td">
+                                <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS"
+                                    onerror="this.src='https://baznas.go.id/assets/img/logo.png'">
+                            </td>
+                            <td class="kop-text-td">
+                                <div class="instansi-luar">BADAN AMIL ZAKAT NASIONAL</div>
+                                <div class="instansi-daerah">KABUPATEN TANGERANG</div>
+                                <div class="alamat">Gedung Islamic Center, Jl. Islamic Center No. 1, Citra Raya, Desa
+                                    Ciakar, Kecamatan Panongan.</div>
+                                <div class="kontak">Website: kabtangerang.baznas.go.id | Email:
+                                    kabupatenbaznastangerang@gmail.com</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
 
             <!-- HEADER BUNDEL LAMPIRAN -->
             <div class="doc-header-box" style="margin-bottom: 15px; border-left: 4px solid #000; padding-left: 10px;">
                 <h3 style="margin: 0; font-size: 11pt; text-transform: uppercase; font-weight: bold; font-family: 'Times New Roman', serif;">
-                    LAMPIRAN DOKUMEN & BUKTI FOTO DOKUMENTASI (SATU BUNDEL)
+                    LAMPIRAN DOKUMEN & BUKTI FOTO DOKUMENTASI
                 </h3>
                 <span style="font-size: 9pt; font-style: italic;">
                     Risalah Rapat / Notulensi Nomor: {{ meeting.meeting_number|default:"-" }} — {{ meeting.title }}

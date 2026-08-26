@@ -62,23 +62,15 @@ def disposition_list(request):
 
     # SEMUA akun pengguna (FO, Kabid IV, Ketua, Waka IV, Waka II, Kabid II, Pelaksana/Staf, dan Superadmin)
     # dapat melihat seluruh daftar disposisi yang sedang berjalan di SIMAP.
-    qs = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to').all()
+    qs = Disposition.objects.select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to').exclude(status='baru', note='').all()
 
     # Jika pengguna memicu filter spesifik Waka II / Kabid II
     if is_waka_or_kabid_2 and request.GET.get('filter') == 'bidang2':
-        from services.workflows.workflow_engine import WorkflowEngine
-        valid_ids = []
-        for d in qs:
-            if not d.archive:
-                continue
-            addressed_to_me = False
-            if current_emp:
-                if d.forwarded_to.filter(pk=current_emp.pk).exists() or d.waka_forwarded_to.filter(pk=current_emp.pk).exists():
-                    addressed_to_me = True
-            if addressed_to_me or WorkflowEngine.is_bantuan(d.archive):
-                valid_ids.append(d.id)
-        if valid_ids:
-            qs = Disposition.objects.filter(id__in=valid_ids).select_related('archive', 'sender').prefetch_related('forwarded_to', 'waka_forwarded_to')
+        bantuan_q = Q(archive__category__name__icontains='bantuan') | Q(archive__title__icontains='bantuan') | Q(archive__subject__icontains='bantuan')
+        if current_emp:
+            qs = qs.filter(Q(forwarded_to=current_emp) | Q(waka_forwarded_to=current_emp) | bantuan_q)
+        else:
+            qs = qs.filter(bantuan_q)
 
     qs = qs.distinct().order_by('-created_at')
 
@@ -121,6 +113,11 @@ def disposition_list(request):
     pending_batch_count = NotificationService.get_pending_disposition_count()
     is_batch_ready = NotificationService.is_batch_ready()
 
+    dispo_success_id = request.GET.get('dispo_success_id')
+    dispo_success_obj = None
+    if dispo_success_id:
+        dispo_success_obj = Disposition.objects.filter(pk=dispo_success_id).select_related('archive').first()
+
     return render(request, 'dispositions/list.html', {
         'page_obj': page_obj,
         'dispositions': page_obj,
@@ -135,6 +132,7 @@ def disposition_list(request):
         'archives_verified_no_dispo': archives_verified_no_dispo,
         'pending_batch_count': pending_batch_count,
         'is_batch_ready': is_batch_ready,
+        'dispo_success_obj': dispo_success_obj,
     })
 
 
@@ -207,7 +205,7 @@ def disposition_edit(request, pk):
 
         AuditService.log_action(request.user, f"Disposisi Ketua: {dispo.disposition_number}", request)
         messages.success(request, f"Disposisi Ketua berhasil dikirim atas nama: {dispo.sender_label}")
-        return redirect('dispositions:list')
+        return redirect(f"/dispositions/?dispo_success_id={dispo.pk}")
 
     employees = Employee.objects.select_related('user_account', 'dept_relation').order_by('full_name')
     generated_disp_no = dispo.disposition_number
@@ -279,31 +277,46 @@ def disposition_waka_edit(request, pk):
 
         # Notif WA ke penerima Waka
         try:
+            dispo_id_val = dispo.pk
+            waka_label_val = waka_label
+            file_url_val = request.build_absolute_uri(archive.file_path.url) if archive and archive.file_path else "—"
+            archive_title_val = archive.title if archive else "—"
+
             import threading
             def _send_waka_notif():
-                file_url = request.build_absolute_uri(archive.file_path.url) if archive and archive.file_path else "—"
-                msg = (
-                    f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
-                    f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
-                    f"Pemberitahuan arahan disposisi dari Wakil Ketua IV:\n\n"
-                    f"• *No. Disposisi:* {dispo.disposition_number or '—'}\n"
-                    f"• *Perihal:* {archive.title if archive else '—'}\n"
-                    f"• *Pengirim:* {waka_label}\n"
-                    f"• *Arahan Waka IV:* {(dispo.waka_note or '—')[:200]}\n"
-                    f"• *Berkas Digital:* {file_url}\n\n"
-                    f"Mohon untuk dapat segera ditindaklanjuti sesuai petunjuk.\n\n"
-                    f"Terima kasih.\n"
-                    f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
-                )
-                for emp in dispo.waka_forwarded_to.all():
-                    WhatsAppService.send_notification(user=getattr(emp, 'user_account', None), message=msg, employee=emp)
+                from django.db import connections
+                connections.close_all()
+                try:
+                    from dispositions.models import Disposition
+                    d = Disposition.objects.filter(pk=dispo_id_val).first()
+                    if not d:
+                        return
+                    msg = (
+                        f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
+                        f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
+                        f"Pemberitahuan arahan disposisi dari Wakil Ketua IV:\n\n"
+                        f"• *No. Disposisi:* {d.disposition_number or '—'}\n"
+                        f"• *Perihal:* {archive_title_val}\n"
+                        f"• *Pengirim:* {waka_label_val}\n"
+                        f"• *Arahan Waka IV:* {(d.waka_note or '—')[:200]}\n"
+                        f"• *Berkas Digital:* {file_url_val}\n\n"
+                        f"Mohon untuk dapat segera ditindaklanjuti sesuai petunjuk.\n\n"
+                        f"Terima kasih.\n"
+                        f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
+                    )
+                    for emp in d.waka_forwarded_to.all():
+                        WhatsAppService.send_notification(user=getattr(emp, 'user_account', None), message=msg, employee=emp, category='disposition', title="Disposisi Waka IV")
+                except Exception:
+                    pass
+                finally:
+                    connections.close_all()
             threading.Thread(target=_send_waka_notif, daemon=True).start()
         except Exception:
             pass
 
         AuditService.log_action(request.user, f"Disposisi Waka IV: {dispo.disposition_number}", request)
         messages.success(request, f"Disposisi Waka IV berhasil dikirim atas nama: {waka_label}")
-        return redirect('dispositions:list')
+        return redirect(f"/dispositions/?dispo_success_id={dispo.pk}")
 
     employees = Employee.objects.select_related('user_account', 'dept_relation').order_by('full_name')
 
@@ -334,38 +347,50 @@ def disposition_verify(request, pk):
     archive.status = 'proses'
     archive.save()
 
+    dispo_id_val = dispo.pk
+    file_url_val = request.build_absolute_uri(archive.file_path.url) if archive.file_path else "Tidak ada berkas"
+    archive_num_val = archive.archive_number or '—'
+    archive_title_val = archive.title
+
     import threading
     def async_post_verify():
+        from django.db import connections
+        connections.close_all()
         try:
-            file_url = request.build_absolute_uri(archive.file_path.url) if archive.file_path else "Tidak ada berkas"
+            from dispositions.models import Disposition
+            d = Disposition.objects.filter(pk=dispo_id_val).first()
+            if not d:
+                return
             inst_list = []
-            if dispo.inst_selesaikan: inst_list.append("✅ Selesaikan / Jawab")
-            if dispo.inst_untuk_diketahui: inst_list.append("📋 Untuk diketahui / simpan")
-            if dispo.inst_laporkan_hasilnya: inst_list.append("📊 Laporkan hasilnya")
-            if dispo.inst_koordinasikan: inst_list.append("🤝 Koordinasikan")
+            if d.inst_selesaikan: inst_list.append("✅ Selesaikan / Jawab")
+            if d.inst_untuk_diketahui: inst_list.append("📋 Untuk diketahui / simpan")
+            if d.inst_laporkan_hasilnya: inst_list.append("📊 Laporkan hasilnya")
+            if d.inst_koordinasikan: inst_list.append("🤝 Koordinasikan")
             instruksi = "\n".join(inst_list) if inst_list else "—"
-            penerima = ', '.join(emp.full_name for emp in dispo.forwarded_to.all()) or "—"
+            penerima = ', '.join(emp.full_name for emp in d.forwarded_to.all()) or "—"
             msg = (
                 f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
                 f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
                 f"Pemberitahuan disposisi baru dari Pimpinan BAZNAS:\n\n"
-                f"• *No. Arsip:* {archive.archive_number or '—'}\n"
-                f"• *Perihal:* {archive.title}\n"
-                f"• *Pimpinan:* {dispo.sender_label or dispo.display_sender_name}\n"
+                f"• *No. Arsip:* {archive_num_val}\n"
+                f"• *Perihal:* {archive_title_val}\n"
+                f"• *Pimpinan:* {d.sender_label or d.display_sender_name}\n"
                 f"• *Penerima:* {penerima}\n"
                 f"• *Instruksi:* {instruksi}\n"
-                f"• *Berkas Digital:* {file_url}\n\n"
+                f"• *Berkas Digital:* {file_url_val}\n\n"
                 f"Silakan login ke sistem SIMAP BAZNAS untuk mempelajari berkas dan menindaklanjuti arahan Pimpinan.\n\n"
                 f"Terima kasih.\n"
                 f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
             )
-            forwarded_emps = list(dispo.forwarded_to.all())
+            forwarded_emps = list(d.forwarded_to.all())
             user_map = {u.employee_id: u for u in User.objects.filter(employee__in=forwarded_emps)}
             for emp in forwarded_emps:
                 user = user_map.get(emp.pk)
-                WhatsAppService.send_notification(user=user, message=msg, employee=emp)
+                WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='disposition', title="Disposisi Pimpinan")
         except Exception:
             pass
+        finally:
+            connections.close_all()
 
     threading.Thread(target=async_post_verify, daemon=True).start()
     AuditService.log_action(request.user, f"Verifikasi Disposisi: {archive.archive_number}", request)
@@ -399,7 +424,7 @@ def disposition_create(request, archive_pk):
             return redirect('dispositions:edit', pk=existing.pk)
 
     # Otomatis kunci sender_label Ketua BAZNAS saat pembuatan disposisi baru (atau takeover)
-    from numbering.services import NumberingService
+    from services.archives.numbering_service import NumberingService
     dispo_number = NumberingService.generate_number('disposition')
     dispo = Disposition.objects.create(
         archive=archive,

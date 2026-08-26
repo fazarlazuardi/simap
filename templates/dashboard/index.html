@@ -89,7 +89,7 @@
         top: 8px;
         bottom: 8px;
         width: 2px;
-        background: var(--border-color, #E2E8F0);
+        background: var(--border-color, rgba(148, 163, 184, 0.2));
     }
     .timeline-item-futuristic {
         position: relative;
@@ -134,7 +134,7 @@
         left: 15px;
         right: 15px;
         height: 4px;
-        background: var(--border-color, #E2E8F0);
+        background: var(--border-color, rgba(148, 163, 184, 0.2));
         z-index: 1;
         border-radius: 4px;
     }
@@ -215,7 +215,7 @@
     /* Agenda Item Line Indicator */
     .agenda-card-item {
         border-left: 4px solid #10B981;
-        background: var(--surface-alt, #F8FAFC);
+        background: rgba(248, 250, 252, 0.05);
         border-radius: 10px;
         padding: 12px 14px;
         margin-bottom: 10px;
@@ -223,85 +223,12 @@
     }
     .agenda-card-item:hover {
         transform: translateX(3px);
-        background: var(--card-bg, #FFFFFF);
+        background: rgba(248, 250, 252, 0.1);
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     .agenda-card-item.blue { border-left-color: #3B82F6; }
     .agenda-card-item.orange { border-left-color: #F59E0B; }
     .agenda-card-item.purple { border-left-color: #8B5CF6; }
-
-    /* Glass Action Cards */
-    .quick-action-card {
-        border-radius: 14px;
-        padding: 14px 16px;
-        background: var(--card-bg, #FFFFFF);
-        border: 1px solid var(--border-color, #E2E8F0);
-        transition: all 0.25s ease;
-    }
-    .quick-action-card:hover {
-        border-color: #10B981;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.12);
-    }
-
-    /* SLA Dashboard Cards */
-    .sla-cyber-card {
-        background: var(--card-bg, #FFFFFF);
-        border: 1px solid var(--border-color, #E2E8F0);
-        border-radius: 20px;
-        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-    }
-
-    .sla-bidang-item {
-        background: var(--surface-alt, #F8FAFC);
-        border: 1px solid var(--border-color, #E2E8F0);
-        border-radius: 14px;
-        padding: 14px 18px;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    .sla-bidang-item:hover {
-        transform: translateX(4px);
-        border-color: rgba(16, 185, 129, 0.5) !important;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-    }
-
-    .sla-progress-track {
-        height: 8px;
-        background: rgba(148, 163, 184, 0.2);
-        border-radius: 10px;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .sla-progress-bar-neon-1 { background: linear-gradient(90deg, #10B981 0%, #34D399 100%); box-shadow: 0 0 10px rgba(16, 185, 129, 0.6); border-radius: 10px; }
-    .sla-progress-bar-neon-2 { background: linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%); box-shadow: 0 0 10px rgba(59, 130, 246, 0.6); border-radius: 10px; }
-    .sla-progress-bar-neon-3 { background: linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%); box-shadow: 0 0 10px rgba(245, 158, 11, 0.6); border-radius: 10px; }
-    .sla-progress-bar-neon-4 { background: linear-gradient(90deg, #8B5CF6 0%, #A78BFA 100%); box-shadow: 0 0 10px rgba(139, 92, 246, 0.6); border-radius: 10px; }
-
-    .sla-badge-glass-emerald {
-        background: rgba(16, 185, 129, 0.12);
-        color: #10B981;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        border-radius: 30px;
-        padding: 6px 16px;
-        font-size: 0.8rem;
-        font-weight: 700;
-    }
-    .sla-badge-glass-blue {
-        background: rgba(59, 130, 246, 0.12);
-        color: #3B82F6;
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        border-radius: 30px;
-        padding: 6px 16px;
-        font-size: 0.8rem;
-        font-weight: 700;
-    }
-
-    .sla-title-text { color: var(--text-primary, #111827) !important; }
-    .sla-sub-text { color: var(--text-secondary, #6B7280) !important; }
 </style>
 {% endblock %}
 
@@ -330,10 +257,10 @@
                 <i class="bi bi-calendar3 text-amber-400"></i> {{ today|date:"l, d F Y" }}
             </span>
             <div class="flex gap-2">
-                <a href="{% url 'archives:upload' %}" class="px-3.5 py-1.5 rounded-full bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-extrabold shadow-sm transition-all text-decoration-none inline-flex items-center gap-1">
+                <a href="{% url 'archives:upload' %}" class="px-3.5 py-1.5 rounded-full bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-extrabold shadow-sm transition-all no-underline inline-flex items-center gap-1">
                     <i class="bi bi-plus-lg"></i> Upload Arsip
                 </a>
-                <a href="{% url 'agendas:list' %}" class="px-3.5 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition-all text-decoration-none inline-flex items-center gap-1">
+                <a href="{% url 'agendas:list' %}" class="px-3.5 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition-all no-underline inline-flex items-center gap-1">
                     <i class="bi bi-calendar-event"></i> Agenda
                 </a>
             </div>
@@ -345,7 +272,7 @@
 {% if pending_dispositions > 0 %}
 <div class="p-4 mb-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-center justify-between flex-wrap gap-4 shadow-sm">
     <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+        <div class="w-10 h-10 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xl shrink-0 font-bold">
             <i class="bi bi-exclamation-circle-fill"></i>
         </div>
         <div>
@@ -353,7 +280,7 @@
             <p class="text-xs text-slate-600 dark:text-slate-300 mb-0">Dokumen telah diverifikasi Kabid IV dan siap untuk Anda berikan instruksi disposisi.</p>
         </div>
     </div>
-    <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-md transition-all text-decoration-none inline-flex items-center gap-1.5">
+    <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-md transition-all no-underline inline-flex items-center gap-1.5">
         <i class="bi bi-send-fill"></i> Buka Antrean Disposisi
     </a>
 </div>
@@ -362,7 +289,7 @@
 
 <!-- TOP STAT COUNTERS (6 CARDS GRID) -->
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-    <a href="{% url 'archives:list' %}?type=surat_masuk" class="text-decoration-none group">
+    <a href="{% url 'archives:list' %}?type=surat_masuk" class="no-underline group">
         <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-500/50 hover:-translate-y-1 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
@@ -375,7 +302,7 @@
         </div>
     </a>
 
-    <a href="{% url 'archives:list' %}?type=proposal" class="text-decoration-none group">
+    <a href="{% url 'archives:list' %}?type=proposal" class="no-underline group">
         <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-blue-500/50 hover:-translate-y-1 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg">
@@ -387,7 +314,7 @@
         </div>
     </a>
 
-    <a href="{% url 'agendas:list' %}" class="text-decoration-none group">
+    <a href="{% url 'agendas:list' %}" class="no-underline group">
         <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-purple-500/50 hover:-translate-y-1 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg">
@@ -399,7 +326,7 @@
         </div>
     </a>
 
-    <a href="{% url 'sppd_service:list' %}" class="text-decoration-none group">
+    <a href="{% url 'sppd_service:list' %}" class="no-underline group">
         <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-amber-500/50 hover:-translate-y-1 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg">
@@ -411,7 +338,7 @@
         </div>
     </a>
 
-    <a href="{% url 'reports:index' %}" class="text-decoration-none group">
+    <a href="{% url 'reports:index' %}" class="no-underline group">
         <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-yellow-500/50 hover:-translate-y-1 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <div class="w-10 h-10 rounded-xl bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 flex items-center justify-center text-lg">
@@ -423,7 +350,7 @@
         </div>
     </a>
 
-    <a href="{% url 'archives:list' %}" class="text-decoration-none group">
+    <a href="{% url 'archives:list' %}" class="no-underline group">
         <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:border-emerald-500/50 hover:-translate-y-1 transition-all">
             <div class="flex items-center justify-between mb-3">
                 <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
@@ -436,155 +363,175 @@
     </a>
 </div>
 
-<!-- 2. Main Middle Section Grid (3 Columns) -->
-<div class="row g-3 mb-4">
-    <!-- Col 1: Timeline Aktivitas Hari Ini (Scroll Transparan) -->
-    <div class="col-xl-3 col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
-            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                <h6 class="fw-bold mb-0 text-dark">
-                    <i class="bi bi-clock-history text-primary me-2"></i>Timeline Aktivitas
-                </h6>
-                <a href="{% url 'audit_logs:list' %}" class="text-decoration-none small text-primary fw-semibold">Lihat Semua</a>
-            </div>
-
-            <div class="activity-timeline overflow-auto" style="max-height: 480px;">
-                {% for log in recent_activity_logs %}
-                <div class="timeline-item-futuristic {% cycle '' 'blue' 'purple' 'orange' %}">
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="badge bg-light text-dark border small fw-bold" style="font-size: 0.65rem;">
-                            {{ log.created_at|date:"H:i" }} WIB
-                        </span>
-                        <span class="small text-muted" style="font-size: 0.65rem;">{{ log.user.username|default:"Sistem" }}</span>
-                    </div>
-                    <p class="mb-0 small fw-semibold text-dark" style="font-size: 0.8rem; line-height: 1.3;">
-                        {{ log.action }}
-                    </p>
-                </div>
-                {% empty %}
-                <div class="text-center py-4 text-muted small">Belum ada log aktivitas hari ini.</div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Col 2: Proposal Tracker / Pipeline Realtime (3. Card Clickable perdokumen mengarah ke Detail Arsip) -->
-    <div class="col-xl-5 col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
-            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                <h6 class="fw-bold mb-0 text-dark">
-                    <i class="bi bi-diagram-3-fill text-success me-2"></i>Proposal & Pipeline Tracker
-                </h6>
-                <a href="{% url 'archives:list' %}" class="text-decoration-none small text-primary fw-semibold">Lihat Detail</a>
-            </div>
-
-            <div class="overflow-auto" style="max-height: 480px;">
-                {% for item in tracker_items %}
-                <a href="{% url 'archives:detail' item.archive.pk %}" class="card border border-light-subtle rounded-3 p-3 mb-3 bg-light bg-opacity-50 text-decoration-none d-block tracker-hover-card">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            {% if item.is_bantuan %}
-                            <span class="badge bg-warning bg-opacity-20 text-warning-emphasis border border-warning-subtle fw-bold px-2 py-1 mb-1" style="font-size: 0.65rem;">
-                                <i class="bi bi-gift-fill me-1"></i>BANTUAN: {{ item.archive.archive_number|default:"DRAFT" }}
-                            </span>
-                            {% else %}
-                            <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-1 mb-1" style="font-size: 0.65rem;">
-                                {{ item.archive.archive_number|default:"DRAFT" }}
-                            </span>
-                            {% endif %}
-                            <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.85rem;" title="{{ item.archive.title }}">
-                                {{ item.archive.title|truncatechars:35 }}
-                            </h6>
-                            <small class="text-secondary d-block" style="font-size: 0.7rem;">
-                                Pengirim: {{ item.archive.sender_receiver|truncatechars:25 }}
-                            </small>
-                        </div>
-                        <span class="badge {% if item.is_bantuan %}bg-warning text-dark{% else %}bg-success text-white{% endif %} rounded-pill px-3 py-1 small fw-bold shadow-sm" style="font-size: 0.68rem;">
-                            {% if item.is_bantuan %}<i class="bi bi-handbag-fill me-1"></i>{% endif %}{{ item.status_label }}
-                        </span>
-                    </div>
-
-                    <!-- Dynamic Pipeline Visualizer (Hover Garis Maju Dari Tahap Masuk) -->
-                    <div class="pipeline-container mt-2">
-                        <div class="pipeline-line-bg"></div>
-                        <div class="pipeline-line-progress" style="width: {{ item.progress_percent }}%; --target-progress: {{ item.progress_percent }}%;"></div>
-                        <div class="pipeline-steps-wrapper">
-                            {% for step_name in item.steps %}
-                            <div>
-                                <div class="pipeline-step-node {% if forloop.counter <= item.step_idx %}active{% endif %} {% if forloop.counter == item.step_idx %}current{% endif %}"></div>
-                                <span class="pipeline-step-label">{{ step_name }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </a>
-
-                {% empty %}
-                <div class="text-center py-5 text-muted small">Belum ada proposal aktif.</div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Col 3: Agenda Kerja (2. Max 10 Tertampil) & SPPD Berjalan -->
-    <div class="col-xl-4 col-lg-4">
-        <div class="d-flex flex-column gap-3 h-100">
-            <!-- 2. Agenda Kerja (Max 10 items) -->
-            <div class="card border-0 shadow-sm rounded-4 p-3 flex-fill">
-                <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
-                    <h6 class="fw-bold mb-0 text-dark">
-                        <i class="bi bi-calendar-check text-purple me-2"></i>Agenda Kerja
-                    </h6>
-                    <a href="{% url 'agendas:list' %}" class="text-decoration-none small text-primary fw-semibold">Lihat Kalender</a>
+<!-- 2. Main Middle Section Grid (3 Columns 100% Tailwind CSS Grid) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+    <!-- Col 1: Timeline Aktivitas Hari Ini -->
+    <div class="lg:col-span-3">
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm h-full flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-slate-800">
+                    <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                        <i class="bi bi-clock-history text-emerald-600 dark:text-emerald-400"></i> Timeline Aktivitas
+                    </h3>
+                    <a href="{% url 'audit_logs:list' %}" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline no-underline">Lihat Semua</a>
                 </div>
 
-                <div class="overflow-auto" style="max-height: 250px;">
-                    {% for agenda in today_agendas_list %}
-                    <div class="agenda-card-item {% cycle '' 'blue' 'orange' 'purple' %}">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold text-primary small"><i class="bi bi-clock me-1"></i>{{ agenda.scheduled_at|date:"d M H:i" }} WIB</span>
-                            <span class="badge bg-light text-dark border small" style="font-size: 0.65rem;">{{ agenda.location|default:"BAZNAS" }}</span>
+                <div class="activity-timeline overflow-y-auto max-h-[480px] space-y-3 pr-1">
+                    {% for log in recent_activity_logs %}
+                    <div class="timeline-item-futuristic {% cycle '' 'blue' 'purple' 'orange' %}">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono border border-slate-200 dark:border-slate-700">
+                                {{ log.created_at|date:"H:i" }} WIB
+                            </span>
+                            <span class="text-[10px] font-semibold text-slate-400 truncate max-w-[100px]">{{ log.user.username|default:"Sistem" }}</span>
                         </div>
-                        <p class="mb-0 fw-bold small text-dark">{{ agenda.title }}</p>
+                        <p class="mb-0 text-xs font-semibold text-slate-800 dark:text-slate-200 leading-snug">
+                            {{ log.action }}
+                        </p>
                     </div>
                     {% empty %}
-                    <div class="text-center py-3 text-muted small">Tidak ada agenda kerja.</div>
+                    <div class="text-center py-6 text-slate-400 text-xs font-medium">Belum ada log aktivitas hari ini.</div>
                     {% endfor %}
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- SPPD Berjalan Box -->
-            <div class="card border-0 shadow-sm rounded-4 p-3 flex-fill">
-                <div class="d-flex align-items-center justify-content-between mb-2 border-bottom pb-2">
-                    <h6 class="fw-bold mb-0 text-dark">
-                        <i class="bi bi-briefcase text-warning me-2"></i>SPPD Berjalan
-                    </h6>
-                    <a href="{% url 'sppd_service:list' %}" class="text-decoration-none small text-primary fw-semibold">Lihat Semua</a>
+    <!-- Col 2: Proposal Tracker / Pipeline Realtime -->
+    <div class="lg:col-span-5">
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm h-full flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-slate-800">
+                    <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                        <i class="bi bi-diagram-3-fill text-teal-600 dark:text-teal-400"></i> Proposal & Pipeline Tracker
+                    </h3>
+                    <a href="{% url 'archives:list' %}" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline no-underline">Lihat Detail</a>
                 </div>
 
-                <div class="table-responsive overflow-auto" style="max-height: 180px;">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 0.72rem;">
-                        <thead class="table-light">
-                            <tr>
-                                <th>No. SPPD</th>
-                                <th>Tujuan</th>
-                                <th>Berangkat</th>
-                                <th>Status</th>
+                <div class="overflow-y-auto max-h-[480px] space-y-3 pr-1">
+                    {% for item in tracker_items %}
+                    <a href="{% url 'archives:detail' item.archive.pk %}" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 block no-underline transition-all tracker-hover-card">
+                        <div class="flex justify-between items-start gap-2 mb-2">
+                            <div>
+                                {% if item.is_bantuan %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 mb-1">
+                                    <i class="bi bi-gift-fill"></i> BANTUAN: {{ item.archive.archive_number|default:"DRAFT" }}
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 mb-1">
+                                    {{ item.archive.archive_number|default:"DRAFT" }}
+                                </span>
+                                {% endif %}
+                                <h4 class="font-bold text-xs text-slate-900 dark:text-white mb-0.5 line-clamp-1" title="{{ item.archive.title }}">
+                                    {{ item.archive.title|truncatechars:38 }}
+                                </h4>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">
+                                    Pengirim: {{ item.archive.sender_receiver|truncatechars:28 }}
+                                </span>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold shrink-0 shadow-2xs 
+                                {% if item.step_idx == 8 or item.step_idx == 7 and not item.is_bantuan %}bg-emerald-600 text-white
+                                {% elif item.step_idx == 6 and item.is_bantuan %}bg-purple-600 text-white
+                                {% elif item.step_idx == 5 and item.is_bantuan %}bg-amber-500 text-slate-950
+                                {% elif item.step_idx >= 3 %}bg-sky-600 text-white
+                                {% else %}bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200{% endif %}">
+                                {% if item.step_idx == 6 and item.is_bantuan %}<i class="bi bi-cash-stack"></i>
+                                {% elif item.step_idx == 5 and item.is_bantuan %}<i class="bi bi-geo-alt-fill"></i>
+                                {% elif item.step_idx == 8 or item.step_idx == 7 and not item.is_bantuan %}<i class="bi bi-check-all"></i>
+                                {% elif item.is_bantuan %}<i class="bi bi-handbag-fill"></i>
+                                {% else %}<i class="bi bi-file-earmark-text"></i>{% endif %}
+                                {{ item.status_label }}
+                            </span>
+                        </div>
+
+                        <!-- Dynamic Pipeline Visualizer -->
+                        <div class="pipeline-container mt-2">
+                            <div class="pipeline-line-bg"></div>
+                            <div class="pipeline-line-progress" style="width: {{ item.progress_percent }}%; --target-progress: {{ item.progress_percent }}%;"></div>
+                            <div class="pipeline-steps-wrapper">
+                                {% for step_name in item.steps %}
+                                <div>
+                                    <div class="pipeline-step-node {% if forloop.counter <= item.step_idx %}active{% endif %} {% if forloop.counter == item.step_idx %}current{% endif %}"></div>
+                                    <span class="pipeline-step-label">{{ step_name }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </a>
+
+                    {% empty %}
+                    <div class="text-center py-8 text-slate-400 text-xs font-medium">Belum ada proposal aktif.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Col 3: Agenda Kerja & SPPD Berjalan -->
+    <div class="lg:col-span-4 flex flex-col gap-6">
+        <!-- Agenda Kerja -->
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-slate-800">
+                    <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                        <i class="bi bi-calendar-check text-purple-600 dark:text-purple-400"></i> Agenda Kerja
+                    </h3>
+                    <a href="{% url 'agendas:list' %}" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline no-underline">Lihat Kalender</a>
+                </div>
+
+                <div class="overflow-y-auto max-h-[220px] space-y-2 pr-1">
+                    {% for agenda in today_agendas_list %}
+                    <div class="agenda-card-item {% cycle '' 'blue' 'orange' 'purple' %}">
+                        <div class="flex justify-between items-center gap-2 mb-1">
+                            <span class="font-bold text-purple-600 dark:text-purple-400 text-xs flex items-center gap-1">
+                                <i class="bi bi-clock"></i> {{ agenda.scheduled_at|date:"d M H:i" }} WIB
+                            </span>
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                {{ agenda.location|default:"BAZNAS" }}
+                            </span>
+                        </div>
+                        <p class="mb-0 font-bold text-xs text-slate-900 dark:text-slate-100 leading-snug">{{ agenda.title }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4 text-slate-400 text-xs font-medium">Tidak ada agenda kerja.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- SPPD Berjalan Box -->
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-slate-800">
+                    <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                        <i class="bi bi-briefcase text-amber-500"></i> SPPD Berjalan
+                    </h3>
+                    <a href="{% url 'sppd_service:list' %}" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline no-underline">Lihat Semua</a>
+                </div>
+
+                <div class="overflow-x-auto max-h-[180px]">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                <th class="pb-2 px-2">No. SPPD</th>
+                                <th class="pb-2 px-2">Tujuan</th>
+                                <th class="pb-2 px-2">Berangkat</th>
+                                <th class="pb-2 px-2 text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
                             {% for sppd in sppd_list_recent %}
-                            <tr>
-                                <td class="fw-bold text-primary">{{ sppd.sppd_number|truncatechars:15 }}</td>
-                                <td title="{{ sppd.destination }}">{{ sppd.destination|truncatechars:18 }}</td>
-                                <td>{{ sppd.departure_date|date:"d M Y" }}</td>
-                                <td>
-                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1" style="font-size: 0.62rem;">Berjalan</span>
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                <td class="py-2 px-2 font-extrabold text-emerald-600 dark:text-emerald-400">{{ sppd.sppd_number|truncatechars:15 }}</td>
+                                <td class="py-2 px-2 text-slate-800 dark:text-slate-200 font-medium" title="{{ sppd.destination }}">{{ sppd.destination|truncatechars:18 }}</td>
+                                <td class="py-2 px-2 text-slate-500 dark:text-slate-400 text-[11px] font-mono">{{ sppd.departure_date|date:"d M Y" }}</td>
+                                <td class="py-2 px-2 text-center">
+                                    <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30">Berjalan</span>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="text-center text-muted py-3">Tidak ada SPPD berjalan.</td>
+                                <td colspan="4" class="text-center text-slate-400 py-4 text-xs font-medium">Tidak ada SPPD berjalan.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -624,25 +571,27 @@
                     </div>
                 </div>
 
-                <!-- Chart 2: Status Proposal Bantuan -->
+                <!-- Chart 2: Status Seluruh Permohonan Bantuan (Proposal & Surat Masuk Bantuan) -->
                 <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between">
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Status Proposal</span>
-                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">Bantuan</span>
+                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Status Bantuan</span>
+                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-600 dark:text-amber-400" title="Termasuk Seluruh Proposal & Surat Masuk Permohonan Bantuan">Proposal & Surat</span>
                     </div>
                     <div class="h-44 relative w-full flex items-center justify-center">
                         <canvas id="chartProposal"></canvas>
                     </div>
                 </div>
 
-                <!-- Chart 3: Penanganan Dokumen Bantuan -->
+                <!-- Chart 3: Penanganan Dokumen Bantuan (Horizontal Bar Chart) -->
                 <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 flex flex-col justify-between">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Penanganan Bantuan</span>
-                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-500/10 text-sky-600 dark:text-sky-400">Distribusi</span>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Kategori Bantuan</span>
+                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-500/10 text-sky-600 dark:text-sky-400">Distribusi Program</span>
                     </div>
-                    <div class="h-44 relative w-full flex items-center justify-center">
-                        <canvas id="chartBantuanBar"></canvas>
+                    <div class="h-44 relative w-full overflow-y-auto pr-1">
+                        <div class="h-[430px] w-full">
+                            <canvas id="chartBantuanBar"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -661,7 +610,7 @@
 
                 <div class="space-y-2.5 mb-6">
                     {% if can_upload %}
-                    <a href="{% url 'archives:upload' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
+                    <a href="{% url 'archives:upload' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between no-underline group shadow-2xs hover:shadow-md">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base font-bold shadow-xs">
                                 <i class="bi bi-cloud-arrow-up-fill"></i>
@@ -675,7 +624,7 @@
                     </a>
                     {% endif %}
 
-                    <a href="{% url 'dispositions:list' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-amber-50 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
+                    <a href="{% url 'dispositions:list' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-amber-50 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between no-underline group shadow-2xs hover:shadow-md">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base font-bold shadow-xs">
                                 <i class="bi bi-send-fill"></i>
@@ -688,7 +637,7 @@
                         <i class="bi bi-arrow-right-short text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all text-lg"></i>
                     </a>
 
-                    <a href="{% url 'internal_meetings:create' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-sky-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
+                    <a href="{% url 'internal_meetings:create' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-sky-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between no-underline group shadow-2xs hover:shadow-md">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center text-base font-bold shadow-xs">
                                 <i class="bi bi-calendar-event-fill"></i>
@@ -701,7 +650,7 @@
                         <i class="bi bi-arrow-right-short text-slate-400 group-hover:text-sky-600 group-hover:translate-x-1 transition-all text-lg"></i>
                     </a>
 
-                    <a href="{% url 'surat_tugas:create' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
+                    <a href="{% url 'surat_tugas:create' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between no-underline group shadow-2xs hover:shadow-md">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-lg bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-base font-bold shadow-xs">
                                 <i class="bi bi-file-earmark-plus-fill"></i>
@@ -715,7 +664,7 @@
                     </a>
 
                     {% if user.is_superadmin and not request.session.active_pov %}
-                    <a href="{% url 'users:list' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-purple-50 dark:hover:bg-purple-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between text-decoration-none group shadow-2xs hover:shadow-md">
+                    <a href="{% url 'users:list' %}" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-purple-50 dark:hover:bg-purple-950/30 border border-slate-200 dark:border-slate-700/60 transition-all flex items-center justify-between no-underline group shadow-2xs hover:shadow-md">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base font-bold shadow-xs">
                                 <i class="bi bi-people-fill"></i>
@@ -744,7 +693,6 @@
         </div>
     </div>
 </div>
-
 
 {% endblock %}
 
@@ -795,7 +743,7 @@
             }
         });
 
-        // 2. Chart Status Proposal (Doughnut with Animated Entry & Hover Offset)
+        // 2. Chart Status Permohonan Bantuan (Doughnut with Distinct Vibrant Palette)
         const ctxProp = document.getElementById('chartProposal').getContext('2d');
         const chartProp = new Chart(ctxProp, {
             type: 'doughnut',
@@ -803,7 +751,13 @@
                 labels: ['Diproses', 'Survei', 'Penyaluran', 'Laporan', 'Selesai'],
                 datasets: [{
                     data: {{ chart_proposal_status|safe }},
-                    backgroundColor: ['#3B82F6', '#F59E0B', '#10B981', '#EAB308', '#059669'],
+                    backgroundColor: [
+                        '#3B82F6', // Diproses (Cyber Blue)
+                        '#F59E0B', // Survei (Amber Orange)
+                        '#8B5CF6', // Penyaluran (Royal Purple)
+                        '#06B6D4', // Laporan (Electric Cyan)
+                        '#10B981'  // Selesai (Emerald Green)
+                    ],
                     borderWidth: 2,
                     hoverOffset: 8
                 }]
@@ -827,15 +781,11 @@
             }
         });
 
-        // 3. Chart Bantuan (Futuristic Multi-Colored Bar Chart with Animated Entry)
+        // 3. Chart Bantuan (Horizontal Bar Chart with Category on the Side)
         const vibrantBarColors = [
-            '#10B981', // Neon Emerald
-            '#3B82F6', // Cyber Blue
-            '#F59E0B', // Sunset Orange
-            '#8B5CF6', // Royal Purple
-            '#06B6D4', // Electric Cyan
-            '#EC4899', // Hot Pink
-            '#EAB308'  // Gold
+            '#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#06B6D4',
+            '#EC4899', '#EAB308', '#6366F1', '#14B8A6', '#F43F5E',
+            '#84CC16', '#A855F7', '#0EA5E9', '#D946EF'
         ];
 
         const ctxBantuanBar = document.getElementById('chartBantuanBar').getContext('2d');
@@ -844,39 +794,63 @@
             data: {
                 labels: {{ bantuan_bar_labels|safe }},
                 datasets: [{
-                    label: 'Jumlah Penanganan',
+                    label: 'Jumlah Dokumen',
                     data: {{ bantuan_bar_series|safe }},
                     backgroundColor: vibrantBarColors,
                     borderColor: vibrantBarColors,
-                    borderWidth: 1.5,
-                    borderRadius: 7,
-                    hoverBorderWidth: 3
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    barThickness: 12,
+                    hoverBorderWidth: 2
                 }]
             },
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: {
-                    duration: 2200,
+                    duration: 2000,
                     easing: 'easeOutQuart'
                 },
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#38BDF8',
+                        titleFont: { size: 11, weight: 'bold' },
+                        bodyFont: { size: 10, weight: 'bold' },
+                        padding: 8,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return ` Total: ${context.parsed.x} Dokumen`;
+                            }
+                        }
+                    }
                 },
                 scales: {
                     x: { 
-                        ticks: { color: colors.text, font: { size: 8.5, weight: '600' } },
+                        beginAtZero: true,
+                        ticks: { 
+                            precision: 0,
+                            color: colors.text, 
+                            font: { size: 9, weight: '600' } 
+                        },
                         grid: { color: colors.grid }
                     },
                     y: { 
-                        beginAtZero: true, 
-                        ticks: { color: colors.text, font: { size: 9, weight: '600' } },
-                        grid: { color: colors.grid }
+                        ticks: { 
+                            color: colors.text, 
+                            font: { size: 9, weight: '700' },
+                            autoSkip: false
+                        },
+                        grid: { display: false }
                     }
                 }
             }
         });
-
 
         // Listen for Theme Toggle changes dynamically
         const observer = new MutationObserver(() => {
@@ -885,13 +859,12 @@
                 chart.options.plugins.legend.labels.color = newColors.text;
                 chart.update();
             });
-            [chartBantuan, chartBidang].forEach(chart => {
-                chart.options.scales.x.ticks.color = newColors.text;
-                chart.options.scales.x.grid.color = newColors.grid;
-                chart.options.scales.y.ticks.color = newColors.text;
-                chart.options.scales.y.grid.color = newColors.grid;
-                chart.update();
-            });
+            if (chartBantuan) {
+                chartBantuan.options.scales.x.ticks.color = newColors.text;
+                chartBantuan.options.scales.x.grid.color = newColors.grid;
+                chartBantuan.options.scales.y.ticks.color = newColors.text;
+                chartBantuan.update();
+            }
         });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     });

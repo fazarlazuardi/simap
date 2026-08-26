@@ -4,7 +4,7 @@
 {% block title %}{% if is_edit %}Edit Agenda Rapat Internal{% else %}Buat Agenda Rapat Internal Baru{% endif %} - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block extra_css %}
-<!-- Select2 BS5 CSS -->
+<!-- Select2 CSS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
 <style>
@@ -18,6 +18,7 @@
         font-size: 0.88rem !important;
         font-weight: 500 !important;
         transition: all 0.2s ease !important;
+        min-height: 44px !important;
     }
     [data-theme="dark"] .custom-input, 
     [data-theme="dark"] select.form-select, 
@@ -87,6 +88,7 @@
         cursor: pointer;
         transition: all 0.2s ease;
         user-select: none;
+        min-height: 44px;
     }
     [data-theme="dark"] .wizard-step-pill {
         background: #1E293B;
@@ -153,7 +155,8 @@
         font-size: 0.74rem;
         font-weight: 700;
         border-radius: 20px;
-        padding: 4px 12px;
+        padding: 6px 12px;
+        min-height: 36px;
         cursor: pointer;
         transition: all 0.2s ease;
     }
@@ -164,21 +167,21 @@
 <!-- CONTAINER LARGE ENTERPRISE SPEC (MAX-WIDTH 1020PX CENTERED) -->
 <div class="max-w-[1020px] mx-auto">
     <!-- HEADER BANNER EKSEKUTIF PRO GLASSMORPHISM (STANDAR ENTERPRISE) -->
-    <div class="glass-banner-enterprise mb-4">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div>
-                <div class="d-flex align-items-center gap-2 mb-1.5">
-                    <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase font-extrabold text-xs" style="letter-spacing: 0.05em;">
-                        <i class="bi bi-calendar-plus-fill me-1 text-warning"></i> Form Penjadwalan Rapat Terintegrasi SIMAP
-                    </span>
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/30 p-6 md:p-7 shadow-2xl text-white mb-6">
+        <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 flex items-center justify-between flex-wrap gap-4">
+            <div class="space-y-1.5">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black tracking-wider uppercase font-mono">
+                    <i class="bi bi-calendar-plus-fill text-amber-400"></i> Form Penjadwalan Rapat Terintegrasi SIMAP
                 </div>
-                <h2 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight m-0">
+                <h1 class="text-xl md:text-2xl font-black text-white tracking-tight mb-0">
                     {% if is_edit %}Edit Agenda Rapat Internal{% else %}Buat Agenda Rapat Internal Baru{% endif %}
-                </h2>
+                </h1>
             </div>
             <div>
-                <a href="{% url 'internal_meetings:list' %}" class="btn btn-light rounded-pill px-3.5 py-2 font-bold shadow-sm text-xs" style="color: var(--color-emerald-700);">
-                    <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Rapat
+                <a href="{% url 'internal_meetings:list' %}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs shadow-md transition-all no-underline">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Kembali ke Daftar Rapat</span>
                 </a>
             </div>
         </div>
@@ -222,62 +225,62 @@
 
         <!-- ==================== TAHAP 1: INFORMASI UTAMA & JADWAL ==================== -->
         <div class="wizard-step-panel" id="wizardStep1">
-            <div class="d-flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
                 <div>
-                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-base">
-                        <i class="bi bi-calendar-event-fill me-2"></i>Tahap 1: Informasi Utama & Jadwal Rapat
+                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-base flex items-center gap-2">
+                        <i class="bi bi-calendar-event-fill"></i>Tahap 1: Informasi Utama & Jadwal Rapat
                     </h5>
                     <span class="text-slate-500 dark:text-slate-400 text-xs">Lengkapi rincian dasar agenda pelaksanaan rapat internal BAZNAS Kabupaten Tangerang.</span>
                 </div>
-                <span class="badge bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 rounded-pill px-3 py-1 font-bold text-xs">Tahap 1 dari 4</span>
+                <span class="badge-pill-emerald shrink-0">Tahap 1 dari 4</span>
             </div>
 
             <div class="space-y-3.5">
                 <div>
-                    <label for="{{ form.title.id_for_label }}" class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">Judul / Perihal Rapat <span class="text-rose-500">*</span></label>
+                    <label for="{{ form.title.id_for_label }}" class="label-enterprise">Judul / Perihal Rapat <span class="text-rose-500">*</span></label>
                     {{ form.title }}
                     {% if form.title.errors %}<div class="text-rose-500 text-xs mt-1">{{ form.title.errors }}</div>{% endif %}
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label for="{{ form.meeting_type.id_for_label }}" class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">Jenis Rapat <span class="text-rose-500">*</span></label>
+                        <label for="{{ form.meeting_type.id_for_label }}" class="label-enterprise">Jenis Rapat <span class="text-rose-500">*</span></label>
                         {{ form.meeting_type }}
                     </div>
 
                     <div>
-                        <label for="{{ form.scheduled_at.id_for_label }}" class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">Waktu & Tanggal Pelaksanaan <span class="text-rose-500">*</span></label>
+                        <label for="{{ form.scheduled_at.id_for_label }}" class="label-enterprise">Waktu & Tanggal Pelaksanaan <span class="text-rose-500">*</span></label>
                         {{ form.scheduled_at }}
                     </div>
                 </div>
 
                 <div>
-                    <label for="{{ form.location.id_for_label }}" class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">Tempat / Lokasi Rapat <span class="text-rose-500">*</span></label>
+                    <label for="{{ form.location.id_for_label }}" class="label-enterprise">Tempat / Lokasi Rapat <span class="text-rose-500">*</span></label>
                     {{ form.location }}
                 </div>
 
                 <div>
-                    <label for="{{ form.agenda_topics.id_for_label }}" class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">Agenda & Poin Topik Pembahasan <span class="text-rose-500">*</span></label>
+                    <label for="{{ form.agenda_topics.id_for_label }}" class="label-enterprise">Agenda & Poin Topik Pembahasan <span class="text-rose-500">*</span></label>
                     {{ form.agenda_topics }}
                 </div>
 
                 <div>
-                    <label for="{{ form.attachment.id_for_label }}" class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">File Undangan / Dokumen Lampiran Pendukung (Opsional)</label>
+                    <label for="{{ form.attachment.id_for_label }}" class="label-enterprise">File Undangan / Dokumen Lampiran Pendukung (Opsional)</label>
                     {{ form.attachment }}
                 </div>
             </div>
         </div>
 
         <!-- ==================== TAHAP 2: PIMPINAN SIDANG & NOTULIS ==================== -->
-        <div class="wizard-step-panel d-none" id="wizardStep2">
-            <div class="d-flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+        <div class="wizard-step-panel hidden" id="wizardStep2">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
                 <div>
-                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-base">
-                        <i class="bi bi-person-workspace me-2 text-primary"></i>Tahap 2: Pimpinan Sidang & Notulis Rapat
+                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-base flex items-center gap-2">
+                        <i class="bi bi-person-workspace text-sky-500"></i>Tahap 2: Pimpinan Sidang & Notulis Rapat
                     </h5>
                     <span class="text-slate-500 dark:text-slate-400 text-xs">Tentukan pimpinan rapat & notulis. Penyesuaian akhir tetap dapat dilakukan di Hari H.</span>
                 </div>
-                <span class="badge bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 rounded-pill px-3 py-1 font-bold text-xs">Tahap 2 dari 4</span>
+                <span class="badge-pill-emerald shrink-0">Tahap 2 dari 4</span>
             </div>
 
             <div class="p-3 bg-cyan-50/70 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800/80 rounded-2xl text-xs text-cyan-900 dark:text-cyan-200 font-medium mb-4 flex items-center gap-2.5">
@@ -287,15 +290,15 @@
 
             <div class="space-y-3.5">
                 <div>
-                    <label for="{{ form.leaders.id_for_label }}" class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                    <label for="{{ form.leaders.id_for_label }}" class="label-enterprise">
                         <i class="bi bi-person-badge-fill me-1 text-emerald-600"></i> Pemimpin Sidang / Pimpinan Rapat (Opsional / Multi-Select)
                     </label>
                     {{ form.leaders }}
                 </div>
 
                 <div>
-                    <label for="{{ form.notulis.id_for_label }}" class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
-                        <i class="bi bi-pencil-square me-1 text-primary"></i> Notulis / Pencatat Risalah Rapat (Opsional)
+                    <label for="{{ form.notulis.id_for_label }}" class="label-enterprise">
+                        <i class="bi bi-pencil-square me-1 text-sky-500"></i> Notulis / Pencatat Risalah Rapat (Opsional)
                     </label>
                     {{ form.notulis }}
                 </div>
@@ -303,49 +306,49 @@
         </div>
 
         <!-- ==================== TAHAP 3: PESERTA INTERNAL & EKSTERNAL ==================== -->
-        <div class="wizard-step-panel d-none" id="wizardStep3">
-            <div class="d-flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+        <div class="wizard-step-panel hidden" id="wizardStep3">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
                 <div>
-                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-base">
-                        <i class="bi bi-people-fill me-2 text-info"></i>Tahap 3: Peserta Rapat Internal & Tamu Eksternal
+                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-base flex items-center gap-2">
+                        <i class="bi bi-people-fill text-sky-500"></i>Tahap 3: Peserta Rapat Internal & Tamu Eksternal
                     </h5>
                     <span class="text-slate-500 dark:text-slate-400 text-xs">Pilih pegawai BAZNAS yang diundang dan cantumkan tamu/instansi luar jika ada.</span>
                 </div>
-                <span class="badge bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 rounded-pill px-3 py-1 font-bold text-xs">Tahap 3 dari 4</span>
+                <span class="badge-pill-emerald shrink-0">Tahap 3 dari 4</span>
             </div>
 
             <div class="space-y-4">
                 <!-- PESERTA INTERNAL BAZNAS -->
                 <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40">
-                    <label class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-2">
+                    <label class="label-enterprise mb-2">
                         <i class="bi bi-person-lines-fill text-emerald-600 me-1"></i> Peserta Internal (Pegawai BAZNAS Kabupaten Tangerang)
                     </label>
 
                     <!-- TOMBOL PINTAS SELEKSI PER BIDANG -->
                     <div class="mb-3">
-                        <label class="form-label font-bold text-[11px] text-uppercase text-slate-500 dark:text-slate-400 mb-1.5">
-                            <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Pilih Cepat Berdasarkan Bidang Kerja:
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5 font-mono">
+                            <i class="bi bi-lightning-charge-fill text-amber-500 mr-1"></i>Pilih Cepat Berdasarkan Bidang Kerja:
                         </label>
-                        <div class="d-flex flex-wrap gap-1.5">
-                            <button type="button" class="btn btn-sm btn-outline-success quick-filter-pill" onclick="selectParticipantsByBidang('all')">
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" class="btn-slate-secondary quick-filter-pill" onclick="selectParticipantsByBidang('all')">
                                 ⚡ Semua Pegawai
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary quick-filter-pill" onclick="selectParticipantsByBidang('pimpinan')">
+                            <button type="button" class="btn-slate-secondary quick-filter-pill" onclick="selectParticipantsByBidang('pimpinan')">
                                 🏛️ Pimpinan BAZNAS
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-info quick-filter-pill" onclick="selectParticipantsByBidang('bidang_1')">
+                            <button type="button" class="btn-slate-secondary quick-filter-pill" onclick="selectParticipantsByBidang('bidang_1')">
                                 📊 Pengumpulan
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-warning quick-filter-pill" onclick="selectParticipantsByBidang('bidang_2')">
+                            <button type="button" class="btn-slate-secondary quick-filter-pill" onclick="selectParticipantsByBidang('bidang_2')">
                                 🤲 Pendistribusian
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary quick-filter-pill" onclick="selectParticipantsByBidang('bidang_3')">
+                            <button type="button" class="btn-slate-secondary quick-filter-pill" onclick="selectParticipantsByBidang('bidang_3')">
                                 💼 Keuangan & Pelaporan
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-dark quick-filter-pill" onclick="selectParticipantsByBidang('bidang_4')">
+                            <button type="button" class="btn-slate-secondary quick-filter-pill" onclick="selectParticipantsByBidang('bidang_4')">
                                 ⚙️ SDM & Umum
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger quick-filter-pill" onclick="selectParticipantsByBidang('none')">
+                            <button type="button" class="btn-danger quick-filter-pill" onclick="selectParticipantsByBidang('none')">
                                 ❌ Kosongkan Pilihan
                             </button>
                         </div>
@@ -356,28 +359,28 @@
 
                 <!-- PESERTA EKSTERNAL / TAMU UNDANGAN -->
                 <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40">
-                    <label class="form-label font-bold text-xs text-uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1">
-                        <i class="bi bi-building-gear text-warning me-1"></i> Peserta Eksternal / Tamu Undangan (Opsional)
+                    <label class="label-enterprise mb-1">
+                        <i class="bi bi-building-gear text-amber-500 mr-1"></i> Peserta Eksternal / Tamu Undangan (Opsional)
                     </label>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">
                         Gunakan kolom ini jika rapat mengundang <strong>UPZ Kecamatan, Instansi Pemkab, Tokoh Agama, Pers, atau Vendor</strong>.
                     </p>
 
                     <!-- INSERTION HELPER BADGES -->
-                    <div class="d-flex flex-wrap gap-1.5 mb-2">
-                        <button type="button" class="btn btn-sm btn-light border text-xs rounded-pill" onclick="appendGuestTag('Perwakilan UPZ Kecamatan / Desa')">
+                    <div class="flex flex-wrap gap-1.5 mb-2">
+                        <button type="button" class="btn-slate-secondary text-xs rounded-full py-1 px-3 min-h-[32px]" onclick="appendGuestTag('Perwakilan UPZ Kecamatan / Desa')">
                             + UPZ Kecamatan
                         </button>
-                        <button type="button" class="btn btn-sm btn-light border text-xs rounded-pill" onclick="appendGuestTag('Dinas / OPD Pemkab Tangerang')">
+                        <button type="button" class="btn-slate-secondary text-xs rounded-full py-1 px-3 min-h-[32px]" onclick="appendGuestTag('Dinas / OPD Pemkab Tangerang')">
                             + OPD Pemkab
                         </button>
-                        <button type="button" class="btn btn-sm btn-light border text-xs rounded-pill" onclick="appendGuestTag('Tokoh Masyarakat / Ulama')">
+                        <button type="button" class="btn-slate-secondary text-xs rounded-full py-1 px-3 min-h-[32px]" onclick="appendGuestTag('Tokoh Masyarakat / Ulama')">
                             + Tokoh Agama
                         </button>
-                        <button type="button" class="btn btn-sm btn-light border text-xs rounded-pill" onclick="appendGuestTag('Rekanan / Vendor Ke-3')">
+                        <button type="button" class="btn-slate-secondary text-xs rounded-full py-1 px-3 min-h-[32px]" onclick="appendGuestTag('Rekanan / Vendor Ke-3')">
                             + Vendor / Pihak Ke-3
                         </button>
-                        <button type="button" class="btn btn-sm btn-light border text-xs rounded-pill" onclick="appendGuestTag('Insan Pers / Media')">
+                        <button type="button" class="btn-slate-secondary text-xs rounded-full py-1 px-3 min-h-[32px]" onclick="appendGuestTag('Insan Pers / Media')">
                             + Pers / Media
                         </button>
                     </div>
@@ -388,42 +391,42 @@
         </div>
 
         <!-- ==================== TAHAP 4: REVIEW & SINKRONISASI ==================== -->
-        <div class="wizard-step-panel d-none" id="wizardStep4">
-            <div class="d-flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+        <div class="wizard-step-panel hidden" id="wizardStep4">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
                 <div>
-                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-base">
-                        <i class="bi bi-check-circle-fill me-2"></i>Tahap 4: Review Rincian & Sinkronisasi Agenda
+                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-base flex items-center gap-2">
+                        <i class="bi bi-check-circle-fill"></i>Tahap 4: Review Rincian & Sinkronisasi Agenda
                     </h5>
                     <span class="text-slate-500 dark:text-slate-400 text-xs">Periksa kembali data rapat sebelum diterbitkan & disinkronkan ke Agenda Kerja SIMAP.</span>
                 </div>
-                <span class="badge bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 rounded-pill px-3 py-1 font-bold text-xs">Tahap 4 dari 4</span>
+                <span class="badge-pill-emerald shrink-0">Tahap 4 dari 4</span>
             </div>
 
             <!-- LIVE SUMMARY CARD -->
             <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3 mb-4">
-                <div class="row g-3">
-                    <div class="col-md-8">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Judul Rapat</span>
-                        <h6 class="font-extrabold text-slate-900 dark:text-white m-0" id="summaryTitle">-</h6>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="md:col-span-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Judul Rapat</span>
+                        <h6 class="font-extrabold text-slate-900 dark:text-white m-0 text-base" id="summaryTitle">-</h6>
                     </div>
-                    <div class="col-md-4">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Jenis Rapat</span>
-                        <div><span class="badge bg-emerald-600 text-white px-3 py-1 rounded-pill font-bold text-xs" id="summaryType">-</span></div>
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Jenis Rapat</span>
+                        <div><span class="badge-pill-emerald" id="summaryType">-</span></div>
                     </div>
-                    <div class="col-md-6">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Waktu & Tanggal</span>
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Waktu & Tanggal</span>
                         <div class="font-bold text-xs text-slate-800 dark:text-slate-200" id="summaryDateTime">-</div>
                     </div>
-                    <div class="col-md-6">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Lokasi / Tempat</span>
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Lokasi / Tempat</span>
                         <div class="font-bold text-xs text-slate-800 dark:text-slate-200" id="summaryLocation">-</div>
                     </div>
-                    <div class="col-md-6">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Pimpinan Rapat</span>
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Pimpinan Rapat</span>
                         <div class="font-semibold text-xs text-slate-800 dark:text-slate-200" id="summaryLeaders">-</div>
                     </div>
-                    <div class="col-md-6">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Notulis Rapat</span>
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Notulis Rapat</span>
                         <div class="font-semibold text-xs text-slate-800 dark:text-slate-200" id="summaryNotulis">-</div>
                     </div>
                 </div>
@@ -431,8 +434,8 @@
 
             <!-- PANEL INTEGRASI OTOMATIS AGENDA SIMAP & NOTIFIKASI WA -->
             <div class="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 mb-4">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="badge bg-emerald-600 text-white rounded-pill px-3 py-1 font-bold text-xs">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="badge-pill-emerald">
                         <i class="bi bi-check-all me-1"></i> INTEGRASI OTOMATIS SIMAP
                     </span>
                 </div>
@@ -440,36 +443,36 @@
                     Agenda Rapat Internal ini akan <strong>otomatis dibuatkan entri Agenda Kerja</strong> dan langsung tercetak pada <strong>Kalender Kerja Visual SIMAP</strong>.
                 </p>
 
-                <div class="form-check form-switch">
-                    <input class="form-check-input accent-emerald" type="checkbox" name="send_wa" id="id_send_wa" checked>
-                    <label class="form-check-label font-bold text-xs text-emerald-950 dark:text-emerald-100 cursor-pointer" for="id_send_wa">
-                        <i class="bi bi-whatsapp text-success me-1"></i> Kirim Undangan Rapat Otomatis via WA Broadcast Gateway
+                <div class="flex items-center gap-2">
+                    <input class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer" type="checkbox" name="send_wa" id="id_send_wa" checked>
+                    <label class="font-bold text-xs text-emerald-950 dark:text-emerald-100 cursor-pointer" for="id_send_wa">
+                        <i class="bi bi-whatsapp text-emerald-600 me-1"></i> Kirim Undangan Rapat Otomatis via WA Broadcast Gateway
                     </label>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== WIZARD FOOTER NAVIGATION BUTTONS (SWEET COMPACT PRO BUTTONS) ==================== -->
-        <div class="d-flex justify-content-between align-items-center border-top border-slate-200 dark:border-slate-800 pt-3.5 mt-4">
-            <button type="button" id="btnWizardPrev" class="px-3.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all shadow-2xs d-none shrink-0" onclick="prevWizardStep()">
+        <!-- ==================== WIZARD FOOTER NAVIGATION BUTTONS ==================== -->
+        <div class="flex justify-between items-center border-t border-slate-200 dark:border-slate-800 pt-3.5 mt-4">
+            <button type="button" id="btnWizardPrev" class="btn-slate-secondary hidden shrink-0" onclick="prevWizardStep()">
                 <i class="bi bi-arrow-left me-1"></i> Kembali
             </button>
 
-            <div class="ms-auto flex items-center gap-2">
-                <a href="{% url 'internal_meetings:list' %}" class="px-3 py-1.5 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 font-semibold text-xs no-underline transition-all shrink-0">Batal</a>
+            <div class="ml-auto flex items-center gap-2">
+                <a href="{% url 'internal_meetings:list' %}" class="px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 font-semibold text-xs no-underline transition-all shrink-0">Batal</a>
                 
                 <!-- PRIMARY SUBMIT / TERBITKAN BUTTON ON STEP 1 -->
-                <button type="submit" id="btnSubmitStep1" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-2xs border-0 inline-flex items-center gap-1.5 cursor-pointer shrink-0">
+                <button type="submit" id="btnSubmitStep1" class="btn-emerald-primary shrink-0">
                     <i class="bi bi-check-circle-fill"></i> Terbitkan Agenda
                 </button>
 
                 <!-- STEP NEXT BUTTON (FOR STEPS 2 & 3) -->
-                <button type="button" id="btnWizardNext" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-2xs border-0 inline-flex items-center gap-1.5 cursor-pointer shrink-0 d-none" onclick="nextWizardStep()">
+                <button type="button" id="btnWizardNext" class="btn-emerald-primary hidden shrink-0" onclick="nextWizardStep()">
                     Lanjut <i class="bi bi-arrow-right"></i>
                 </button>
 
                 <!-- FINAL SUBMIT BUTTON (FOR STEP 4 OR EDIT MODE) -->
-                <button type="submit" id="btnSubmitMeeting" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-2xs border-0 inline-flex items-center gap-1.5 cursor-pointer shrink-0 d-none">
+                <button type="submit" id="btnSubmitMeeting" class="btn-emerald-primary hidden shrink-0">
                     <i class="bi bi-check-circle-fill"></i> {% if is_edit %}Simpan{% else %}Terbitkan{% endif %}
                 </button>
             </div>
@@ -491,10 +494,10 @@ function updateWizardUI() {
         const badge = document.getElementById('stepBadge' + i);
 
         if (i === currentWizardStep) {
-            panel.classList.remove('d-none');
+            panel.classList.remove('hidden');
             pill.classList.add('active');
         } else {
-            panel.classList.add('d-none');
+            panel.classList.add('hidden');
             pill.classList.remove('active');
         }
 
@@ -513,21 +516,21 @@ function updateWizardUI() {
     const btnSubmit = document.getElementById('btnSubmitMeeting');
 
     if (currentWizardStep === 1) {
-        btnPrev.classList.add('d-none');
-        btnSubmitStep1.classList.remove('d-none');
-        btnNext.classList.add('d-none');
-        btnSubmit.classList.add('d-none');
+        btnPrev.classList.add('hidden');
+        btnSubmitStep1.classList.remove('hidden');
+        btnNext.classList.add('hidden');
+        btnSubmit.classList.add('hidden');
     } else if (currentWizardStep === 4) {
-        btnPrev.classList.remove('d-none');
-        btnSubmitStep1.classList.add('d-none');
-        btnNext.classList.add('d-none');
-        btnSubmit.classList.remove('d-none');
+        btnPrev.classList.remove('hidden');
+        btnSubmitStep1.classList.add('hidden');
+        btnNext.classList.add('hidden');
+        btnSubmit.classList.remove('hidden');
         updateSummaryCard();
     } else {
-        btnPrev.classList.remove('d-none');
-        btnSubmitStep1.classList.add('d-none');
-        btnNext.classList.remove('d-none');
-        btnSubmit.classList.add('d-none');
+        btnPrev.classList.remove('hidden');
+        btnSubmitStep1.classList.add('hidden');
+        btnNext.classList.remove('hidden');
+        btnSubmit.classList.add('hidden');
     }
 
     window.scrollTo({ top: 100, behavior: 'smooth' });
@@ -662,11 +665,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 return false;
             }
-            const activeBtn = form.querySelector('button[type="submit"]:not(.d-none)');
+            const activeBtn = form.querySelector('button[type="submit"]:not(.hidden)');
             if (activeBtn) {
                 setTimeout(function() {
                     activeBtn.disabled = true;
-                    activeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Menerbitkan Agenda...';
+                    activeBtn.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> Menerbitkan Agenda...';
                 }, 50);
             }
         });

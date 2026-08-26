@@ -26,7 +26,7 @@ class WhatsAppService:
         if not gateway_url:
             return {'status': 'not_configured', 'ready': False, 'message': 'URL Gateway tidak dikonfigurasi'}
         try:
-            resp = requests.get(f"{gateway_url.rstrip('/')}/health", timeout=5)
+            resp = requests.get(f"{gateway_url.rstrip('/')}/health", timeout=1.0)
             if resp.status_code == 200:
                 data = resp.json()
                 return {
@@ -47,7 +47,10 @@ class WhatsAppService:
         """
         Sentralisasi Pengiriman Notifikasi WhatsApp.
         Memeriksa Mode Matriks Pengaturan (Otomatis vs Manual vs Nonaktif).
+        Pengiriman Otomatis dilakukan secara ASYNCHRONOUS (Non-Blocking) agar web respon super cepat.
         """
+        import threading
+
         # Tentukan Pegawai/Penerima
         target_emp = employee
         if not target_emp and user and hasattr(user, 'employee'):
@@ -93,7 +96,7 @@ class WhatsAppService:
                 'notif_id': notif.id
             }
 
-        # MODE OTOMATIS: Kirim HTTP Request ke Gateway API
+        # MODE OTOMATIS: Kirim Async (Non-Blocking) ke Gateway API
         gateway_url = getattr(settings, 'WA_GATEWAY_URL', None)
         notif = Notification.objects.create(
             user=user,
@@ -113,39 +116,38 @@ class WhatsAppService:
             notif.save()
             return {'status': 'failed', 'message': 'Gateway WA belum dikonfigurasi', 'wa_link': notif.wa_direct_link, 'notif_id': notif.id}
 
-        try:
-            payload = {'number': phone, 'message': message}
-            resp = requests.post(
-                f"{gateway_url.rstrip('/')}/send-message",
-                json=payload,
-                timeout=3.0
-            )
+        notif_id_val = notif.id
 
-            if resp.status_code == 200:
-                res_data = resp.json() if resp.text else {}
-                if res_data.get('success', True):
-                    notif.status = 'sent'
-                    notif.sent_at = timezone.now()
-                    notif.save()
-                    return {'status': 'sent', 'message': 'Pesan WA Berhasil Terkirim (Otomatis)', 'notif_id': notif.id}
+        def _dispatch_async():
+            from django.db import connections
+            connections.close_all()
+            try:
+                payload = {'number': phone, 'message': message}
+                resp = requests.post(
+                    f"{gateway_url.rstrip('/')}/send-message",
+                    json=payload,
+                    timeout=1.5
+                )
+                n = Notification.objects.filter(pk=notif_id_val).first()
+                if n:
+                    if resp.status_code == 200 and resp.json().get('success', True):
+                        n.status = 'sent'
+                        n.sent_at = timezone.now()
+                    else:
+                        n.status = 'failed'
+                        n.error_log = f"HTTP {resp.status_code}"
+                    n.save()
+            except Exception as ex:
+                n = Notification.objects.filter(pk=notif_id_val).first()
+                if n:
+                    n.status = 'failed'
+                    n.error_log = f"Gateway offline: {str(ex)}"
+                    n.save()
+            finally:
+                connections.close_all()
 
-            notif.status = 'failed'
-            notif.error_log = f"HTTP {resp.status_code}: {resp.text[:200]}"
-            notif.save()
-            return {'status': 'failed', 'message': 'Gateway merespon error', 'wa_link': notif.wa_direct_link, 'notif_id': notif.id}
-
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
-            notif.status = 'failed'
-            notif.error_log = f"Gagal Koneksi: {str(e)}"
-            notif.save()
-            logger.info(f"[WA FAILED] Connection error ke {phone}: {e}")
-            return {'status': 'failed', 'message': 'Gateway WA offline/tidak merespon', 'wa_link': notif.wa_direct_link, 'notif_id': notif.id}
-        except Exception as e:
-            notif.status = 'failed'
-            notif.error_log = str(e)
-            notif.save()
-            logger.exception(f"Kesalahan sistem WA Gateway: {e}")
-            return {'status': 'failed', 'message': str(e), 'wa_link': notif.wa_direct_link, 'notif_id': notif.id}
+        threading.Thread(target=_dispatch_async, daemon=True).start()
+        return {'status': 'sent', 'message': 'Notifikasi WA dikirim di latar belakang', 'notif_id': notif.id}
 
     @staticmethod
     def resend_outbox(notif_id):
@@ -163,7 +165,7 @@ class WhatsAppService:
             resp = requests.post(
                 f"{gateway_url.rstrip('/')}/send-message",
                 json=payload,
-                timeout=3.0
+                timeout=1.5
             )
             if resp.status_code == 200:
                 notif.status = 'sent'

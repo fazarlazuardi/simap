@@ -3,345 +3,326 @@
 
 {% block title %}Master Data Pegawai & Amil BAZNAS - Kab. Tangerang{% endblock %}
 
-{% block extra_css %}
-<style>
-    .custom-input { border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-primary); }
-    .custom-input:focus { border-color: var(--color-emerald-600); box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.15); }
-    
-    .emp-avatar {
-        width: 46px;
-        height: 46px;
-        object-fit: cover;
-        border-radius: 50%;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<!-- TAILWIND ENTERPRISE HEADER BANNER -->
-<div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
-    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-            <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
-                <i class="bi bi-person-badge-fill"></i> Database SDM & Kepegawaian BAZNAS
-            </span>
-            <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">Master Data Pegawai & Amil BAZNAS</h1>
-            <p class="text-slate-300 text-sm max-w-2xl mb-0">
-                Kelola database identitas pegawai, NIP, jabatan, struktur bidang, status SK kepegawaian, serta penerbitan akun login SIMAP.
-            </p>
-        </div>
-        <div class="flex items-center gap-2 flex-shrink-0">
-            {% if user.is_superadmin and not request.session.active_pov %}
-            <a href="{% url 'users:employee_create' %}" class="px-4 py-2.5 rounded-full bg-white hover:bg-emerald-50 text-emerald-900 font-extrabold text-xs shadow-md transition-all text-decoration-none inline-flex items-center gap-1.5">
-                <i class="bi bi-person-plus-fill text-base"></i> Tambah Pegawai Baru
-            </a>
-            {% endif %}
-        </div>
-    </div>
-</div>
+<div class="w-full space-y-6" x-data="{
+    searchQuery: '{{ query|default:'' }}',
+    accountModal: false,
+    selectedEmpId: '',
+    selectedEmpName: '',
+    selectedUsername: '',
+    openAccountModal(empId, nip, fullName) {
+        this.selectedEmpId = empId;
+        this.selectedEmpName = fullName + (nip ? ' (NIP: ' + nip + ')' : '');
+        this.selectedUsername = fullName.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').substring(0, 20);
+        this.accountModal = true;
+    }
+}">
+    <!-- ⚡ HEADER BANNER ENTERPRISE GLASSMORPHISM ⚡ -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/30 p-6 md:p-8 shadow-2xl text-white">
+        <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute left-1/3 -top-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-<!-- KPI SUMMARY STAT CARDS (4 CARDS GRID) -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl flex-shrink-0 font-bold">
-            <i class="bi bi-people-fill"></i>
-        </div>
-        <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">Total Pegawai Master</span>
-            <h3 class="text-xl font-black text-slate-900 dark:text-white font-mono mb-0">{{ total_employees }}</h3>
-        </div>
-    </div>
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black tracking-wider uppercase font-mono">
+                    <i class="bi bi-person-badge-fill text-amber-400"></i> Database SDM & Kepegawaian BAZNAS
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+                    Master Data Pegawai & Amil BAZNAS
+                </h1>
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    Kelola database identitas amil, NIP, jabatan, struktur bidang kerja, status SK kepegawaian, serta penerbitan akses akun login SIMAP secara terpusat.
+                </p>
+            </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xl flex-shrink-0 font-bold">
-            <i class="bi bi-person-check-fill"></i>
-        </div>
-        <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">Amil Aktif BAZNAS</span>
-            <h3 class="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mb-0">{{ active_employees }}</h3>
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
+                {% if user.is_superadmin and not request.session.active_pov %}
+                <a href="{% url 'users:employee_create' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-900/30 hover:scale-[1.02] transition-all no-underline">
+                    <i class="bi bi-person-plus-fill text-base"></i>
+                    <span>Tambah Pegawai Baru</span>
+                </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl flex-shrink-0 font-bold">
-            <i class="bi bi-key-fill"></i>
+    <!-- ⚡ INTERACTIVE KPI SUMMARY STAT CARDS ⚡ -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Pegawai Master -->
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center text-xl">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Total Pegawai</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ total_employees }}</span>
+            </div>
         </div>
-        <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">Sudah Ber-Akun SIMAP</span>
-            <h3 class="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mb-0">{{ with_account_count }}</h3>
+
+        <!-- Amil Aktif BAZNAS -->
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl">
+                <i class="bi bi-person-check-fill"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Amil Aktif</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ active_employees }}</span>
+            </div>
+        </div>
+
+        <!-- Sudah Ber-Akun SIMAP -->
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl">
+                <i class="bi bi-key-fill"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 block">Ada Akun SIMAP</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ with_account_count }}</span>
+            </div>
+        </div>
+
+        <!-- Belum Ada Akun -->
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl">
+                <i class="bi bi-person-dash-fill"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">Belum Ada Akun</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ without_account_count }}</span>
+            </div>
         </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl flex-shrink-0 font-bold">
-            <i class="bi bi-person-dash-fill"></i>
-        </div>
-        <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">Belum Ada Akun</span>
-            <h3 class="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mb-0">{{ without_account_count }}</h3>
-        </div>
-    </div>
-</div>
+    <!-- ⚡ SEARCH & FILTER PANEL ⚡ -->
+    <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+            <div class="md:col-span-5 relative">
+                <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                <input type="text"
+                       name="query"
+                       class="w-full pl-9 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                       placeholder="Cari nama pegawai, NIP, atau NIK..."
+                       value="{{ query }}">
+            </div>
 
-<!-- SEARCH & FILTER PANEL -->
-<div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-    <form method="get" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-        <div class="md:col-span-5 relative">
-            <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" name="query" class="w-full pl-10 pr-4 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" placeholder="Cari nama pegawai, NIP, atau NIK..." value="{{ query }}">
-        </div>
-        <div class="md:col-span-3">
-            <select name="bidang" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" onchange="this.form.submit()">
-                <option value="">Semua Struktur Bidang</option>
-                {% for dept in departments %}
-                <option value="{{ dept.id }}" {% if filters.bidang == dept.id|stringformat:'s' %}selected{% endif %}>{{ dept.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="md:col-span-2">
-            <select name="akun" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" onchange="this.form.submit()">
-                <option value="">Status Akun</option>
-                <option value="ya" {% if filters.akun == 'ya' %}selected{% endif %}>Sudah Ada Akun</option>
-                <option value="tidak" {% if filters.akun == 'tidak' %}selected{% endif %}>Belum Ada Akun</option>
-            </select>
-        </div>
-        <div class="md:col-span-2 flex gap-2">
-            <button type="submit" class="flex-1 py-2 px-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1">
-                <i class="bi bi-funnel-fill"></i> Filter
-            </button>
-            {% if query or filters.bidang or filters.akun %}
-            <a href="{% url 'users:employee_list' %}" class="px-3 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-all inline-flex items-center justify-center text-decoration-none" title="Reset">
-                <i class="bi bi-x-lg"></i>
-            </a>
-            {% endif %}
-        </div>
-    </form>
-</div>
-<!-- TABEL MASTER PEGAWAI -->
-<div class="card-enterprise p-4 mb-5">
-    <div class="table-responsive">
-        <table id="employee-table" class="table table-hover align-middle mb-0">
-            <thead>
-                <tr class="text-secondary extra-small text-uppercase border-bottom">
-                    <th class="py-3">NIP / NIK</th>
-                    <th class="py-3">Pegawai & Identitas</th>
-                    <th class="py-3">Jabatan & Bidang</th>
-                    <th class="py-3">Status Akun SIMAP</th>
-                    <th class="py-3">Kontak & Telepon</th>
-                    <th class="py-3 text-end">Aksi Eksekutif</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for emp, user_acc in employee_list %}
-                <tr>
-                    <td class="fw-extrabold text-primary" style="letter-spacing: -0.01em;">
-                        {{ emp.nip|default:"-" }}
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center gap-3">
-                            {% if emp.photo %}
-                                <img src="{{ emp.photo.url }}" class="emp-avatar">
-                            {% else %}
-                                <img src="https://ui-avatars.com/api/?name={{ emp.full_name|urlencode }}&background=10B981&color=FFFFFF" class="emp-avatar">
-                            {% endif %}
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0">{{ emp.full_name }}</h6>
-                                <span class="badge {% if emp.gender == 'L' %}bg-info-subtle text-info border border-info-subtle{% else %}bg-danger-subtle text-danger border border-danger-subtle{% endif %} rounded-pill extra-small px-2 py-0.5 mt-1">
-                                    {{ emp.get_gender_display }}
-                                </span>
+            <div class="md:col-span-3">
+                <select name="bidang"
+                        class="w-full px-3.5 py-2.5 rounded-2xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                        onchange="this.form.submit()">
+                    <option value="">Semua Struktur Bidang</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}" {% if filters.bidang == dept.id|stringformat:'s' %}selected{% endif %}>{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="md:col-span-2">
+                <select name="akun"
+                        class="w-full px-3.5 py-2.5 rounded-2xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                        onchange="this.form.submit()">
+                    <option value="">Status Akun</option>
+                    <option value="ya" {% if filters.akun == 'ya' %}selected{% endif %}>Sudah Ada Akun</option>
+                    <option value="tidak" {% if filters.akun == 'tidak' %}selected{% endif %}>Belum Ada Akun</option>
+                </select>
+            </div>
+
+            <div class="md:col-span-2 flex gap-2">
+                <button type="submit" class="flex-1 py-2.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="bi bi-funnel-fill"></i> Filter
+                </button>
+                {% if query or filters.bidang or filters.akun %}
+                <a href="{% url 'users:employee_list' %}" class="px-3.5 py-2.5 rounded-2xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all inline-flex items-center justify-center no-underline" title="Reset Filter">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- ⚡ TABEL MASTER DATA PEGAWAI ⚡ -->
+    <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                    <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
+                        <th class="py-3.5 px-4 rounded-l-2xl" style="width: 130px;">NIP / NIK</th>
+                        <th class="py-3.5 px-4" style="min-width: 240px;">Pegawai & Identitas</th>
+                        <th class="py-3.5 px-4" style="min-width: 200px;">Jabatan & Bidang</th>
+                        <th class="py-3.5 px-4" style="min-width: 170px;">Status Akun SIMAP</th>
+                        <th class="py-3.5 px-4" style="min-width: 160px;">Kontak & WhatsApp</th>
+                        <th class="py-3.5 px-4 text-end rounded-r-2xl" style="min-width: 160px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    {% for emp, user_acc in employee_list %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
+                        <!-- NIP / NIK -->
+                        <td class="py-3.5 px-4 font-mono font-bold text-slate-800 dark:text-slate-200">
+                            {{ emp.nip|default:"-" }}
+                        </td>
+
+                        <!-- Pegawai & Identitas -->
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center gap-3">
+                                {% if emp.photo %}
+                                    <img src="{{ emp.photo.url }}" class="w-10 h-10 rounded-full object-cover shadow-xs ring-2 ring-slate-200 dark:ring-slate-700">
+                                {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ emp.full_name|urlencode }}&background=10B981&color=FFFFFF" class="w-10 h-10 rounded-full object-cover shadow-xs ring-2 ring-slate-200 dark:ring-slate-700">
+                                {% endif %}
+                                <div class="space-y-0.5">
+                                    <h4 class="font-extrabold text-xs text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-0">
+                                        {{ emp.full_name }}
+                                    </h4>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold"
+                                          :class="'{{ emp.gender }}' === 'L' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'">
+                                        {{ emp.get_gender_display }}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="small fw-bold text-dark">{{ emp.position|default:"Amil BAZNAS" }}</div>
-                        <span class="badge {{ emp.department_badge_class }} rounded-pill extra-small px-2.5 py-1 mt-1 d-inline-block">
-                            {{ emp.dept_relation.name|default:"Struktur Utama BAZNAS" }}
-                        </span>
-                    </td>
-                    <td>
-                        {% if user_acc %}
-                        <span class="badge bg-emerald-subtle text-emerald rounded-pill px-3 py-1.5 fw-bold border border-emerald-subtle">
-                            <i class="bi bi-person-check-fill me-1"></i> {{ user_acc.username }} ({{ user_acc.get_role_display|default:user_acc.role }})
-                        </span>
-                        {% else %}
-                            {% if request.user.is_superadmin and not request.session.active_pov %}
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm fw-bold" onclick="openCreateAccountModal('{{ emp.pk }}', '{{ emp.nip|escapejs }}', '{{ emp.full_name|escapejs }}')">
-                                <i class="bi bi-person-plus-fill me-1"></i> Buat Akun
-                            </button>
-                            {% else %}
-                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 fw-bold">
-                                Belum Ada Akun
-                            </span>
-                            {% endif %}
-                        {% endif %}
-                    </td>
-                    <td class="small">
-                        {% if emp.phone_number %}
-                            <div class="text-success fw-bold"><i class="bi bi-whatsapp me-1"></i> {{ emp.phone_number }}</div>
-                        {% endif %}
-                        {% if emp.email %}
-                            <div class="text-secondary extra-small"><i class="bi bi-envelope me-1"></i> {{ emp.email }}</div>
-                        {% endif %}
-                        {% if not emp.phone_number and not emp.email %}
-                            <span class="text-muted extra-small">-</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-end">
-                        <div class="inline-flex items-center gap-1.5 justify-end">
-                            <a href="{% url 'users:employee_detail' emp.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Lihat Profil Lengkap">
-                                <i class="bi bi-eye-fill"></i> Detail Profil
-                            </a>
-                            {% if user.is_superadmin and not request.session.active_pov %}
-                            <a href="{% url 'users:employee_edit' emp.pk %}" class="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit Data Pegawai">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </a>
-                            <form action="{% url 'users:employee_delete' emp.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Hapus data pegawai {{ emp.full_name|escapejs }}?')">
-                                {% csrf_token %}
-                                <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Pegawai">
-                                    <i class="bi bi-trash-fill text-xs"></i>
-                                </button>
-                            </form>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center py-5 text-secondary">
-                        <i class="bi bi-people fs-1 d-block mb-2 text-muted"></i>
-                        <p class="mb-0 fw-bold">Belum Ada Data Pegawai</p>
-                        <small class="text-muted">Gunakan tombol "Tambah Pegawai Baru" di atas untuk menambahkan data pegawai master.</small>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
 
-        <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 pt-4">
+                        <!-- Jabatan & Bidang -->
+                        <td class="py-3.5 px-4 space-y-1">
+                            <div class="font-extrabold text-xs text-slate-800 dark:text-slate-200">{{ emp.position|default:"Amil BAZNAS" }}</div>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                <i class="bi bi-diagram-3 text-slate-400"></i>
+                                {{ emp.dept_relation.name|default:"Struktur Utama BAZNAS" }}
+                            </span>
+                        </td>
+
+                        <!-- Status Akun SIMAP -->
+                        <td class="py-3.5 px-4">
+                            {% if user_acc %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                                <i class="bi bi-person-check-fill text-purple-600 dark:text-purple-400"></i>
+                                <span>{{ user_acc.username }}</span>
+                                <span class="opacity-75 font-mono">({{ user_acc.get_role_display|default:user_acc.role }})</span>
+                            </span>
+                            {% else %}
+                                {% if request.user.is_superadmin and not request.session.active_pov %}
+                                <button @click="openAccountModal('{{ emp.pk }}', '{{ emp.nip|escapejs }}', '{{ emp.full_name|escapejs }}')"
+                                        type="button"
+                                        class="px-3 py-1 rounded-full bg-emerald-500/10 hover:bg-emerald-600 text-emerald-600 hover:text-white border border-emerald-500/30 text-[10px] font-extrabold shadow-2xs transition-all inline-flex items-center gap-1 cursor-pointer">
+                                    <i class="bi bi-person-plus-fill"></i> Buat Akun
+                                </button>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                    Belum Ada Akun
+                                </span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+
+                        <!-- Kontak & WhatsApp -->
+                        <td class="py-3.5 px-4 space-y-0.5">
+                            {% if emp.phone_number %}
+                            <a href="https://wa.me/{{ emp.phone_number }}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs hover:underline no-underline">
+                                <i class="bi bi-whatsapp"></i> {{ emp.phone_number }}
+                            </a>
+                            {% endif %}
+                            {% if emp.email %}
+                            <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                <i class="bi bi-envelope"></i> {{ emp.email }}
+                            </div>
+                            {% endif %}
+                            {% if not emp.phone_number and not emp.email %}
+                            <span class="text-slate-400 font-mono">—</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Aksi -->
+                        <td class="py-3.5 px-4 text-end">
+                            <div class="inline-flex items-center gap-1.5 justify-end">
+                                <a href="{% url 'users:employee_detail' emp.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all no-underline inline-flex items-center gap-1" title="Lihat Profil Lengkap">
+                                    <i class="bi bi-eye-fill"></i> Detail
+                                </a>
+                                {% if user.is_superadmin and not request.session.active_pov %}
+                                <a href="{% url 'users:employee_edit' emp.pk %}" class="p-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-bold text-xs transition-all no-underline inline-flex items-center justify-center" title="Edit Data Pegawai">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form action="{% url 'users:employee_delete' emp.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Hapus data pegawai {{ emp.full_name|escapejs }}?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-bold text-xs transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Pegawai">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-12 text-slate-400">
+                            <i class="bi bi-people text-4xl block mb-2 opacity-50"></i>
+                            <p class="text-xs font-semibold mb-0">Belum ada data pegawai yang terdaftar.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Section -->
+        <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 dark:border-slate-800 pt-4">
             <div class="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono">
-                Menampilkan halaman <span class="text-emerald-600 dark:text-emerald-400 fw-extrabold">{{ page_obj.number }}</span> dari <span class="fw-extrabold">{{ page_obj.paginator.num_pages }}</span> (Total <span class="text-slate-900 dark:text-white font-black">{{ total_employees }}</span> data pegawai)
+                Menampilkan halaman <span class="text-emerald-600 dark:text-emerald-400 font-black">{{ page_obj.number }}</span> dari <span class="font-bold">{{ page_obj.paginator.num_pages }}</span> (Total <span class="text-slate-900 dark:text-white font-black">{{ total_employees }}</span> data pegawai)
             </div>
             <div class="w-full sm:w-auto flex justify-end">
                 {% include 'includes/pagination.html' %}
             </div>
         </div>
     </div>
-</div>
 
-<!-- MODAL QUICK BUAT AKUN SIMAP UNTUK PEGAWAI -->
-<div class="modal fade" id="modalCreateAccount" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content card-enterprise border-0">
-            <div class="modal-header border-bottom py-3">
-                <h5 class="modal-header-title fw-bold text-emerald mb-0">
-                    <i class="bi bi-person-plus-fill me-2"></i> Buat Akun Log In SIMAP
-                </h5>
-                <button type="button" class="btn-close" onclick="closePureEmployeeModal()" aria-label="Close"></button>
-            </div>
-            <form id="formCreateAccount" method="post" action="">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label extra-small fw-bold text-uppercase text-secondary">Nama Pegawai</label>
-                        <input type="text" id="modalEmpName" class="form-control custom-input bg-light" readonly>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="modalUsername" class="form-label fw-bold small text-uppercase">Username Log In <span class="text-danger">*</span></label>
-                        <input type="text" name="username" id="modalUsername" class="form-control custom-input" required placeholder="Contoh: ahmad_sdm">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="modalPassword" class="form-label fw-bold small text-uppercase">Password Initial <span class="text-danger">*</span></label>
-                        <input type="password" name="password" id="modalPassword" class="form-control custom-input" required placeholder="••••••••">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="modalRole" class="form-label fw-bold small text-uppercase">Role / Wewenang Akses <span class="text-danger">*</span></label>
-                        <select name="role" id="modalRole" class="form-select custom-input" required>
-                            <option value="" selected disabled>Pilih Role...</option>
-                            {% for code, label in roles %}
-                            <option value="{{ code }}">{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+    <!-- ⚡ MODAL POPUP QUICK BUAT AKUN SIMAP (100% ALPINE.JS) ⚡ -->
+    <div x-show="accountModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs" x-transition.opacity>
+        <div @click.away="accountModal = false" class="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden" x-transition.scale>
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0">Buat Akun Log In SIMAP</h3>
                 </div>
-                <div class="modal-footer border-top py-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closePureEmployeeModal()">Batal</button>
-                    <button type="submit" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
-                        <i class="bi bi-check-circle-fill me-1"></i> Terbitkan Akun User
+                <button @click="accountModal = false" class="w-8 h-8 rounded-full bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all border-0 cursor-pointer">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
+            </div>
+
+            <form :action="'/users/employees/' + selectedEmpId + '/create-user/'" method="post" class="p-6 space-y-4 text-xs mb-0">
+                {% csrf_token %}
+                <div class="space-y-1.5">
+                    <label class="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Nama Pegawai</label>
+                    <input type="text" :value="selectedEmpName" readonly class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Username Log In <span class="text-rose-500">*</span></label>
+                    <input type="text" name="username" :value="selectedUsername" required placeholder="Contoh: ahmad_sdm" class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Password Initial <span class="text-rose-500">*</span></label>
+                    <input type="password" name="password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Role / Wewenang Akses <span class="text-rose-500">*</span></label>
+                    <select name="role" required class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="" selected disabled>Pilih Role...</option>
+                        {% for code, label in roles %}
+                        <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+                    <button type="button" @click="accountModal = false" class="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all border-0 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 cursor-pointer inline-flex items-center gap-1.5">
+                        <i class="bi bi-check-circle-fill"></i> Terbitkan Akun
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    $(document).ready(function () {
-        if ($('#employee-table').length) {
-            $('#employee-table').DataTable({
-                pagingType: "full_numbers",
-            language: {
-                search: "🔍 Cari Data:",
-                lengthMenu: "Tampilkan _MENU_ baris",
-                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                infoEmpty: "Menampilkan 0 data",
-                infoFiltered: "(difilter dari _MAX_ total data)",
-                paginate: {
-                    first: "« Pertama",
-                    previous: "‹ Prev",
-                    next: "Next ›",
-                    last: "Terakhir »"
-                },
-                emptyTable: "Belum ada data yang tersedia."
-            },
-                paging: false,
-                searching: false,
-                info: false,
-                autoWidth: false,
-                ordering: true,
-                columnDefs: [
-                    { orderable: false, targets: [5] }
-                ]
-            });
-        }
-    });
-
-    function openCreateAccountModal(empId, nip, fullName) {
-        let empInfo = fullName + (nip ? ' (NIP: ' + nip + ')' : '');
-        let modalEmpNameEl = document.getElementById('modalEmpName');
-        if (modalEmpNameEl) {
-            modalEmpNameEl.value = empInfo;
-        }
-
-        let defaultUsername = fullName.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').substring(0, 20);
-        let modalUsernameEl = document.getElementById('modalUsername');
-        if (modalUsernameEl) {
-            modalUsernameEl.value = defaultUsername;
-        }
-
-        let form = document.getElementById('formCreateAccount');
-        if (form) {
-            form.action = '/users/employees/' + empId + '/create-user/';
-        }
-
-        let modalEl = document.getElementById('modalCreateAccount');
-        if (modalEl) {
-            modalEl.classList.remove('hidden');
-            modalEl.classList.add('show', 'd-block');
-        }
-    }
-
-    function closePureEmployeeModal() {
-        let modalEl = document.getElementById('modalCreateAccount');
-        if (modalEl) {
-            modalEl.classList.add('hidden');
-            modalEl.classList.remove('show', 'd-block');
-        }
-    }
-</script>
 {% endblock %}

@@ -12,9 +12,8 @@
         font-size: 0.72rem !important;
         text-transform: uppercase !important;
         letter-spacing: 0.04em !important;
-        background-color: var(--surface-alt, #F1F5F9) !important;
+        background-color: rgba(241, 245, 249, 0.8) !important;
         padding: 10px 12px !important;
-        white-space: nowrap !important;
     }
     [data-theme="dark"] table.dataTable > thead > tr > th {
         background-color: #1E293B !important;
@@ -23,8 +22,7 @@
     }
     table.dataTable.no-footer { border-bottom: 1px solid var(--border-color, #E2E8F0) !important; }
     table.dataTable tbody td {
-        padding: 10px 12px !important;
-        white-space: nowrap !important;
+        padding: 12px 14px !important;
     }
     div.dataTables_wrapper div.dataTables_info,
     div.dataTables_wrapper div.dataTables_paginate { padding-top: 0.75rem !important; color: var(--text-secondary, #64748B) !important; font-weight: 600 !important; font-size: 0.78rem !important; }
@@ -49,524 +47,1754 @@
 {% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER EKSEKUTIF PRO GLASSMORPHISM (STANDAR ENTERPRISE) -->
-<div class="glass-banner-enterprise mb-4">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-7">
-            <div class="d-flex align-items-center gap-2 mb-1.5">
-                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-xs font-extrabold shadow-sm">
+<div class="w-full space-y-6" x-data="{ 
+    activeTab: 'bantuan', 
+    drilldownModal: null, 
+    drilldownSearch: '',
+    openDrilldown(type) {
+        this.drilldownModal = type;
+        this.drilldownSearch = '';
+    }
+}">
+    <!-- TAILWIND ENTERPRISE HEADER BANNER (FUTURISTIC CYBER-EXECUTIVE) -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white p-6 shadow-2xl border border-slate-700/60 backdrop-blur-xl">
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+                <span class="px-3 py-1 text-xs font-black uppercase rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-2 font-mono mb-2 shadow-xs">
                     <span class="relative flex h-2 w-2">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    <i class="bi bi-activity text-amber-300 text-sm"></i>
-                    <span class="text-white tracking-wide uppercase">Live Executive Analytics BAZNAS</span>
+                    <i class="bi bi-cpu-fill text-emerald-400"></i> Live Executive Analytics Engine
                 </span>
+                <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1 flex items-center gap-2">
+                    Rekap Penanganan & Analitik BAZNAS
+                </h1>
+                <p class="text-slate-300 text-xs sm:text-sm max-w-2xl mb-0 leading-relaxed">
+                    Dashboard analitik terpadu terintegrasi secara transparan dengan seluruh alur kerja disposisi, survei lapangan, dan penyaluran mustahik.
+                </p>
             </div>
-            <h2 class="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-tight m-0 mb-1">
-                Rekap Penanganan & Analitik BAZNAS
-            </h2>
-            <p class="text-emerald-50 text-xs font-medium m-0 max-w-xl">
-                Dashboard analitik eksekutif untuk pemantauan volume dokumen, distribusi permohonan bantuan mustahik, dan rasio penyelesaian laporan.
-            </p>
-        </div>
-        <div class="col-lg-5 text-lg-end">
-            <form method="get" class="d-flex gap-2 justify-content-lg-end align-items-center flex-wrap m-0">
-                <select name="month" class="form-select custom-input font-bold text-xs py-1.5 px-3" style="width: 140px;">
-                    <option value="all" {% if all_time %}selected{% endif %}>Semua Bulan</option>
-                    {% for m_num, m_name in month_names %}
-                    <option value="{{ m_num }}" {% if not all_time and selected_month == m_num %}selected{% endif %}>{{ m_name }}</option>
-                    {% endfor %}
-                </select>
-                <select name="year" class="form-select custom-input font-bold text-xs py-1.5 px-3" style="width: 90px;">
-                    <option value="2026" {% if selected_year == 2026 %}selected{% endif %}>2026</option>
-                    <option value="2025" {% if selected_year == 2025 %}selected{% endif %}>2025</option>
-                </select>
-                <button type="submit" class="btn btn-warning text-slate-950 rounded-xl px-3.5 py-1.5 font-bold text-xs shadow-sm">
-                    <i class="bi bi-funnel-fill me-1"></i> Filter
-                </button>
-                <a href="{% url 'reports:export_rekap_bantuan_excel' %}?month={{ selected_month }}&year={{ selected_year }}{% if all_time %}&all_time=1{% endif %}" class="btn btn-light rounded-xl px-3.5 py-1.5 font-bold text-xs shadow-sm" style="color: var(--color-emerald-700);">
-                    <i class="bi bi-file-earmark-excel-fill me-1 text-success"></i> Ekspor Excel
-                </a>
-            </form>
-        </div>
-    </div>
-</div>
 
-<!-- KPI EXECUTIVE SUMMARY CARDS (ENTERPRISE 3D ICON CARDS) -->
-<div class="row g-3 mb-3.5">
-    {% if not is_waka_or_kabid_2 %}
-    <!-- Card 1: Total Dokumen -->
-    <div class="col-xl-3 col-md-6">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm h-100 transition-all hover:scale-[1.01]">
-            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                <span class="text-[10px] font-extrabold text-uppercase text-slate-400 tracking-wider">Total Dokumen Masuk</span>
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base font-bold">
-                    <i class="bi bi-folder-check"></i>
-                </div>
-            </div>
-            <div class="d-flex align-items-baseline justify-content-between">
-                <h3 class="font-extrabold text-slate-900 dark:text-white m-0 text-xl">{{ analytics.total_documents|default:0 }}</h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">100% Volume</span>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Card 2: Permohonan Bantuan -->
-    <div class="{% if is_waka_or_kabid_2 %}col-md-6{% else %}col-xl-3 col-md-6{% endif %}">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm h-100 transition-all hover:scale-[1.01]">
-            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                <span class="text-[10px] font-extrabold text-uppercase text-slate-400 tracking-wider">Permohonan Bantuan</span>
-                <div class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-base font-bold">
-                    <i class="bi bi-heart-pulse-fill"></i>
-                </div>
-            </div>
-            <div class="d-flex align-items-baseline justify-content-between">
-                <h3 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-xl">{{ analytics.total_bantuan|default:0 }}</h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                    {{ analytics.bantuan_completed|default:0 }} Selesai
-                </span>
-            </div>
-        </div>
-    </div>
-
-    {% if not is_waka_or_kabid_2 %}
-    <!-- Card 3: Dokumen Umum -->
-    <div class="col-xl-3 col-md-6">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm h-100 transition-all hover:scale-[1.01]">
-            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                <span class="text-[10px] font-extrabold text-uppercase text-slate-400 tracking-wider">Dokumen Surat & Umum</span>
-                <div class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-base font-bold">
-                    <i class="bi bi-envelope-paper-fill"></i>
-                </div>
-            </div>
-            <div class="d-flex align-items-baseline justify-content-between">
-                <h3 class="font-extrabold text-sky-600 dark:text-sky-400 m-0 text-xl">{{ analytics.total_umum|default:0 }}</h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300">
-                    {{ analytics.umum_completed|default:0 }} Selesai
-                </span>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Card 4: Progress Penyelesaian -->
-    <div class="{% if is_waka_or_kabid_2 %}col-md-6{% else %}col-xl-3 col-md-6{% endif %}">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm h-100 transition-all hover:scale-[1.01]">
-            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                <span class="text-[10px] font-extrabold text-uppercase text-slate-400 tracking-wider">Rasio Penyelesaian</span>
-                <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base font-bold">
-                    <i class="bi bi-check-all"></i>
-                </div>
-            </div>
-            <div class="d-flex align-items-baseline justify-content-between">
-                <h3 class="font-extrabold text-emerald-600 dark:text-emerald-400 m-0 text-xl">{% if is_waka_or_kabid_2 %}{{ analytics.bantuan_completed|default:0 }}{% else %}{{ analytics.total_completed|default:0 }}{% endif %}</h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">{% if is_waka_or_kabid_2 %}{{ analytics.bantuan_pct|default:0 }}{% else %}{{ analytics.completion_rate }}{% endif %}% Selesai</span>
-            </div>
-            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-2.5 overflow-hidden">
-                <div class="bg-gradient-to-r from-emerald-600 to-teal-500 h-1.5 rounded-full" style="width: {% if is_waka_or_kabid_2 %}{{ analytics.bantuan_pct|default:0 }}{% else %}{{ analytics.completion_rate }}{% endif %}%"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- GRAFIK ANALITIK EXECUTIVE -->
-<div class="row g-3 mb-3.5">
-    <!-- Grafik 1: Penanganan Bantuan -->
-    <div class="{% if is_waka_or_kabid_2 %}col-lg-12{% else %}col-lg-6{% endif %}">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-lg h-100">
-            <div class="d-flex justify-content-between align-items-center pb-2.5 border-b border-slate-200 dark:border-slate-800 mb-3">
-                <h6 class="font-extrabold m-0 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
-                    <i class="bi bi-bar-chart-fill text-success"></i>Distribusi Permohonan Bantuan Mustahik
-                </h6>
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">{{ analytics.total_bantuan }} Dokumen</span>
-            </div>
-            <div>
-                <div id="chartPenangananBantuan" style="min-height: 340px;"></div>
-            </div>
-        </div>
-    </div>
-
-    {% if not is_waka_or_kabid_2 %}
-    <!-- Grafik 2: Penanganan Dokumen Umum -->
-    <div class="col-lg-6">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-lg h-100">
-            <div class="d-flex justify-content-between align-items-center pb-2.5 border-b border-slate-200 dark:border-slate-800 mb-3">
-                <h6 class="font-extrabold m-0 text-sky-600 dark:text-sky-400 text-xs flex items-center gap-2">
-                    <i class="bi bi-bar-chart-line-fill text-info"></i>Distribusi Tindak Lanjut Dokumen Umum
-                </h6>
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border border-sky-200 dark:border-sky-800">{{ analytics.total_umum }} Dokumen</span>
-            </div>
-            <div>
-                <div id="chartPenangananUmum" style="min-height: 340px;"></div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
-
-<!-- TAB SWITCHER FUTURISTIK & MASTER DATA TABLE (SINGLE LINE TEXT, NO SCROLLBAR) -->
-<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-lg mb-5 overflow-hidden">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div>
-            <h5 class="font-extrabold mb-0.5 text-emerald-600 dark:text-emerald-400 text-sm">
-                <i class="bi bi-table text-success me-1.5"></i>Rincian Data Rekapitulasi Dokumen
-            </h5>
-            <p class="text-slate-500 dark:text-slate-400 text-[11px] m-0">Master data permohonan bantuan & dokumen dinas umum terverifikasi.</p>
-        </div>
-        
-        <div class="p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 inline-flex flex-wrap gap-1.5" id="rekapPureTabNav">
-            <button type="button" class="rekap-tab-btn px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition-all border-0 cursor-pointer inline-flex items-center gap-1.5 bg-emerald-600 text-white shadow-sm" data-tab-target="bantuan-pane" id="bantuan-tab">
-                <i class="bi bi-heart-fill text-xs text-rose-300"></i> Bantuan Mustahik ({{ analytics.total_bantuan }})
-            </button>
-            {% if not is_waka_or_kabid_2 %}
-            <button type="button" class="rekap-tab-btn px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition-all border-0 cursor-pointer inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-tab-target="umum-pane" id="umum-tab">
-                <i class="bi bi-envelope-paper-fill text-xs text-sky-400"></i> Dokumen Umum ({{ analytics.total_umum }})
-            </button>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="tab-content" id="rekapTabContent">
-        <!-- Pane Bantuan -->
-        <div class="tab-pane fade show active" id="bantuan-pane" role="tabpanel" tabindex="0">
-            <div class="w-100 overflow-hidden">
-                <table class="table table-hover align-middle w-100 text-xs m-0" id="bantuanTable">
-                    <thead>
-                        <tr class="text-slate-600 dark:text-slate-300 text-[11px] font-black uppercase tracking-wider whitespace-nowrap">
-                            <th class="border-0 text-start py-2.5 px-2.5">Tgl Masuk</th>
-                            <th class="border-0 text-start py-2.5 px-2.5">No. Agenda / Surat</th>
-                            <th class="border-0 text-start py-2.5 px-2.5">Pemohon / Mustahik & Perihal</th>
-                            <th class="border-0 text-start py-2.5 px-2.5">Kategori Bantuan</th>
-                            <th class="border-0 text-center py-2.5 px-2.5">Alur Status</th>
-                            <th class="border-0 text-end py-2.5 px-2.5">Aksi Cepat</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 whitespace-nowrap">
-                        {% for item in bantuan_records %}
-                        <tr class="transition-all hover:bg-emerald-50/40 dark:hover:bg-slate-800/60">
-                            <td class="text-nowrap py-2.5 px-2.5 whitespace-nowrap" data-order="{{ item.archive.created_at|date:'U' }}">
-                                <i class="bi bi-calendar-event me-1 text-emerald-500"></i>{{ item.archive.created_at|date:"d/m/Y" }}
-                            </td>
-                            <td class="font-bold py-2.5 px-2.5 whitespace-nowrap">
-                                <a href="{% url 'archives:detail' item.archive.pk %}" class="text-decoration-none text-emerald-600 dark:text-emerald-400 font-mono font-extrabold hover:underline">
-                                    {{ item.archive.archive_number|default:"(DRAFT)" }}
-                                </a>
-                            </td>
-                            <td class="py-2.5 px-2.5 whitespace-nowrap">
-                                <span class="font-bold text-slate-900 dark:text-white truncate max-w-[240px] inline-block align-middle">{{ item.archive.title }}</span>
-                                {% if item.archive.sender %}
-                                <small class="text-slate-500 dark:text-slate-400 font-semibold ms-1.5"><i class="bi bi-person-fill me-1 text-emerald-500"></i>{{ item.archive.sender|truncatechars:20 }}</small>
-                                {% endif %}
-                            </td>
-                            <td class="py-2.5 px-2.5 whitespace-nowrap">
-                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1 whitespace-nowrap">
-                                    <i class="bi bi-bookmark-fill text-emerald-500"></i>{{ item.sub_category }}
-                                </span>
-                            </td>
-                            <td class="text-center py-2.5 px-2.5 whitespace-nowrap">
-                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold {% if item.archive.status == 'selesai' %}bg-emerald-600 text-white{% elif item.archive.status == 'ditolak' %}bg-rose-600 text-white{% else %}bg-amber-400 text-slate-950{% endif %} whitespace-nowrap">
-                                    {{ item.archive.workflow_status_display }}
-                                </span>
-                            </td>
-                            <td class="text-end py-2.5 px-2.5 whitespace-nowrap">
-                                <div class="d-flex align-items-center justify-content-end gap-1 flex-wrap">
-                                    {% with dispo=item.archive.latest_dispo %}
-                                        {% if dispo %}
-                                            {% if dispo.report %}
-                                                <a href="{% url 'reports:detail' dispo.report.pk %}" class="btn btn-sm btn-success rounded-pill px-2.5 py-0.5 font-bold text-[11px] shadow-2xs whitespace-nowrap" title="Lihat LHP Selesai">
-                                                    <i class="bi bi-file-earmark-check-fill me-1"></i> LHP Selesai
-                                                </a>
-                                            {% elif dispo.status == 'selesai' or item.archive.status == 'selesai' or dispo.is_completed %}
-                                                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-mono whitespace-nowrap">
-                                                    <i class="bi bi-check-circle-fill me-1"></i> DISALURKAN
-                                                </span>
-                                            {% else %}
-                                                {% if is_waka_or_kabid_2 or user.is_waka_2 or user.is_kabid_2 or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' or user.is_superadmin and not request.session.active_pov %}
-                                                <div class="dropdown d-inline-block">
-                                                    <button class="btn btn-warning btn-sm rounded-pill px-2.5 py-0.5 font-bold text-[11px] dropdown-toggle shadow-2xs text-dark whitespace-nowrap" type="button" data-bs-toggle="dropdown">
-                                                        <i class="bi bi-handbag-fill me-1"></i> Bidang II
-                                                    </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2" style="z-index: 1080;">
-                                                        <li><h6 class="dropdown-header font-bold text-dark mb-0"><i class="bi bi-handbag-fill text-warning me-1"></i>Opsi Penanganan Bantuan</h6></li>
-                                                        <li><a class="dropdown-item rounded-3 text-xs py-2 font-bold text-dark" href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=survei"><i class="bi bi-geo-alt-fill text-warning me-2"></i>📋 1. Survei Lapangan (Buat ST/SPPD)</a></li>
-                                                        <li><a class="dropdown-item rounded-3 text-xs py-2 font-bold text-dark" href="{% url 'reports:create' dispo.pk %}?type=penyaluran"><i class="bi bi-box-seam-fill text-success me-2"></i>🎁 2. Langsung Disalurkan (Input LHP)</a></li>
-                                                    </ul>
-                                                </div>
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endif %}
-                                    {% endwith %}
-
-                                    <a href="{% url 'archives:detail' item.archive.pk %}" class="btn btn-sm btn-outline-secondary rounded-circle shadow-2xs" title="Lihat Detail Dokumen">
-                                        <i class="bi bi-eye-fill"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
+            <div class="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                <form method="get" class="flex gap-2 items-center flex-wrap m-0 p-1.5 rounded-2xl bg-slate-900/80 border border-slate-700/70 backdrop-blur-md">
+                    <select name="month" class="px-3 py-1.5 rounded-xl text-xs bg-slate-800/90 border border-slate-700 text-white font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="all" {% if all_time %}selected{% endif %}>Semua Bulan</option>
+                        {% for m_num, m_name in month_names %}
+                        <option value="{{ m_num }}" {% if not all_time and selected_month == m_num %}selected{% endif %}>{{ m_name }}</option>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    </select>
+                    <select name="year" class="px-3 py-1.5 rounded-xl text-xs bg-slate-800/90 border border-slate-700 text-white font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="2026" {% if selected_year == 2026 %}selected{% endif %}>2026</option>
+                        <option value="2025" {% if selected_year == 2025 %}selected{% endif %}>2025</option>
+                    </select>
+                    <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-md transition-all border-0 cursor-pointer inline-flex items-center gap-1.5">
+                        <i class="bi bi-funnel-fill"></i> Filter
+                    </button>
+                    <a href="{% url 'reports:export_rekap_bantuan_excel' %}?month={{ selected_month }}&year={{ selected_year }}{% if all_time %}&all_time=1{% endif %}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md transition-all no-underline inline-flex items-center gap-1.5">
+                        <i class="bi bi-file-earmark-excel-fill"></i> Ekspor
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6 KPI EXECUTIVE SUMMARY CARDS (CLEAN, PROFESSIONAL, DRILLDOWN INTERACTIVE) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
+        <!-- Card 1: Total Dokumen Masuk (Clickable) -->
+        <div onclick="bukaDrilldownKpi('total_dokumen')" 
+             role="button"
+             tabindex="0"
+             class="group p-4 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-emerald-500/50 hover:scale-[1.02] transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden select-none">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Masuk</span>
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold shadow-2xs group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                        <i class="bi bi-folder-check"></i>
+                    </div>
+                </div>
+                <h3 class="font-mono font-black text-slate-900 dark:text-white m-0 text-2xl tracking-tight">{{ analytics.total_documents|default:0 }}</h3>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-2 flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-mono">100% Vol</span>
+                <span class="text-[9px] font-bold text-slate-400 group-hover:text-emerald-500 flex items-center gap-0.5 transition-colors">
+                    Lihat <i class="bi bi-arrow-right-short text-xs"></i>
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 2: Permohonan Bantuan (Clickable) -->
+        <div onclick="bukaDrilldownKpi('bantuan')" 
+             role="button"
+             tabindex="0"
+             class="group p-4 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-rose-500/50 hover:scale-[1.02] transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden select-none">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-pink-500"></div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Permohonan</span>
+                    <div class="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm font-bold shadow-2xs group-hover:bg-rose-500 group-hover:text-white transition-all">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </div>
+                </div>
+                <h3 class="font-mono font-black text-rose-600 dark:text-rose-400 m-0 text-2xl tracking-tight">{{ analytics.total_bantuan|default:0 }}</h3>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-2 flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-500/10 text-rose-700 dark:text-rose-300 font-mono">{{ analytics.bantuan_completed|default:0 }} Selesai</span>
+                <span class="text-[9px] font-bold text-slate-400 group-hover:text-rose-500 flex items-center gap-0.5 transition-colors">
+                    Lihat <i class="bi bi-arrow-right-short text-xs"></i>
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 3: Survei Lapangan Mustahik (Clickable) -->
+        <div onclick="bukaDrilldownKpi('survei')" 
+             role="button"
+             tabindex="0"
+             class="group p-4 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-amber-500/50 hover:scale-[1.02] transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden select-none">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Survei Lapangan</span>
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm font-bold shadow-2xs group-hover:bg-amber-500 group-hover:text-white transition-all">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                </div>
+                <h3 class="font-mono font-black text-amber-600 dark:text-amber-400 m-0 text-2xl tracking-tight">{{ analytics.survei_count|default:0 }}</h3>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-2 flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-500/10 text-amber-800 dark:text-amber-300 font-mono">ST & SPPD</span>
+                <span class="text-[9px] font-bold text-slate-400 group-hover:text-amber-500 flex items-center gap-0.5 transition-colors">
+                    Lihat <i class="bi bi-arrow-right-short text-xs"></i>
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 4: Realisasi Dana ZIS (Clickable) -->
+        <div onclick="bukaDrilldownKpi('penyaluran')" 
+             role="button"
+             tabindex="0"
+             class="group p-4 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-purple-500/50 hover:scale-[1.02] transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden select-none">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Realisasi ZIS</span>
+                    <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm font-bold shadow-2xs group-hover:bg-purple-500 group-hover:text-white transition-all">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+                <h3 class="font-mono font-black text-purple-600 dark:text-purple-400 m-0 text-base sm:text-lg tracking-tight truncate" title="Rp {{ analytics.total_nominal_disbursed|floatformat:0 }}">
+                    Rp {{ analytics.total_nominal_disbursed|floatformat:0 }}
+                </h3>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-2 flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-500/10 text-purple-800 dark:text-purple-300 font-mono">Tersalurkan</span>
+                <span class="text-[9px] font-bold text-slate-400 group-hover:text-purple-500 flex items-center gap-0.5 transition-colors">
+                    Lihat <i class="bi bi-arrow-right-short text-xs"></i>
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 5: Dokumen Surat & Umum (Clickable) -->
+        <div onclick="bukaDrilldownKpi('umum')" 
+             role="button"
+             tabindex="0"
+             class="group p-4 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-sky-500/50 hover:scale-[1.02] transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden select-none">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 to-indigo-500"></div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Surat & Umum</span>
+                    <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm font-bold shadow-2xs group-hover:bg-sky-500 group-hover:text-white transition-all">
+                        <i class="bi bi-envelope-paper-fill"></i>
+                    </div>
+                </div>
+                <h3 class="font-mono font-black text-sky-600 dark:text-sky-400 m-0 text-2xl tracking-tight">{{ analytics.total_umum|default:0 }}</h3>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-2 flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-sky-500/10 text-sky-800 dark:text-sky-300 font-mono">{{ analytics.umum_completed|default:0 }} Selesai</span>
+                <span class="text-[9px] font-bold text-slate-400 group-hover:text-sky-500 flex items-center gap-0.5 transition-colors">
+                    Lihat <i class="bi bi-arrow-right-short text-xs"></i>
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 6: Tingkat Keberhasilan (Non-Clickable Metric) -->
+        <div class="p-4 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-cyan-500"></div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Keberhasilan</span>
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold shadow-2xs">
+                        <i class="bi bi-check-all"></i>
+                    </div>
+                </div>
+                <h3 class="font-mono font-black text-emerald-600 dark:text-emerald-400 m-0 text-2xl tracking-tight">
+                    {% if is_waka_or_kabid_2 %}{{ analytics.bantuan_pct|default:0 }}{% else %}{{ analytics.completion_rate }}{% endif %}%
+                </h3>
+            </div>
+            <div class="pt-2 mt-2 space-y-1.5">
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-gradient-to-r from-emerald-500 to-cyan-500 h-1.5 rounded-full transition-all duration-500" style="width: {% if is_waka_or_kabid_2 %}{{ analytics.bantuan_pct|default:0 }}{% else %}{{ analytics.completion_rate }}{% endif %}%"></div>
+                </div>
+                <span class="block text-[9px] font-bold text-slate-400 font-mono text-center">
+                    {% if is_waka_or_kabid_2 %}{{ analytics.bantuan_completed|default:0 }}{% else %}{{ analytics.total_completed|default:0 }}{% endif %} Berkas Tuntas
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRAFIK ANALITIK EXECUTIVE (FUTURISTIC HORIZONTAL CHARTS) -->
+    <div class="grid grid-cols-1 {% if not is_waka_or_kabid_2 %}lg:grid-cols-2{% endif %} gap-6 items-stretch">
+        <!-- Grafik 1: Penanganan Bantuan -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden flex flex-col justify-between h-full">
+            <div class="flex justify-between items-center pb-3.5 border-b border-slate-200/80 dark:border-slate-800 mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="font-black m-0 text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm flex items-center gap-2">
+                        <i class="bi bi-bar-chart-fill text-base"></i> Distribusi Program & Permohonan Bantuan
+                    </h3>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 m-0 mt-0.5">Katalog lengkap program pendistribusian ZIS BAZNAS terverifikasi.</p>
+                </div>
+                <span class="px-3 py-1 rounded-full text-[11px] font-black bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-mono shadow-2xs">
+                    {{ analytics.total_bantuan }} Permohonan
+                </span>
+            </div>
+            <div class="flex-1 flex flex-col justify-center">
+                <div id="chartPenangananBantuan" style="min-height: 520px;"></div>
             </div>
         </div>
 
         {% if not is_waka_or_kabid_2 %}
-        <!-- Pane Umum -->
-        <div class="tab-pane fade" id="umum-pane" role="tabpanel" tabindex="0">
-            <div class="w-100 overflow-hidden">
-                <table class="table table-hover align-middle w-100 text-xs m-0" id="umumTable">
-                    <thead>
-                        <tr class="text-slate-600 dark:text-slate-300 text-[11px] font-black uppercase tracking-wider whitespace-nowrap">
-                            <th class="border-0 text-start py-2.5 px-2.5">Tgl Masuk</th>
-                            <th class="border-0 text-start py-2.5 px-2.5">No. Agenda / Surat</th>
-                            <th class="border-0 text-start py-2.5 px-2.5">Pengirim & Perihal</th>
-                            <th class="border-0 text-start py-2.5 px-2.5">Kategori Dokumen</th>
-                            <th class="border-0 text-center py-2.5 px-2.5">Alur Status</th>
-                            <th class="border-0 text-end py-2.5 px-2.5">Aksi Cepat</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 whitespace-nowrap">
-                        {% for item in umum_records %}
-                        <tr class="transition-all hover:bg-slate-50/80 dark:hover:bg-slate-800/50">
-                            <td class="text-nowrap py-2.5 px-2.5 whitespace-nowrap" data-order="{{ item.archive.created_at|date:'U' }}">
-                                <i class="bi bi-calendar-event me-1 text-emerald-500"></i>{{ item.archive.created_at|date:"d/m/Y" }}
-                            </td>
-                            <td class="font-bold py-2.5 px-2.5 whitespace-nowrap">
-                                <a href="{% url 'archives:detail' item.archive.pk %}" class="text-decoration-none text-emerald-600 dark:text-emerald-400 font-mono font-extrabold hover:underline">
-                                    {{ item.archive.archive_number|default:"(DRAFT)" }}
-                                </a>
-                            </td>
-                            <td class="py-2.5 px-2.5 whitespace-nowrap">
-                                <span class="font-bold text-slate-900 dark:text-white truncate max-w-[240px] inline-block align-middle">{{ item.archive.title }}</span>
-                                {% if item.archive.sender %}
-                                <small class="text-slate-500 dark:text-slate-400 font-semibold ms-1.5"><i class="bi bi-building me-1 text-emerald-500"></i>{{ item.archive.sender|truncatechars:20 }}</small>
-                                {% endif %}
-                            </td>
-                            <td class="py-2.5 px-2.5 whitespace-nowrap">
-                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border border-sky-200 dark:border-sky-800 inline-flex items-center gap-1 whitespace-nowrap">
-                                    <i class="bi bi-folder-fill text-sky-500"></i>{{ item.archive.category.name|default:"Umum" }}
-                                </span>
-                            </td>
-                            <td class="text-center py-2.5 px-2.5 whitespace-nowrap">
-                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold {% if item.archive.status == 'selesai' %}bg-emerald-600 text-white{% elif item.archive.status == 'ditolak' %}bg-rose-600 text-white{% else %}bg-amber-400 text-slate-950{% endif %} whitespace-nowrap">
-                                    {{ item.archive.workflow_status_display }}
-                                </span>
-                            </td>
-                            <td class="text-end py-2.5 px-2.5 whitespace-nowrap">
-                                <a href="{% url 'archives:detail' item.archive.pk %}" class="btn btn-sm btn-outline-secondary rounded-circle shadow-2xs" title="Lihat Detail Dokumen">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <!-- Grafik 2: Penanganan Dokumen Umum -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden flex flex-col justify-between h-full">
+            <div class="flex justify-between items-center pb-3.5 border-b border-slate-200/80 dark:border-slate-800 mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="font-black m-0 text-sky-600 dark:text-sky-400 text-xs sm:text-sm flex items-center gap-2">
+                        <i class="bi bi-bar-chart-line-fill text-base"></i> Distribusi Dokumen Surat & Umum
+                    </h3>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 m-0 mt-0.5">Katalog lengkap klasifikasi berkas dinas dan disposisi pimpinan.</p>
+                </div>
+                <span class="px-3 py-1 rounded-full text-[11px] font-black bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 font-mono shadow-2xs">
+                    {{ analytics.total_umum }} Dokumen
+                </span>
+            </div>
+            <div class="flex-1 flex flex-col justify-center">
+                <div id="chartPenangananUmum" style="min-height: 520px;"></div>
             </div>
         </div>
         {% endif %}
+    </div>
+
+    <!-- TAB SWITCHER FUTURISTIK & MASTER DATA TABLE -->
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div class="flex justify-between items-center flex-wrap gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+            <div>
+                <h3 class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm mb-0.5">
+                    <i class="bi bi-table me-1"></i> Rekap Data Master Permohonan Bantuan
+                </h3>
+                <p class="text-slate-500 dark:text-slate-400 text-xs m-0">Permohonan bantuan mustahik terverifikasi & tindakan penanganan Bidang II.</p>
+            </div>
+            
+            <div class="p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1">
+                <button type="button" 
+                        @click="activeTab = 'bantuan'"
+                        :class="activeTab === 'bantuan' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                        class="px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition-all border-0 cursor-pointer inline-flex items-center gap-1.5">
+                    <i class="bi bi-handbag-fill text-xs text-amber-300"></i> Master Permohonan Bantuan ({{ bantuan_records|length }})
+                </button>
+                {% if not is_waka_or_kabid_2 %}
+                <button type="button" 
+                        @click="activeTab = 'umum'"
+                        :class="activeTab === 'umum' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                        class="px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition-all border-0 cursor-pointer inline-flex items-center gap-1.5">
+                    <i class="bi bi-envelope-paper-fill text-xs text-sky-300"></i> Dokumen Umum ({{ analytics.total_umum }})
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="tab-content" id="rekapTabContent">
+            <!-- PANE 1: MASTER REKAP PERMOHONAN BANTUAN (RESPONSIVE FIT TABLE) -->
+            <!-- PANE 1: PERMOHONAN BANTUAN -->
+            <div x-show="activeTab === 'bantuan'" class="tab-pane">
+                <div class="w-full overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs table-auto" id="bantuanMasterTable">
+                        <thead>
+                            <tr class="bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                <th class="py-3 px-3 w-[14%] whitespace-nowrap">No. Dokumen & Tgl</th>
+                                <th class="py-3 px-3 w-[26%]">Pemohon & Perihal Bantuan</th>
+                                <th class="py-3 px-3 w-[16%]">Kategori & Alamat</th>
+                                <th class="py-3 px-3 w-[14%]">Penanggung Jawab</th>
+                                <th class="py-3 px-3 text-end w-[13%] whitespace-nowrap">Nominal Bantuan</th>
+                                <th class="py-3 px-3 text-center w-[11%] whitespace-nowrap">Status & LHP</th>
+                                <th class="py-3 px-3 text-end w-[6%] whitespace-nowrap">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            {% for item in bantuan_records %}
+                            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                                <!-- No. Dokumen & Tanggal -->
+                                <td class="py-3 px-3 whitespace-nowrap">
+                                    <a href="{% url 'archives:detail' item.archive.pk %}" class="no-underline text-emerald-600 dark:text-emerald-400 font-mono font-extrabold text-[11px] hover:underline block leading-tight" title="{{ item.archive.archive_number }}">
+                                        {{ item.archive.archive_number|default:"(DRAFT)" }}
+                                    </a>
+                                    <span class="text-slate-400 font-mono text-[10px] block mt-0.5">
+                                        <i class="bi bi-calendar-event me-1"></i>{{ item.archive.created_at|date:"d/m/Y" }}
+                                    </span>
+                                </td>
+
+                                <!-- Pemohon & Perihal -->
+                                <td class="py-3 px-3">
+                                    <span class="font-extrabold text-slate-900 dark:text-white block text-xs mb-0.5 truncate max-w-[240px]" title="{{ item.archive.sender|default:item.archive.title }}">
+                                        <i class="bi bi-person-circle text-emerald-500 me-1"></i>{{ item.archive.sender|default:item.archive.title }}
+                                    </span>
+                                    <span class="text-slate-500 dark:text-slate-400 text-[11px] block truncate max-w-[240px]" title="{{ item.archive.title }}">
+                                        {{ item.archive.title }}
+                                    </span>
+                                </td>
+
+                                <!-- Kategori & Alamat -->
+                                <td class="py-3 px-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 inline-block mb-1 truncate max-w-[150px]" title="{{ item.sub_category }}">
+                                        {{ item.sub_category }}
+                                    </span>
+                                    <span class="text-slate-500 dark:text-slate-400 text-[10px] block truncate max-w-[150px]" title="{{ item.archive.address }}">
+                                        <i class="bi bi-geo-alt me-0.5"></i>{{ item.archive.address|default:"-" }}
+                                    </span>
+                                </td>
+
+                                <!-- Penanggung Jawab Amil -->
+                                <td class="py-3 px-3">
+                                    {% if item.amil_names and item.amil_names != '-' %}
+                                    <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px] block truncate max-w-[130px]" title="{{ item.amil_names }}">
+                                        <i class="bi bi-person-badge me-1 text-sky-500"></i>{{ item.amil_names }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-slate-400 font-semibold text-[11px] block">-</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Nominal Disalurkan -->
+                                <td class="py-3 px-3 text-end whitespace-nowrap">
+                                    {% if item.amount_disbursed > 0 %}
+                                    <span class="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 inline-block shadow-2xs">
+                                        Rp {{ item.amount_disbursed|floatformat:0 }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-slate-400 font-semibold text-[11px]">Rp 0</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Status Workflow & LHP (Single-Line Compact Badge) -->
+                                <td class="py-3 px-3 text-center whitespace-nowrap">
+                                    {% if item.archive.status == 'ditolak' %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-rose-600 text-white tracking-wide uppercase shadow-2xs whitespace-nowrap inline-flex items-center gap-1" title="{{ item.archive.rejection_note|default:'Permohonan Bantuan Ditolak' }}">
+                                        <i class="bi bi-x-circle"></i> DITOLAK
+                                    </span>
+                                    {% elif item.archive.status == 'telah_disalurkan' or item.has_penyaluran_sppd %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-purple-600 text-white tracking-wide uppercase shadow-2xs whitespace-nowrap inline-flex items-center gap-1">
+                                        <i class="bi bi-car-front-fill"></i> PENYALURAN
+                                    </span>
+                                    {% elif item.archive.status == 'dalam_survei' %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-amber-400 text-slate-950 tracking-wide uppercase shadow-2xs whitespace-nowrap inline-flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-950 animate-pulse"></span> SURVEI
+                                    </span>
+                                    {% elif item.archive.status == 'telah_disurvei' %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-sky-500 text-white tracking-wide uppercase shadow-2xs whitespace-nowrap inline-flex items-center gap-1">
+                                        <i class="bi bi-check2"></i> TELAH DISURVEI
+                                    </span>
+                                    {% elif item.archive.status == 'selesai' %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-600 text-white tracking-wide uppercase shadow-2xs whitespace-nowrap inline-flex items-center gap-1">
+                                        <i class="bi bi-check-all"></i> SELESAI
+                                    </span>
+                                    {% else %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 tracking-wide uppercase whitespace-nowrap inline-flex items-center gap-1">
+                                        {{ item.archive.workflow_status_display }}
+                                    </span>
+                                    {% endif %}
+
+                                    <!-- Berkas Laporan Hasil Survei -->
+                                    {% if item.survei_files_count > 0 %}
+                                    <div class="relative block mt-1" x-data="{ open: false }" @click.outside="open = false">
+                                        <button class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[9px] font-extrabold cursor-pointer hover:bg-amber-500/25 transition-all whitespace-nowrap inline-flex items-center gap-1" type="button" @click="open = !open">
+                                            <i class="bi bi-search"></i> Survei ({{ item.survei_files_count }})
+                                        </button>
+                                        <ul x-show="open" 
+                                            x-cloak
+                                            x-transition:enter="transition ease-out duration-150"
+                                            x-transition:enter-start="opacity-0 scale-95"
+                                            x-transition:enter-end="opacity-100 scale-100"
+                                            class="absolute right-0 z-[9999] mt-1 w-56 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-2 text-xs list-none text-start">
+                                            <li class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800 mb-1">
+                                                Hasil Survei Lapangan
+                                            </li>
+                                            {% if item.survei_notes %}
+                                            <li class="px-2 py-1 text-[11px] text-slate-600 dark:text-slate-300 italic bg-slate-50 dark:bg-slate-800 rounded-lg mb-1">
+                                                "{{ item.survei_notes }}"
+                                            </li>
+                                            {% endif %}
+                                            {% for s_file in item.survei_files %}
+                                            <li>
+                                                <a class="rounded-lg py-1.5 px-2 font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 no-underline" href="{{ s_file.url }}" target="_blank">
+                                                    <i class="bi bi-file-earmark-check-fill text-amber-500"></i>
+                                                    <span class="truncate">{{ s_file.name }}</span>
+                                                </a>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Berkas LHP Penyaluran Akhir -->
+                                    {% if item.archive.status in 'selesai,telah_disalurkan' and item.report_files_count > 0 %}
+                                    <div class="relative block mt-1" x-data="{ open: false }" @click.outside="open = false">
+                                        <button class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 text-[9px] font-extrabold cursor-pointer hover:bg-emerald-500/25 transition-all whitespace-nowrap inline-flex items-center gap-1" type="button" @click="open = !open">
+                                            <i class="bi bi-file-earmark-text"></i> LHP ({{ item.report_files_count }})
+                                        </button>
+                                        <ul x-show="open" 
+                                            x-cloak
+                                            x-transition:enter="transition ease-out duration-150"
+                                            x-transition:enter-start="opacity-0 scale-95"
+                                            x-transition:enter-end="opacity-100 scale-100"
+                                            class="absolute right-0 z-[9999] mt-1 w-56 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-2 text-xs list-none text-start">
+                                            <li class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800 mb-1">
+                                                LHP Pentasyarufan Akhir
+                                            </li>
+                                            {% for file_item in item.report_files %}
+                                            <li>
+                                                <a class="rounded-lg py-1.5 px-2 font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 no-underline" href="{{ file_item.url }}" target="_blank">
+                                                    <i class="bi bi-file-earmark-arrow-down-fill text-emerald-600"></i>
+                                                    <span class="truncate">{{ file_item.name }}</span>
+                                                </a>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Aksi Cepat -->
+                                <td class="py-3 px-3 text-end whitespace-nowrap">
+                                    <div class="flex items-center justify-end gap-1.5 flex-nowrap">
+                                        {% if can_handle_bidang_2 and item.dispo_pk and item.archive.status != 'selesai' and item.archive.status != 'ditolak' %}
+                                        <button type="button" class="px-2 py-1 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-[10px] inline-flex items-center gap-1 cursor-pointer transition-all border-0 shadow-2xs whitespace-nowrap" onclick="bukaModalBidang2('{{ item.dispo_pk }}', '{{ item.dispo_number|escapejs }}', '{{ item.archive.archive_number|default:item.archive.title|escapejs }}', '{{ item.archive.sender|default:item.archive.title|escapejs }}', '{{ item.archive.title|escapejs }}', '{{ item.sub_category|escapejs }}', '{{ item.amount_disbursed|floatformat:0 }}', {% if item.archive.status == 'dalam_survei' or item.archive.status == 'telah_disurvei' or item.is_via_survei %}true{% else %}false{% endif %})" title="Tindakan Penanganan Bidang II">
+                                            <i class="bi bi-handbag-fill"></i> Bidang II
+                                        </button>
+                                        {% endif %}
+                                        <a href="{% url 'archives:detail' item.archive.pk %}" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all no-underline" title="Detail Dokumen">
+                                            <i class="bi bi-eye-fill text-xs"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-6 text-slate-400 font-medium">Belum ada data permohonan bantuan.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% if not is_waka_or_kabid_2 %}
+            <!-- PANE 2: DOKUMEN UMUM -->
+            <div x-show="activeTab === 'umum'" x-cloak class="tab-pane">
+                <div class="w-full overflow-hidden">
+                    <table class="w-full text-left border-collapse text-xs" id="umumTable">
+                        <thead>
+                            <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                <th class="py-3 px-3 w-32">Tgl Masuk</th>
+                                <th class="py-3 px-3 w-40">No. Agenda / Surat</th>
+                                <th class="py-3 px-3">Pengirim & Perihal</th>
+                                <th class="py-3 px-3 w-44">Kategori Dokumen</th>
+                                <th class="py-3 px-3 text-center w-28">Alur Status</th>
+                                <th class="py-3 px-3 text-end w-20">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            {% for item in umum_records %}
+                            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                                <td class="py-3.5 px-3 font-mono whitespace-nowrap" data-order="{{ item.archive.created_at|date:'U' }}">
+                                    <i class="bi bi-calendar-event me-1 text-emerald-500"></i>{{ item.archive.created_at|date:"d/m/Y" }}
+                                </td>
+                                <td class="py-3.5 px-3 font-bold whitespace-nowrap">
+                                    <a href="{% url 'archives:detail' item.archive.pk %}" class="no-underline text-emerald-600 dark:text-emerald-400 font-mono font-extrabold hover:underline">
+                                        {{ item.archive.archive_number|default:"(DRAFT)" }}
+                                    </a>
+                                </td>
+                                <td class="py-3.5 px-3">
+                                    <span class="font-bold text-slate-900 dark:text-white truncate block max-w-[240px]">{{ item.archive.title }}</span>
+                                    {% if item.archive.sender %}
+                                    <span class="text-slate-500 dark:text-slate-400 font-semibold block mt-0.5 text-[11px]"><i class="bi bi-building me-1 text-emerald-500"></i>{{ item.archive.sender|truncatechars:30 }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3.5 px-3 whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/20 inline-flex items-center gap-1">
+                                        <i class="bi bi-folder-fill text-sky-500"></i>{{ item.archive.category.name|default:"Umum" }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold {% if item.archive.status == 'selesai' %}bg-emerald-600 text-white{% elif item.archive.status == 'ditolak' %}bg-rose-600 text-white{% else %}bg-amber-400 text-slate-950{% endif %}">
+                                        {{ item.archive.workflow_status_display }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-3 text-end whitespace-nowrap">
+                                    <a href="{% url 'archives:detail' item.archive.pk %}" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 inline-flex items-center justify-center transition-all no-underline" title="Lihat Detail Dokumen">
+                                        <i class="bi bi-eye text-xs"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_modals %}
+<!-- TAILWIND CSS + ALPINE.JS MODAL: PENANGANAN BIDANG II -->
+<div x-data="{
+    open: false,
+    dispoPk: '',
+    dispoNum: '',
+    archiveNum: '',
+    applicant: '',
+    title: '',
+    category: '',
+    amountRaw: '',
+    formattedAmount: '',
+    actionChoice: 'survei',
+    disbursementMethod: 'kantor',
+    rejectionNote: '',
+    hasSurvei: false,
+    isSubmitting: false,
+    errorMessage: '',
+    successMessage: '',
+    formatNumberWithDots(val) {
+        if (!val) return '';
+        let clean = val.toString().replace(/[^0-9]/g, '');
+        return clean.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    },
+    onAmountInput(e) {
+        let clean = e.target.value.replace(/[^0-9]/g, '');
+        this.amountRaw = clean;
+        let formatted = clean ? this.formatNumberWithDots(clean) : '';
+        e.target.value = formatted;
+        this.formattedAmount = clean ? 'Rp ' + formatted : '';
+    },
+    canSubmit() {
+        if (this.actionChoice === 'tolak') {
+            return this.rejectionNote && this.rejectionNote.trim().length > 0;
+        }
+        return this.amountRaw && parseInt(this.amountRaw) > 0;
+    },
+    submitForm() {
+        if (this.actionChoice === 'tolak') {
+            if (!this.rejectionNote || !this.rejectionNote.trim()) {
+                this.errorMessage = 'Alasan penolakan permohonan bantuan wajib diisi dengan jelas.';
+                return;
+            }
+        } else {
+            if (!this.amountRaw || parseInt(this.amountRaw) <= 0) {
+                this.errorMessage = 'Nominal bantuan wajib diisi dan harus lebih besar dari Rp 0.';
+                return;
+            }
+        }
+        this.errorMessage = '';
+        this.isSubmitting = true;
+        
+        let formData = new FormData();
+        formData.append('disposition_id', this.dispoPk);
+        formData.append('amount_disbursed', this.actionChoice === 'tolak' ? '0' : this.amountRaw);
+        formData.append('action_choice', this.actionChoice);
+        formData.append('disbursement_method', this.disbursementMethod);
+        formData.append('rejection_note', this.rejectionNote.trim());
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch('{% url "reports:penanganan_bidang2" %}', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(async res => {
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                data = { success: false, message: 'Server mengembalikan respons tidak valid (Status ' + res.status + ').' };
+            }
+            return data;
+        })
+        .then(data => {
+            this.isSubmitting = false;
+            if (data.success) {
+                this.successMessage = data.message;
+                setTimeout(() => {
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        window.location.reload();
+                    }
+                }, 1200);
+            } else {
+                this.errorMessage = data.message || 'Terjadi kesalahan sistem.';
+            }
+        })
+        .catch(err => {
+            this.isSubmitting = false;
+            this.errorMessage = err.message || 'Gagal terhubung ke server. Silakan coba lagi.';
+        });
+    }
+}"
+@open-modal-bidang2.window="
+    open = true;
+    errorMessage = '';
+    successMessage = '';
+    rejectionNote = '';
+    dispoPk = $event.detail.dispoPk || '';
+    dispoNum = $event.detail.dispoNum || '';
+    archiveNum = $event.detail.archiveNum || '';
+    applicant = $event.detail.applicant || '';
+    title = $event.detail.title || '';
+    category = $event.detail.category || '';
+    hasSurvei = $event.detail.hasSurvei || false;
+    let initialAmt = ($event.detail.currentAmount && $event.detail.currentAmount !== '0') ? $event.detail.currentAmount.toString() : '';
+    amountRaw = initialAmt;
+    let initialFormatted = initialAmt ? formatNumberWithDots(initialAmt) : '';
+    formattedAmount = initialAmt ? 'Rp ' + initialFormatted : '';
+    if (hasSurvei) {
+        actionChoice = 'langsung';
+    } else {
+        actionChoice = 'survei';
+    }
+    disbursementMethod = 'kantor';
+    $nextTick(() => {
+        if ($refs.amountInput && actionChoice !== 'tolak') {
+            $refs.amountInput.value = initialFormatted;
+            $refs.amountInput.focus();
+        }
+    });
+"
+@keydown.escape.window="if (!isSubmitting) open = false"
+class="fixed inset-0 z-[99999] overflow-y-auto"
+x-cloak
+x-show="open">
+
+    <!-- Backdrop Blur -->
+    <div x-show="open" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs transition-opacity" 
+         @click="if (!isSubmitting) open = false"></div>
+
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6 text-center">
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+             class="relative w-full max-w-2xl transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 text-left shadow-2xl transition-all border border-slate-200 dark:border-slate-800 my-8">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center font-extrabold text-xl shadow-md transition-colors"
+                         :class="actionChoice === 'tolak' ? 'bg-gradient-to-br from-rose-500 to-rose-600 text-white' : (actionChoice === 'langsung' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white' : 'bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950')">
+                        <i :class="actionChoice === 'tolak' ? 'bi bi-x-octagon-fill' : (actionChoice === 'langsung' ? 'bi bi-check-circle-fill' : 'bi bi-handbag-fill')"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-slate-900 dark:text-white text-base m-0 flex items-center gap-2">
+                            Penanganan Permohonan Bantuan — Bidang II
+                        </h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 m-0" x-text="archiveNum ? 'No. Permohonan: ' + archiveNum : (dispoNum ? 'No. Disposisi: ' + dispoNum : 'Dokumen Bantuan')"></p>
+                    </div>
+                </div>
+                <button type="button" @click="open = false" :disabled="isSubmitting" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all border-0 cursor-pointer disabled:opacity-50">
+                    <i class="bi bi-x-lg text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content / Body -->
+            <div class="py-4 space-y-4">
+                <!-- Info Summary Card -->
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-2">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                        <div>
+                            <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Pemohon / Mustahik:</span>
+                            <span class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5 mt-0.5" x-text="applicant"></span>
+                        </div>
+                        <template x-if="category">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/20 inline-block" x-text="category"></span>
+                        </template>
+                    </div>
+                    <div class="pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Perihal / Jenis Bantuan:</span>
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 m-0 line-clamp-2" x-text="title"></p>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <template x-if="errorMessage">
+                    <div class="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill text-sm shrink-0"></i>
+                        <span x-text="errorMessage"></span>
+                    </div>
+                </template>
+
+                <template x-if="successMessage">
+                    <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-lg shrink-0"></i>
+                        <span x-text="successMessage"></span>
+                    </div>
+                </template>
+
+                <!-- Pilihan Keputusan / Tindak Lanjut (3 Kartu Interaktif) -->
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-2">
+                        <i class="bi bi-signpost-split-fill text-sky-500 me-1"></i> Keputusan Penanganan Bidang II <span class="text-rose-500">*</span>
+                    </label>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <!-- Option 1: Perlu Survei -->
+                        <div @click="if (!hasSurvei) { actionChoice = 'survei'; errorMessage = ''; }" 
+                             :class="{
+                                'bg-amber-500/10 border-amber-500 text-slate-900 dark:text-white ring-2 ring-amber-500/30': actionChoice === 'survei' && !hasSurvei,
+                                'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 hover:border-slate-300': actionChoice !== 'survei' && !hasSurvei,
+                                'opacity-50 grayscale cursor-not-allowed bg-slate-100 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800': hasSurvei
+                             }"
+                             class="p-3 rounded-2xl border transition-all flex flex-col justify-between gap-1.5 relative cursor-pointer">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                                    <i class="bi bi-geo-alt-fill text-amber-500"></i> 1. Perlu Survei
+                                </span>
+                                <input type="radio" name="action_choice" value="survei" x-model="actionChoice" :disabled="hasSurvei" class="accent-amber-500 pointer-events-none" />
+                            </div>
+                            <span class="block text-[11px] text-slate-500 dark:text-slate-400 leading-snug" x-text="hasSurvei ? 'Sudah memiliki riwayat survei lapangan.' : 'Verifikasi lapangan. Kabid II terbitkan ST, SPPD via Bidang IV.'">
+                            </span>
+                        </div>
+
+                        <!-- Option 2: Langsung Disalurkan -->
+                        <div @click="actionChoice = 'langsung'; errorMessage = '';" 
+                             :class="actionChoice === 'langsung' ? 'bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white ring-2 ring-emerald-500/30' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 hover:border-slate-300'"
+                             class="p-3 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-1.5 relative">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                                    <i class="bi bi-check-circle-fill text-emerald-500"></i> 2. Disalurkan
+                                </span>
+                                <input type="radio" name="action_choice" value="langsung" x-model="actionChoice" class="accent-emerald-500 pointer-events-none" />
+                            </div>
+                            <span class="block text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                                Disetujui & disalurkan (Transfer/Kantor atau Luar Kantor).
+                            </span>
+                        </div>
+
+                        <!-- Option 3: Tolak Permohonan (Waka II / Kabid II) -->
+                        <div @click="actionChoice = 'tolak'; errorMessage = '';" 
+                             :class="actionChoice === 'tolak' ? 'bg-rose-500/10 border-rose-500 text-slate-900 dark:text-white ring-2 ring-rose-500/30' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 hover:border-slate-300'"
+                             class="p-3 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-1.5 relative">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+                                    <i class="bi bi-x-circle-fill text-rose-500"></i> 3. Tolak Permohonan
+                                </span>
+                                <input type="radio" name="action_choice" value="tolak" x-model="actionChoice" class="accent-rose-500 pointer-events-none" />
+                            </div>
+                            <span class="block text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                                Tidak disetujui / tidak memenuhi syarat 8 asnaf.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Nominal Bantuan (Hanya Tampil Jika Tidak Ditolak) -->
+                <div x-show="actionChoice !== 'tolak'"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0">
+                    <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-1.5">
+                        <i class="bi bi-cash-stack text-emerald-500 me-1"></i> Nominal Bantuan Disetujui (Rp) <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="flex items-stretch rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500 bg-white dark:bg-slate-800 transition-all shadow-xs">
+                        <span class="inline-flex items-center px-4 py-2.5 bg-slate-100 dark:bg-slate-700/60 border-r border-slate-200 dark:border-slate-700 text-emerald-600 dark:text-emerald-400 font-mono font-extrabold text-sm select-none">
+                            Rp.
+                        </span>
+                        <input type="text" 
+                               x-ref="amountInput"
+                               @input="onAmountInput($event)"
+                               placeholder="0" 
+                               class="w-full px-4 py-2.5 bg-transparent text-slate-900 dark:text-white font-mono font-black text-base border-0 focus:outline-none placeholder:font-normal placeholder:text-slate-400" />
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1.5 mb-0 flex items-center justify-between">
+                        <span>Cukup ketik angka (misal: 5000000), pemisah ribuan otomatis terbentuk.</span>
+                        <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400" x-text="formattedAmount || 'Rp 0'"></span>
+                    </p>
+                </div>
+
+                <!-- Form Alasan Penolakan (Hanya Tampil Jika Memilih Tolak) -->
+                <div x-show="actionChoice === 'tolak'" 
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 space-y-2.5">
+                    
+                    <label class="block text-xs font-extrabold text-rose-700 dark:text-rose-300 uppercase tracking-wider">
+                        <i class="bi bi-chat-left-dots-fill me-1"></i> Alasan Penolakan Permohonan Bantuan <span class="text-rose-500">*</span>
+                    </label>
+
+                    <textarea x-model="rejectionNote"
+                              rows="3"
+                              placeholder="Sebutkan alasan penolakan secara jelas (misal: Tidak memenuhi kriteria 8 asnaf, berkas persyaratan tidak lengkap, berdomisili di luar wilayah Kabupaten Tangerang)..."
+                              class="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-700/60 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none placeholder:text-slate-400"></textarea>
+
+                    <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-2 text-[11px] text-rose-700 dark:text-rose-300 font-semibold">
+                        <i class="bi bi-shield-exclamation text-sm shrink-0 text-rose-600"></i>
+                        <span>Konfirmasi ini akan menyelaraskan status dokumen menjadi <strong>DITOLAK / DIKEMBALIKAN</strong> dan menghentikan seluruh proses penerbitan Surat Tugas maupun SPPD.</span>
+                    </div>
+                </div>
+
+                <!-- Sub-Option jika "Langsung Disalurkan" -->
+                <div x-show="actionChoice === 'langsung'" 
+                     x-cloak 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-2.5">
+                    
+                    <label class="block text-xs font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">
+                        <i class="bi bi-arrow-return-right me-1"></i> Pilih Metode Penyaluran:
+                    </label>
+
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <!-- Sub-option B1: Transfer / Ambil di Kantor -->
+                        <div @click="disbursementMethod = 'kantor'" 
+                             :class="disbursementMethod === 'kantor' ? 'bg-white dark:bg-slate-800 border-emerald-500 shadow-sm' : 'bg-slate-100/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'"
+                             class="p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3">
+                            <input type="radio" name="disbursement_method" value="kantor" x-model="disbursementMethod" class="accent-emerald-500" />
+                            <div class="flex-1 flex items-center justify-between">
+                                <div>
+                                    <span class="block font-black text-xs text-slate-900 dark:text-white">
+                                        Transfer Bank / Ambil di Kantor (Dalam Kantor)
+                                    </span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Mustahik di TF / ambil di kantor. Status otomatis <strong>SELESAI</strong> (Tanpa ST/SPPD).
+                                    </span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-600 text-white shrink-0">Otomatis Selesai</span>
+                            </div>
+                        </div>
+
+                        <!-- Sub-option B2: Penyerahan Langsung ke Lokasi (Luar Kantor) -->
+                        <div @click="disbursementMethod = 'luar_kantor'" 
+                             :class="disbursementMethod === 'luar_kantor' ? 'bg-white dark:bg-slate-800 border-emerald-500 shadow-sm' : 'bg-slate-100/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'"
+                             class="p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3">
+                            <input type="radio" name="disbursement_method" value="luar_kantor" x-model="disbursementMethod" class="accent-emerald-500" />
+                            <div class="flex-1 flex items-center justify-between">
+                                <div>
+                                    <span class="block font-black text-xs text-slate-900 dark:text-white">
+                                        Penyerahan ke Lokasi Mustahik (Luar Kantor)
+                                    </span>
+                                    <span class="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Tim menyerahkan ke lokasi. Kabid II terbitkan ST, Bidang IV terbitkan SPPD.
+                                    </span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-amber-500 text-slate-950 shrink-0">Butuh ST & SPPD</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ringkasan Konfirmasi Dampak -->
+                <div class="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs space-y-1.5">
+                    <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">
+                        <i class="bi bi-info-circle-fill text-sky-500 me-1"></i> Ringkasan Hasil Keputusan:
+                    </span>
+                    <div class="flex justify-between items-center text-slate-700 dark:text-slate-300 text-[11px]">
+                        <span>Nominal Disetujui:</span>
+                        <strong class="font-mono font-extrabold" 
+                                :class="actionChoice === 'tolak' ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'"
+                                x-text="actionChoice === 'tolak' ? 'Rp 0 (Tidak Ada Penyaluran Dana)' : (formattedAmount || 'Rp 0')"></strong>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-700 dark:text-slate-300 text-[11px]">
+                        <span>Status Dokumen:</span>
+                        <strong class="font-extrabold uppercase" 
+                                :class="actionChoice === 'tolak' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'"
+                                x-text="actionChoice === 'tolak' ? 'DITOLAK / DIKEMBALIKAN' : (actionChoice === 'survei' ? 'SURVEI' : (disbursementMethod === 'kantor' ? 'SELESAI' : 'TELAH DISALURKAN'))"></strong>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-700 dark:text-slate-300 text-[11px]">
+                        <span>Surat Tugas & SPPD:</span>
+                        <strong :class="actionChoice === 'tolak' ? 'text-rose-500' : ((actionChoice === 'survei' || (actionChoice === 'langsung' && disbursementMethod === 'luar_kantor')) ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400')" class="font-extrabold" 
+                                x-text="actionChoice === 'tolak' ? 'Dihentikan (Tidak Diterbitkan ST/SPPD)' : ((actionChoice === 'survei' || (actionChoice === 'langsung' && disbursementMethod === 'luar_kantor')) ? 'ST Terbit (SPPD via Bidang IV)' : 'Tidak Memerlukan SPPD')"></strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer / Buttons -->
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" @click="open = false" :disabled="isSubmitting" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border-0 cursor-pointer disabled:opacity-50">
+                    Batal
+                </button>
+                <button type="button" 
+                        @click="submitForm()" 
+                        :disabled="isSubmitting || !canSubmit()" 
+                        :class="actionChoice === 'tolak' ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-emerald-600 hover:bg-emerald-500 text-white'"
+                        class="px-5 py-2 rounded-full font-extrabold text-xs inline-flex items-center gap-2 shadow-sm transition-all border-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    <template x-if="isSubmitting">
+                        <span class="inline-flex items-center gap-1.5">
+                            <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Memproses...
+                        </span>
+                    </template>
+                    <template x-if="!isSubmitting">
+                        <span class="inline-flex items-center gap-1.5">
+                            <i :class="actionChoice === 'tolak' ? 'bi bi-x-octagon-fill' : 'bi bi-check-lg text-sm'"></i> 
+                            <span x-text="actionChoice === 'tolak' ? 'Konfirmasi Penolakan Permohonan' : 'Simpan & Proses Penanganan'"></span>
+                        </span>
+                    </template>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- MODAL DRILLDOWN DETAIL DOKUMEN & RINCIAN KPI (100% TAILWIND CSS + ALPINE.JS) -->
+    <div x-data="{ open: false, drilldownType: 'total_dokumen', drilldownSearch: '' }"
+         @open-drilldown-modal.window="drilldownType = $event.detail.type; open = true; drilldownSearch = '';"
+         @close-drilldown-modal.window="open = false"
+         x-show="open" 
+         x-cloak 
+         style="display: none;"
+         class="fixed inset-0 z-[99999] overflow-y-auto"
+         @keydown.escape.window="open = false">
+        
+        <!-- Backdrop Blur -->
+        <div x-show="open"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+             @click="open = false"></div>
+        
+        <div class="flex min-h-full items-center justify-center p-3 sm:p-6 text-center">
+            <div x-show="open"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+                 class="relative w-full max-w-5xl transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-0 text-left shadow-2xl transition-all border border-slate-200 dark:border-slate-800 my-8 flex flex-col max-h-[88vh]">
+                
+                <!-- Modal Header -->
+                <div class="p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-xl shadow-xs"
+                             :class="{
+                                 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400': drilldownType === 'total_dokumen',
+                                 'bg-rose-500/15 text-rose-600 dark:text-rose-400': drilldownType === 'bantuan',
+                                 'bg-amber-500/15 text-amber-600 dark:text-amber-400': drilldownType === 'survei',
+                                 'bg-purple-500/15 text-purple-600 dark:text-purple-400': drilldownType === 'penyaluran',
+                                 'bg-sky-500/15 text-sky-600 dark:text-sky-400': drilldownType === 'umum'
+                             }">
+                            <i :class="{
+                                'bi bi-folder-check': drilldownType === 'total_dokumen',
+                                'bi bi-heart-pulse-fill': drilldownType === 'bantuan',
+                                'bi bi-geo-alt-fill': drilldownType === 'survei',
+                                'bi bi-cash-stack': drilldownType === 'penyaluran',
+                                'bi bi-envelope-paper-fill': drilldownType === 'umum'
+                            }"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white m-0 tracking-tight"
+                                x-text="{
+                                    'total_dokumen': 'Rincian Seluruh Dokumen Masuk',
+                                    'bantuan': 'Rincian Permohonan Bantuan Mustahik',
+                                    'survei': 'Rincian Berkas Survei Lapangan',
+                                    'penyaluran': 'Rincian Realisasi Penyaluran Dana ZIS',
+                                    'umum': 'Rincian Dokumen Surat & Berkas Umum'
+                                }[drilldownType]"></h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 m-0 mt-0.5"
+                               x-text="{
+                                   'total_dokumen': 'Daftar seluruh berkas permohonan bantuan & dokumen dinas masuk.',
+                                   'bantuan': 'Daftar permohonan bantuan mustahik terverifikasi dalam sistem.',
+                                   'survei': 'Daftar berkas yang diverifikasi melalui Surat Tugas & SPPD survei lapangan.',
+                                   'penyaluran': 'Daftar realisasi penyaluran dana bantuan mustahik yang telah disalurkan / tuntas.',
+                                   'umum': 'Daftar berkas persuratan dinas, undangan, kemitraan, dan dokumen internal.'
+                                }[drilldownType]"></p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1 sm:w-64">
+                            <i class="bi bi-search absolute left-3 top-2.5 text-xs text-slate-400"></i>
+                            <input type="text" 
+                                   x-model="drilldownSearch" 
+                                   placeholder="Cari berkas / pemohon..." 
+                                   class="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                        </div>
+                        <button type="button" 
+                                @click="open = false" 
+                                class="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center justify-center text-sm transition-all border-0 cursor-pointer">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+            <!-- Modal Content Table List -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+                <!-- Case 1: Total Dokumen Masuk -->
+                <template x-if="drilldownType === 'total_dokumen'">
+                    <div class="space-y-3">
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 dark:bg-slate-800/90 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                                    <tr>
+                                        <th class="p-3">No. Berkas & Tgl</th>
+                                        <th class="p-3">Pemohon / Pengirim</th>
+                                        <th class="p-3">Kategori</th>
+                                        <th class="p-3">Tipe</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {% for item in bantuan_records %}
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        x-show="!drilldownSearch || '{{ item.archive.nomor_agenda|lower }} {{ item.archive.archive_number|lower }} {{ item.applicant_name|lower }} {{ item.archive.title|lower }} {{ item.sub_category|lower }}'.includes(drilldownSearch.toLowerCase())">
+                                        <td class="p-3 font-mono font-bold text-slate-900 dark:text-white">
+                                            <span>{{ item.archive.nomor_agenda|default:item.archive.archive_number|default:"-" }}</span>
+                                            <span class="block text-[10px] text-slate-400 font-normal">{{ item.archive.created_at|date:"d/m/Y" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <strong class="text-slate-900 dark:text-white font-bold block">{{ item.applicant_name }}</strong>
+                                            <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{{ item.archive.title|default:"-" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">{{ item.sub_category }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 uppercase">Bantuan</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase whitespace-nowrap
+                                                {% if item.archive.status == 'selesai' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
+                                                {% elif item.archive.status == 'telah_disalurkan' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
+                                                {% elif item.archive.status == 'dalam_survei' %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300
+                                                {% elif item.archive.status == 'ditolak' %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300
+                                                {% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+                                                {{ item.archive.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right">
+                                            <a href="{% url 'archives:detail' item.archive.pk %}" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white text-[10px] font-bold inline-flex items-center gap-1 transition-all no-underline">
+                                                Detail <i class="bi bi-box-arrow-up-right text-[9px]"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% for item in umum_records %}
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        x-show="!drilldownSearch || '{{ item.archive.nomor_agenda|lower }} {{ item.archive.archive_number|lower }} {{ item.archive.sender|lower }} {{ item.archive.title|lower }} {{ item.sub_category|lower }}'.includes(drilldownSearch.toLowerCase())">
+                                        <td class="p-3 font-mono font-bold text-slate-900 dark:text-white">
+                                            <span>{{ item.archive.nomor_agenda|default:item.archive.archive_number|default:"-" }}</span>
+                                            <span class="block text-[10px] text-slate-400 font-normal">{{ item.archive.created_at|date:"d/m/Y" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <strong class="text-slate-900 dark:text-white font-bold block">{{ item.archive.sender|default:"-" }}</strong>
+                                            <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{{ item.archive.title|default:"-" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800">{{ item.sub_category }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 uppercase">Umum</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase whitespace-nowrap
+                                                {% if item.archive.status == 'selesai' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
+                                                {% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+                                                {{ item.archive.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right">
+                                            <a href="{% url 'archives:detail' item.archive.pk %}" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white text-[10px] font-bold inline-flex items-center gap-1 transition-all no-underline">
+                                                Detail <i class="bi bi-box-arrow-up-right text-[9px]"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Case 2: Permohonan Bantuan -->
+                <template x-if="drilldownType === 'bantuan'">
+                    <div class="space-y-3">
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 dark:bg-slate-800/90 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                                    <tr>
+                                        <th class="p-3">No. Berkas & Tgl</th>
+                                        <th class="p-3">Mustahik & Perihal</th>
+                                        <th class="p-3">Program Bantuan</th>
+                                        <th class="p-3">Penanggung Jawab</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {% for item in bantuan_records %}
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        x-show="!drilldownSearch || '{{ item.archive.nomor_agenda|lower }} {{ item.archive.archive_number|lower }} {{ item.applicant_name|lower }} {{ item.archive.title|lower }} {{ item.sub_category|lower }}'.includes(drilldownSearch.toLowerCase())">
+                                        <td class="p-3 font-mono font-bold text-slate-900 dark:text-white">
+                                            <span>{{ item.archive.nomor_agenda|default:item.archive.archive_number|default:"-" }}</span>
+                                            <span class="block text-[10px] text-slate-400 font-normal">{{ item.archive.created_at|date:"d/m/Y" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <strong class="text-slate-900 dark:text-white font-bold block">{{ item.applicant_name }}</strong>
+                                            <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{{ item.archive.title|default:"-" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">{{ item.sub_category }}</span>
+                                        </td>
+                                        <td class="p-3 font-medium text-slate-600 dark:text-slate-300">
+                                            {{ item.amil_names }}
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase whitespace-nowrap
+                                                {% if item.archive.status == 'selesai' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
+                                                {% elif item.archive.status == 'telah_disalurkan' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
+                                                {% elif item.archive.status == 'dalam_survei' %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300
+                                                {% elif item.archive.status == 'ditolak' %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300
+                                                {% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+                                                {{ item.archive.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right">
+                                            <a href="{% url 'archives:detail' item.archive.pk %}" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white text-[10px] font-bold inline-flex items-center gap-1 transition-all no-underline">
+                                                Detail <i class="bi bi-box-arrow-up-right text-[9px]"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Case 3: Survei Lapangan Mustahik -->
+                <template x-if="drilldownType === 'survei'">
+                    <div class="space-y-3">
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 dark:bg-slate-800/90 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                                    <tr>
+                                        <th class="p-3">No. Berkas & Tgl</th>
+                                        <th class="p-3">Mustahik & Perihal</th>
+                                        <th class="p-3">Program</th>
+                                        <th class="p-3">Tim Petugas Survei</th>
+                                        <th class="p-3">Status Berkas</th>
+                                        <th class="p-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {% for item in survei_records %}
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        x-show="!drilldownSearch || '{{ item.archive.nomor_agenda|lower }} {{ item.archive.archive_number|lower }} {{ item.applicant_name|lower }} {{ item.archive.title|lower }} {{ item.sub_category|lower }}'.includes(drilldownSearch.toLowerCase())">
+                                        <td class="p-3 font-mono font-bold text-slate-900 dark:text-white">
+                                            <span>{{ item.archive.nomor_agenda|default:item.archive.archive_number|default:"-" }}</span>
+                                            <span class="block text-[10px] text-slate-400 font-normal">{{ item.archive.created_at|date:"d/m/Y" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <strong class="text-slate-900 dark:text-white font-bold block">{{ item.applicant_name }}</strong>
+                                            <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{{ item.archive.title|default:"-" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">{{ item.sub_category }}</span>
+                                        </td>
+                                        <td class="p-3 font-medium text-slate-700 dark:text-slate-300">
+                                            <span class="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
+                                                <i class="bi bi-person-check-fill text-xs"></i> {{ item.amil_names }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase whitespace-nowrap
+                                                {% if item.archive.status == 'selesai' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
+                                                {% elif item.archive.status == 'telah_disalurkan' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
+                                                {% elif item.archive.status == 'dalam_survei' %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300
+                                                {% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+                                                {{ item.archive.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right">
+                                            <a href="{% url 'archives:detail' item.archive.pk %}" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-600 hover:text-white text-[10px] font-bold inline-flex items-center gap-1 transition-all no-underline">
+                                                Detail <i class="bi bi-box-arrow-up-right text-[9px]"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="p-8 text-center text-slate-400 text-xs">
+                                            <i class="bi bi-geo-alt text-2xl block mb-1 text-slate-300"></i>
+                                            Belum ada berkas pada tahap survei lapangan pada periode ini.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Case 4: Realisasi Dana ZIS (Penyaluran) -->
+                <template x-if="drilldownType === 'penyaluran'">
+                    <div class="space-y-3">
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 dark:bg-slate-800/90 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                                    <tr>
+                                        <th class="p-3">No. Berkas & Tgl</th>
+                                        <th class="p-3">Mustahik & Perihal</th>
+                                        <th class="p-3">Program Bantuan</th>
+                                        <th class="p-3">Nominal Disalurkan</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {% for item in penyaluran_records %}
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        x-show="!drilldownSearch || '{{ item.archive.nomor_agenda|lower }} {{ item.archive.archive_number|lower }} {{ item.applicant_name|lower }} {{ item.archive.title|lower }} {{ item.sub_category|lower }}'.includes(drilldownSearch.toLowerCase())">
+                                        <td class="p-3 font-mono font-bold text-slate-900 dark:text-white">
+                                            <span>{{ item.archive.nomor_agenda|default:item.archive.archive_number|default:"-" }}</span>
+                                            <span class="block text-[10px] text-slate-400 font-normal">{{ item.archive.created_at|date:"d/m/Y" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <strong class="text-slate-900 dark:text-white font-bold block">{{ item.applicant_name }}</strong>
+                                            <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{{ item.archive.title|default:"-" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">{{ item.sub_category }}</span>
+                                        </td>
+                                        <td class="p-3 font-mono font-black text-purple-600 dark:text-purple-400">
+                                            Rp {{ item.amount_disbursed|floatformat:0 }}
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase whitespace-nowrap bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                                {{ item.archive.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right">
+                                            <a href="{% url 'archives:detail' item.archive.pk %}" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-purple-600 hover:text-white text-[10px] font-bold inline-flex items-center gap-1 transition-all no-underline">
+                                                Detail <i class="bi bi-box-arrow-up-right text-[9px]"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="p-8 text-center text-slate-400 text-xs">
+                                            <i class="bi bi-cash-stack text-2xl block mb-1 text-slate-300"></i>
+                                            Belum ada berkas penyaluran dana yang tuntas pada periode ini.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Case 5: Dokumen Surat & Umum -->
+                <template x-if="drilldownType === 'umum'">
+                    <div class="space-y-3">
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 dark:bg-slate-800/90 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                                    <tr>
+                                        <th class="p-3">No. Berkas & Tgl</th>
+                                        <th class="p-3">Pengirim & Perihal</th>
+                                        <th class="p-3">Klasifikasi</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {% for item in umum_records %}
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        x-show="!drilldownSearch || '{{ item.archive.nomor_agenda|lower }} {{ item.archive.archive_number|lower }} {{ item.archive.sender|lower }} {{ item.archive.title|lower }} {{ item.sub_category|lower }}'.includes(drilldownSearch.toLowerCase())">
+                                        <td class="p-3 font-mono font-bold text-slate-900 dark:text-white">
+                                            <span>{{ item.archive.nomor_agenda|default:item.archive.archive_number|default:"-" }}</span>
+                                            <span class="block text-[10px] text-slate-400 font-normal">{{ item.archive.created_at|date:"d/m/Y" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <strong class="text-slate-900 dark:text-white font-bold block">{{ item.archive.sender|default:"-" }}</strong>
+                                            <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{{ item.archive.title|default:"-" }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800">{{ item.sub_category }}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase whitespace-nowrap
+                                                {% if item.archive.status == 'selesai' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
+                                                {% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+                                                {{ item.archive.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right">
+                                            <a href="{% url 'archives:detail' item.archive.pk %}" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-sky-600 hover:text-white text-[10px] font-bold inline-flex items-center gap-1 transition-all no-underline">
+                                                Detail <i class="bi bi-box-arrow-up-right text-[9px]"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="p-8 text-center text-slate-400 text-xs">
+                                            <i class="bi bi-envelope-paper text-2xl block mb-1 text-slate-300"></i>
+                                            Belum ada dokumen surat masuk/umum pada periode ini.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                <button type="button" 
+                        @click="open = false" 
+                        class="px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs transition-all border-0 cursor-pointer">
+                    Tutup Rincian
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script>
+function bukaDrilldownKpi(type) {
+    window.dispatchEvent(new CustomEvent('open-drilldown-modal', {
+        detail: { type: type }
+    }));
+}
+
+function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, category, currentAmount, hasSurvei) {
+    window.dispatchEvent(new CustomEvent('open-modal-bidang2', {
+        detail: {
+            dispoPk: dispoPk,
+            dispoNum: dispoNum,
+            archiveNum: archiveNum,
+            applicant: applicant,
+            title: title,
+            category: category,
+            currentAmount: currentAmount,
+            hasSurvei: hasSurvei
+        }
+    }));
+}
+</script>
+
 {{ bantuan_chart_labels|json_script:"bantuan-labels" }}
 {{ bantuan_chart_series|json_script:"bantuan-series" }}
 {{ umum_chart_labels|json_script:"umum-labels" }}
 {{ umum_chart_series|json_script:"umum-series" }}
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    var idLanguage = {
-        "emptyTable": "Tidak ada data yang tersedia",
-        "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-        "infoEmpty": "Menampilkan 0 entri",
-        "infoFiltered": "(disaring dari _MAX_ total entri)",
-        "lengthMenu": "Tampilkan _MENU_ data",
-        "loadingRecords": "Memuat...",
-        "processing": "Memproses...",
-        "search": "Cari Dokumen:",
-        "zeroRecords": "Data tidak ditemukan",
-        "paginate": { "first": "«", "last": "»", "next": "›", "previous": "‹" }
-    };
+(function() {
+    var chartBantuan = null;
+    var chartUmum = null;
 
-    var bTable = $('#bantuanTable').DataTable({
-        language: idLanguage,
-        pageLength: 10,
-        ordering: true,
-        order: [[0, 'desc']]
-    });
-
-    var uTable = $('#umumTable').DataTable({
-        language: idLanguage,
-        pageLength: 10,
-        ordering: true,
-        order: [[0, 'desc']]
-    });
-
-    const rekapTabButtons = document.querySelectorAll('#rekapPureTabNav button');
-    const rekapTabPanes = document.querySelectorAll('#rekapTabContent .tab-pane');
-
-    rekapTabButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('data-tab-target');
-
-            rekapTabButtons.forEach(b => {
-                b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
-                b.classList.add('text-slate-600', 'dark:text-slate-300');
-            });
-
-            this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
-            this.classList.remove('text-slate-600', 'dark:text-slate-300');
-
-            rekapTabPanes.forEach(pane => {
-                pane.classList.remove('active', 'show');
-                pane.classList.add('d-none');
-            });
-
-            const targetPane = document.getElementById(targetId);
-            if (targetPane) {
-                targetPane.classList.add('active', 'show');
-                targetPane.classList.remove('d-none');
-            }
-
-            if (window.jQuery && $.fn.DataTable) {
-                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-            }
-        });
-    });
-
-    var bLabels = JSON.parse(document.getElementById('bantuan-labels').textContent || '[]');
-    var bSeries = JSON.parse(document.getElementById('bantuan-series').textContent || '[]');
-    var uLabels = JSON.parse(document.getElementById('umum-labels').textContent || '[]');
-    var uSeries = JSON.parse(document.getElementById('umum-series').textContent || '[]');
-
-    bSeries = bSeries.map(function(val) { return parseInt(val, 10) || 0; });
-    uSeries = uSeries.map(function(val) { return parseInt(val, 10) || 0; });
-
-    const getChartTheme = () => {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    function buildApexChartTheme(isDark) {
         return {
             mode: isDark ? 'dark' : 'light',
-            text: isDark ? '#F8FAFC' : '#0F172A',
-            grid: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0'
+            palette: 'palette1',
+            monochrome: { enabled: false }
         };
-    };
+    }
 
-    let t = getChartTheme();
-
-    const bColors = ['#10B981', '#0284C7', '#F59E0B', '#8B5CF6', '#06B6D4', '#EC4899', '#EAB308', '#6366F1', '#14B8A6'];
-    const uColors = ['#0284C7', '#06B6D4', '#8B5CF6', '#F59E0B', '#10B981', '#EC4899', '#F43F5E', '#A855F7', '#6366F1'];
-
-    // 1. Chart Bantuan
-    var optionsBantuan = {
-        series: [{ name: 'Jumlah Bantuan', data: bSeries }],
-        chart: { type: 'bar', height: 340, toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans, sans-serif', background: 'transparent' },
-        theme: { mode: t.mode },
-        plotOptions: { 
-            bar: { 
-                horizontal: true, 
-                borderRadius: 8, 
-                barHeight: '55%',
-                distributed: true
-            } 
-        },
-        colors: bColors,
-        xaxis: { 
-            categories: bLabels,
-            labels: { 
-                formatter: function(val) { return Math.floor(val); },
-                style: { colors: t.text, fontSize: '11px', fontWeight: 600 }
-            }
-        },
-        yaxis: {
-            labels: { 
-                maxWidth: 240,
-                style: { colors: t.text, fontSize: '11px', fontWeight: 600 }
-            }
-        },
-        legend: { show: false },
-        grid: { borderColor: t.grid, strokeDashArray: 4 },
-        dataLabels: { 
-            enabled: true,
-            style: { fontSize: '12px', fontWeight: 'bold', colors: ['#ffffff'] },
-            dropShadow: { enabled: true, top: 1, left: 1, blur: 2, opacity: 0.6 }
-        },
-        tooltip: { 
-            theme: t.mode,
-            y: { formatter: function(val) { return val + " Dokumen"; } }
+    function initRekapCharts() {
+        if (typeof ApexCharts === 'undefined') {
+            console.warn("ApexCharts library not yet available, retrying...");
+            setTimeout(initRekapCharts, 100);
+            return;
         }
-    };
-    var chartB = new ApexCharts(document.querySelector("#chartPenangananBantuan"), optionsBantuan);
-    chartB.render();
 
-    // 2. Chart Umum
-    if (document.querySelector("#chartPenangananUmum")) {
-        var optionsUmum = {
-            series: [{ name: 'Jumlah Dokumen Umum', data: uSeries }],
-            chart: { type: 'bar', height: 340, toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans, sans-serif', background: 'transparent' },
-            theme: { mode: t.mode },
-            plotOptions: { 
-                bar: { 
-                    horizontal: true, 
-                    borderRadius: 8, 
-                    barHeight: '55%',
-                    distributed: true
-                } 
-            },
-            colors: uColors,
-            xaxis: { 
-                categories: uLabels,
-                labels: { 
-                    formatter: function(val) { return Math.floor(val); },
-                    style: { colors: t.text, fontSize: '11px', fontWeight: 600 }
+        var bTarget = document.querySelector("#chartPenangananBantuan");
+        var uTarget = document.querySelector("#chartPenangananUmum");
+        if (!bTarget) return;
+
+        var bLabels = [];
+        var bSeries = [];
+        var uLabels = [];
+        var uSeries = [];
+
+        try {
+            var bLabelsElem = document.getElementById('bantuan-labels');
+            var bSeriesElem = document.getElementById('bantuan-series');
+            if (bLabelsElem && bSeriesElem) {
+                bLabels = JSON.parse(bLabelsElem.textContent || '[]');
+                bSeries = JSON.parse(bSeriesElem.textContent || '[]');
+            }
+            var uLabelsElem = document.getElementById('umum-labels');
+            var uSeriesElem = document.getElementById('umum-series');
+            if (uLabelsElem && uSeriesElem) {
+                uLabels = JSON.parse(uLabelsElem.textContent || '[]');
+                uSeries = JSON.parse(uSeriesElem.textContent || '[]');
+            }
+        } catch(err) {
+            console.error("Error parsing chart json data:", err);
+        }
+
+        var isDarkInit = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
+        var maxCategories = Math.max(bLabels.length, uLabels.length, 8);
+        var unifiedChartHeight = Math.max(520, maxCategories * 38);
+        var maxBVal = bSeries.length > 0 ? Math.max.apply(Math, bSeries) : 1;
+        var maxUVal = uSeries.length > 0 ? Math.max.apply(Math, uSeries) : 1;
+
+        // Clean previous charts if re-rendered
+        if (chartBantuan) { chartBantuan.destroy(); chartBantuan = null; }
+        if (chartUmum) { chartUmum.destroy(); chartUmum = null; }
+
+        var optionsBantuan = {
+            series: [{ name: 'Jumlah Permohonan', data: bSeries }],
+            chart: {
+                type: 'bar',
+                height: unifiedChartHeight,
+                fontFamily: 'Plus Jakarta Sans, sans-serif',
+                toolbar: { show: false },
+                background: 'transparent',
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 600
                 }
             },
+            colors: ['#10B981', '#06B6D4', '#6366F1', '#F59E0B', '#F43F5E', '#8B5CF6', '#EC4899', '#14B8A6', '#3B82F6', '#D97706', '#E11D48', '#0D9488', '#64748B'],
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shade: 'dark',
+                    type: 'horizontal',
+                    shadeIntensity: 0.2,
+                    opacityFrom: 0.95,
+                    opacityTo: 0.75,
+                    stops: [0, 100]
+                }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    barHeight: '62%',
+                    borderRadius: 6,
+                    borderRadiusApplication: 'end',
+                    distributed: true,
+                    dataLabels: { position: 'top' }
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                textAnchor: 'start',
+                offsetX: 8,
+                style: {
+                    fontSize: '11px',
+                    fontWeight: 900,
+                    fontFamily: 'Plus Jakarta Sans, sans-serif',
+                    colors: [isDarkInit ? '#E2E8F0' : '#1E293B']
+                },
+                formatter: function (val) {
+                    return val > 0 ? val + " Dokumen" : "0";
+                }
+            },
+            xaxis: {
+                categories: bLabels,
+                labels: {
+                    style: {
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        colors: isDarkInit ? '#94A3B8' : '#64748B'
+                    },
+                    formatter: function (val) {
+                        return Math.floor(val);
+                    }
+                },
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                tickAmount: Math.max(1, maxBVal),
+                min: 0,
+                forceNiceScale: true
+            },
             yaxis: {
-                labels: { 
-                    maxWidth: 240,
-                    style: { colors: t.text, fontSize: '11px', fontWeight: 600 }
+                labels: {
+                    style: {
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        colors: isDarkInit ? '#CBD5E1' : '#334155'
+                    },
+                    maxWidth: 240
+                }
+            },
+            grid: {
+                borderColor: isDarkInit ? '#1E293B' : '#F1F5F9',
+                strokeDashArray: 4,
+                xaxis: { lines: { show: true } },
+                yaxis: { lines: { show: false } },
+                padding: { right: 40, left: 10 }
+            },
+            tooltip: {
+                theme: isDarkInit ? 'dark' : 'light',
+                custom: function(opts) {
+                    var series = opts.series, seriesIndex = opts.seriesIndex, dataPointIndex = opts.dataPointIndex, w = opts.w;
+                    var label = (w && w.globals && w.globals.labels && w.globals.labels[dataPointIndex]) || bLabels[dataPointIndex] || 'Program Bantuan';
+                    var val = series[seriesIndex][dataPointIndex] || 0;
+                    var total = bSeries.reduce(function(a, b) { return a + b; }, 0) || 1;
+                    var pct = Math.round((val / total) * 100);
+                    var colors = ['#10B981', '#06B6D4', '#6366F1', '#F59E0B', '#F43F5E', '#8B5CF6', '#EC4899', '#14B8A6', '#3B82F6', '#D97706', '#E11D48', '#0D9488', '#64748B'];
+                    var color = colors[dataPointIndex % colors.length];
+                    
+                    return '<div class="p-3.5 bg-slate-950 text-white rounded-2xl shadow-2xl border border-slate-700/80 backdrop-blur-xl text-xs font-sans space-y-2 min-w-[190px]">' +
+                           '<div class="flex items-center gap-2 font-black text-slate-200 border-b border-slate-800 pb-2">' +
+                           '<span class="w-2.5 h-2.5 rounded-full shadow-xs" style="background-color:' + color + '"></span>' +
+                           '<span class="truncate">' + label + '</span>' +
+                           '</div>' +
+                           '<div class="flex justify-between items-center text-slate-300 font-mono text-xs pt-0.5">' +
+                           '<span>Jumlah Berkas:</span>' +
+                           '<strong class="text-white font-black">' + val + ' Dokumen</strong>' +
+                           '</div>' +
+                           '<div class="flex justify-between items-center text-slate-400 font-mono text-[10px]">' +
+                           '<span>Pangsa Bantuan:</span>' +
+                           '<strong class="text-emerald-400 font-extrabold">' + pct + '% dari Total</strong>' +
+                           '</div>' +
+                           '</div>';
                 }
             },
             legend: { show: false },
-            grid: { borderColor: t.grid, strokeDashArray: 4 },
-            dataLabels: { 
-                enabled: true,
-                style: { fontSize: '12px', fontWeight: 'bold', colors: ['#ffffff'] },
-                dropShadow: { enabled: true, top: 1, left: 1, blur: 2, opacity: 0.6 }
-            },
-            tooltip: { 
-                theme: t.mode,
-                y: { formatter: function(val) { return val + " Dokumen"; } }
-            }
+            theme: buildApexChartTheme(isDarkInit)
         };
-        var chartU = new ApexCharts(document.querySelector("#chartPenangananUmum"), optionsUmum);
-        chartU.render();
+
+        chartBantuan = new ApexCharts(bTarget, optionsBantuan);
+        chartBantuan.render();
+
+        if (uTarget && uLabels.length > 0) {
+            var optionsUmum = {
+                series: [{ name: 'Dokumen Umum', data: uSeries }],
+                chart: {
+                    type: 'bar',
+                    height: unifiedChartHeight,
+                    fontFamily: 'Plus Jakarta Sans, sans-serif',
+                    toolbar: { show: false },
+                    background: 'transparent',
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 600
+                    }
+                },
+                colors: ['#3B82F6', '#0EA5E9', '#38BDF8', '#10B981', '#F59E0B', '#8B5CF6', '#6366F1'],
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shade: 'dark',
+                        type: 'horizontal',
+                        shadeIntensity: 0.2,
+                        opacityFrom: 0.95,
+                        opacityTo: 0.75,
+                        stops: [0, 100]
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        barHeight: '52%',
+                        borderRadius: 6,
+                        borderRadiusApplication: 'end',
+                        distributed: true,
+                        dataLabels: { position: 'top' }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    textAnchor: 'start',
+                    offsetX: 8,
+                    style: {
+                        fontSize: '11px',
+                        fontWeight: 900,
+                        fontFamily: 'Plus Jakarta Sans, sans-serif',
+                        colors: [isDarkInit ? '#E2E8F0' : '#1E293B']
+                    },
+                    formatter: function (val) {
+                        return val > 0 ? val + " Dokumen" : "0";
+                    }
+                },
+                xaxis: {
+                    categories: uLabels,
+                    labels: {
+                        style: {
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            colors: isDarkInit ? '#94A3B8' : '#64748B'
+                        },
+                        formatter: function (val) {
+                            return Math.floor(val);
+                        }
+                    },
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    tickAmount: Math.max(1, maxUVal),
+                    min: 0,
+                    forceNiceScale: true
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            colors: isDarkInit ? '#CBD5E1' : '#334155'
+                        },
+                        maxWidth: 220
+                    }
+                },
+                grid: {
+                    borderColor: isDarkInit ? '#1E293B' : '#F1F5F9',
+                    strokeDashArray: 4,
+                    xaxis: { lines: { show: true } },
+                    yaxis: { lines: { show: false } },
+                    padding: { right: 40, left: 10 }
+                },
+                tooltip: {
+                    theme: isDarkInit ? 'dark' : 'light',
+                    custom: function(opts) {
+                        var series = opts.series, seriesIndex = opts.seriesIndex, dataPointIndex = opts.dataPointIndex, w = opts.w;
+                        var label = (w && w.globals && w.globals.labels && w.globals.labels[dataPointIndex]) || uLabels[dataPointIndex] || 'Kategori Dokumen';
+                        var val = series[seriesIndex][dataPointIndex] || 0;
+                        var total = uSeries.reduce(function(a, b) { return a + b; }, 0) || 1;
+                        var pct = Math.round((val / total) * 100);
+                        var colors = ['#3B82F6', '#0EA5E9', '#38BDF8', '#10B981', '#F59E0B', '#8B5CF6'];
+                        var color = colors[dataPointIndex % colors.length];
+                        
+                        return '<div class="p-3.5 bg-slate-950 text-white rounded-2xl shadow-2xl border border-slate-700/80 backdrop-blur-xl text-xs font-sans space-y-2 min-w-[190px]">' +
+                               '<div class="flex items-center gap-2 font-black text-slate-200 border-b border-slate-800 pb-2">' +
+                               '<span class="w-2.5 h-2.5 rounded-full shadow-xs" style="background-color:' + color + '"></span>' +
+                               '<span class="truncate">' + label + '</span>' +
+                               '</div>' +
+                               '<div class="flex justify-between items-center text-slate-300 font-mono text-xs pt-0.5">' +
+                               '<span>Jumlah Berkas:</span>' +
+                               '<strong class="text-white font-black">' + val + ' Dokumen</strong>' +
+                               '</div>' +
+                               '<div class="flex justify-between items-center text-slate-400 font-mono text-[10px]">' +
+                               '<span>Proporsi:</span>' +
+                               '<strong class="text-sky-400 font-extrabold">' + pct + '% dari Total</strong>' +
+                               '</div>' +
+                               '</div>';
+                    }
+                },
+                legend: { show: false },
+                theme: buildApexChartTheme(isDarkInit)
+            };
+
+            chartUmum = new ApexCharts(uTarget, optionsUmum);
+            chartUmum.render();
+        }
     }
 
-    const themeObserver = new MutationObserver(() => {
-        const nt = getChartTheme();
-        if (chartB) {
-            chartB.updateOptions({
-                theme: { mode: nt.mode },
-                xaxis: { labels: { style: { colors: nt.text } } },
-                yaxis: { labels: { style: { colors: nt.text } } },
-                grid: { borderColor: nt.grid },
-                tooltip: { theme: nt.mode }
+    // Init charts reliably
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(initRekapCharts, 50);
+    } else {
+        document.addEventListener("DOMContentLoaded", initRekapCharts);
+    }
+    window.addEventListener("load", initRekapCharts);
+
+    // Theme sync listener
+    window.addEventListener('theme-changed', function(e) {
+        var isDarkNow = e.detail && e.detail.isDark;
+        var dataLabelColor = isDarkNow ? '#E2E8F0' : '#1E293B';
+        var gridBorder = isDarkNow ? '#1E293B' : '#F1F5F9';
+        
+        if (chartBantuan) {
+            chartBantuan.updateOptions({
+                grid: { borderColor: gridBorder },
+                dataLabels: { style: { colors: [dataLabelColor] } },
+                theme: buildApexChartTheme(isDarkNow)
             });
         }
-        if (chartU) {
-            chartU.updateOptions({
-                theme: { mode: nt.mode },
-                xaxis: { labels: { style: { colors: nt.text } } },
-                yaxis: { labels: { style: { colors: nt.text } } },
-                grid: { borderColor: nt.grid },
-                tooltip: { theme: nt.mode }
+        if (chartUmum) {
+            chartUmum.updateOptions({
+                grid: { borderColor: gridBorder },
+                dataLabels: { style: { colors: [dataLabelColor] } },
+                theme: buildApexChartTheme(isDarkNow)
             });
         }
     });
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-});
+
+    // Safe DataTables initialization
+    $(document).ready(function() {
+        try {
+            if ($.fn.DataTable) {
+                var idLanguage = {
+                    "emptyTable": "Tidak ada data yang tersedia",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+                    "infoEmpty": "Menampilkan 0 entri",
+                    "infoFiltered": "(disaring dari _MAX_ total entri)",
+                    "lengthMenu": "Tampilkan _MENU_ data",
+                    "loadingRecords": "Memuat...",
+                    "processing": "Memproses...",
+                    "search": "Cari Dokumen:",
+                    "zeroRecords": "Data tidak ditemukan",
+                    "paginate": { "first": "«", "last": "»", "next": "›", "previous": "‹" }
+                };
+
+                $.fn.dataTable.ext.errMode = 'none';
+
+                if ($.fn.DataTable.isDataTable('#bantuanMasterTable')) {
+                    $('#bantuanMasterTable').DataTable().destroy();
+                }
+                $('#bantuanMasterTable').DataTable({
+                    language: idLanguage,
+                    pageLength: 10,
+                    ordering: true,
+                    order: [[0, 'desc']],
+                    autoWidth: false
+                });
+
+                if ($.fn.DataTable.isDataTable('#umumTable')) {
+                    $('#umumTable').DataTable().destroy();
+                }
+                $('#umumTable').DataTable({
+                    language: idLanguage,
+                    pageLength: 10,
+                    ordering: true,
+                    order: [[0, 'desc']],
+                    autoWidth: false
+                });
+            }
+        } catch (e) {
+            console.error("DataTables initialization error:", e);
+        }
+    });
+})();
 </script>
 {% endblock %}

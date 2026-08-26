@@ -19,5 +19,7 @@ urlpatterns = [
     path('rekap-sppd/', views.rekap_sppd_view, name='rekap_sppd'),
     path('rekap-bantuan/', views.rekap_bantuan_view, name='rekap_bantuan'),
     path('rekap-bantuan/export-excel/', views.export_rekap_bantuan_excel, name='export_rekap_bantuan_excel'),
+    path('rekap-bantuan/penanganan-bidang2/', views.penanganan_bidang2_view, name='penanganan_bidang2'),
     path('kalender-kerja/', views.calendar_work_view, name='calendar_work'),
 ]
+

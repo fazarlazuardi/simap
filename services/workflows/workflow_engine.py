@@ -116,6 +116,23 @@ class WorkflowEngine:
             step = 5
             stage_name = '5. Dokumen Selesai & Terarsip'
             next_action = 'Dokumen Telah Diarsipkan'
+        elif status == 'dalam_survei':
+            step = 4
+            stage_name = f'4. Dalam Survei / Verifikasi Lapangan Mustahik'
+            if sppd:
+                stage_name += f' ({sppd.sppd_number})'
+            next_action = 'Pelaksanaan Survei Lapangan & Laporan LHP Survei'
+        elif status == 'telah_disalurkan':
+            step = 4
+            stage_name = f'4. Penyaluran / Pentasyarufan Bantuan Mustahik'
+            if sppd:
+                stage_name += f' ({sppd.sppd_number})'
+            next_action = 'Pelaksanaan Penyaluran & Laporan LHP Penyaluran'
+        elif status == 'sudah_ditugaskan':
+            step = 4
+            st_num = st.nomor_surat if st else 'ST'
+            stage_name = f'4. Penugasan (Surat Tugas {st_num} Diterbitkan)'
+            next_action = 'Penerbitan SPPD oleh Front Office / Pelaksanaan Tugas'
         elif sppd:
             step = 4
             stage_name = f'4. Perjalanan Dinas / SPPD Terbit ({sppd.sppd_number})'

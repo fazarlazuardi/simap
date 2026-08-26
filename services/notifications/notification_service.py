@@ -72,7 +72,7 @@ class NotificationService:
             user_map = {u.employee_id: u for u in User.objects.filter(employee__in=forwarded_emps)}
             for emp in forwarded_emps:
                 user = user_map.get(emp.pk)
-                WhatsAppService.send_notification(user=user, message=msg, employee=emp)
+                WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='disposition', title="Disposisi Pimpinan")
                 Notification.objects.create(
                     user=user if user else sender_user,
                     notification_type='whatsapp',
@@ -135,23 +135,29 @@ class NotificationService:
             f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
         )
 
+        import threading
 
-        try:
-            for emp in employees:
-                user = user_map.get(emp.pk)
-                WhatsAppService.send_notification(user=user, message=msg, employee=emp)
-                if user:
-                    Notification.objects.create(
-                        user=user,
-                        notification_type='whatsapp',
-                        message=f"SPPD Terbit: {sppd_obj.sppd_number}",
-                        status='sent'
-                    )
-        except Exception:
-            pass
+        def _bg_send():
+            from django.db import connections
+            connections.close_all()
+            try:
+                for emp in employees:
+                    user = user_map.get(emp.pk)
+                    WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='sppd', title="Penugasan SPPD")
+                    if user:
+                        Notification.objects.create(
+                            user=user,
+                            notification_type='whatsapp',
+                            message=f"SPPD Terbit: {sppd_obj.sppd_number}",
+                            status='sent'
+                        )
+            except Exception:
+                pass
+            finally:
+                connections.close_all()
 
+        threading.Thread(target=_bg_send, daemon=True).start()
         return True
-
 
     @classmethod
     def process_agenda_reminders(cls) -> int:
@@ -174,10 +180,7 @@ class NotificationService:
             is_today = (agenda_date == today)
             timing = getattr(agenda, 'wa_notification_timing', 'instant')
 
-            # H-1 Reminder Condition
             should_send_h1 = (timing == 'h_minus_1' and not is_today and agenda.notification_sent_at is None)
-
-            # Hari H (1 Jam Sebelum) Reminder Condition
             time_diff = (agenda.scheduled_at - now).total_seconds()
             should_send_1h = (timing == 'h_minus_1_hour' and is_today and 0 <= time_diff <= 3600 and agenda.notification_sent_at is None)
 
@@ -202,13 +205,13 @@ class NotificationService:
 
                 for emp in emp_list:
                     user = user_map.get(emp.pk)
-                    WhatsAppService.send_notification(user=user, message=msg, employee=emp)
+                    WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='agenda', title="Pengingat Agenda")
                     sent_count += 1
 
                 for user in users:
                     emp = getattr(user, 'employee', None)
                     if emp not in emp_list:
-                        WhatsAppService.send_notification(user=user, message=msg, employee=emp)
+                        WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='agenda', title="Pengingat Agenda")
                         sent_count += 1
 
                 agenda.notification_sent_at = now
@@ -219,49 +222,68 @@ class NotificationService:
     @classmethod
     def notify_bidang2_for_bantuan_document(cls, archive, dispo=None):
         """
-        Kirim notifikasi web dashboard otomatis ke Waka II & Kabid II saat:
-        - Dokumen bersifat permohonan bantuan (Mustahik) baru diunggah / masuk ke sistem.
-        - Disposisi dokumen bantuan/umum diteruskan ke Bidang II / Waka II / Kabid II.
+        Kirim notifikasi web dashboard otomatis ke Waka II & Kabid II secara ASYNC thread-safe.
         """
         if not archive:
             return
         
-        from services.workflows.workflow_engine import WorkflowEngine
-        from users.models import User
-        from django.db.models import Q
-        
-        is_bantuan = WorkflowEngine.is_bantuan(archive)
-        is_forwarded_to_bidang2 = False
-        
-        if dispo:
-            for emp in list(dispo.forwarded_to.all()) + list(dispo.waka_forwarded_to.all()):
-                dept_name = emp.dept_relation.name.lower() if emp and emp.dept_relation else ''
-                pos_name = emp.position.lower() if emp and emp.position else ''
-                if any(kw in dept_name or kw in pos_name for kw in ['pendistribusian', 'bidang 2', 'bidang ii', 'waka 2', 'kabid 2']):
-                    is_forwarded_to_bidang2 = True
-                    break
-        
-        if is_bantuan or is_forwarded_to_bidang2:
-            bidang2_users = User.objects.filter(
-                Q(username__icontains='waka2') |
-                Q(username__icontains='kabid2') |
-                Q(role='waka_2') |
-                Q(role='kabid_2') |
-                Q(employee__leadership_type='waka_2') |
-                Q(employee__dept_relation__name__icontains='pendistribusian') |
-                Q(employee__dept_relation__name__icontains='bidang 2') |
-                Q(employee__dept_relation__name__icontains='bidang ii')
-            ).distinct()
-            
-            link_target = f"/dispositions/{dispo.pk}/" if dispo else f"/archives/{archive.pk}/"
-            
-            for b_user in bidang2_users:
-                if not Notification.objects.filter(user=b_user, link_url=link_target, status='unread').exists():
-                    Notification.create_system_notif(
-                        user=b_user,
-                        title="🤝 Disposisi Dokumen Bantuan (Bidang II)",
-                        message=f"Dokumen bantuan '{archive.title}' memerlukan tindakan & tindak lanjut oleh Waka II / Kabid II.",
-                        link_url=link_target,
-                        category="disposition"
-                    )
+        archive_id = archive.pk
+        dispo_id = dispo.pk if dispo else None
 
+        import threading
+
+        def _bg_notify():
+            from django.db import connections
+            connections.close_all()
+            try:
+                from archives.models import Archive
+                from dispositions.models import Disposition
+                from services.workflows.workflow_engine import WorkflowEngine
+                from users.models import User
+                from django.db.models import Q
+
+                arc = Archive.objects.filter(pk=archive_id).first()
+                dsp = Disposition.objects.filter(pk=dispo_id).first() if dispo_id else None
+                if not arc:
+                    return
+                
+                is_bantuan = WorkflowEngine.is_bantuan(arc)
+                is_forwarded_to_bidang2 = False
+                
+                if dsp:
+                    for emp in list(dsp.forwarded_to.all()) + list(dsp.waka_forwarded_to.all()):
+                        dept_name = emp.dept_relation.name.lower() if emp and emp.dept_relation else ''
+                        pos_name = emp.position.lower() if emp and emp.position else ''
+                        if any(kw in dept_name or kw in pos_name for kw in ['pendistribusian', 'bidang 2', 'bidang ii', 'waka 2', 'kabid 2']):
+                            is_forwarded_to_bidang2 = True
+                            break
+                
+                if is_bantuan or is_forwarded_to_bidang2:
+                    bidang2_users = User.objects.filter(
+                        Q(username__icontains='waka2') |
+                        Q(username__icontains='kabid2') |
+                        Q(role='waka_2') |
+                        Q(role='kabid_2') |
+                        Q(employee__leadership_type='waka_2') |
+                        Q(employee__dept_relation__name__icontains='pendistribusian') |
+                        Q(employee__dept_relation__name__icontains='bidang 2') |
+                        Q(employee__dept_relation__name__icontains='bidang ii')
+                    ).distinct()
+                    
+                    link_target = f"/dispositions/{dsp.pk}/" if dsp else f"/archives/{arc.pk}/"
+                    
+                    for b_user in bidang2_users:
+                        if not Notification.objects.filter(user=b_user, link_url=link_target, status='unread').exists():
+                            Notification.create_system_notif(
+                                user=b_user,
+                                title="🤝 Disposisi Dokumen Bantuan (Bidang II)",
+                                message=f"Dokumen bantuan '{arc.title}' memerlukan tindakan & tindak lanjut oleh Waka II / Kabid II.",
+                                link_url=link_target,
+                                category="disposition"
+                            )
+            except Exception:
+                pass
+            finally:
+                connections.close_all()
+
+        threading.Thread(target=_bg_notify, daemon=True).start()

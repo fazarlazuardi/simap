@@ -2,637 +2,740 @@
 
 {% block title %}Detail Arsip - {{ archive.archive_number|default:archive.title }} - BAZNAS Kab. Tangerang{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* STEPPER RIBBON FUTURISTIC */
-    .stepper-ribbon-futuristic {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        gap: 8px;
-        padding: 8px;
-        background: var(--surface-hover);
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border-color);
-    }
-    .stepper-step-node {
-        flex: 1;
-        min-width: 135px;
-        padding: 10px 12px;
-        border-radius: var(--radius-sm);
-        text-align: center;
-        font-size: 0.76rem;
-        font-weight: 700;
-        color: var(--text-secondary);
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .stepper-step-node.completed {
-        background: rgba(16, 185, 129, 0.12);
-        color: var(--color-emerald-600);
-        border-color: rgba(16, 185, 129, 0.3);
-    }
-    .stepper-step-node.active {
-        background: var(--color-emerald-600);
-        color: #FFFFFF;
-        border-color: var(--color-emerald-600);
-        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
-    }
-
-    /* WORKFLOW TIMELINE NODES */
-    .timeline-futuristic { position: relative; padding-left: 32px; }
-    .timeline-futuristic::before { content: ''; position: absolute; left: 14px; top: 12px; bottom: 12px; width: 2px; background: var(--border-color); }
-    .tm-item-node { position: relative; padding-bottom: 22px; }
-    .tm-node-icon { position: absolute; left: -32px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1; font-size: 0.88rem; }
-    .tm-node-card { 
-        background-color: var(--card-bg) !important; 
-        color: var(--text-primary) !important; 
-        padding: 16px; 
-        border-radius: var(--radius-md); 
-        border: 1px solid var(--border-color) !important; 
-        box-shadow: var(--shadow-xs);
-        transition: all 0.2s ease;
-    }
-    .tm-node-card:hover {
-        box-shadow: var(--shadow-sm);
-        border-color: var(--color-emerald-500) !important;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid py-3">
+<div class="w-full space-y-6" x-data="{ activeTab: 'workflow', openVerifyModal: false, openUploadModal: false }">
+
     <!-- BREADCRUMB NAV -->
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb mb-2">
-            <li class="breadcrumb-item"><a href="{% url 'archives:list' %}" class="text-decoration-none text-emerald fw-bold">Arsip SDM</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Detail Workflow Dokumen</li>
-        </ol>
-    </nav>
-
-    <!-- ENTERPRISE GLASS HEADER BANNER -->
-    <div class="glass-banner-enterprise mb-4">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 position-relative" style="z-index: 2;">
-            <div>
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 font-mono fw-bold" style="font-size: 0.75rem;">
-                        {{ archive.archive_number|default:"DRAFT BELUM DIVERIFIKASI" }}
-                    </span>
-                    {% if workflow_info.is_bantuan %}
-                        <span class="badge bg-success bg-opacity-25 text-white border border-white border-opacity-25 px-3 py-1 rounded-pill small">
-                            <i class="bi bi-handbag-fill me-1"></i> {{ workflow_info.sub_category }}
-                        </span>
-                    {% else %}
-                        <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 px-3 py-1 rounded-pill small">
-                            <i class="bi bi-envelope-paper-fill me-1"></i> Dokumen Umum
-                        </span>
-                    {% endif %}
-                    <span class="badge {% if archive.status == 'selesai' or latest_report %}bg-success text-white{% elif archive.status == 'baru' %}bg-warning text-dark{% elif archive.status == 'ditolak' %}bg-danger text-white{% else %}bg-primary text-white{% endif %} rounded-pill px-3 py-1 fw-bold">
-                        {{ archive.workflow_status_display }}
-                    </span>
-                </div>
-                <h3 class="fw-bold mb-1 text-white">{{ archive.title }}</h3>
-                <p class="mb-0 text-white opacity-75 small">Pengirim / Instansi: <strong>{{ archive.sender_receiver|default:"-" }}</strong> | Tanggal Surat: <strong>{{ archive.letter_date|date:"d F Y"|default:"-" }}</strong></p>
-            </div>
-
-            <div class="d-flex gap-2 align-items-center flex-wrap">
-                {% if archive.status != 'ditolak' %}
-                    <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-success btn-sm rounded-pill px-3 py-2 fw-bold shadow-sm" style="background-color: #059669 !important;">
-                        <i class="bi bi-printer-fill me-1"></i> Cetak Tanda Terima (Resi FO)
-                    </a>
-                    <a href="{% url 'dispositions:print' %}?blank=1&archive_id={{ archive.pk }}" target="_blank" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-2 fw-bold shadow-sm" title="Cetak Lembar Disposisi Blank untuk diisi manual oleh Ketua/Waka IV">
-                        <i class="bi bi-file-earmark-word-fill me-1"></i> Cetak Disposisi Blank
-                    </a>
-                {% endif %}
-                <a href="{% url 'archives:edit' archive.pk %}" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold">
-                    <i class="bi bi-pencil me-1"></i> Edit Data
+    <div class="p-4 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-sm flex items-center justify-between flex-wrap gap-2">
+        <div class="flex items-center gap-2 text-xs font-bold">
+            <a href="{% url 'archives:list' %}" class="text-emerald-600 dark:text-emerald-400 no-underline hover:underline">Arsip SDM</a>
+            <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
+            <span class="text-slate-600 dark:text-slate-300">Detail Workflow Dokumen</span>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+            {% if archive.status != 'ditolak' %}
+                <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
+                    <i class="bi bi-printer-fill"></i> Cetak Resi FO
                 </a>
+                <a href="{% url 'dispositions:print' %}?blank=1&archive_id={{ archive.pk }}" target="_blank" class="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all" title="Cetak Lembar Disposisi Blank">
+                    <i class="bi bi-file-earmark-word-fill"></i> Cetak Disposisi Blank
+                </a>
+            {% endif %}
+            {% if can_manage %}
+            <a href="{% url 'archives:edit' archive.pk %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs no-underline inline-flex items-center gap-1.5 transition-all">
+                <i class="bi bi-pencil"></i> Edit Data
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50">
+        <div class="relative z-10 space-y-3">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono inline-flex items-center gap-1.5">
+                    {{ archive.archive_number|default:"DRAFT BELUM DIVERIFIKASI" }}
+                </span>
+                {% if workflow_info.is_bantuan %}
+                    <span class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5">
+                        <i class="bi bi-handbag-fill"></i> {{ workflow_info.sub_category }}
+                    </span>
+                {% else %}
+                    <span class="px-3 py-1 text-xs font-bold rounded-full bg-white/10 text-slate-200 border border-white/20 inline-flex items-center gap-1.5">
+                        <i class="bi bi-envelope-paper-fill"></i> Dokumen Umum
+                    </span>
+                {% endif %}
+                <span class="px-3 py-1 text-xs font-extrabold rounded-full {% if archive.status == 'selesai' or latest_report %}bg-emerald-600 text-white{% elif archive.status == 'baru' %}bg-amber-500 text-slate-950{% elif archive.status == 'ditolak' %}bg-rose-600 text-white{% else %}bg-sky-600 text-white{% endif %} font-mono">
+                    {{ archive.workflow_status_display }}
+                </span>
+                {% if not can_manage %}
+                <span class="px-3 py-1 text-xs font-bold rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 inline-flex items-center gap-1">
+                    <i class="bi bi-eye-fill"></i> Mode Baca / Read Only
+                </span>
+                {% endif %}
             </div>
+            <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">{{ archive.title }}</h1>
+            <p class="text-slate-300 text-xs md:text-sm mb-0">
+                Pengirim / Instansi: <strong>{{ archive.sender_receiver|default:"-" }}</strong> | Tanggal Surat: <strong>{{ archive.letter_date|date:"d F Y"|default:"-" }}</strong>
+            </p>
         </div>
     </div>
 
-    <!-- KANBAN RIBBON STEPPER FUTURISTIC (1 s.d 6) -->
-    <div class="stepper-ribbon-futuristic mb-4 shadow-xs">
-        <div class="stepper-step-node completed">
-            <i class="bi bi-check-circle-fill me-1"></i> 1. Registrasi
-        </div>
-        <div class="stepper-step-node {% if archive.archive_number %}completed{% elif archive.status == 'baru' %}active{% endif %}">
-            {% if archive.archive_number %}<i class="bi bi-check-circle-fill me-1"></i>{% else %}<i class="bi bi-patch-check me-1"></i>{% endif %} 2. Verifikasi
-        </div>
-        <div class="stepper-step-node {% if archive.dispositions.exists %}completed{% elif archive.status == 'didisposisikan' %}active{% endif %}">
-            {% if archive.dispositions.exists %}<i class="bi bi-check-circle-fill me-1"></i>{% else %}<i class="bi bi-send me-1"></i>{% endif %} 3. Disposisi
-        </div>
-        <div class="stepper-step-node {% if surat_tugas_list %}completed{% elif archive.status == 'proses' %}active{% endif %}">
-            {% if surat_tugas_list %}<i class="bi bi-check-circle-fill me-1"></i>{% else %}<i class="bi bi-file-earmark-text me-1"></i>{% endif %} 4. Surat Tugas
-        </div>
-        <div class="stepper-step-node {% if sppd_list or archive.agendas.exists %}completed{% elif archive.status == 'dalam_survei' %}active{% endif %}">
-            {% if sppd_list or archive.agendas.exists %}<i class="bi bi-check-circle-fill me-1"></i>{% else %}<i class="bi bi-briefcase me-1"></i>{% endif %} 5. Agenda / SPPD
-        </div>
-        <div class="stepper-step-node {% if archive.status == 'selesai' or archive.status == 'telah_disalurkan' or latest_report %}active completed{% endif %}">
-            {% if archive.status == 'selesai' or latest_report %}<i class="bi bi-check-circle-fill me-1"></i>{% else %}<i class="bi bi-flag me-1"></i>{% endif %} 6. LHP & Selesai
-        </div>
-    </div>
-
-    <!-- SMART ACTION ENGINE BAR -->
-    <div class="card-enterprise mb-4 p-3">
-        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-            <h5 class="fw-bold mb-0 text-emerald">
-                <i class="bi bi-lightning-charge-fill text-warning me-2"></i>Smart Action Engine Alur Kerja
-            </h5>
-            <span class="badge-pill-enterprise badge-pill-success"><span class="pulse-dot"></span> Penanganan Otomatis</span>
+    <!-- SMART ACTION ENGINE BAR (COMPACT & MODERN ACTION TOOLBAR) -->
+    <div class="p-4 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-md space-y-3">
+        {% if can_manage %}
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200/80 dark:border-slate-800/80">
+            <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                <i class="bi bi-lightning-charge-fill text-amber-500 text-base"></i> Akses & Tindakan Cepat Alur Kerja
+            </h3>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono">Aksi Terbuka (Waka IV / Kabid IV / FO / Superadmin)</span>
         </div>
 
-        <div class="row g-2">
-            <!-- COL 1: LANGKAH 2 (VERIFIKASI KABID IV) -->
-            <div class="col-md-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <!-- COL 1: VERIFIKASI KABID IV -->
+            <div>
                 {% if archive.status == 'baru' %}
-                    {% if user.is_pimpinan or user.is_kabid or user.is_superadmin %}
-                    <button type="button" class="btn btn-emerald w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="openArchiveModal('verifyModal')">
-                        <i class="bi bi-patch-check-fill me-1"></i> 2. Verifikasi Kabid IV
+                    <button type="button" @click="openVerifyModal = true" class="w-full px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center justify-center gap-1.5 transition-all">
+                        <i class="bi bi-patch-check-fill"></i> Verifikasi Kabid IV
                     </button>
-                    {% else %}
-                    <button type="button" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold" disabled>
-                        <i class="bi bi-clock me-1"></i> 2. Menunggu Verifikasi
-                    </button>
-                    {% endif %}
                 {% elif archive.status == 'terverifikasi' %}
-                    {% if user.is_sdm or user.is_kabid or user.is_superadmin %}
                     <form method="post" action="{% url 'archives:forward_to_ketua' archive.pk %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-warning text-dark w-100 rounded-pill py-2 fw-bold shadow-sm">
-                            <i class="bi bi-arrow-right-circle-fill me-1"></i> 2. Teruskan ke Ketua
+                        <button type="submit" class="w-full px-4 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center justify-center gap-1.5 transition-all">
+                            <i class="bi bi-arrow-right-circle-fill"></i> Teruskan ke Ketua
                         </button>
                     </form>
-                    {% else %}
-                    <button type="button" class="btn btn-outline-success w-100 rounded-pill py-2 fw-bold" disabled>
-                        <i class="bi bi-check-circle-fill me-1"></i> 2. Terverifikasi Kabid IV
-                    </button>
-                    {% endif %}
                 {% else %}
-                    <button type="button" class="btn btn-outline-success w-100 rounded-pill py-2 fw-bold" disabled>
-                        <i class="bi bi-check-circle-fill me-1"></i> 2. Terverifikasi Kabid IV
+                    <button type="button" class="w-full px-4 py-2.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-bold text-xs border border-emerald-500/30 cursor-default inline-flex items-center justify-center gap-1.5" disabled>
+                        <i class="bi bi-check-circle-fill"></i> Terverifikasi Kabid IV
                     </button>
                 {% endif %}
             </div>
 
-            <!-- COL 2: LANGKAH 3 (DISPOSISI PIMPINAN) -->
-            <div class="col-md-3">
+            <!-- COL 2: DISPOSISI PIMPINAN -->
+            <div>
                 {% if latest_dispo %}
-                    <a href="{% url 'dispositions:detail' latest_dispo.pk %}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm">
-                        <i class="bi bi-send-check-fill me-1"></i> 3. Lihat Disposisi
+                    <a href="{% url 'dispositions:detail' latest_dispo.pk %}" class="w-full px-4 py-2.5 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center justify-center gap-1.5 transition-all">
+                        <i class="bi bi-send-check-fill"></i> Lihat Disposisi
                     </a>
                 {% else %}
                     {% if archive.status == 'baru' %}
-                        <button type="button" class="btn btn-outline-primary w-100 rounded-pill py-2 fw-bold" onclick="alert('Verifikasi Kabid IV terlebih dahulu sebelum menerbitkan disposisi.')">
-                            <i class="bi bi-send me-1"></i> 3. Disposisi Pimpinan
+                        <button type="button" class="w-full px-4 py-2.5 rounded-full border border-sky-500 text-sky-600 dark:text-sky-300 font-bold text-xs cursor-pointer inline-flex items-center justify-center gap-1.5" onclick="alert('Verifikasi Kabid IV terlebih dahulu sebelum menerbitkan disposisi.')">
+                            <i class="bi bi-send"></i> Disposisi Pimpinan
                         </button>
                     {% else %}
-                        <a href="{% url 'dispositions:create' archive.pk %}" class="btn btn-outline-primary w-100 rounded-pill py-2 fw-bold shadow-sm">
-                            <i class="bi bi-send-plus me-1"></i> 3. Disposisi Ketua BAZNAS
+                        <a href="{% url 'dispositions:create' archive.pk %}" class="w-full px-4 py-2.5 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center justify-center gap-1.5 transition-all">
+                            <i class="bi bi-send-plus"></i> Disposisi Ketua BAZNAS
                         </a>
                     {% endif %}
                 {% endif %}
             </div>
 
-            <!-- COL 3: LANGKAH 4 (SURAT TUGAS) -->
-            <div class="col-md-3">
+            <!-- COL 3: SURAT TUGAS -->
+            <div>
                 {% if surat_tugas_list %}
-                    <a href="{% url 'surat_tugas:detail' latest_st.pk %}" class="btn btn-info text-white w-100 rounded-pill py-2 fw-bold shadow-sm">
-                        <i class="bi bi-file-earmark-check-fill me-1"></i> 4. Surat Tugas Terbit
+                    <a href="{% url 'surat_tugas:detail' latest_st.pk %}" class="w-full px-4 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center justify-center gap-1.5 transition-all">
+                        <i class="bi bi-file-earmark-check-fill"></i> Surat Tugas Terbit
                     </a>
                 {% else %}
                     {% if latest_dispo %}
-                        <a href="{% url 'surat_tugas:create' %}?disposition={{ latest_dispo.pk }}" class="btn btn-outline-info w-100 rounded-pill py-2 fw-bold shadow-sm">
-                            <i class="bi bi-file-earmark-plus me-1"></i> 4. Buat Surat Tugas
+                        <a href="{% url 'surat_tugas:create' %}?disposition={{ latest_dispo.pk }}" class="w-full px-4 py-2.5 rounded-full border border-indigo-500 text-indigo-600 dark:text-indigo-300 font-bold text-xs no-underline inline-flex items-center justify-center gap-1.5 transition-all">
+                            <i class="bi bi-file-earmark-plus"></i> Buat Surat Tugas
                         </a>
                     {% else %}
-                        <button type="button" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold" onclick="alert('Terbitkan Lembar Disposisi terlebih dahulu sebelum membuat Surat Tugas.')">
-                            <i class="bi bi-file-earmark-plus me-1"></i> 4. Buat Surat Tugas
+                        <button type="button" class="w-full px-4 py-2.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-400 font-bold text-xs cursor-pointer inline-flex items-center justify-center gap-1.5" onclick="alert('Terbitkan Lembar Disposisi terlebih dahulu sebelum membuat Surat Tugas.')">
+                            <i class="bi bi-file-earmark-plus"></i> Buat Surat Tugas
                         </button>
                     {% endif %}
                 {% endif %}
             </div>
 
-            <!-- COL 4: LANGKAH 5 (AGENDA & SPPD) -->
-            <div class="col-md-3">
-                <div class="d-flex flex-column gap-1">
-                    {% if archive.agendas.exists %}
-                        <a href="{% url 'agendas:list' %}" class="btn btn-success text-white w-100 rounded-pill py-1.5 fw-bold shadow-sm small">
-                            <i class="bi bi-calendar-check-fill me-1"></i> 5. Agenda Terjadwal ({{ archive.agendas.count }})
+            <!-- COL 4: AGENDA & SPPD -->
+            <div class="space-y-1">
+                {% if archive.agendas.exists %}
+                    <a href="{% url 'agendas:list' %}" class="w-full px-3 py-1.5 rounded-full bg-emerald-600 text-white font-extrabold text-[11px] shadow-xs no-underline inline-flex items-center justify-center gap-1 transition-all">
+                        <i class="bi bi-calendar-check-fill"></i> Agenda Terjadwal ({{ archive.agendas.count }})
+                    </a>
+                {% else %}
+                    <a href="{% url 'agendas:create' %}?archive_id={{ archive.pk }}" class="w-full px-3 py-1.5 rounded-full border border-emerald-500 text-emerald-600 dark:text-emerald-300 font-bold text-[11px] no-underline inline-flex items-center justify-center gap-1 transition-all">
+                        <i class="bi bi-calendar-plus"></i> + Agenda
+                    </a>
+                {% endif %}
+
+                {% if latest_sppd %}
+                    <a href="{% url 'sppd_service:detail' latest_sppd.pk %}" class="w-full px-3 py-1.5 rounded-full bg-amber-500 text-slate-950 font-extrabold text-[11px] shadow-xs no-underline inline-flex items-center justify-center gap-1 transition-all">
+                        <i class="bi bi-briefcase-fill"></i> SPPD Terbit
+                    </a>
+                {% elif latest_st %}
+                    <a href="{% url 'sppd_service:create_with_st' latest_st.pk %}" class="w-full px-3 py-1.5 rounded-full border border-amber-500 text-amber-600 dark:text-amber-300 font-bold text-[11px] no-underline inline-flex items-center justify-center gap-1 transition-all">
+                        <i class="bi bi-briefcase"></i> + Buat SPPD
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <!-- READ ONLY SUMMARY ENGINE BAR -->
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200/80 dark:border-slate-800/80">
+            <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                <i class="bi bi-shield-check text-sky-500 text-base"></i> Status Alur Kerja Dokumen (Mode Baca)
+            </h3>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30 font-mono">Read Only — Seluruh Bidang</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <!-- INFO 1: VERIFIKASI -->
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">1. Verifikasi</span>
+                    <strong class="text-xs {% if archive.verified_by_kabid %}text-emerald-600 dark:text-emerald-400{% else %}text-amber-600 dark:text-amber-400{% endif %}">
+                        {% if archive.verified_by_kabid %}<i class="bi bi-check-circle-fill me-1"></i> Terverifikasi{% else %}<i class="bi bi-clock me-1"></i> Menunggu Verifikasi{% endif %}
+                    </strong>
+                </div>
+            </div>
+
+            <!-- INFO 2: DISPOSISI -->
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">2. Disposisi Ketua</span>
+                    {% if latest_dispo %}
+                        <a href="{% url 'dispositions:detail' latest_dispo.pk %}" class="text-xs font-bold text-sky-600 dark:text-sky-400 no-underline hover:underline inline-flex items-center gap-1">
+                            <i class="bi bi-send-check-fill"></i> Lihat Disposisi
                         </a>
                     {% else %}
-                        <a href="{% url 'agendas:create' %}?archive_id={{ archive.pk }}" class="btn btn-outline-success w-100 rounded-pill py-1.5 fw-bold shadow-sm small">
-                            <i class="bi bi-calendar-plus me-1"></i> 5. + Agenda
-                        </a>
+                        <span class="text-xs text-slate-400 italic">Belum Diterbitkan</span>
                     {% endif %}
+                </div>
+            </div>
 
+            <!-- INFO 3: SURAT TUGAS -->
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">3. Surat Tugas</span>
+                    {% if latest_st %}
+                        <a href="{% url 'surat_tugas:detail' latest_st.pk %}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 no-underline hover:underline inline-flex items-center gap-1">
+                            <i class="bi bi-file-earmark-check-fill"></i> Lihat Surat Tugas
+                        </a>
+                    {% else %}
+                        <span class="text-xs text-slate-400 italic">Belum Diterbitkan</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- INFO 4: SPPD & LAPORAN -->
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">4. SPPD / Lapangan</span>
                     {% if latest_sppd %}
-                        <a href="{% url 'sppd_service:detail' latest_sppd.pk %}" class="btn btn-warning text-dark w-100 rounded-pill py-1.5 fw-bold shadow-sm small">
-                            <i class="bi bi-briefcase-fill me-1"></i> 5. SPPD Terbit
+                        <a href="{% url 'sppd_service:detail' latest_sppd.pk %}" class="text-xs font-bold text-amber-600 dark:text-amber-400 no-underline hover:underline inline-flex items-center gap-1">
+                            <i class="bi bi-briefcase-fill"></i> Lihat SPPD
                         </a>
-                    {% elif latest_st %}
-                        <a href="{% url 'sppd_service:create_with_st' latest_st.pk %}" class="btn btn-outline-warning text-dark w-100 rounded-pill py-1.5 fw-bold shadow-sm small">
-                            <i class="bi bi-briefcase me-1"></i> 5. + Buat SPPD
-                        </a>
+                    {% else %}
+                        <span class="text-xs text-slate-400 italic">Belum Ada SPPD</span>
                     {% endif %}
                 </div>
             </div>
         </div>
+        <p class="text-[11px] text-slate-400 dark:text-slate-500 italic mb-0 pt-1 border-t border-slate-100 dark:border-slate-800">
+            <i class="bi bi-info-circle me-1"></i> Tindakan modifikasi, verifikasi, atau edit data arsip hanya dapat dilakukan oleh Waka IV, Kabid IV, Front Office, dan Superadmin IT.
+        </p>
+        {% endif %}
     </div>
 
     <!-- SPLIT MAIN LAYOUT -->
-    <div class="row">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <!-- PANEL KIRI (5 COLS): STICKY CONTAINER -->
-        <div class="col-lg-5 mb-4">
-            <div class="position-sticky" style="top: 90px; z-index: 5;">
-                <!-- KARTU 1: PRATINJAU BERKAS DIGITAL (TEKS HIGH CONTRAST) -->
-                <div class="card-enterprise p-4 mb-3">
-                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                        <h5 class="fw-bold mb-0 text-emerald"><i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Pratinjau Berkas Digital</h5>
-                        <button type="button" class="btn btn-sm btn-outline-emerald rounded-pill px-3 fw-bold" onclick="openArchiveModal('uploadFileModal')">
-                            <i class="bi bi-cloud-upload me-1"></i> {% if archive.file_path %}Ganti Berkas{% else %}Upload{% endif %}
-                        </button>
-                    </div>
-
-                    {% if archive.file_path %}
-                        <div class="mb-3 d-flex justify-content-between align-items-center bg-body-tertiary p-2 rounded-3 border">
-                            <span class="small fw-bold text-truncate me-2" style="max-width: 180px; color: var(--text-primary) !important;">{{ archive.file_path.name }}</span>
-                            <div class="d-flex gap-1">
-                                <a href="{{ archive.file_path.url }}" target="_blank" class="btn btn-sm btn-emerald rounded-pill px-3 fw-bold" rel="noopener">
-                                    <i class="bi bi-arrows-angle-expand me-1"></i> Fullscreen
-                                </a>
-                                <a href="{{ archive.file_path.url }}" download class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Unduh File">
-                                    <i class="bi bi-download"></i>
-                                </a>
-                            </div>
-                        </div>
-
-                        {% if ".pdf" in archive.file_path.name.lower %}
-                        <div class="ratio ratio-4x3 border rounded-4 overflow-hidden shadow-sm" style="min-height: 420px;">
-                            <iframe src="{{ archive.file_path.url }}#toolbar=0" style="width: 100%; height: 100%; border: none;"></iframe>
-                        </div>
-                        {% else %}
-                        <div class="text-center p-2 border rounded-4 bg-body-tertiary shadow-sm overflow-hidden" style="max-height: 420px;">
-                            <img src="{{ archive.file_path.url }}" class="img-fluid rounded-3" style="max-height: 400px; object-fit: contain;">
-                        </div>
-                        {% endif %}
-                    {% else %}
-                        <div class="p-4 text-center border-2 border-dashed rounded-4 bg-body-tertiary my-2" style="border: 2px dashed var(--border-color);">
-                            <i class="bi bi-file-earmark-x fs-1 text-warning d-block mb-2 opacity-75"></i>
-                            <h6 class="fw-bold mb-1" style="color: var(--text-primary) !important;">Berkas PDF / Digital Belum Diunggah</h6>
-                            <p class="small mb-3" style="color: var(--text-secondary) !important;">Lampirkan file scan/PDF surat ini agar dapat dipratinjau langsung.</p>
-                            <button type="button" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold shadow-sm" onclick="openArchiveModal('uploadFileModal')">
-                                <i class="bi bi-cloud-upload-fill me-2"></i> Unggah Berkas Sekarang
-                            </button>
-                        </div>
+        <div class="lg:col-span-5 space-y-4 lg:sticky lg:top-24">
+            <!-- KARTU 1: PRATINJAU BERKAS DIGITAL -->
+            <div class="p-5 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-md space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                        <i class="bi bi-file-earmark-pdf-fill text-rose-500 text-lg"></i> Pratinjau Berkas Digital
+                    </h3>
+                    {% if can_manage %}
+                    <button type="button" @click="openUploadModal = true" class="px-3 py-1 rounded-full border border-emerald-600 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs cursor-pointer hover:bg-emerald-600 hover:text-white transition-all border-0">
+                        <i class="bi bi-cloud-upload me-1"></i> {% if archive.file_path %}Ganti Berkas{% else %}Upload{% endif %}
+                    </button>
                     {% endif %}
                 </div>
 
-                <!-- KARTU 2: RINGKASAN ENTITAS TERHUBUNG -->
-                <div class="card-enterprise p-3">
-                    <h6 class="fw-bold text-emerald mb-2 pb-2 border-bottom" style="font-size: 0.88rem;"><i class="bi bi-layers-half me-2"></i>Ringkasan Entitas Terhubung</h6>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <div class="p-2 rounded-3 bg-body-tertiary border d-flex justify-content-between align-items-center">
-                                <span class="small text-truncate me-1" style="font-size: 0.75rem;"><i class="bi bi-send-check text-primary me-1"></i>Disposisi</span>
-                                <span class="badge bg-primary rounded-pill px-2 font-mono" style="font-size: 0.7rem;">{{ archive.dispositions.count }}</span>
-                            </div>
+                {% if archive.file_path %}
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
+                        <span class="text-xs font-mono font-bold text-slate-900 dark:text-slate-100 truncate flex-1">{{ archive.file_path.name }}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <a href="{{ archive.file_path.url }}" target="_blank" class="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] no-underline inline-flex items-center gap-1 shadow-sm">
+                                <i class="bi bi-arrows-angle-expand"></i> Fullscreen
+                            </a>
+                            <a href="{{ archive.file_path.url }}" download class="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 inline-flex items-center justify-center text-xs no-underline" title="Unduh File">
+                                <i class="bi bi-download"></i>
+                            </a>
                         </div>
-                        <div class="col-6">
-                            <div class="p-2 rounded-3 bg-body-tertiary border d-flex justify-content-between align-items-center">
-                                <span class="small text-truncate me-1" style="font-size: 0.75rem;"><i class="bi bi-file-earmark-text text-info me-1"></i>Surat Tugas</span>
-                                <span class="badge bg-info text-white rounded-pill px-2 font-mono" style="font-size: 0.7rem;">{{ surat_tugas_list|length }}</span>
-                            </div>
+                    </div>
+
+                    {% if ".pdf" in archive.file_path.name.lower %}
+                    <div class="w-full h-[420px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner">
+                        <iframe src="{{ archive.file_path.url }}#toolbar=0" class="w-full h-full border-0"></iframe>
+                    </div>
+                    {% else %}
+                    <div class="text-center p-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 shadow-sm max-h-[420px] overflow-hidden">
+                        <img src="{{ archive.file_path.url }}" class="max-h-[400px] object-contain rounded-xl mx-auto">
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="p-6 text-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-800/50 space-y-3">
+                        <i class="bi bi-file-earmark-x text-4xl text-amber-500 block"></i>
+                        <div>
+                            <h4 class="font-extrabold text-sm text-slate-900 dark:text-white mb-1">Berkas Digital Belum Diunggah</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">
+                                {% if can_manage %}
+                                Lampirkan file scan/PDF surat ini agar dapat dipratinjau langsung.
+                                {% else %}
+                                Dokumen ini belum dilampiri berkas scan/digital oleh petugas Front Office / Bidang IV.
+                                {% endif %}
+                            </p>
                         </div>
-                        <div class="col-6">
-                            <div class="p-2 rounded-3 bg-body-tertiary border d-flex justify-content-between align-items-center">
-                                <span class="small text-truncate me-1" style="font-size: 0.75rem;"><i class="bi bi-briefcase text-warning me-1"></i>SPPD</span>
-                                <span class="badge bg-warning text-dark rounded-pill px-2 font-mono" style="font-size: 0.7rem;">{{ sppd_list|length }}</span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-2 rounded-3 bg-body-tertiary border d-flex justify-content-between align-items-center">
-                                <span class="small text-truncate me-1" style="font-size: 0.75rem;"><i class="bi bi-calendar-event text-success me-1"></i>Agenda</span>
-                                <span class="badge bg-success rounded-pill px-2 font-mono" style="font-size: 0.7rem;">{{ archive.agendas.count }}</span>
-                            </div>
-                        </div>
+                        {% if can_manage %}
+                        <button type="button" @click="openUploadModal = true" class="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-2 transition-all">
+                            <i class="bi bi-cloud-upload-fill"></i> Unggah Berkas Sekarang
+                        </button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- KARTU 2: RINGKASAN ENTITAS TERHUBUNG -->
+            <div class="p-4 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-md space-y-3">
+                <h4 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 pb-2 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                    <i class="bi bi-layers-half text-emerald-500 text-base"></i> Ringkasan Entitas Terhubung
+                </h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                        <span class="text-xs text-slate-600 dark:text-slate-300 font-bold truncate flex items-center gap-1"><i class="bi bi-send-check text-sky-500"></i> Disposisi</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 font-mono">{{ archive.dispositions.count }}</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                        <span class="text-xs text-slate-600 dark:text-slate-300 font-bold truncate flex items-center gap-1"><i class="bi bi-file-earmark-text text-indigo-500"></i> Surat Tugas</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-mono">{{ surat_tugas_list|length }}</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                        <span class="text-xs text-slate-600 dark:text-slate-300 font-bold truncate flex items-center gap-1"><i class="bi bi-briefcase text-amber-500"></i> SPPD</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-300 font-mono">{{ sppd_list|length }}</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                        <span class="text-xs text-slate-600 dark:text-slate-300 font-bold truncate flex items-center gap-1"><i class="bi bi-calendar-event text-emerald-500"></i> Agenda</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-mono">{{ archive.agendas.count }}</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- PANEL KANAN (7 COLS): EXECUTIVE TABBED WORKFLOW HUB -->
-        <div class="col-lg-7 mb-4">
+        <div class="lg:col-span-7 space-y-4">
             <!-- NAV TABS FUTURISTIC HEADER -->
-            <div class="p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex flex-wrap gap-2 mb-4" id="archivePureTabNav">
-                <button type="button" class="archive-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-emerald-600 text-white shadow-sm" data-tab-target="tab-workflow-content" id="tab-workflow-btn">
-                    <i class="bi bi-diagram-3-fill text-xs text-amber-300"></i> 1. Workflow & Status
+            <div class="p-1.5 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-md inline-flex flex-wrap gap-2">
+                <button type="button" 
+                        @click="activeTab = 'workflow'"
+                        :class="activeTab === 'workflow' ? 'bg-emerald-600 text-white shadow-sm font-extrabold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                        class="px-4 py-2.5 text-xs rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2">
+                    <i class="bi bi-diagram-3-fill text-xs text-amber-300"></i> 1. Alur Log BPMN
                 </button>
-                <button type="button" class="archive-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-tab-target="tab-metadata-content" id="tab-metadata-btn">
+                <button type="button" 
+                        @click="activeTab = 'metadata'"
+                        :class="activeTab === 'metadata' ? 'bg-emerald-600 text-white shadow-sm font-extrabold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                        class="px-4 py-2.5 text-xs rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2">
                     <i class="bi bi-info-circle-fill text-xs text-emerald-400"></i> 2. Metadata Surat
                 </button>
-                <button type="button" class="archive-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-tab-target="tab-audit-content" id="tab-audit-btn">
-                    <i class="bi bi-clock-history text-xs text-sky-400"></i> 3. Activity System Log
+                <button type="button" 
+                        @click="activeTab = 'audit'"
+                        :class="activeTab === 'audit' ? 'bg-emerald-600 text-white shadow-sm font-extrabold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                        class="px-4 py-2.5 text-xs rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2">
+                    <i class="bi bi-clock-history text-xs text-sky-400"></i> 3. System Audit Log
                 </button>
             </div>
 
             <!-- TAB CONTENT PANES -->
-            <div class="tab-content" id="archiveDetailTabContent">
-                <!-- TAB 1: WORKFLOW & STATUS NODES -->
-                <div class="tab-pane fade show active" id="tab-workflow-content" role="tabpanel">
-                    <div class="card-enterprise p-4">
-                        <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+            <div class="tab-content">
+                <!-- TAB 1: WORKFLOW & STATUS NODES (ALUR LOG BPMN MINIMALIS) -->
+                <div x-show="activeTab === 'workflow'" class="tab-pane">
+                    <div class="p-5 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-md space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                             <div>
-                                <h5 class="fw-bold mb-0 text-emerald"><i class="bi bi-bezier2 me-2"></i>Jejak Kronologis Workflow Dokumen</h5>
-                                <p class="text-muted small mb-0">Disposisi pimpinan, surat tugas, SPPD, agenda, dan laporan penanganan.</p>
+                                <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                                    <i class="bi bi-bezier2 text-emerald-500 text-base"></i> Alur Log BPMN
+                                </h3>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-0">Riwayat alur keputusan berjenjang, verifikasi, disposisi 2-tahap, & penanganan.</p>
                             </div>
-                            <span class="badge-pill-enterprise badge-pill-success"><span class="pulse-dot"></span> Live Track</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono">Live BPMN Track</span>
                         </div>
 
-                        <div class="timeline-futuristic">
+                        <div class="relative pl-5 space-y-3.5 before:content-[''] before:absolute before:left-2 before:top-2.5 before:bottom-2.5 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
                             <!-- NODE 1: REGISTRASI ARSIP -->
-                            <div class="tm-item-node">
-                                <div class="tm-node-icon bg-primary text-white"><i class="bi bi-file-earmark-plus"></i></div>
-                                <div class="tm-node-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <strong class="text-primary small"><i class="bi bi-check-circle-fill me-1"></i>Tahap 1: Registrasi Arsip Baru</strong>
-                                        <span class="badge badge-node-verified rounded-pill font-mono px-2.5 py-1" style="font-size: 0.7rem;">Registered</span>
+                            <div class="relative pl-3">
+                                <div class="absolute -left-5 top-1 w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/50 space-y-1">
+                                    <div class="flex items-center justify-between flex-wrap gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <strong class="text-xs font-bold text-slate-900 dark:text-white"><i class="bi bi-file-earmark-plus text-emerald-500 me-1"></i>Tahap 1: Registrasi Arsip (Front Office)</strong>
+                                            <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">Registered</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-mono"><i class="bi bi-clock me-1"></i>{{ archive.created_at|date:"d M Y, H:i" }} WIB</span>
                                     </div>
-                                    <p class="mb-1 text-secondary small">Dokumen berhasil didaftarkan oleh <strong>{{ archive.uploaded_by.get_full_name|default:archive.uploaded_by.username|default:"Front Office" }}</strong>.</p>
-                                    <span class="text-muted font-mono" style="font-size: 0.7rem;"><i class="bi bi-clock me-1"></i>{{ archive.created_at|date:"d M Y, H:i" }} WIB</span>
+                                    <p class="text-[11px] text-slate-600 dark:text-slate-400 mb-0">Didaftarkan oleh: <strong>{{ archive.uploaded_by.get_full_name|default:archive.uploaded_by.username|default:"Front Office" }}</strong></p>
                                 </div>
                             </div>
 
                             <!-- NODE 2: VERIFIKASI KABID IV -->
                             {% if archive.archive_number or archive.status != 'baru' %}
-                            <div class="tm-item-node">
-                                <div class="tm-node-icon bg-success text-white"><i class="bi bi-patch-check-fill"></i></div>
-                                <div class="tm-node-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <strong class="text-emerald small"><i class="bi bi-check-circle-fill me-1"></i>Tahap 2: Verifikasi Dokumen & Nomor Resmi</strong>
-                                        <span class="badge badge-node-verified rounded-pill font-mono px-2.5 py-1" style="font-size: 0.7rem;">Verified</span>
+                            <div class="relative pl-3">
+                                <div class="absolute -left-5 top-1 w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/50 space-y-1">
+                                    <div class="flex items-center justify-between flex-wrap gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <strong class="text-xs font-bold text-slate-900 dark:text-white"><i class="bi bi-patch-check-fill text-emerald-500 me-1"></i>Tahap 2: Verifikasi & Penomoran (Kabid IV)</strong>
+                                            <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">Verified</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-mono"><i class="bi bi-clock me-1"></i>{{ archive.updated_at|date:"d M Y, H:i" }} WIB</span>
                                     </div>
-                                    <p class="mb-1 text-secondary small">Nomor Surat Resmi: <strong class="font-mono text-emerald">{{ archive.archive_number }}</strong></p>
-                                    <span class="text-muted font-mono" style="font-size: 0.7rem;"><i class="bi bi-clock me-1"></i>{{ archive.updated_at|date:"d M Y, H:i" }} WIB</span>
+                                    <p class="text-[11px] text-slate-600 dark:text-slate-400 mb-0">Nomor Resmi: <strong class="font-mono text-emerald-600 dark:text-emerald-400">{{ archive.archive_number }}</strong></p>
                                 </div>
                             </div>
                             {% endif %}
 
-                            <!-- NODE 3: DISPOSISI PIMPINAN -->
-                            {% if archive.dispositions.exists %}
-                            <div class="tm-item-node">
-                                <div class="tm-node-icon text-white" style="background-color: #6366F1 !important;"><i class="bi bi-send-fill"></i></div>
-                                <div class="tm-node-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <strong class="text-indigo small" style="color: #6366F1 !important;"><i class="bi bi-send-check-fill me-1"></i>Tahap 3: Disposisi Pimpinan ({{ archive.dispositions.count }} Disposisi)</strong>
-                                        <span class="badge badge-node-dispatched rounded-pill font-mono px-2.5 py-1" style="font-size: 0.7rem;">Dispatched</span>
+                            <!-- NODE 3 & 4: DISPOSISI 2-TAHAP (KETUA & WAKA IV) -->
+                            {% for dispo in archive.dispositions.all %}
+                            <!-- NODE 3: DISPOSISI TAHAP 1 (KETUA BAZNAS) -->
+                            <div class="relative pl-3">
+                                <div class="absolute -left-5 top-1 w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                                    <i class="bi bi-send-fill"></i>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/50 space-y-2">
+                                    <div class="flex items-center justify-between flex-wrap gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <strong class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                                                <i class="bi bi-1-circle-fill"></i> Disposisi Tahap 1 (Ketua BAZNAS)
+                                            </strong>
+                                            <span class="px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 font-mono">Dispatched T1</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-mono"><i class="bi bi-clock me-1"></i>{{ dispo.created_at|date:"d M Y, H:i" }} WIB</span>
                                     </div>
 
-                                    {% for dispo in archive.dispositions.all %}
-                                    <div class="p-3 mb-2 rounded-3 border bg-body-tertiary">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <strong class="text-emerald small"><i class="bi bi-person-badge me-1"></i>Disposisi dari: {{ dispo.sender.get_full_name|default:dispo.sender.username }}</strong>
-                                            <span class="text-muted small font-mono">{{ dispo.created_at|date:"d M Y, H:i" }}</span>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                        <div class="space-y-0.5">
+                                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pengirim & Penerima:</span>
+                                            <p class="text-[11px] text-slate-800 dark:text-slate-200 font-bold mb-1">
+                                                {{ dispo.sender_label|default:dispo.display_sender_name }}
+                                                <i class="bi bi-arrow-right text-slate-400 mx-1"></i>
+                                                {% for emp in dispo.forwarded_to.all %}
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 inline-block me-1">
+                                                        {{ emp.full_name }}
+                                                    </span>
+                                                {% empty %}
+                                                    <span class="text-slate-400 italic">—</span>
+                                                {% endfor %}
+                                            </p>
                                         </div>
-                                        <p class="mb-1 text-secondary small italic">"{{ dispo.note|default:'Tidak ada catatan khusus' }}"</p>
-                                        {% if dispo.forwarded_to.exists %}
-                                        <div class="d-flex align-items-center gap-1 flex-wrap mt-2 pt-2 border-top">
-                                            <span class="small text-muted me-1">Diteruskan Kepada:</span>
-                                            {% for emp in dispo.forwarded_to.all %}
-                                                <span class="badge badge-employee-tag me-1"><i class="bi bi-person-fill me-1"></i>{{ emp.full_name }}</span>
-                                            {% endfor %}
-                                        </div>
-                                        {% endif %}
-                                        <div class="mt-2 text-end">
-                                            <a href="{% url 'dispositions:detail' dispo.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-0.5 fw-bold" style="font-size: 0.78rem;">
-                                                <i class="bi bi-box-arrow-up-right me-1"></i>Buka Detail Disposisi
-                                            </a>
+
+                                        <div class="space-y-0.5">
+                                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Arahan Ketua:</span>
+                                            <p class="text-[11px] text-slate-700 dark:text-slate-300 italic mb-0 font-mono bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                "{{ dispo.note|default:'Tidak ada catatan khusus' }}"
+                                            </p>
                                         </div>
                                     </div>
-                                    {% endfor %}
+
+                                    <div class="pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10px]">
+                                        <span class="text-slate-400 font-mono">No. Disposisi: <strong>{{ dispo.disposition_number|default:"-" }}</strong></span>
+                                        <a href="{% url 'dispositions:detail' dispo.pk %}" class="text-indigo-600 dark:text-indigo-400 font-bold no-underline hover:underline inline-flex items-center gap-1">
+                                            Detail Disposisi <i class="bi bi-arrow-right"></i>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                            {% endif %}
 
-                            <!-- NODE 4: SURAT TUGAS TERBIT (ST) -->
-                            {% if surat_tugas_list %}
-                            <div class="tm-item-node">
-                                <div class="tm-node-icon bg-info text-white"><i class="bi bi-file-earmark-text-fill"></i></div>
-                                <div class="tm-node-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <strong class="text-info small"><i class="bi bi-file-earmark-text me-1"></i>Tahap 4: Surat Tugas Terbit ({{ surat_tugas_list|length }} ST)</strong>
-                                        <span class="badge badge-node-st rounded-pill font-mono px-2.5 py-1" style="font-size: 0.7rem;">ST Active</span>
-                                    </div>
-
-                                    {% for st in surat_tugas_list %}
-                                    <div class="p-3 mb-2 rounded-3 border bg-body-tertiary">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <strong class="font-mono text-emerald" style="font-size: 0.9rem;">📄 No. ST: {{ st.nomor_surat }}</strong>
-                                            <span class="text-muted small font-mono"><i class="bi bi-calendar3 me-1"></i>{{ st.tanggal_surat|date:"d M Y" }}</span>
-                                        </div>
-                                        <p class="mb-1 text-primary fw-semibold small">{{ st.maksud_penugasan|truncatechars:120 }}</p>
-                                        {% if st.pegawai_ditugaskan.exists %}
-                                        <div class="mb-2 text-secondary small">
-                                            <i class="bi bi-people-fill text-emerald me-1"></i><strong>Personel / Amil Ditugaskan:</strong> 
-                                            <div class="d-flex flex-wrap gap-1 mt-1">
-                                            {% for emp in st.pegawai_ditugaskan.all %}
-                                                <span class="badge badge-employee-tag me-1"><i class="bi bi-person-fill me-1"></i>{{ emp.full_name }}</span>
-                                            {% endfor %}
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                                            <span class="small text-muted"><i class="bi bi-geo-alt me-1"></i>Tujuan: {{ st.lokasi_tujuan|default:"-" }}</span>
-                                            <a href="{% url 'surat_tugas:detail' st.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-3 py-0.5 fw-bold" style="font-size: 0.78rem;">
-                                                <i class="bi bi-box-arrow-up-right me-1"></i>Detail Surat Tugas
-                                            </a>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
+                            <!-- NODE 4: DISPOSISI TAHAP 2 (WAKA IV / PELAKSANA BIDANG) -->
+                            {% if dispo.waka_forwarded_to.exists or dispo.disposition_stage == 'waka_iv' or dispo.status == 'proses' or dispo.status == 'selesai' %}
+                            <div class="relative pl-3">
+                                <div class="absolute -left-5 top-1 w-4 h-4 rounded-full bg-sky-600 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                                    <i class="bi bi-arrow-right"></i>
                                 </div>
-                            </div>
-                            {% endif %}
-
-                            <!-- NODE 5: SPPD PERJALANAN DINAS TERBIT -->
-                            {% if sppd_list %}
-                            <div class="tm-item-node">
-                                <div class="tm-node-icon bg-warning text-dark"><i class="bi bi-briefcase-fill"></i></div>
-                                <div class="tm-node-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <strong class="text-warning-emphasis small"><i class="bi bi-briefcase me-1"></i>Tahap 5: SPPD Perjalanan Dinas Terbit ({{ sppd_list|length }} SPPD)</strong>
-                                        <span class="badge badge-node-sppd rounded-pill font-mono px-2.5 py-1" style="font-size: 0.7rem;">SPPD Issued</span>
+                                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/50 space-y-2">
+                                    <div class="flex items-center justify-between flex-wrap gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <strong class="text-xs font-extrabold text-sky-600 dark:text-sky-400 flex items-center gap-1">
+                                                <i class="bi bi-2-circle-fill"></i> Disposisi Tahap 2 (Waka IV → Pelaksana / Bidang II)
+                                            </strong>
+                                            <span class="px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/20 font-mono">Dispatched T2</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-mono"><i class="bi bi-clock me-1"></i>{{ dispo.updated_at|date:"d M Y, H:i" }} WIB</span>
                                     </div>
 
-                                    {% for sppd in sppd_list %}
-                                    <div class="p-3 mb-2 rounded-3 border bg-body-tertiary">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <strong class="font-mono text-warning-emphasis" style="font-size: 0.9rem;">💼 No. SPPD: {{ sppd.sppd_number }}</strong>
-                                            <span class="text-muted small font-mono"><i class="bi bi-calendar-event me-1"></i>{{ sppd.departure_date|date:"d M Y" }} - {{ sppd.return_date|date:"d M Y" }}</span>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                        <div class="space-y-0.5">
+                                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pengirim & Pelaksana Ditugaskan:</span>
+                                            <p class="text-[11px] text-slate-800 dark:text-slate-200 font-bold mb-1">
+                                                Waka IV
+                                                <i class="bi bi-arrow-right text-slate-400 mx-1"></i>
+                                                {% for emp in dispo.waka_forwarded_to.all %}
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 inline-block me-1">
+                                                        {{ emp.full_name }}
+                                                    </span>
+                                                {% empty %}
+                                                    <span class="text-slate-400 italic">—</span>
+                                                {% endfor %}
+                                            </p>
                                         </div>
-                                        <p class="mb-1 text-primary fw-semibold small"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Lokasi Perjalanan: {{ sppd.destination }}</p>
-                                        <p class="mb-2 text-secondary small">Maksud Perjalanan: {{ sppd.purpose|truncatechars:120 }}</p>
-                                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                                            <span class="small text-muted"><i class="bi bi-person-badge me-1"></i>Pembuat SPPD: {{ sppd.created_by.get_full_name|default:sppd.created_by.username }}</span>
-                                            <a href="{% url 'sppd_service:detail' sppd.pk %}" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 py-0.5 fw-bold" style="font-size: 0.78rem;">
-                                                <i class="bi bi-box-arrow-up-right me-1"></i>Detail SPPD
-                                            </a>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
 
-                            <!-- NODE 6: AGENDA TERJADWAL -->
-                            {% if archive.agendas.exists %}
-                            <div class="tm-item-node">
-                                <div class="tm-node-icon bg-success text-white"><i class="bi bi-calendar-check-fill"></i></div>
-                                <div class="tm-node-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <strong class="text-emerald small"><i class="bi bi-calendar-event me-1"></i>Tahap 6: Agenda / Kerjasama Terjadwal ({{ archive.agendas.count }} Agenda)</strong>
-                                        <span class="badge badge-node-scheduled rounded-pill font-mono px-2.5 py-1" style="font-size: 0.7rem;">Scheduled</span>
-                                    </div>
-
-                                    {% for ag in archive.agendas.all %}
-                                    <div class="p-3 mb-2 rounded-3 border bg-body-tertiary">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <strong class="text-emerald small">{{ ag.title }}</strong>
-                                            <span class="text-muted small font-mono"><i class="bi bi-clock me-1"></i>{{ ag.event_date|date:"d M Y, H:i" }}</span>
-                                        </div>
-                                        <p class="mb-1 text-secondary small"><i class="bi bi-geo-alt me-1"></i>Lokasi: {{ ag.location|default:"-" }}</p>
-                                        <div class="mt-2 text-end">
-                                            <a href="{% url 'agendas:list' %}?q={{ ag.title|urlencode }}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-0.5 fw-bold" style="font-size: 0.78rem;">
-                                                <i class="bi bi-calendar-event me-1"></i>Lihat di Kalender
-                                            </a>
+                                        <div class="space-y-0.5">
+                                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Arahan Waka IV:</span>
+                                            <p class="text-[11px] text-slate-700 dark:text-slate-300 italic mb-0 font-mono bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
+                                                "{{ dispo.waka_note|default:'Tidak ada catatan khusus Waka IV' }}"
+                                            </p>
                                         </div>
                                     </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
 
-                            <!-- NODE 7: LAPORAN HASIL PENANGANAN (LHP) -->
-                            {% if latest_report %}
-                            <div class="tm-item-node">
-                                <div class="tm-node-icon text-white" style="background-color: #8B5CF6 !important;"><i class="bi bi-file-earmark-check-fill"></i></div>
-                                <div class="tm-node-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <strong class="text-purple small" style="color: #8B5CF6 !important;"><i class="bi bi-file-earmark-check me-1"></i>Tahap 7: Laporan Hasil Penanganan (LHP)</strong>
-                                        <span class="badge badge-node-lhp rounded-pill font-mono px-2.5 py-1" style="font-size: 0.7rem;">LHP Published</span>
-                                    </div>
-                                    <div class="p-3 my-2 rounded-3 border bg-body-tertiary">
-                                        <strong class="font-mono text-emerald d-block mb-1" style="font-size: 0.9rem;">📄 No. LHP: {{ latest_report.report_number }}</strong>
-                                        <span class="text-muted small font-mono d-block mb-2"><i class="bi bi-clock me-1"></i>{{ latest_report.created_at|date:"d M Y, H:i" }} WIB</span>
-                                        {% if latest_report.notes %}
-                                        <p class="mb-2 text-secondary small italic">"{{ latest_report.notes|truncatechars:140 }}"</p>
-                                        {% endif %}
-                                        <a href="{% url 'reports:detail' latest_report.pk %}" class="btn btn-sm btn-emerald rounded-pill px-3 py-0.5 fw-bold" style="font-size: 0.78rem;">
-                                            <i class="bi bi-box-arrow-up-right me-1"></i>Buka Detail LHP
+                                    <div class="pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10px]">
+                                        <span class="text-slate-400 font-mono">Status Penanganan: <strong class="text-purple-600 dark:text-purple-400 uppercase font-bold">{{ dispo.get_status_display }}</strong></span>
+                                        <a href="{% url 'dispositions:detail' dispo.pk %}" class="text-sky-600 dark:text-sky-400 font-bold no-underline hover:underline inline-flex items-center gap-1">
+                                            Detail Disposisi <i class="bi bi-arrow-right"></i>
                                         </a>
                                     </div>
                                 </div>
                             </div>
                             {% endif %}
+                            {% endfor %}
 
-                            <!-- NODE 8: TAHAP SELESAI / DISALURKAN -->
-                            {% if archive.status == 'selesai' or archive.status == 'telah_disalurkan' or latest_report %}
-                            <div class="tm-item-node">
-                                <div class="tm-node-icon bg-success text-white"><i class="bi bi-check-all"></i></div>
-                                <div class="tm-node-card" style="background-color: rgba(16, 185, 129, 0.08) !important; border: 1.5px solid var(--color-emerald-500) !important;">
-                                    <h6 class="mb-1 fw-bold text-emerald"><i class="bi bi-check-circle-fill me-1"></i> Dokumen Selesai Ditindaklanjuti</h6>
-                                    <p class="mb-0 text-secondary small">Seluruh alur kerja disposisi, penugasan amil, survei, SPPD, & pelaporan LHP telah tuntas 100%.</p>
-                                    <span class="text-muted font-mono small d-block mt-2"><i class="bi bi-clock-history me-1"></i>{{ archive.updated_at|date:"d M Y, H:i" }} WIB</span>
+                            <!-- NODE 5: PENERBITAN SURAT TUGAS (GABUNG DALAM 1 KOTAK COMPACT) -->
+                            {% if surat_tugas_list %}
+                            <div class="relative pl-3">
+                                <div class="absolute -left-5 top-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[9px] font-bold shadow-xs">
+                                    <i class="bi bi-file-earmark-person-fill"></i>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/50 space-y-3">
+                                    <div class="flex items-center justify-between flex-wrap gap-1 border-b border-slate-200/80 dark:border-slate-700/60 pb-2">
+                                        <div class="flex items-center gap-2">
+                                            <strong class="text-xs font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                                <i class="bi bi-file-earmark-person-fill"></i> Tahap 5: Penerbitan Surat Tugas (ST)
+                                            </strong>
+                                            <span class="px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-mono">
+                                                {{ surat_tugas_list|length }} ST Terbit
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-3 divide-y divide-slate-200/60 dark:divide-slate-700/60">
+                                        {% for st in surat_tugas_list %}
+                                        <div class="{% if not forloop.first %}pt-2.5{% endif %} space-y-1.5 text-xs">
+                                            <div class="flex items-center justify-between flex-wrap gap-1">
+                                                <span class="text-[11px] font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
+                                                    No. Surat: {{ st.nomor_surat|default:"(ST Auto-generated)" }}
+                                                </span>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[10px] text-slate-500 dark:text-slate-400">
+                                                        <i class="bi bi-geo-alt me-0.5 text-amber-500"></i>{{ st.lokasi_tujuan }}
+                                                    </span>
+                                                    <a href="{% url 'surat_tugas:detail' st.pk %}" class="text-[10px] text-amber-600 dark:text-amber-400 font-bold no-underline hover:underline inline-flex items-center gap-0.5">
+                                                        Detail ST <i class="bi bi-arrow-right"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <p class="text-[11px] text-slate-700 dark:text-slate-300 italic mb-0">
+                                                "{{ st.tentang }}"
+                                            </p>
+                                            <div class="flex items-center justify-between flex-wrap gap-1 pt-0.5">
+                                                <div class="flex items-center gap-1 flex-wrap">
+                                                    <span class="text-[9px] font-bold text-slate-400">Tim:</span>
+                                                    {% for pegawai in st.pegawai_ditugaskan.all %}
+                                                        <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20">
+                                                            {{ pegawai.full_name }}
+                                                        </span>
+                                                    {% empty %}
+                                                        <span class="text-slate-400 text-[9px] italic">Semua Amil</span>
+                                                    {% endfor %}
+                                                </div>
+                                                <span class="text-[9px] text-slate-400 font-mono"><i class="bi bi-clock me-0.5"></i>{{ st.created_at|date:"d/m/Y H:i" }}</span>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </div>
+                            {% endif %}
+
+                            <!-- NODE 6: SPPD PERJALANAN DINAS (GABUNG DALAM 1 KOTAK COMPACT) -->
+                            {% if sppd_list %}
+                            <div class="relative pl-3">
+                                <div class="absolute -left-5 top-1 w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                                    <i class="bi bi-car-front-fill"></i>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/50 space-y-3">
+                                    <div class="flex items-center justify-between flex-wrap gap-1 border-b border-slate-200/80 dark:border-slate-700/60 pb-2">
+                                        <div class="flex items-center gap-2">
+                                            <strong class="text-xs font-extrabold text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                                                <i class="bi bi-car-front-fill"></i> Tahap 6: SPPD Perjalanan Dinas / Survei
+                                            </strong>
+                                            <span class="px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 font-mono">
+                                                {{ sppd_list|length }} SPPD Diterbitkan
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-3 divide-y divide-slate-200/60 dark:divide-slate-700/60">
+                                        {% for sppd_item in sppd_list %}
+                                        <div class="{% if not forloop.first %}pt-2.5{% endif %} space-y-1.5 text-xs">
+                                            <div class="flex items-center justify-between flex-wrap gap-1">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-extrabold text-purple-700 dark:text-purple-300 font-mono">
+                                                        No. SPPD: {{ sppd_item.sppd_number }}
+                                                    </span>
+                                                    {% if sppd_item.status == 'selesai' %}
+                                                    <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono">SELESAI</span>
+                                                    {% else %}
+                                                    <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 font-mono">DALAM PELAKSANAAN</span>
+                                                    {% endif %}
+                                                </div>
+                                                <a href="{% url 'sppd_service:detail' sppd_item.pk %}" class="text-[10px] text-purple-600 dark:text-purple-400 font-bold no-underline hover:underline inline-flex items-center gap-0.5">
+                                                    Detail SPPD <i class="bi bi-arrow-right"></i>
+                                                </a>
+                                            </div>
+                                            <p class="text-[11px] text-slate-700 dark:text-slate-300 font-medium mb-0">
+                                                Maksud: {{ sppd_item.purpose }}
+                                            </p>
+                                            <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-0.5">
+                                                <span><i class="bi bi-geo-alt me-0.5 text-purple-500"></i>Tujuan: <strong>{{ sppd_item.destination }}</strong></span>
+                                                <span class="font-mono"><i class="bi bi-calendar-check me-0.5"></i>{{ sppd_item.departure_date|date:"d/m/Y" }}</span>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- NODE PENOLAKAN: JIKA DOKUMEN DITOLAK -->
+                            {% if archive.status == 'ditolak' %}
+                            <div class="relative pl-3">
+                                <div class="absolute -left-5 top-1 w-4 h-4 rounded-full bg-rose-600 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                                    <i class="bi bi-x-lg"></i>
+                                </div>
+                                <div class="p-3 rounded-xl bg-rose-500/10 dark:bg-rose-500/15 border border-rose-500/30 space-y-2">
+                                    <div class="flex items-center justify-between flex-wrap gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <strong class="text-xs font-black text-rose-700 dark:text-rose-300 flex items-center gap-1">
+                                                <i class="bi bi-x-octagon-fill"></i> Keputusan: Permohonan Bantuan Ditolak / Dikembalikan
+                                            </strong>
+                                            <span class="px-2 py-0.2 rounded-full text-[9px] font-black bg-rose-600 text-white font-mono">REJECTED</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono"><i class="bi bi-clock me-1"></i>{{ archive.updated_at|date:"d M Y, H:i" }} WIB</span>
+                                    </div>
+
+                                    <div class="text-xs space-y-1">
+                                        <span class="block text-[10px] font-bold text-rose-800 dark:text-rose-300 uppercase tracking-wider">Alasan Penolakan:</span>
+                                        <p class="text-[11px] text-rose-700 dark:text-rose-300 italic mb-0 bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg border border-rose-200 dark:border-rose-800/60 font-mono">
+                                            "{{ archive.rejection_note|default:'Tidak memenuhi kriteria / persyaratan.' }}"
+                                        </p>
+                                        <span class="block text-[10px] text-slate-500 dark:text-slate-400 italic">
+                                            * Seluruh alur proses penerbitan Surat Tugas dan SPPD untuk dokumen ini telah dihentikan secara permanen.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- NODE 7: LAPORAN HASIL PELAKSANAAN (LHP) & DOKUMEN SELESAI -->
+                            {% if archive.status == 'selesai' or archive.status == 'telah_disalurkan' %}
+                            {% if latest_report and latest_report.report_number %}
+                            <div class="relative pl-3">
+                                <div class="absolute -left-5 top-1 w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                                    <i class="bi bi-check-all"></i>
+                                </div>
+                                <div class="p-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 space-y-2">
+                                    <div class="flex items-center justify-between flex-wrap gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <strong class="text-xs font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                                                <i class="bi bi-check-circle-fill"></i> Tahap Akhir: Laporan Hasil Pelaksanaan (LHP) & Penyerahan
+                                            </strong>
+                                            <span class="px-2 py-0.2 rounded-full text-[9px] font-black bg-emerald-600 text-white font-mono">COMPLETED</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono"><i class="bi bi-clock me-1"></i>{{ archive.updated_at|date:"d M Y, H:i" }} WIB</span>
+                                    </div>
+
+                                    <div class="text-xs space-y-1">
+                                        {% if latest_report.amount_disbursed > 0 %}
+                                        <span class="block text-[11px] font-black text-emerald-700 dark:text-emerald-300 font-mono">
+                                            Nominal Disetujui: Rp {{ latest_report.amount_disbursed|floatformat:0 }}
+                                        </span>
+                                        {% endif %}
+                                        <p class="text-[11px] text-slate-700 dark:text-slate-300 italic mb-0">
+                                            "{{ latest_report.content|default:'Dokumen telah ditindaklanjuti dan diselesaikan sesuai alur kerja resmi SIMAP BAZNAS.' }}"
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                             {% endif %}
                         </div>
                     </div>
                 </div>
 
                 <!-- TAB 2: METADATA SURAT -->
-                <div class="tab-pane fade" id="tab-metadata-content" role="tabpanel">
-                    <div class="card-enterprise p-4">
-                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                            <h5 class="fw-bold mb-0 text-emerald"><i class="bi bi-info-circle me-2"></i>Rincian Metadata Dokumen</h5>
-                            <a href="{% url 'archives:edit' archive.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold"><i class="bi bi-pencil me-1"></i> Edit Metadata</a>
+                <div x-show="activeTab === 'metadata'" x-cloak class="tab-pane">
+                    <div class="p-5 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-md space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                            <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                                <i class="bi bi-info-circle text-emerald-500 text-lg"></i> Rincian Metadata Dokumen
+                            </h3>
+                            <a href="{% url 'archives:edit' archive.pk %}" class="px-3 py-1 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs no-underline hover:bg-slate-100 dark:hover:bg-slate-800"><i class="bi bi-pencil me-1"></i> Edit Metadata</a>
                         </div>
                         
-                        <div class="row mb-3">
-                            <div class="col-sm-4 text-muted small text-uppercase fw-bold">Jenis Dokumen</div>
-                            <div class="col-sm-8 fw-bold text-emerald-700">{{ archive.get_archive_type_display }}</div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-sm-4 text-muted small text-uppercase fw-bold">Tanggal Surat</div>
-                            <div class="col-sm-8 fw-bold">{{ archive.letter_date|date:"d F Y"|default:"-" }}</div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-sm-4 text-muted small text-uppercase fw-bold">Pengirim / Instansi</div>
-                            <div class="col-sm-8 fw-bold">{{ archive.sender_receiver|default:"-" }}</div>
-                        </div>
-                        {% if archive.address %}
-                        <div class="row mb-3">
-                            <div class="col-sm-4 text-danger small text-uppercase fw-bold"><i class="bi bi-geo-alt-fill me-1"></i>Alamat Lengkap</div>
-                            <div class="col-sm-8 fw-bold">{{ archive.address }}</div>
-                        </div>
-                        {% endif %}
-                        <div class="row mb-3">
-                            <div class="col-sm-4 text-muted small text-uppercase fw-bold">Kategori Bidang</div>
-                            <div class="col-sm-8"><span class="badge bg-emerald-subtle text-emerald border border-emerald-subtle rounded-pill px-3 fw-bold">{{ archive.category.name }}</span></div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-sm-4 text-muted small text-uppercase fw-bold">Perihal / Judul</div>
-                            <div class="col-sm-8 fw-bold">{{ archive.title }}</div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-sm-4 text-muted small text-uppercase fw-bold">Status Keamanan & Urgensi</div>
-                            <div class="col-sm-8">
-                                <span class="badge bg-secondary bg-opacity-25 text-dark rounded-pill px-3 py-1 me-1">{{ archive.get_security_level_display }}</span>
-                                <span class="badge bg-warning bg-opacity-25 text-dark rounded-pill px-3 py-1">{{ archive.get_urgency_level_display }}</span>
+                        <div class="space-y-3 text-xs">
+                            <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span class="text-slate-400 font-bold uppercase">Jenis Dokumen</span>
+                                <strong class="text-emerald-600 dark:text-emerald-400">{{ archive.get_archive_type_display }}</strong>
                             </div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-sm-4 text-muted small text-uppercase fw-bold">Sinopsis / Keterangan</div>
-                            <div class="col-sm-8 text-secondary small">{{ archive.description|default:"- Tidak ada catatan sinopsis tambahan -" }}</div>
+                            <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span class="text-slate-400 font-bold uppercase">Tanggal Surat</span>
+                                <strong class="text-slate-900 dark:text-white font-mono">{{ archive.letter_date|date:"d F Y"|default:"-" }}</strong>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span class="text-slate-400 font-bold uppercase">Pengirim / Instansi</span>
+                                <strong class="text-slate-900 dark:text-white">{{ archive.sender_receiver|default:"-" }}</strong>
+                            </div>
+                            {% if archive.address %}
+                            <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span class="text-rose-500 font-bold uppercase"><i class="bi bi-geo-alt-fill me-1"></i>Alamat Lengkap</span>
+                                <strong class="text-slate-900 dark:text-white max-w-xs text-end">{{ archive.address }}</strong>
+                            </div>
+                            {% endif %}
+                            <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span class="text-slate-400 font-bold uppercase">Kategori Bidang</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">{{ archive.category.name }}</span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span class="text-slate-400 font-bold uppercase">Perihal / Judul</span>
+                                <strong class="text-slate-900 dark:text-white max-w-xs text-end">{{ archive.title }}</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- TAB 3: ACTIVITY SYSTEM AUDIT LOG -->
-                <div class="tab-pane fade" id="tab-audit-content" role="tabpanel">
-                    <div class="card-enterprise p-4">
-                        <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                <div x-show="activeTab === 'audit'" x-cloak class="tab-pane">
+                    <div class="p-5 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-md space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                             <div>
-                                <h5 class="fw-bold mb-0 text-emerald"><i class="bi bi-clock-history me-2 text-warning"></i>Activity System Log (BPMN)</h5>
-                                <p class="text-muted small mb-0">Catatan aktivitas pengguna, IP address, dan timestamp perubahan sistem.</p>
+                                <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                                    <i class="bi bi-clock-history text-amber-400 text-lg"></i> System Audit Log
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">Catatan aktivitas pengguna, IP address, dan timestamp perubahan sistem.</p>
                             </div>
-                            <span class="badge-pill-enterprise badge-pill-success"><span class="pulse-dot"></span> Live System Audit</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono">Live Audit</span>
                         </div>
 
-                        <div class="activity-timeline">
+                        <div class="space-y-3">
                             {% for item in timeline_items %}
-                            <div class="timeline-item-futuristic">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="badge {{ item.badge_class|default:'badge-actor-primary' }} text-white rounded-pill px-2.5 py-0.5" style="font-size: 0.68rem;">
+                            <div class="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1 text-xs">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono">
                                             {{ item.actor }}
                                         </span>
-                                        <strong class="text-dark small">{{ item.action }}</strong>
+                                        <strong class="text-slate-900 dark:text-white">{{ item.action }}</strong>
                                     </div>
-                                    <span class="text-muted font-mono" style="font-size: 0.7rem;">
-                                        <i class="bi bi-clock me-1"></i>{{ item.timestamp|date:"d M Y, H:i" }} WIB
-                                    </span>
+                                    <span class="text-[10px] text-slate-400 font-mono"><i class="bi bi-clock me-1"></i>{{ item.timestamp|date:"d M Y, H:i" }} WIB</span>
                                 </div>
                                 {% if item.note %}
-                                <p class="mb-0 text-secondary small bg-body-tertiary p-2 rounded-3 border mt-1 font-mono" style="font-size: 0.78rem;">
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-0 font-mono bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800 mt-1">
                                     {{ item.note }}
                                 </p>
                                 {% endif %}
                             </div>
                             {% empty %}
-                            <div class="text-center py-4 text-muted">
-                                <i class="bi bi-clock-history fs-3 d-block text-secondary opacity-50 mb-2"></i>
-                                <p class="small mb-0">Belum ada log aktivitas sistem yang terekam.</p>
+                            <div class="text-center py-6 text-slate-400">
+                                <i class="bi bi-clock-history text-3xl block opacity-50 mb-2"></i>
+                                <p class="text-xs mb-0">Belum ada log aktivitas sistem yang terekam.</p>
                             </div>
                             {% endfor %}
                         </div>
@@ -643,189 +746,63 @@
     </div>
 </div>
 
-<!-- MODAL VERIFIKASI DOKUMEN -->
-{% if archive.status == 'baru' %}
-<div class="modal fade" id="verifyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content card-enterprise border-0">
-            <div class="modal-header border-bottom">
-                <h5 class="modal-header-title fw-bold text-emerald mb-0"><i class="bi bi-patch-check-fill me-2 text-success"></i>Verifikasi Dokumen oleh Kabid IV</h5>
-                <button type="button" class="btn-close" onclick="closeArchiveModal()" aria-label="Close"></button>
-            </div>
-            <form method="post" action="{% url 'archives:verify' archive.pk %}">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <p class="text-secondary small mb-3">Proses verifikasi akan menerbitkan nomor arsip resmi dan meneruskan dokumen ke alur disposisi pimpinan.</p>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Nomor Arsip / Surat Resmi <span class="text-danger">*</span></label>
-                        <input type="text" name="archive_number" class="form-control font-mono" value="{{ default_archive_number }}" required>
-                    </div>
-                </div>
-                <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closeArchiveModal()">Batal</button>
-                    <button type="submit" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
-                        <i class="bi bi-check-circle-fill me-1"></i> Verifikasi Sekarang
-                    </button>
-                </div>
-            </form>
+{% if can_manage %}
+<!-- MODAL VERIFIKASI KABID IV -->
+<div x-show="openVerifyModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70">
+    <div class="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4" @click.away="openVerifyModal = false">
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                <i class="bi bi-patch-check-fill text-emerald-500 text-lg"></i> Verifikasi Dokumen Arsip
+            </h3>
+            <button type="button" @click="openVerifyModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-0 bg-transparent cursor-pointer">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
+        <form method="post" action="{% url 'archives:verify' archive.pk %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Catatan Verifikasi Kabid IV (Opsional):</label>
+                <textarea name="verification_note" rows="3" class="w-full p-3 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Tambahkan catatan verifikasi jika ada..."></textarea>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" @click="openVerifyModal = false" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 border-0 cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-1.5">
+                    <i class="bi bi-check-circle-fill"></i> Verifikasi Sekarang
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL UPLOAD BERKAS DIGITAL -->
+<div x-show="openUploadModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70">
+    <div class="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4" @click.away="openUploadModal = false">
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                <i class="bi bi-cloud-upload-fill text-emerald-500 text-lg"></i> Upload Berkas Digital
+            </h3>
+            <button type="button" @click="openUploadModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-0 bg-transparent cursor-pointer">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'archives:detail' archive.pk %}" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Pilih File Berkas (PDF / Gambar Scan):</label>
+                <input type="file" name="file_path" accept=".pdf,image/*" required class="w-full p-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none">
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" @click="openUploadModal = false" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 border-0 cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-1.5">
+                    <i class="bi bi-upload"></i> Unggah Berkas
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endif %}
-
-<!-- MODAL UPLOAD / GANTI BERKAS DIGITAL -->
-<div class="modal fade" id="uploadFileModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content card-enterprise border-0">
-            <div class="modal-header border-bottom">
-                <h5 class="modal-header-title fw-bold text-emerald mb-0"><i class="bi bi-cloud-upload-fill me-2 text-primary"></i>Unggah / Ganti Berkas Digital Dokumen</h5>
-                <button type="button" class="btn-close" onclick="closeArchiveModal()" aria-label="Close"></button>
-            </div>
-            <form method="post" action="{% url 'archives:edit' archive.pk %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <input type="hidden" name="archive_type" value="{{ archive.archive_type }}">
-                    <input type="hidden" name="letter_date" value="{{ archive.letter_date|date:'Y-m-d' }}">
-                    <input type="hidden" name="sender_receiver" value="{{ archive.sender_receiver }}">
-                    <input type="hidden" name="address" value="{{ archive.address|default:'' }}">
-                    <input type="hidden" name="title" value="{{ archive.title }}">
-                    <input type="hidden" name="category" value="{{ archive.category.id }}">
-                    <input type="hidden" name="description" value="{{ archive.description|default:'' }}">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Pilih Berkas (PDF / Gambar) <span class="text-danger">*</span></label>
-                        <div class="px-3 py-3 text-center dropzone-box position-relative d-flex align-items-center justify-content-center gap-2"
-                            id="modal_dropzone_box" style="height: 54px; transition: all 0.25s ease;">
-                            <i class="bi bi-cloud-arrow-up text-emerald fs-4 dropzone-icon"></i>
-                            <span class="small text-secondary fw-semibold dropzone-text">Pilih atau Tarik Berkas ke sini</span>
-                            <input type="file"
-                                class="form-control opacity-0 position-absolute top-0 start-0 w-100 h-100"
-                                name="file_path" accept=".pdf,.png,.jpg,.jpeg" required style="cursor: pointer;"
-                                onchange="updateModalDropzone(this)">
-                        </div>
-                        <div class="form-text text-muted small mt-1">Format didukung: PDF, PNG, JPG, JPEG (Maksimal 15MB).</div>
-                    </div>
-                </div>
-                <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closeArchiveModal()">Batal</button>
-                    <button type="submit" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
-                        <i class="bi bi-cloud-arrow-up-fill me-1"></i> Simpan Berkas
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-{% if request.GET.uploaded == '1' or request.GET.uploaded == 'true' %}
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        Swal.fire({
-            title: '<div class="d-flex align-items-center justify-content-center gap-2 text-emerald fw-bold font-mono fs-4"><i class="bi bi-check-circle-fill fs-3 text-success"></i> Dokumen Berhasil Diunggah!</div>',
-            html: `
-                <div class="text-start p-2">
-                    <div class="bg-body-tertiary p-3 rounded-4 mb-3 border">
-                        <small class="text-uppercase text-secondary extra-small fw-bold d-block mb-1">Nomor Arsip / Agenda FO</small>
-                        <span class="fw-bold text-emerald font-mono d-block fs-6 mb-2">{{ archive.archive_number|default:"DRAFT" }}</span>
-                        <small class="text-uppercase text-secondary extra-small fw-bold d-block mb-1">Perihal Dokumen / Surat</small>
-                        <span class="fw-bold text-dark d-block fs-6">{{ archive.title }}</span>
-                    </div>
-                    <p class="text-secondary small mb-0">
-                        Dokumen telah tersimpan resmi di sistem SIMAP BAZNAS. Apakah Anda ingin langsung mencetak <strong>Lembar Disposisi Blank (Kosong)</strong> untuk melengkapi berkas fisik ke meja pimpinan?
-                    </p>
-                </div>
-            `,
-            icon: 'success',
-            showCancelButton: true,
-            confirmButtonColor: '#10B981',
-            cancelButtonColor: '#475569',
-            confirmButtonText: '<i class="bi bi-printer-fill me-1.5"></i> 🖨️ Cetak Disposisi Blank',
-            cancelButtonText: '<i class="bi bi-eye-fill me-1.5"></i> Tutup &amp; Lihat Detail',
-            customClass: {
-                popup: 'rounded-4 shadow-lg border-0',
-                confirmButton: 'rounded-pill px-4 py-2.5 fw-bold shadow-sm',
-                cancelButton: 'rounded-pill px-4 py-2.5 fw-bold'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.open("{% url 'dispositions:print' %}?blank=1&archive_id={{ archive.pk }}", "_blank");
-            }
-        });
-    });
-</script>
-{% endif %}
-<script>
-    function updateModalDropzone(input) {
-        const box = document.getElementById('modal_dropzone_box');
-        if (!box) return;
-        const icon = box.querySelector('.dropzone-icon');
-        const text = box.querySelector('.dropzone-text');
-
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
-            box.classList.add('has-file');
-            if (icon) icon.className = 'bi bi-check-circle-fill text-success fs-4 me-1 dropzone-icon';
-            if (text) {
-                text.className = 'small fw-bold text-success dropzone-text text-truncate';
-                text.innerHTML = `<i class="bi bi-file-earmark-pdf-fill me-1"></i> Terpilih: <strong>${file.name}</strong> (${sizeMb} MB)`;
-            }
-        } else {
-            box.classList.remove('has-file');
-            if (icon) icon.className = 'bi bi-cloud-arrow-up text-emerald fs-4 dropzone-icon';
-            if (text) {
-                text.className = 'small text-secondary fw-semibold dropzone-text';
-                text.textContent = 'Pilih atau Tarik Berkas ke sini';
-            }
-        }
-    }
-
-    function openArchiveModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('show', 'd-block');
-        }
-    }
-
-    function closeArchiveModal() {
-        document.querySelectorAll('.modal').forEach(m => {
-            m.classList.add('hidden');
-            m.classList.remove('show', 'd-block');
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const archiveTabButtons = document.querySelectorAll('#archivePureTabNav button');
-        const archiveTabPanes = document.querySelectorAll('#archiveDetailTabContent .tab-pane');
-
-        archiveTabButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('data-tab-target');
-
-                archiveTabButtons.forEach(b => {
-                    b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
-                    b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
-                });
-
-                this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
-                this.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
-
-                archiveTabPanes.forEach(pane => {
-                    pane.classList.remove('active', 'show');
-                    pane.classList.add('hidden');
-                });
-
-                const targetPane = document.getElementById(targetId);
-                if (targetPane) {
-                    targetPane.classList.add('active', 'show');
-                    targetPane.classList.remove('hidden');
-                }
-            });
-        });
-    });
-</script>
 {% endblock %}

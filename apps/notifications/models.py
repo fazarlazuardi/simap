@@ -16,7 +16,9 @@ class WANotificationSetting(models.Model):
         ('bantuan_penyaluran', 'LHP Penyaluran Direct (Bidang II)'),
         ('sppd', 'SPPD & Perjalanan Dinas'),
         ('internal_meeting', 'Risalah & Notulensi Rapat Internal'),
+        ('agenda', 'Agenda Kerja & Pengingat'),
         ('archive', 'Notifikasi Arsip & Dokumen Baru'),
+        ('general', 'Umum / System Default'),
     ]
 
     category = models.CharField(
@@ -50,9 +52,22 @@ class WANotificationSetting(models.Model):
     @classmethod
     def get_mode_for_category(cls, category_name):
         """Helper untuk mengambil mode pengiriman ('auto', 'manual', 'disabled') per kategori."""
-        setting = cls.objects.filter(category=category_name).first()
+        cat = category_name or 'general'
+        setting = cls.objects.filter(category=cat).first()
         if setting:
             return setting.dispatch_mode
+        
+        # Jika kategori spesifik tidak ditemukan di DB:
+        # Pengecekan master: Jika SEMUA kategori yang terdaftar dalam DB diset 'disabled', kembalikan 'disabled'!
+        total_count = cls.objects.count()
+        disabled_count = cls.objects.filter(dispatch_mode='disabled').count()
+        if total_count > 0 and disabled_count == total_count:
+            return 'disabled'
+
+        gen_setting = cls.objects.filter(category='general').first()
+        if gen_setting:
+            return gen_setting.dispatch_mode
+
         return 'auto'
 
 

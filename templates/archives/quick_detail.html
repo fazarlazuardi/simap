@@ -1,87 +1,132 @@
-<!-- Quick Detail Drawer Content Snippet -->
-<div class="quick-detail-drawer-content">
+<!-- Quick Detail Drawer Content Snippet (100% Tailwind CSS + Alpine.js) -->
+<div class="space-y-5 p-1 text-slate-900 dark:text-slate-100">
     <!-- Header Badge Info -->
-    <div class="p-3 mb-4 rounded-3 border bg-body-tertiary d-flex align-items-center justify-content-between">
+    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 shadow-xs">
         <div>
-            <span class="badge bg-emerald text-white rounded-pill px-3 py-1 font-mono mb-1" style="font-size: 0.75rem;">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-mono inline-block mb-1">
                 {{ archive.archive_number|default:'DRAFT OTOMATIS' }}
             </span>
-            <h6 class="fw-bold text-dark mb-0">{{ archive.get_archive_type_display }}</h6>
+            <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0">{{ archive.get_archive_type_display }}</h3>
         </div>
         <div>
             {% if archive.verified_by_kabid %}
-                <span class="badge-pill-enterprise badge-pill-success"><span class="pulse-dot"></span> Terverifikasi</span>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Terverifikasi
+                </span>
             {% else %}
-                <span class="badge-pill-enterprise badge-pill-warning"><span class="pulse-dot"></span> Perlu Verifikasi</span>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Perlu Verifikasi
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- FITUR UTAMA DISPOSISI DIGITAL PIMPINAN (SLIDE-OVER DRAWER MODAL ACTION) -->
+    <div class="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white border border-emerald-500/30 shadow-md space-y-3">
+        <div class="flex items-center justify-between">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 font-mono flex items-center gap-1.5">
+                <i class="bi bi-file-earmark-arrow-up-fill text-amber-400 text-base"></i> Fitur Disposisi Digital Pimpinan
+            </span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-emerald-300 border border-white/20 font-mono">
+                {{ archive.dispositions.count }} Disposisi
+            </span>
+        </div>
+        
+        <p class="text-xs text-slate-300 mb-0">
+            Terbitkan instruksi disposisi pimpinan (Ketua / Waka) atau teruskan lembar disposisi ke unit bidang pelaksana.
+        </p>
+
+        <div class="flex items-center gap-2 pt-1 flex-wrap">
+            {% if user.is_pimpinan or can_manage %}
+            <a href="{% url 'dispositions:create' archive.pk %}" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center justify-center gap-2 transition-all border-0">
+                <i class="bi bi-send-plus-fill text-base text-amber-300"></i> Buat Disposisi Baru
+            </a>
+            {% endif %}
+            {% if archive.dispositions.exists %}
+            <a href="{% url 'dispositions:detail' archive.dispositions.first.pk %}" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs no-underline inline-flex items-center justify-center gap-1.5 border border-slate-700 transition-all">
+                <i class="bi bi-eye-fill text-sky-400"></i> Detail Lembar
+            </a>
             {% endif %}
         </div>
     </div>
 
     <!-- Metadata Details -->
-    <div class="mb-4">
-        <label class="text-muted small d-block">Judul / Perihal Dokumen:</label>
-        <h6 class="fw-bold text-emerald-700 mb-2">{{ archive.title }}</h6>
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+        <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Judul / Perihal Dokumen:</span>
+            <h4 class="font-extrabold text-sm text-emerald-600 dark:text-emerald-400 mb-0 leading-snug">{{ archive.title }}</h4>
+        </div>
         
-        <div class="row g-2 text-sm mt-2">
-            <div class="col-6">
-                <span class="text-muted small d-block">Pengirim / Instansi:</span>
-                <strong class="text-dark">{{ archive.sender_receiver|default:'-' }}</strong>
+        <div class="grid grid-cols-2 gap-3 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pengirim / Instansi:</span>
+                <strong class="text-slate-900 dark:text-slate-100 font-bold block mt-0.5 truncate">{{ archive.sender_receiver|default:'-' }}</strong>
             </div>
-            <div class="col-6">
-                <span class="text-muted small d-block">Tanggal Surat:</span>
-                <strong class="text-dark">{{ archive.letter_date|date:"d F Y"|default:'-' }}</strong>
+            <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tanggal Surat:</span>
+                <strong class="text-slate-900 dark:text-slate-100 font-mono block mt-0.5">{{ archive.letter_date|date:"d F Y"|default:'-' }}</strong>
             </div>
-            <div class="col-6 mt-2">
-                <span class="text-muted small d-block">Kategori Bidang:</span>
-                <span class="badge bg-secondary bg-opacity-25 text-dark rounded-pill px-2 py-1">{{ archive.category.name|default:'Umum' }}</span>
+            <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Kategori Bidang:</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-block">
+                    {{ archive.category.name|default:'Umum' }}
+                </span>
             </div>
-            <div class="col-6 mt-2">
-                <span class="text-muted small d-block">Status Alur Kerja:</span>
-                <span class="badge bg-info bg-opacity-25 text-info rounded-pill px-2 py-1 text-uppercase">{{ archive.get_status_display }}</span>
+            <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Status Alur Kerja:</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30 uppercase inline-block">
+                    {{ archive.get_status_display }}
+                </span>
             </div>
         </div>
     </div>
 
     <!-- File Digital Preview -->
-    <div class="p-3 mb-4 rounded-3 border bg-light">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold mb-0 text-dark small"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> Berkas Digital Dokumentasi</h6>
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+            <h4 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-1.5">
+                <i class="bi bi-file-earmark-pdf-fill text-rose-500 text-base"></i> Berkas Digital Dokumentasi
+            </h4>
             {% if archive.file_path %}
-                <a href="{{ archive.file_path.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.75rem;">
-                    <i class="bi bi-download me-1"></i> Unduh File
+                <a href="{{ archive.file_path.url }}" target="_blank" class="px-3 py-1 rounded-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-300 border border-rose-500/30 text-[10px] font-extrabold no-underline inline-flex items-center gap-1">
+                    <i class="bi bi-download"></i> Unduh File
                 </a>
             {% endif %}
         </div>
         {% if archive.file_path %}
-            <p class="mb-0 text-muted small"><i class="bi bi-paperclip me-1"></i> {{ archive.file_path.name }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-0 font-mono truncate"><i class="bi bi-paperclip me-1"></i> {{ archive.file_path.name }}</p>
         {% else %}
-            <p class="mb-0 text-muted small italic">Tidak ada berkas digital terlampir.</p>
+            <p class="text-xs text-slate-400 italic mb-0">Tidak ada berkas digital terlampir.</p>
         {% endif %}
     </div>
 
     <!-- Timeline Disposisi Ringkas -->
-    <div class="mb-4">
-        <h6 class="fw-bold mb-3 text-dark small"><i class="bi bi-diagram-3 text-emerald me-1"></i> Riwayat Lembar Disposisi</h6>
-        <div class="activity-timeline">
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+        <h4 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-1.5">
+            <i class="bi bi-diagram-3-fill text-emerald-500 text-base"></i> Riwayat Disposisi Digital
+        </h4>
+        <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
             {% for dispo in archive.dispositions.all %}
-            <div class="timeline-item-futuristic">
-                <strong class="d-block text-dark small">{{ dispo.sender.get_full_name|default:dispo.sender.username }}</strong>
-                <p class="mb-0 small text-muted">{{ dispo.notes|default:'Tidak ada catatan disposisi.' }}</p>
-                <span class="text-secondary" style="font-size: 0.65rem;">{{ dispo.created_at|date:"d M Y, H:i" }} WIB</span>
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
+                <div class="flex items-center justify-between">
+                    <strong class="text-xs font-bold text-slate-900 dark:text-white">{{ dispo.sender.get_full_name|default:dispo.sender.username }}</strong>
+                    <span class="text-[10px] text-slate-400 font-mono">{{ dispo.created_at|date:"d M Y, H:i" }} WIB</span>
+                </div>
+                <p class="text-[11px] text-slate-600 dark:text-slate-300 mb-0">{{ dispo.notes|default:'Tidak ada catatan disposisi.' }}</p>
             </div>
             {% empty %}
-            <p class="text-muted small italic mb-0">Belum ada disposisi pimpinan untuk arsip ini.</p>
+            <p class="text-xs text-slate-400 italic mb-0">Belum ada disposisi pimpinan untuk arsip ini.</p>
             {% endfor %}
         </div>
     </div>
 
-    <!-- Quick Action Buttons -->
-    <div class="d-flex flex-column gap-2 pt-2 border-top">
-        <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-enterprise-primary w-100 justify-content-center">
-            <i class="bi bi-eye-fill me-1"></i> Buka Halaman Detail Lengkap
+    <!-- Action Bar Footer -->
+    <div class="flex flex-col gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+        <a href="{% url 'archives:detail' archive.pk %}" class="w-full py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center justify-center gap-1.5 transition-all">
+            <i class="bi bi-eye-fill"></i> Buka Halaman Detail Lengkap
         </a>
-        <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-outline-secondary w-100 btn-sm rounded-pill">
-            <i class="bi bi-printer me-1"></i> Cetak Tanda Terima Resmi
+        <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="w-full py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 no-underline inline-flex items-center justify-center gap-1.5 transition-all">
+            <i class="bi bi-printer"></i> Cetak Tanda Terima Resmi
         </a>
     </div>
 </div>

@@ -78,55 +78,43 @@
         color: var(--color-emerald-600, #059669);
         font-weight: 700;
     }
-
-    .select2-container--bootstrap-5 .select2-selection {
-        background-color: var(--card-bg, #ffffff) !important;
-        border-color: var(--border-color, #cbd5e1) !important;
-        color: var(--text-primary, #0f172a) !important;
-        min-height: 46px;
-        padding: 4px 8px;
-        border-radius: var(--radius-sm, 10px) !important;
-    }
-    .select2-container--bootstrap-5 .select2-selection__rendered {
-        color: var(--text-primary, #0f172a) !important;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3" x-data="suratTugasWizard()" x-init="initData()">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <!-- Glass Header Card -->
-            <div class="glass-banner-enterprise mb-4">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <div>
-                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold mb-2" style="font-size: 0.7rem;">WIZARD PENERBITAN</span>
-                        <h3 class="fw-bold mb-1 text-white">Form Pembuatan Surat Tugas</h3>
-                        <p class="mb-0 text-white opacity-75 small">Lengkapi 4 langkah logis berikut untuk menerbitkan dokumen penugasan resmi BAZNAS.</p>
-                    </div>
-                    <div>
-                        <a href="{% url 'surat_tugas:list' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
-                            <i class="bi bi-arrow-left me-1"></i> Batal & Kembali
-                        </a>
-                    </div>
-                </div>
+<div class="p-4 sm:p-6 max-w-5xl mx-auto space-y-6" x-data="suratTugasWizard()" x-init="initData()">
+    <!-- Enterprise Header Card -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900 text-white p-6 shadow-xl border border-emerald-700/50">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <span class="px-3 py-1 text-[11px] font-extrabold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
+                    <i class="bi bi-magic"></i> WIZARD PENERBITAN
+                </span>
+                <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight m-0">Form Pembuatan Surat Tugas</h1>
+                <p class="text-slate-300 text-xs mt-1 mb-0">Lengkapi 4 langkah logis berikut untuk menerbitkan dokumen penugasan resmi BAZNAS.</p>
             </div>
-
-            {% if disposition %}
-            <div class="alert alert-banner-sppd border-0 shadow-sm rounded-4 mb-4 p-3 d-flex align-items-center">
-                <div class="rounded-circle bg-success text-white p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                    <i class="bi bi-link-45deg fs-4"></i>
-                </div>
-                <div>
-                    <h6 class="fw-bold alert-title mb-0">Terintegrasi dengan Disposisi: {{ disposition.archive.archive_number|default:disposition.disposition_number }}</h6>
-                    <span class="small alert-desc">Perihal & metadata telah ditarik otomatis dari lembar disposisi pimpinan.</span>
-                </div>
+            <div>
+                <a href="{% url 'surat_tugas:list' %}" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all no-underline inline-flex items-center gap-1.5">
+                    <i class="bi bi-arrow-left"></i> Batal & Kembali
+                </a>
             </div>
-            {% endif %}
+        </div>
+    </div>
 
-            <!-- Multi-Step Form Card -->
-            <div class="card-enterprise p-4 mb-5">
+    {% if disposition %}
+    <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+            <i class="bi bi-link-45deg text-xl"></i>
+        </div>
+        <div>
+            <h6 class="font-extrabold text-xs text-slate-900 dark:text-white m-0">Terintegrasi dengan Disposisi: {{ disposition.archive.archive_number|default:disposition.disposition_number }}</h6>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Perihal & metadata telah ditarik otomatis dari lembar disposisi pimpinan.</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Multi-Step Form Card -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl space-y-6">
                 <!-- STEPPER INDICATOR BAR -->
                 <div class="wizard-stepper">
                     <div class="wizard-progress-bar" :style="{ width: ((step - 1) * 33.33) + '%' }"></div>
@@ -253,13 +241,159 @@
                             <h5 class="fw-bold mb-0">Langkah 3: Personel Ditugaskan & Otorisasi</h5>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Pegawai yang Ditugaskan <span class="text-danger">*</span></label>
-                            {{ form.pegawai_ditugaskan }}
-                            <div class="form-text text-muted small">Pilih satu atau beberapa pegawai dari database SDM. Mendukung tim lintas bidang.</div>
-                            {% if form.pegawai_ditugaskan.errors %}
-                                <div class="text-danger small mt-1">{{ form.pegawai_ditugaskan.errors.0 }}</div>
-                            {% endif %}
+                        <!-- TAILWIND + ALPINE.JS NATIVE MULTI-SELECT EMPLOYEE PICKER -->
+                        <div x-data="{
+                            open: false,
+                            searchQuery: '',
+                            selectedIds: [],
+                            employees: [
+                                {% for val, label in form.pegawai_ditugaskan.field.choices %}
+                                { id: '{{ val|escapejs }}', name: '{{ label|escapejs }}' },
+                                {% endfor %}
+                            ],
+                            init() {
+                                let select = document.getElementById('id_pegawai_ditugaskan');
+                                if (select) {
+                                    this.selectedIds = Array.from(select.selectedOptions).map(opt => opt.value);
+                                }
+                            },
+                            toggle(id) {
+                                if (this.selectedIds.includes(id)) {
+                                    this.selectedIds = this.selectedIds.filter(i => i !== id);
+                                } else {
+                                    this.selectedIds.push(id);
+                                }
+                                this.syncWithSelect();
+                            },
+                            remove(id) {
+                                this.selectedIds = this.selectedIds.filter(i => i !== id);
+                                this.syncWithSelect();
+                            },
+                            selectAll() {
+                                this.selectedIds = this.filteredEmployees().map(e => e.id);
+                                this.syncWithSelect();
+                            },
+                            clearAll() {
+                                this.selectedIds = [];
+                                this.syncWithSelect();
+                            },
+                            syncWithSelect() {
+                                let select = document.getElementById('id_pegawai_ditugaskan');
+                                if (select) {
+                                    Array.from(select.options).forEach(opt => {
+                                        opt.selected = this.selectedIds.includes(opt.value);
+                                    });
+                                    select.dispatchEvent(new Event('change'));
+                                }
+                            },
+                            filteredEmployees() {
+                                if (!this.searchQuery.trim()) return this.employees;
+                                let q = this.searchQuery.toLowerCase();
+                                return this.employees.filter(e => e.name.toLowerCase().includes(q));
+                            },
+                            getSelectedLabel(id) {
+                                let emp = this.employees.find(e => e.id === id);
+                                return emp ? emp.name : id;
+                            }
+                        }" class="relative w-full mb-6">
+
+                            <!-- Hidden Native Select for Form Submission -->
+                            <div class="hidden">
+                                {{ form.pegawai_ditugaskan }}
+                            </div>
+
+                            <!-- Outer Card Box -->
+                            <div class="p-4 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                                <!-- Header & Action Controls -->
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <label class="font-extrabold text-xs text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2 m-0">
+                                        <i class="bi bi-people-fill text-emerald-500 text-base"></i> Pegawai / Amil yang Ditugaskan <span class="text-rose-500">*</span>
+                                    </label>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-black font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" x-text="selectedIds.length + ' Pegawai Dipilih'"></span>
+                                        <button type="button" @click="selectAll()" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 hover:text-emerald-600 text-slate-600 dark:text-slate-300 transition-all border-0 cursor-pointer">
+                                            <i class="bi bi-check-all"></i> Pilih Semua
+                                        </button>
+                                        <button type="button" @click="clearAll()" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/10 hover:text-rose-600 text-slate-600 dark:text-slate-300 transition-all border-0 cursor-pointer">
+                                            <i class="bi bi-x-circle"></i> Reset
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Selected Tags Display Box (Click to open dropdown) -->
+                                <div @click="open = !open" 
+                                     class="min-h-[48px] p-2 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 focus-within:ring-2 focus-within:ring-emerald-500 cursor-pointer transition-all flex flex-wrap items-center gap-1.5 relative">
+                                    
+                                    <template x-for="id in selectedIds" :key="id">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-extrabold shadow-xs transition-all hover:scale-105">
+                                            <span x-text="getSelectedLabel(id)"></span>
+                                            <button type="button" @click.stop="remove(id)" class="w-4 h-4 rounded-full bg-emerald-600/20 hover:bg-rose-500 hover:text-white text-emerald-700 dark:text-emerald-300 inline-flex items-center justify-center text-[10px] border-0 cursor-pointer transition-colors ms-0.5">
+                                                ✕
+                                            </button>
+                                        </span>
+                                    </template>
+
+                                    <template x-if="selectedIds.length === 0">
+                                        <span class="text-xs text-slate-400 font-medium px-2 flex items-center gap-2 select-none">
+                                            <i class="bi bi-search text-slate-400"></i> Klik di sini untuk memilih atau mencari nama amil / pegawai...
+                                        </span>
+                                    </template>
+
+                                    <div class="ms-auto pe-2 text-slate-400">
+                                        <i class="bi bi-chevron-expand text-sm"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Dropdown Panel (Tailwind + Alpine) -->
+                                <div x-show="open" 
+                                     @click.outside="open = false" 
+                                     x-cloak
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 scale-98 -translate-y-2"
+                                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                     class="absolute left-0 right-0 top-full mt-2 z-[99999] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-3 space-y-2 max-h-80 flex flex-col">
+                                    
+                                    <!-- Live Search Bar -->
+                                    <div class="relative">
+                                        <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                                        <input type="text" 
+                                               x-model="searchQuery" 
+                                               placeholder="Ketik nama amil, NIK, atau bidang tugas..." 
+                                               class="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-0 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                                               @click.stop />
+                                    </div>
+
+                                    <!-- Scrollable Employee Options List -->
+                                    <div class="overflow-y-auto flex-1 max-h-60 space-y-1 pe-1">
+                                        <template x-for="emp in filteredEmployees()" :key="emp.id">
+                                            <div @click="toggle(emp.id)" 
+                                                 :class="selectedIds.includes(emp.id) ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                                                 class="p-2.5 rounded-xl cursor-pointer transition-all flex items-center justify-between text-xs select-none">
+                                                <span class="flex items-center gap-2">
+                                                    <i :class="selectedIds.includes(emp.id) ? 'bi bi-check-circle-fill text-emerald-500' : 'bi bi-circle text-slate-300 dark:text-slate-600'"></i>
+                                                    <span x-text="emp.name"></span>
+                                                </span>
+                                                <template x-if="selectedIds.includes(emp.id)">
+                                                    <span class="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Terpilih</span>
+                                                </template>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="filteredEmployees().length === 0">
+                                            <div class="p-4 text-center text-xs text-slate-400 font-medium">
+                                                Pegawai dengan kata kunci "<span x-text="searchQuery"></span>" tidak ditemukan.
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <p class="text-[11px] text-slate-400 m-0">
+                                    Pilih satu atau beberapa amil / pegawai dari database SDM. Mendukung penugasan tim lintas bidang.
+                                </p>
+                                {% if form.pegawai_ditugaskan.errors %}
+                                    <div class="text-rose-500 text-xs font-bold mt-1">{{ form.pegawai_ditugaskan.errors.0 }}</div>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="p-3 mb-4 rounded-3 border bg-body-tertiary">
@@ -498,13 +632,54 @@
             }
         }
     }
+</script>
 
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
     $(document).ready(function() {
-        $('.select2-employee').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: 'Cari & pilih nama pegawai...',
-            allowClear: true
+        function initEmployeeSelect2() {
+            var $el = $('.select2-employee');
+            if ($el.length && $.fn.select2) {
+                $el.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: '🔍 Cari nama, NIK, atau bidang amil...',
+                    allowClear: true
+                });
+                updateEmployeeCounter();
+            }
+        }
+
+        function updateEmployeeCounter() {
+            var val = $('.select2-employee').val();
+            var count = val ? val.length : 0;
+            var $badge = $('#selected-employee-counter');
+            if ($badge.length) {
+                $badge.text(count + ' Pegawai Dipilih');
+                if (count > 0) {
+                    $badge.removeClass('bg-slate-100 text-slate-600').addClass('bg-emerald-100 text-emerald-800 border-emerald-300');
+                } else {
+                    $badge.removeClass('bg-emerald-100 text-emerald-800 border-emerald-300').addClass('bg-slate-100 text-slate-600');
+                }
+            }
+        }
+
+        initEmployeeSelect2();
+
+        $('.select2-employee').on('change', function() {
+            updateEmployeeCounter();
+        });
+
+        $('#btn-select-all-employees').on('click', function() {
+            var allVals = [];
+            $('.select2-employee option').each(function() {
+                if ($(this).val()) allVals.push($(this).val());
+            });
+            $('.select2-employee').val(allVals).trigger('change');
+        });
+
+        $('#btn-clear-employees').on('click', function() {
+            $('.select2-employee').val(null).trigger('change');
         });
 
         // Handler untuk pilihan Kustom pada dropdown Hari Kegiatan

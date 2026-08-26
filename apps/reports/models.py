@@ -12,6 +12,8 @@ class Report(models.Model):
     report_number = models.CharField(max_length=100, unique=True)
     title = models.CharField(max_length=255)
     content = models.TextField()
+    amount_disbursed = models.DecimalField(max_digits=15, decimal_places=2, default=0, verbose_name="Nominal Bantuan Disalurkan (Rp)")
+    disbursement_type = models.CharField(max_length=50, default='transfer', choices=[('transfer', 'Transfer Bank'), ('cash', 'Uang Tunai'), ('natura', 'Barang Natura / Sembako')], verbose_name="Bentuk Penyaluran")
     file = models.FileField(upload_to='reports/%Y/%m/%d/', null=True, blank=True, validators=[validate_file_extension, validate_file_size])
     
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -21,22 +23,30 @@ class Report(models.Model):
         return f"Laporan: {self.report_number} - {self.title}"
 
     def save(self, *args, **kwargs):
+        skip_status_update = kwargs.pop('skip_status_update', False)
         if not self.report_number:
-            try:
-                from services.archives.numbering_service import NumberingService
-                self.report_number = NumberingService.generate_number('report')
-            except Exception:
-                pass
+            is_survey_stage = False
+            if self.disposition and self.disposition.archive:
+                if self.disposition.archive.status in ['dalam_survei', 'baru', 'proses', 'didisposisikan']:
+                    is_survey_stage = True
+            
+            if not is_survey_stage:
+                try:
+                    from services.archives.numbering_service import NumberingService
+                    self.report_number = NumberingService.generate_number('report')
+                except Exception:
+                    pass
         super().save(*args, **kwargs)
-        if self.disposition:
-            if self.disposition.status != 'selesai':
+        if not skip_status_update and self.disposition:
+            if self.disposition.status != 'selesai' and self.disposition.status != 'proses':
                 self.disposition.status = 'selesai'
                 if not self.disposition.completed_at:
                     self.disposition.completed_at = timezone.now()
                 self.disposition.save()
-            if self.disposition.archive and self.disposition.archive.status != 'selesai':
+            if self.disposition.archive and self.disposition.archive.status not in ['selesai', 'dalam_survei', 'telah_disalurkan', 'proses', 'sudah_ditugaskan']:
                 self.disposition.archive.status = 'selesai'
                 self.disposition.archive.save(update_fields=['status', 'updated_at'])
+
 
 
 class ReportAttachment(models.Model):

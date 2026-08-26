@@ -243,7 +243,22 @@ def surat_create_from_archive(request, pk):
 def surat_create_from_disposition(request, disposition_id):
     disposition = get_object_or_404(Disposition, pk=disposition_id)
     archive = getattr(disposition, 'archive', None)
-    
+
+    nominal_param = request.GET.get('nominal')
+    if nominal_param and nominal_param.replace('.', '', 1).isdigit():
+        nom_val = float(nominal_param)
+        if nom_val > 0 and disposition:
+            from reports.models import Report
+            Report.objects.update_or_create(
+                disposition=disposition,
+                defaults={
+                    'amount_disbursed': nom_val,
+                    'title': f"Penanganan Bantuan: {archive.title if archive else ''}",
+                    'content': f"Draft Penanganan Nominal Bantuan Disetujui Rp {nom_val:,.0f}",
+                    'created_by': request.user
+                }
+            )
+
     surat_terakhir = (
         SuratTugas.objects.exclude(nomor_surat__isnull=True)
         .exclude(nomor_surat__exact='')

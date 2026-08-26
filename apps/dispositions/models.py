@@ -244,19 +244,21 @@ class Disposition(models.Model):
                     self.archive.status = 'proses'
                     self.archive.save(update_fields=['status', 'updated_at'])
 
-        # Trigger notifikasi WhatsApp
+        # Trigger notifikasi WhatsApp (Sentralisasi via WhatsAppService untuk mematuhi Matriks Pengaturan WA)
         try:
-            from notifications.tasks import send_wa_message
-            phones = []
+            from services.integrations.gateway_service import WhatsAppService
             for emp in self.forwarded_to.all():
-                if hasattr(emp, 'phone') and emp.phone:
-                    phones.append(emp.phone)
-            if phones:
-                message = f"Disposisi {self.disposition_number or ''} untuk arsip: {self.archive.title if self.archive else ''}. Instruksi: {(self.note or '')[:120]}"
-                for p in phones:
-                    send_wa_message.delay(p, message, metadata={'disposition_id': self.pk})
-        except Exception:
-            pass
+                if emp and (getattr(emp, 'phone_number', None) or getattr(emp, 'phone', None)):
+                    message = f"Disposisi {self.disposition_number or ''} untuk arsip: {self.archive.title if self.archive else ''}. Instruksi: {(self.note or '')[:120]}"
+                    WhatsAppService.send_notification(
+                        user=getattr(emp, 'user_account', None),
+                        message=message,
+                        employee=emp,
+                        category='disposition',
+                        title="Disposisi Pimpinan"
+                    )
+        except Exception as ex:
+            logger.warning(f"Failed to trigger dispo WA notification: {ex}")
 
     def __str__(self):
         num = self.disposition_number or f"DISP-{self.pk:03d}"

@@ -3,63 +3,67 @@
 {% block title %}Pengaturan Akun - BAZNAS{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'users:profile' %}" class="text-decoration-none text-primary">Profil</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Pengaturan</li>
-            </ol>
-        </nav>
-        <h4 class="fw-bold">Pengaturan Keamanan & Akun</h4>
-        <p class="text-secondary small">Perbarui informasi pribadi dan kata sandi Anda secara berkala.</p>
+<div class="w-full space-y-6">
+    <!-- BREADCRUMB & HEADER -->
+    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="flex items-center gap-2 text-xs text-slate-400 font-bold mb-2">
+            <a href="{% url 'users:profile' %}" class="text-emerald-600 dark:text-emerald-400 no-underline hover:underline">Profil Saya</a>
+            <i class="bi bi-chevron-right text-[10px]"></i>
+            <span class="text-slate-600 dark:text-slate-300">Pengaturan Keamanan</span>
+        </div>
+        <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-1">Pengaturan Keamanan & Akun</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">Perbarui informasi pribadi dan kata sandi Anda secara berkala.</p>
     </div>
-</div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm p-4">
-            <form method="post" action="{% url 'users:profile' %}">
+    <!-- FORM CARD -->
+    <div class="max-w-3xl mx-auto">
+        <div class="p-6 sm:p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <form method="post" action="{% url 'users:profile' %}" class="space-y-6">
                 {% csrf_token %}
                 
-                <h6 class="fw-bold mb-4 text-primary"><i class="bi bi-person me-2"></i> Informasi Dasar</h6>
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <label for="first_name" class="form-label fw-bold">Nama Depan</label>
-                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" value="{{ user.first_name }}">
+                <div>
+                    <h2 class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center gap-2 mb-4">
+                        <i class="bi bi-person text-lg"></i> Informasi Dasar Pengguna
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="first_name" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Nama Depan</label>
+                            <input type="text" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" id="first_name" name="first_name" value="{{ user.first_name }}">
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Nama Belakang</label>
+                            <input type="text" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" id="last_name" name="last_name" value="{{ user.last_name }}">
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <label for="last_name" class="form-label fw-bold">Nama Belakang</label>
-                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" value="{{ user.last_name }}">
+
+                    <div>
+                        <label for="email" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Alamat Email</label>
+                        <input type="email" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-medium text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" id="email" name="email" value="{{ user.email }}">
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="email" class="form-label fw-bold">Alamat Email</label>
-                    <input type="email" class="form-control custom-input" id="email" name="email" value="{{ user.email }}">
+                <hr class="border-slate-200 dark:border-slate-800">
+
+                <div>
+                    <h2 class="text-sm font-extrabold text-rose-500 flex items-center gap-2 mb-4">
+                        <i class="bi bi-shield-lock text-lg"></i> Ganti Password Akun
+                    </h2>
+                    <div>
+                        <label for="password" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Password Baru</label>
+                        <input type="password" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" id="password" name="password" placeholder="Kosongkan jika tidak ingin mengganti password">
+                        <span class="text-[11px] text-slate-400 block mt-1">Minimal 8 karakter untuk keamanan maksimal.</span>
+                    </div>
                 </div>
 
-                <hr class="my-5 opacity-5">
-
-                <h6 class="fw-bold mb-4 text-danger"><i class="bi bi-shield-lock me-2"></i> Ganti Password</h6>
-                <div class="mb-4">
-                    <label for="password" class="form-label fw-bold">Password Baru</label>
-                    <input type="password" class="form-control custom-input" id="password" name="password" placeholder="Kosongkan jika tidak ingin mengganti password">
-                    <small class="text-muted italic">Minimal 8 karakter untuk keamanan maksimal.</small>
-                </div>
-
-                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                    <a href="{% url 'users:profile' %}" class="btn btn-light px-4 fw-semibold">Batal</a>
-                    <button type="submit" class="btn btn-primary px-5 shadow-sm">
-                        <i class="bi bi-check-circle me-2"></i> Simpan Perubahan
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <a href="{% url 'users:profile' %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs no-underline transition-all">Batal</a>
+                    <button type="submit" class="px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-1.5 transition-all">
+                        <i class="bi bi-check-circle-fill"></i> Simpan Perubahan
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<style>
-    .custom-input { height: 52px; border-radius: 12px; border: 1px solid #E5E7EB; }
-</style>
 {% endblock %}

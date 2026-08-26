@@ -115,36 +115,54 @@ def dashboard_index(request):
         s = arc.status
         latest_sppd = arc.latest_sppd
         latest_report = arc.latest_report
-        has_report = bool(latest_report or arc.result_file or arc.result_note)
+        has_completed_lhp = bool(s in ['selesai', 'telah_disalurkan'] and latest_report and latest_report.report_number)
 
         if is_bantuan:
             # 8-step pipeline: Masuk -> Verifikasi -> Disposisi -> Proses Bidang II -> Survei -> Penyaluran -> Laporan -> Selesai
             steps = ['Masuk', 'Verifikasi', 'Disposisi', 'Proses Bidang II', 'Survei', 'Penyaluran', 'Laporan', 'Selesai']
             
+            has_penyaluran_sppd = False
+            if latest_sppd:
+                purp_str = ((latest_sppd.purpose or '') + ' ' + (latest_sppd.sppd_type or '')).lower()
+                if latest_sppd.sppd_type == 'penyaluran' or any(k in purp_str for k in ['penyaluran', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin', 'bedah rumah', 'kursi roda']):
+                    has_penyaluran_sppd = True
+
+            has_penyaluran_st = False
+            if arc.latest_st:
+                st_str = (arc.latest_st.tentang or '').lower()
+                if any(k in st_str for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
+                    has_penyaluran_st = True
+
             if s == 'selesai':
                 step_idx = 8 # Selesai
-            elif has_report:
-                step_idx = 7 # Laporan
-            elif latest_sppd:
-                purp = ((latest_sppd.purpose or '') + ' ' + getattr(latest_sppd, 'sppd_type', '')).lower()
-                if getattr(latest_sppd, 'sppd_type', '') == 'penyaluran' or any(k in purp for k in ['penyaluran', 'bantuan', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin', 'bedah rumah', 'kursi roda']):
-                    step_idx = 6 # Penyaluran
-                else:
-                    step_idx = 5 # Survei / SPPD Tahap 1
-            elif s == 'telah_disalurkan':
-                step_idx = 6
-            elif s in ['sudah_ditugaskan', 'dalam_survei'] or arc.latest_st:
-                step_idx = 5
+            elif has_completed_lhp and s == 'telah_disalurkan':
+                step_idx = 7 # Laporan (LHP Pentasyarufan Akhir)
+            elif s == 'telah_disalurkan' or has_penyaluran_sppd or has_penyaluran_st:
+                step_idx = 6 # Penyaluran Bantuan Mustahik
+            elif s in ['dalam_survei', 'telah_disurvei'] or (latest_sppd and ('survei' in (latest_sppd.purpose or '').lower() or 'verifikasi' in (latest_sppd.purpose or '').lower())) or (arc.latest_st and 'survei' in (arc.latest_st.tentang or '').lower()):
+                step_idx = 5 # Survei Lapangan Mustahik
             elif s == 'proses':
-                step_idx = 4
+                step_idx = 4 # Proses Bidang II
             elif s in ['didisposisikan', 'disposisi_pimpinan', 'didisposisi_ketua', 'meja_waka4', 'disposisi_waka'] or arc.dispositions.exists():
-                step_idx = 3
+                step_idx = 3 # Disposisi Pimpinan
             elif arc.verified_by_kabid or s in ['verifikasi_kabid', 'terverifikasi']:
-                step_idx = 2
+                step_idx = 2 # Verifikasi Kabid IV
             else:
-                step_idx = 1 # Masuk
+                step_idx = 1 # Masuk (Registrasi FO)
 
             progress_percent = int(((step_idx - 1) / 7.0) * 100)
+            
+            bantuan_labels_by_step = {
+                1: 'REGISTRASI MASUK',
+                2: 'VERIFIKASI KABID IV',
+                3: 'DISPOSISI PIMPINAN',
+                4: 'PROSES BIDANG II',
+                5: 'SURVEI LAPANGAN MUSTAHIK',
+                6: 'PENYALURAN BANTUAN',
+                7: 'LAPORAN HASIL (LHP)',
+                8: 'SELESAI & TEREKAP',
+            }
+            status_label = bantuan_labels_by_step.get(step_idx, arc.workflow_status_display)
         else:
             # 7-step pipeline: Masuk -> Verifikasi -> Disposisi -> Proses -> (Menghadiri / Tindak Lanjut) -> Laporan -> Selesai
             step5_name = 'Menghadiri' if (latest_sppd and any(k in (latest_sppd.purpose or '').lower() for k in ['hadir', 'undangan', 'acara', 'rapat'])) else 'Tindak Lanjut'
@@ -152,7 +170,7 @@ def dashboard_index(request):
 
             if s == 'selesai':
                 step_idx = 7 # Selesai
-            elif has_report:
+            elif s in ['laporan', 'telah_dilaporkan'] or (has_completed_lhp and s == 'selesai'):
                 step_idx = 6 # Laporan
             elif latest_sppd or s in ['sudah_ditugaskan', 'menghadiri_undangan'] or arc.latest_st:
                 step_idx = 5 # Menghadiri / Tindak Lanjut
@@ -167,13 +185,24 @@ def dashboard_index(request):
 
             progress_percent = int(((step_idx - 1) / 6.0) * 100)
 
+            umum_labels_by_step = {
+                1: 'DOKUMEN MASUK',
+                2: 'VERIFIKASI KABID IV',
+                3: 'DISPOSISI PIMPINAN',
+                4: 'DIPROSES BIDANG TERKAIT',
+                5: 'MENGHADIRI UNDANGAN' if 'Menghadiri' in step5_name else 'TINDAK LANJUT',
+                6: 'LAPORAN HASIL (LHP)',
+                7: 'SELESAI & TEREKAP',
+            }
+            status_label = umum_labels_by_step.get(step_idx, arc.workflow_status_display)
+
         tracker_items.append({
             'archive': arc,
             'is_bantuan': is_bantuan,
             'steps': steps,
             'step_idx': step_idx,
             'progress_percent': progress_percent,
-            'status_label': arc.workflow_status_display,
+            'status_label': status_label,
         })
 
 
@@ -189,12 +218,71 @@ def dashboard_index(request):
         Archive.objects.exclude(archive_type__in=['surat_masuk', 'proposal', 'laporan']).count()
     ]
 
+    # Chart 2: Status Seluruh Dokumen Permohonan Bantuan (Proposal + Surat Masuk Permohonan Bantuan)
+    all_archives_list = list(Archive.objects.select_related('category').prefetch_related('dispositions__surat_tugas', 'dispositions__sppd_list', 'dispositions__report').all())
+    
+    bantuan_cat_keywords = [
+        'bantuan', 'rutilahu', 'kesehatan', 'gharimin', 'pendidikan',
+        'peribadatan', 'meubelair', 'meubellair', 'mebeulair', 'sarpras', 'sarana', 'prasarana',
+        'sekolah', 'pesantren', 'pembangunan',
+        'umkm', 'musafir', 'muallaf', 'santunan', 'sembako', 'lpj',
+        'pendistribusian', 'penyaluran', 'rtlh', 'bencana', 'tanggap', 'penanggulangan', 'kebakaran', 'banjir', 'longsor', 'gempa'
+    ]
+
+    def is_bantuan_doc_check(arc):
+        cat_obj = getattr(arc, 'category', None)
+        c_name = cat_obj.name if cat_obj else ''
+        c_lower = c_name.lower()
+        if any(kw in c_lower for kw in ['kerjasama', 'kerja sama', 'undangan', 'audiensi', 'surat dinas', 'nota dinas', 'dokumen internal', 'upz', 'vendor']):
+            return False
+        elif any(kw in c_lower for kw in bantuan_cat_keywords):
+            return True
+        return WorkflowEngine.is_bantuan(arc)
+
+    all_bantuan_docs = [arc for arc in all_archives_list if is_bantuan_doc_check(arc)]
+
+    diproses_bantuan_count = 0
+    survei_bantuan_count = 0
+    penyaluran_bantuan_count = 0
+    laporan_bantuan_count = 0
+    selesai_bantuan_count = 0
+
+    for arc in all_bantuan_docs:
+        s = arc.status
+        sppd = arc.latest_sppd
+        st = arc.latest_st
+        rep = arc.latest_report
+        has_completed_lhp = bool(rep and rep.report_number)
+
+        has_penyaluran_sppd = False
+        if sppd:
+            purp_str = ((sppd.purpose or '') + ' ' + (sppd.sppd_type or '')).lower()
+            if sppd.sppd_type == 'penyaluran' or any(k in purp_str for k in ['penyaluran', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin', 'bedah rumah', 'kursi roda']):
+                has_penyaluran_sppd = True
+
+        has_penyaluran_st = False
+        if st:
+            st_str = (st.tentang or '').lower()
+            if any(k in st_str for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
+                has_penyaluran_st = True
+
+        if s == 'selesai':
+            selesai_bantuan_count += 1
+        elif s in ['laporan', 'telah_dilaporkan'] or (has_completed_lhp and s == 'telah_disalurkan'):
+            laporan_bantuan_count += 1
+        elif s == 'telah_disalurkan' or has_penyaluran_sppd or has_penyaluran_st:
+            penyaluran_bantuan_count += 1
+        elif s in ['dalam_survei', 'telah_disurvei'] or (sppd and ('survei' in (sppd.purpose or '').lower() or 'verifikasi' in (sppd.purpose or '').lower())) or (st and 'survei' in (st.tentang or '').lower()):
+            survei_bantuan_count += 1
+        else:
+            diproses_bantuan_count += 1
+
     chart_proposal_status = [
-        Archive.objects.filter(archive_type='proposal', status='proses').count(),
-        Archive.objects.filter(archive_type='proposal', status__in=['dalam_survei', 'sudah_ditugaskan']).count(),
-        Archive.objects.filter(archive_type='proposal', status='telah_disalurkan').count(),
-        Archive.objects.filter(archive_type='proposal', status='didisposisikan').count(),
-        Archive.objects.filter(archive_type='proposal', status='selesai').count(),
+        diproses_bantuan_count,
+        survei_bantuan_count,
+        penyaluran_bantuan_count,
+        laporan_bantuan_count,
+        selesai_bantuan_count
     ]
 
     # Fetch up to 10 agendas (today first, then all latest agendas in DB)

@@ -1,0 +1,96 @@
+<!-- ⚡ ENTERPRISE ALPINE.JS RESPONSIVE MODAL & FORM COMPONENT ⚡ -->
+
+<!-- Pure Alpine.js Modal Shell Component -->
+<div x-data="{ modalOpen: false, modalTitle: '' }" 
+     @open-modal.window="modalOpen = true; if($event.detail && $event.detail.title) modalTitle = $event.detail.title"
+     @close-modal.window="modalOpen = false"
+     @keydown.window.escape="modalOpen = false">
+
+  <!-- BACKDROP OVERLAY -->
+  <div x-cloak 
+       x-show="modalOpen" 
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       @click="modalOpen = false"
+       class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md"></div>
+
+  <!-- MODAL CONTAINER (Bottom-Sheet di Mobile, Centered Modal di Desktop) -->
+  <div x-cloak 
+       x-show="modalOpen" 
+       x-transition:enter="transition ease-out duration-300 transform"
+       x-transition:enter-start="opacity-0 translate-y-full md:translate-y-4 md:scale-95"
+       x-transition:enter-end="opacity-100 translate-y-0 md:scale-100"
+       x-transition:leave="transition ease-in duration-200 transform"
+       x-transition:leave-start="opacity-100 translate-y-0 md:scale-100"
+       x-transition:leave-end="opacity-0 translate-y-full md:translate-y-4 md:scale-95"
+       class="fixed inset-x-0 bottom-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl md:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    
+    <!-- MODAL HEADER -->
+    <div class="px-6 py-4 bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950 border-b border-slate-800 text-white flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base font-bold">
+          <i class="bi bi-window-stack"></i>
+        </div>
+        <h3 class="font-extrabold text-base text-white tracking-tight m-0" x-text="modalTitle || 'Form SIMAP BAZNAS'"></h3>
+      </div>
+      <button type="button" @click="modalOpen = false" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer min-h-[36px] min-w-[36px]" title="Tutup Modal">
+        <i class="bi bi-x-lg text-sm"></i>
+      </button>
+    </div>
+
+    <!-- MODAL BODY / FORM GRID ADAPTIF -->
+    <div class="p-6 overflow-y-auto flex-1 space-y-4">
+      {% block modal_form_content %}
+      <form class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Field 1 -->
+        <div class="sm:col-span-2 lg:col-span-3">
+          <label class="label-enterprise">Nama Dokumen / Permohonan</label>
+          <input type="text" class="input-enterprise" placeholder="Masukkan judul permohonan...">
+        </div>
+
+        <!-- Field 2 -->
+        <div>
+          <label class="label-enterprise">Tanggal Masuk</label>
+          <input type="date" class="input-enterprise">
+        </div>
+
+        <!-- Field 3 -->
+        <div>
+          <label class="label-enterprise">Kategori Arsip</label>
+          <select class="select-enterprise">
+            <option value="">Pilih Kategori...</option>
+            <option value="bantuan">Permohonan Bantuan</option>
+            <option value="sppd">Perjalanan Dinas</option>
+            <option value="rapat">Rapat Internal</option>
+          </select>
+        </div>
+
+        <!-- Field 4 -->
+        <div>
+          <label class="label-enterprise">Prioritas</label>
+          <select class="select-enterprise">
+            <option value="biasa">Biasa</option>
+            <option value="penting">Penting</option>
+            <option value="mendesak">Mendesak</option>
+          </select>
+        </div>
+      </form>
+      {% endblock %}
+    </div>
+
+    <!-- MODAL FOOTER -->
+    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3 shrink-0">
+      <button type="button" @click="modalOpen = false" class="btn-slate-secondary">
+        Batal
+      </button>
+      <button type="submit" class="btn-emerald-primary">
+        <i class="bi bi-check-circle-fill"></i> Simpan Data
+      </button>
+    </div>
+
+  </div>
+</div>

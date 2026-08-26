@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Kalender Kerja & Agenda - BAZNAS{% endblock %}
+{% block title %}Kalender Kerja & Agenda - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
@@ -8,29 +8,10 @@
 <style>
     /* Google Calendar In-App Experience Styling */
     .gcal-sidebar-card {
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
+        background-color: var(--card-bg, #091E28);
+        border: 1px solid var(--border-color, rgba(16, 185, 129, 0.2));
         border-radius: 16px;
         padding: 20px;
-    }
-    .gcal-create-btn {
-        background: linear-gradient(135deg, var(--color-emerald-600), var(--color-emerald-700));
-        color: #ffffff !important;
-        border-radius: 28px;
-        padding: 12px 24px;
-        font-weight: 800;
-        font-size: 0.95rem;
-        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.2s ease;
-        border: none;
-    }
-    .gcal-create-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
-        color: #ffffff !important;
     }
     
     .gcal-layer-check {
@@ -41,7 +22,7 @@
         user-select: none;
     }
     .gcal-layer-check:hover {
-        background-color: var(--surface-hover);
+        background-color: rgba(255, 255, 255, 0.05);
     }
     .gcal-layer-check input[type="checkbox"] {
         width: 18px;
@@ -49,61 +30,306 @@
         cursor: pointer;
     }
 
-    /* FullCalendar Premium Google Calendar Theme */
+    /* FullCalendar Premium Google Calendar Theme & Proper Button Spacing */
     .fc { font-family: 'Plus Jakarta Sans', sans-serif; }
     .fc .fc-toolbar {
+        padding: 16px 20px;
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color, rgba(16, 185, 129, 0.2));
+        border-radius: 16px 16px 0 0;
+        margin-bottom: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .fc .fc-toolbar-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+    /* FullCalendar Core Theme & CSS Variables */
+    .fc { 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
+        --fc-border-color: #e2e8f0;
+        --fc-page-bg-color: #ffffff;
+        --fc-neutral-bg-color: #f8fafc;
+        --fc-list-event-hover-bg-color: #f1f5f9;
+        --fc-today-bg-color: rgba(16, 185, 129, 0.12);
+    }
+    .dark .fc, [data-theme="dark"] .fc {
+        --fc-border-color: #334155;
+        --fc-page-bg-color: #0f172a;
+        --fc-neutral-bg-color: #1e293b;
+        --fc-list-event-hover-bg-color: #1e293b;
+        --fc-today-bg-color: rgba(16, 185, 129, 0.2);
+    }
+
+    /* Toolbar Header */
+    .fc .fc-toolbar {
         padding: 14px 18px;
-        background-color: var(--surface-hover);
-        border: 1px solid var(--border-color);
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
         border-radius: 16px 16px 0 0;
         margin-bottom: 0 !important;
         flex-wrap: wrap;
         gap: 12px;
     }
+    .dark .fc .fc-toolbar, [data-theme="dark"] .fc .fc-toolbar {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+    }
     .fc .fc-toolbar-title {
         font-size: 1.35rem;
-        font-weight: 800;
+        font-weight: 900;
         letter-spacing: -0.02em;
-        color: var(--text-primary);
+        color: #0f172a;
+    }
+    .dark .fc .fc-toolbar-title, [data-theme="dark"] .fc .fc-toolbar-title {
+        color: #f8fafc !important;
+    }
+    
+    .fc .fc-button-group {
+        display: inline-flex !important;
+        gap: 6px !important;
+        margin: 0 4px !important;
+    }
+    .fc .fc-button-group > .fc-button {
+        border-radius: 10px !important;
+        margin: 0 !important;
     }
     .fc .fc-button-primary {
-        background-color: var(--color-emerald-600) !important;
-        border-color: var(--color-emerald-600) !important;
-        padding: 8px 16px;
-        font-weight: 700;
+        background-color: #059669 !important;
+        border-color: #059669 !important;
+        padding: 7px 15px !important;
+        font-weight: 800 !important;
+        font-size: 0.82rem !important;
         color: #fff !important;
         border-radius: 10px !important;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        transition: all 0.2s ease !important;
     }
     .fc .fc-button-primary:hover {
-        background-color: var(--color-emerald-700) !important;
-        border-color: var(--color-emerald-700) !important;
+        background-color: #047857 !important;
+        border-color: #047857 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important;
     }
+    .fc .fc-button-primary:not(:disabled).fc-button-active,
+    .fc .fc-button-primary:not(:disabled):active {
+        background-color: #064E3B !important;
+        border-color: #064E3B !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    }
+    .fc .fc-today-button {
+        margin: 0 6px !important;
+        border-radius: 10px !important;
+    }
+
+    /* =========================================================
+       YEAR VIEW (multiMonthYear) - FLAWLESS DARK & LIGHT HARMONY
+       ========================================================= */
+    .fc .fc-multimonth {
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 0 0 16px 16px;
+        padding: 20px;
+    }
+    .dark .fc .fc-multimonth, [data-theme="dark"] .fc .fc-multimonth {
+        background-color: #0f172a !important;
+        border-color: #334155 !important;
+    }
+
+    /* Individual Month Card in Year View */
+    .fc .fc-multimonth-month {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 12px !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+        transition: all 0.2s ease;
+    }
+    .dark .fc .fc-multimonth-month, [data-theme="dark"] .fc .fc-multimonth-month {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+    }
+    .fc .fc-multimonth-month:hover {
+        border-color: #10b981 !important;
+    }
+
+    /* Month Title Header */
+    .fc .fc-multimonth-title {
+        font-weight: 900 !important;
+        color: #059669 !important;
+        font-size: 0.95rem !important;
+        padding: 6px 0 10px 0 !important;
+        text-align: center;
+        letter-spacing: -0.01em;
+    }
+    .dark .fc .fc-multimonth-title, [data-theme="dark"] .fc .fc-multimonth-title {
+        color: #34d399 !important;
+    }
+
+    /* Day Headers in MultiMonth (Sen, Sel, Rab...) */
+    .fc .fc-multimonth-header {
+        background: transparent !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        margin-bottom: 4px;
+    }
+    .dark .fc .fc-multimonth-header, [data-theme="dark"] .fc .fc-multimonth-header {
+        border-bottom-color: #334155 !important;
+    }
+    .fc .fc-multimonth-header-table {
+        background: transparent !important;
+    }
+    .fc .fc-multimonth .fc-col-header-cell {
+        background-color: transparent !important;
+        padding: 6px 0 !important;
+        border: none !important;
+    }
+    .fc .fc-multimonth .fc-col-header-cell-cushion {
+        color: #64748b !important;
+        font-weight: 800 !important;
+        font-size: 0.7rem !important;
+        text-transform: uppercase !important;
+    }
+    .dark .fc .fc-multimonth .fc-col-header-cell-cushion, [data-theme="dark"] .fc .fc-multimonth .fc-col-header-cell-cushion {
+        color: #94a3b8 !important;
+    }
+
+    /* Day Grid Table & Cells in MultiMonth */
+    .fc .fc-multimonth-daygrid-table {
+        background: transparent !important;
+    }
+    .fc .fc-multimonth table, 
+    .fc .fc-multimonth td, 
+    .fc .fc-multimonth th {
+        border-color: #f1f5f9 !important;
+        background: transparent !important;
+    }
+    .dark .fc .fc-multimonth table, 
+    .dark .fc .fc-multimonth td, 
+    .dark .fc .fc-multimonth th,
+    [data-theme="dark"] .fc .fc-multimonth table, 
+    [data-theme="dark"] .fc .fc-multimonth td, 
+    [data-theme="dark"] .fc .fc-multimonth th {
+        border-color: #334155 !important;
+        background: transparent !important;
+    }
+
+    /* Day Numbers */
+    .fc .fc-multimonth .fc-daygrid-day-number {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 0.78rem !important;
+        padding: 4px !important;
+        text-decoration: none !important;
+    }
+    .dark .fc .fc-multimonth .fc-daygrid-day-number, [data-theme="dark"] .fc .fc-multimonth .fc-daygrid-day-number {
+        color: #f8fafc !important;
+    }
+    .fc .fc-multimonth .fc-day-other .fc-daygrid-day-number {
+        color: #cbd5e1 !important;
+        opacity: 0.5 !important;
+    }
+    .dark .fc .fc-multimonth .fc-day-other .fc-daygrid-day-number, [data-theme="dark"] .fc .fc-multimonth .fc-day-other .fc-daygrid-day-number {
+        color: #475569 !important;
+        opacity: 0.4 !important;
+    }
+
+    /* Today cell in Year View */
+    .fc .fc-multimonth .fc-daygrid-day.fc-day-today {
+        background-color: rgba(16, 185, 129, 0.15) !important;
+        border-radius: 8px !important;
+    }
+    .fc .fc-multimonth .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+        background-color: #059669 !important;
+        color: #ffffff !important;
+        border-radius: 9999px !important;
+        width: 22px !important;
+        height: 22px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 1px !important;
+    }
+
+    /* Sundays & Holidays in Year View */
+    .fc .fc-multimonth .fc-day-sun .fc-daygrid-day-number,
+    .fc .fc-multimonth .fc-day-sun .fc-col-header-cell-cushion {
+        color: #dc2626 !important;
+        font-weight: 900 !important;
+    }
+    .dark .fc .fc-multimonth .fc-day-sun .fc-daygrid-day-number,
+    .dark .fc .fc-multimonth .fc-day-sun .fc-col-header-cell-cushion,
+    [data-theme="dark"] .fc .fc-multimonth .fc-day-sun .fc-daygrid-day-number,
+    [data-theme="dark"] .fc .fc-multimonth .fc-day-sun .fc-col-header-cell-cushion {
+        color: #f87171 !important;
+        font-weight: 900 !important;
+    }
+    .fc .fc-multimonth .is-national-holiday-cell {
+        background-color: rgba(220, 38, 38, 0.12) !important;
+        border-radius: 6px !important;
+    }
+    .dark .fc .fc-multimonth .is-national-holiday-cell,
+    [data-theme="dark"] .fc .fc-multimonth .is-national-holiday-cell {
+        background-color: rgba(239, 68, 68, 0.2) !important;
+    }
+    .fc .fc-multimonth .is-national-holiday-cell .fc-daygrid-day-number {
+        color: #dc2626 !important;
+        font-weight: 900 !important;
+    }
+    .dark .fc .fc-multimonth .is-national-holiday-cell .fc-daygrid-day-number,
+    [data-theme="dark"] .fc .fc-multimonth .is-national-holiday-cell .fc-daygrid-day-number {
+        color: #f87171 !important;
+    }
+
+    /* =========================================================
+       STANDARD MONTH / WEEK / DAY GRID STYLING
+       ========================================================= */
     .fc .fc-col-header-cell {
-        background-color: var(--surface-hover);
+        background-color: #f8fafc;
         padding: 10px 0;
-        border-color: var(--border-color) !important;
+        border-color: #e2e8f0 !important;
+    }
+    .dark .fc .fc-col-header-cell, [data-theme="dark"] .fc .fc-col-header-cell {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
     }
     .fc .fc-col-header-cell-cushion {
-        color: var(--text-primary);
-        font-weight: 700;
+        color: #0f172a;
+        font-weight: 800;
         font-size: 0.8rem;
         text-transform: uppercase;
         text-decoration: none !important;
     }
-    .fc .fc-daygrid-day { border-color: var(--border-color) !important; }
+    .dark .fc .fc-col-header-cell-cushion, [data-theme="dark"] .fc .fc-col-header-cell-cushion {
+        color: #f8fafc !important;
+    }
+    .fc .fc-daygrid-day { 
+        border-color: #e2e8f0 !important; 
+    }
+    .dark .fc .fc-daygrid-day, [data-theme="dark"] .fc .fc-daygrid-day { 
+        border-color: #334155 !important; 
+    }
     .fc .fc-daygrid-day-number {
-        color: var(--text-primary);
+        color: #0f172a;
         font-weight: 700;
         font-size: 0.88rem;
         padding: 6px 8px !important;
         text-decoration: none !important;
     }
+    .dark .fc .fc-daygrid-day-number, [data-theme="dark"] .fc .fc-daygrid-day-number {
+        color: #f8fafc !important;
+    }
     .fc .fc-daygrid-day.fc-day-today {
         background-color: rgba(16, 185, 129, 0.12) !important;
     }
+    .dark .fc .fc-daygrid-day.fc-day-today, [data-theme="dark"] .fc .fc-daygrid-day.fc-day-today {
+        background-color: rgba(16, 185, 129, 0.2) !important;
+    }
     .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-        background-color: var(--color-emerald-600);
+        background-color: #059669;
         color: #ffffff !important;
         border-radius: 50%;
         width: 28px;
@@ -114,19 +340,32 @@
         margin: 2px;
     }
 
-    /* TANGGAL MERAH (SUNDAYS & NATIONAL HOLIDAYS) STYLING */
     .fc .fc-day-sun .fc-daygrid-day-number,
     .fc .fc-day-sun .fc-col-header-cell-cushion {
-        color: #DC2626 !important;
+        color: #dc2626 !important;
         font-weight: 900 !important;
+    }
+    .dark .fc .fc-day-sun .fc-daygrid-day-number,
+    .dark .fc .fc-day-sun .fc-col-header-cell-cushion,
+    [data-theme="dark"] .fc .fc-day-sun .fc-daygrid-day-number,
+    [data-theme="dark"] .fc .fc-day-sun .fc-col-header-cell-cushion {
+        color: #f87171 !important;
     }
     .fc .is-national-holiday-cell {
         background-color: rgba(220, 38, 38, 0.12) !important;
     }
+    .dark .fc .is-national-holiday-cell,
+    [data-theme="dark"] .fc .is-national-holiday-cell {
+        background-color: rgba(239, 68, 68, 0.2) !important;
+    }
     .fc .is-national-holiday-cell .fc-daygrid-day-number {
-        color: #DC2626 !important;
+        color: #dc2626 !important;
         font-weight: 900 !important;
         font-size: 1.05rem !important;
+    }
+    .dark .fc .is-national-holiday-cell .fc-daygrid-day-number,
+    [data-theme="dark"] .fc .is-national-holiday-cell .fc-daygrid-day-number {
+        color: #f87171 !important;
     }
 
     .fc-event {
@@ -142,503 +381,812 @@
 
     /* Quill & DataTables overrides */
     .ql-container { border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; font-family: inherit; font-size: 0.95rem; min-height: 140px; }
-    .ql-toolbar { border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; background-color: var(--surface-hover); border-color: var(--border-color) !important; }
-    .ql-container.ql-snow { border-color: var(--border-color) !important; background-color: var(--card-bg); color: var(--text-primary); }
-    [data-theme="dark"] .ql-toolbar { background-color: #1E293B !important; border-color: rgba(255, 255, 255, 0.12) !important; }
-    [data-theme="dark"] .ql-container.ql-snow { background-color: #111827 !important; border-color: rgba(255, 255, 255, 0.12) !important; color: #F8FAFC !important; }
+    .ql-toolbar { border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; background-color: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.12) !important; }
+    .ql-container.ql-snow { border-color: rgba(255, 255, 255, 0.12) !important; background-color: #111827; color: #F8FAFC; }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
-<div class="glass-banner-enterprise mb-4">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-7">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
-                    <i class="bi bi-calendar3 me-1 text-warning"></i> Monitoring Kalender Kerja Visual (Google Calendar Style)
+<div class="w-full space-y-6">
+    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+                <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
+                    <i class="bi bi-calendar3 text-amber-400"></i> Monitoring Kalender Kerja Visual (Google Calendar Style)
                 </span>
-            </div>
-            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Kalender & Agenda Kerja BAZNAS</h3>
-            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 620px;">
-                Tampilan visual jadwal kegiatan dinas, rapat pleno pimpinan, SPPD, serta Tanggal Merah Hari Libur Nasional & Cuti Bersama SKB 3 Menteri secara realtime.
-            </p>
-        </div>
-        <div class="col-lg-5 text-lg-end">
-            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                {% if can_manage_agenda %}
-                <a href="{% url 'agendas:create' %}" class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-sm shadow-lg shadow-emerald-600/30 hover:shadow-xl hover:shadow-emerald-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all text-decoration-none group border border-white/20">
-                    <span class="w-7 h-7 rounded-xl bg-white/20 text-white flex items-center justify-center font-black text-base shadow-xs group-hover:scale-110 group-hover:bg-white group-hover:text-emerald-700 transition-all">
-                        <i class="bi bi-plus-lg"></i>
-                    </span>
-                    <span class="tracking-tight">Buat Agenda Baru</span>
-                </a>
-                {% endif %}
-                <a href="{% url 'agendas:list' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}&export=1{% else %}?export=1{% endif %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
-                    <i class="bi bi-file-earmark-excel-fill me-1 text-success"></i> Export Excel
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- GOOGLE CALENDAR 2-COLUMN LAYOUT -->
-<div class="row g-4 mb-4">
-    <!-- SIDEBAR KIRI GOOGLE CALENDAR CONTROLS -->
-    <div class="col-lg-3">
-        <div class="gcal-sidebar-card mb-3">
-            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                <h6 class="fw-bold text-emerald mb-0"><i class="bi bi-layers-fill me-2 text-success"></i>Filter Lapisan Kalender</h6>
-                <span class="badge badge-node-verified rounded-pill px-2.5 py-0.5 small">Google Calendar UI</span>
-            </div>
-
-            <div class="d-flex flex-column gap-1 mb-4">
-                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="checkbox" id="layerAgenda" class="form-check-input accent-emerald" checked onchange="filterCalendarLayers()">
-                        <span class="small fw-bold text-primary"><i class="bi bi-circle-fill me-1" style="color: #10B981;"></i> Agenda BAZNAS</span>
-                    </div>
-                </label>
-
-                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="checkbox" id="layerSPPD" class="form-check-input" checked onchange="filterCalendarLayers()">
-                        <span class="small fw-bold text-primary"><i class="bi bi-circle-fill me-1" style="color: #0284C7;"></i> Perjalanan Dinas (SPPD)</span>
-                    </div>
-                </label>
-
-                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="checkbox" id="layerMeeting" class="form-check-input" checked onchange="filterCalendarLayers()">
-                        <span class="small fw-bold text-primary"><i class="bi bi-circle-fill me-1" style="color: #8B5CF6;"></i> Rapat Pleno Pimpinan</span>
-                    </div>
-                </label>
-
-                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="checkbox" id="layerLibur" class="form-check-input" checked onchange="filterCalendarLayers()">
-                        <span class="small fw-bold text-danger"><i class="bi bi-flag-fill me-1 text-danger"></i> Tanggal Merah SKB 3 Menteri</span>
-                    </div>
-                </label>
-
-                <label class="gcal-layer-check d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="checkbox" id="layerCuti" class="form-check-input" checked onchange="filterCalendarLayers()">
-                        <span class="small fw-bold text-warning"><i class="bi bi-exclamation-triangle-fill me-1 text-warning"></i> Cuti Bersama Official</span>
-                    </div>
-                </label>
-            </div>
-
-            <div class="p-3 card-enterprise" style="background-color: var(--surface-hover);">
-                <div class="small fw-bold text-emerald mb-1"><i class="bi bi-info-circle-fill me-1 text-warning"></i> Info Integrasi SIMAP:</div>
-                <p class="extra-small text-secondary mb-0">
-                    Seluruh tanggal merah hari libur nasional ( Idul Fitri, Imlek, dll.) Sudah Terintegrasi di atas tanggal.
+                <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">Kalender & Agenda Kerja BAZNAS</h1>
+                <p class="text-slate-300 text-sm max-w-2xl mb-0">
+                    Tampilan visual jadwal kegiatan dinas, rapat pleno pimpinan, SPPD, serta Tanggal Merah Hari Libur Nasional & Cuti Bersama SKB 3 Menteri secara realtime.
                 </p>
             </div>
-        </div>
-    </div>
 
-    <!-- UTAMA FULLCALENDAR CANVAS -->
-    <div class="col-lg-9">
-        <div class="card-enterprise p-4">
-            <div id="calendar"></div>
-        </div>
-    </div>
-</div>
-
-<!-- FILTER PANEL & DATA GRID TABEL AGENDA -->
-<div class="card-enterprise p-4 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 border-bottom pb-3">
-        <h5 class="fw-bold mb-0 text-emerald"><i class="bi bi-journal-check me-2 text-success"></i>Daftar Master Agenda & Penugasan Kerja</h5>
-        <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
-            <input type="text" name="q" class="form-control custom-input" style="width: 200px;" placeholder="🔍 Cari agenda / SPPD..." value="{{ filters.q|default:'' }}">
-            
-            <select name="status" class="form-select custom-input" onchange="this.form.submit()" style="width: auto;">
-                <option value="">Semua Status</option>
-                <option value="terjadwal" {% if filters.status == 'terjadwal' or filters.status == 'upcoming' %}selected{% endif %}>Terjadwal</option>
-                <option value="selesai" {% if filters.status == 'selesai' or filters.status == 'completed' %}selected{% endif %}>Selesai</option>
-                <option value="diundur" {% if filters.status == 'diundur' or filters.status == 'postponed' %}selected{% endif %}>Diundur</option>
-                <option value="dibatalkan" {% if filters.status == 'dibatalkan' or filters.status == 'cancelled' %}selected{% endif %}>Dibatalkan</option>
-            </select>
-
-            <select name="disposer" class="form-select custom-input" onchange="this.form.submit()" style="width: auto;">
-                <option value="">Pengirim Disposisi</option>
-                {% for u in disposer_users %}
-                <option value="{{ u.id }}" {% if filters.disposer == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
-                {% endfor %}
-            </select>
-
-            <select name="terkait_user" class="form-select custom-input" onchange="this.form.submit()" style="width: auto;">
-                <option value="">User Terkait</option>
-                {% for u in terkait_users %}
-                <option value="{{ u.id }}" {% if filters.terkait_user == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
-                {% endfor %}
-            </select>
-
-            {% if filters.status or filters.disposer or filters.terkait_user or filters.q %}
-            <a href="{% url 'agendas:list' %}" class="btn btn-outline-secondary rounded-pill px-3">
-                <i class="bi bi-arrow-counterclockwise"></i>
-            </a>
-            {% endif %}
-        </form>
-    </div>
-
-    <!-- KATEGORI PILLS FUTURISTIK -->
-    <div class="d-flex gap-2 flex-wrap align-items-center mb-4">
-        <span class="fw-bold text-emerald me-2 small"><i class="bi bi-folder-fill me-1 text-warning"></i> Kategori Jenis:</span>
-        <a href="{% url 'agendas:list' %}" class="btn btn-sm rounded-pill px-3.5 fw-bold {% if not current_type %}btn-enterprise-primary shadow-sm{% else %}btn-outline-secondary{% endif %}">
-            <i class="bi bi-grid-3x3-gap me-1"></i> Semua Kategori
-        </a>
-        {% for code, label in archive_types %}
-        <a href="{% url 'agendas:list' %}?type={{ code }}{% if filters.q %}&q={{ filters.q }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.disposer %}&disposer={{ filters.disposer }}{% endif %}{% if filters.terkait_user %}&terkait_user={{ filters.terkait_user }}{% endif %}" class="btn btn-sm rounded-pill px-3.5 fw-bold {% if current_type == code %}btn-enterprise-primary shadow-sm{% else %}btn-outline-secondary{% endif %}">
-            {{ label }}
-        </a>
-        {% endfor %}
-    </div>
-    
-    <div class="table-responsive">
-        <table class="table table-hover align-middle w-100 small" id="agendaTable">
-            <thead>
-                <tr class="text-secondary small text-uppercase">
-                    <th class="border-0 text-center" style="width: 140px;">Waktu & Tanggal</th>
-                    <th class="border-0" style="min-width: 240px;">Nama Kegiatan & Lokasi</th>
-                    <th class="border-0" style="width: 180px;">Dokumen Acuan</th>
-                    <th class="border-0 text-center" style="width: 130px;">Status Agenda</th>
-                    <th class="border-0" style="min-width: 180px;">Pegawai Ditugaskan</th>
-                    <th class="border-0 text-center" style="width: 120px;">Notifikasi WA</th>
-                    <th class="border-0 text-end" style="min-width: 220px;">Aksi Cepat</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for agenda in agendas %}
-                <tr id="agenda-{{ agenda.id }}" class="agenda-row {% if request.GET.q and request.GET.q in agenda.title or request.GET.highlight == agenda.id|slugify %}table-primary fw-semibold{% endif %}">
-
-                    <!-- Waktu & Tanggal -->
-                    <td class="text-center" data-order="{{ agenda.scheduled_at|date:'U' }}">
-                        <div class="p-2 card-enterprise text-center" style="background-color: var(--surface-hover);">
-                            <span class="d-block fw-bold text-emerald small">{{ agenda.scheduled_at|date:"l" }}</span>
-                            <span class="d-block fw-extrabold fs-6 text-primary">{{ agenda.scheduled_at|date:"d M Y" }}</span>
-                            <span class="badge badge-node-dispatched px-2 py-0.5 mt-1" style="font-size: 0.68rem;"><i class="bi bi-clock me-1"></i>{{ agenda.scheduled_at|time:"H:i" }} WIB</span>
-                        </div>
-                    </td>
-
-                    <!-- Nama Kegiatan & Lokasi -->
-                    <td>
-                        <h6 class="fw-bold mb-1 text-primary" style="font-size: 0.9rem;">{{ agenda.title }}</h6>
-                        {% if agenda.location %}
-                        <div class="small fw-semibold text-emerald mb-1">
-                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ agenda.location }}
-                        </div>
-                        {% endif %}
-                        {% if agenda.description %}
-                        <p class="mb-0 small text-secondary italic" style="font-size: 0.78rem;">{{ agenda.description|truncatechars:60 }}</p>
-                        {% endif %}
-                        <div class="mt-1.5 d-flex gap-1 flex-wrap">
-                            {% if agenda.is_recurring %}
-                            <span class="badge badge-node-st rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 0.68rem;"><i class="bi bi-repeat me-1"></i> Rutin ({{ agenda.get_recurrence_type_display }})</span>
-                            {% endif %}
-                            {% if agenda.is_sppd_generated or agenda.sppd_ref %}
-                            <span class="badge badge-node-sppd rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 0.68rem;"><i class="bi bi-briefcase-fill me-1"></i> SPPD TERBIT</span>
-                            {% endif %}
-                        </div>
-                    </td>
-
-                    <!-- Dokumen Acuan -->
-                    <td>
-                        {% if agenda.archive %}
-                        <a href="{% url 'archives:detail' agenda.archive.pk %}" class="text-decoration-none fw-bold text-emerald font-mono small d-block">
-                            <i class="bi bi-file-earmark-text me-1"></i>{{ agenda.archive.archive_number|default:"No. Arsip" }}
-                        </a>
-                        <small class="d-block text-secondary text-truncate" style="max-width: 170px;" title="{{ agenda.archive.title }}">{{ agenda.archive.title }}</small>
-                        {% else %}
-                        <span class="badge badge-node-dispatched rounded-pill px-2.5 py-1 small fw-semibold"><i class="bi bi-journal me-1"></i>Agenda Manual</span>
-                        {% endif %}
-                    </td>
-
-                    <!-- Status Agenda -->
-                    <td class="text-center">
-                        {% if agenda.status == 'selesai' %}
-                            <span class="badge badge-node-verified rounded-pill px-3 py-1 fw-bold small">
-                                <i class="bi bi-check-circle-fill me-1"></i>Selesai
-                            </span>
-                        {% elif agenda.status == 'diundur' %}
-                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold small">
-                                <i class="bi bi-clock-history me-1"></i>Diundur
-                            </span>
-                        {% elif agenda.status == 'dibatalkan' %}
-                            <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold small">
-                                <i class="bi bi-x-circle-fill me-1"></i>Dibatalkan
-                            </span>
-                        {% else %}
-                            <span class="badge badge-node-dispatched rounded-pill px-3 py-1 fw-bold small">
-                                <i class="bi bi-calendar-event me-1"></i>Terjadwal
-                            </span>
-                        {% endif %}
-
-                        {% if agenda.completed_notes or agenda.completed_file %}
-                        <span class="badge badge-node-verified rounded-pill px-2 py-0.5 d-block mt-1 mx-auto fw-bold" style="font-size: 0.65rem; width: fit-content;">
-                            <i class="bi bi-journal-check me-1"></i>Notulensi Ada
-                        </span>
-                        {% endif %}
-                    </td>
-
-                    <!-- Pegawai Ditugaskan -->
-                    <td>
-                        {% if agenda.assigned_employees.exists %}
-                            {% for emp in agenda.assigned_employees.all %}
-                            <span class="badge-employee-tag mb-1 me-1">
-                                <i class="bi bi-person-fill text-emerald me-1"></i>{{ emp.full_name }}
-                            </span>
-                            {% endfor %}
-                        {% elif agenda.assigned_to.exists %}
-                            {% for u in agenda.assigned_to.all %}
-                            <span class="badge-employee-tag mb-1 me-1">
-                                <i class="bi bi-person-fill text-primary me-1"></i>{{ u.get_full_name|default:u.username }}
-                            </span>
-                            {% endfor %}
-                        {% else %}
-                            <span class="small text-muted italic">—</span>
-                        {% endif %}
-
-                        {% if agenda.internal_meeting and agenda.internal_meeting.notulis %}
-                        <div class="mt-1">
-                            <span class="badge badge-node-st rounded-pill px-2 py-0.5 small fw-semibold" style="font-size: 0.68rem;" title="Notulis Rapat Internal">
-                                <i class="bi bi-pencil-square text-primary me-1"></i>Notulis: {{ agenda.internal_meeting.notulis.full_name }}
-                            </span>
-                        </div>
-                        {% endif %}
-                    </td>
-
-                    <!-- Notifikasi WA -->
-                    <td class="text-center small">
-                        {% if agenda.notification_sent_at %}
-                            <span class="text-success d-block fw-bold mb-1" style="font-size: 0.72rem;">
-                                <i class="bi bi-check-all me-1"></i>{{ agenda.notification_sent_at|date:"d/m H:i" }}
-                            </span>
-                        {% else %}
-                            <span class="text-muted d-block mb-1" style="font-size: 0.72rem;">—</span>
-                        {% endif %}
-                        <form action="{% url 'agendas:notify' agenda.pk %}" method="post" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" style="font-size: 0.7rem;" title="Kirim Pengingat WA">
-                                <i class="bi bi-send me-1"></i> WA
-                            </button>
-                        </form>
-                    </td>
-
-                    <!-- Aksi Cepat (Pure Tailwind Professional Badges) -->
-                    <td class="text-end">
-                        <script type="application/json" id="agenda-notulensi-json-{{ agenda.pk }}">{{ agenda.notulensi_json|safe }}</script>
-                        <div class="inline-flex items-center justify-end gap-1.5 flex-wrap">
-                        {% if agenda.status == 'terjadwal' or agenda.status == 'diundur' %}
-                            {% if agenda.is_sppd_generated or agenda.sppd_ref %}
-                                <button type="button" 
-                                        class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
-                                        onclick="bukaModalSelesaiSPPD('{{ agenda.pk }}', '{{ agenda.sppd_ref.id|default:'' }}', '{{ agenda.sppd_ref.sppd_number|default:agenda.title|escapejs }}', '{{ agenda.title|escapejs }}')"
-                                        title="Input Laporan Hasil & Selesaikan SPPD/Agenda">
-                                    <i class="bi bi-check-circle-fill"></i> Selesai (LHP)
-                                </button>
-                                <button type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-[11px] cursor-not-allowed border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1" disabled title="Agenda SPPD diedit melalui modul SPPD">
-                                    <i class="bi bi-lock-fill"></i> Edit SPPD
-                                </button>
-                            {% else %}
-                                {% if not agenda.is_sppd_generated and not agenda.sppd_ref %}
-                                <a href="{% url 'agendas:generate_sppd' agenda.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-xs transition-all text-decoration-none inline-flex items-center gap-1.5" title="Terbitkan SPPD & Surat Tugas untuk Agenda ini">
-                                    <i class="bi bi-briefcase-fill"></i> Terbitkan SPPD
-                                </a>
-                                {% endif %}
-
-                                {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
-                                    <button type="button" 
-                                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
-                                            onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-journal-text"></i> Baca Notulensi
-                                    </button>
-                                    <button type="button" 
-                                            class="px-2.5 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500 text-sky-600 dark:text-sky-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1" 
-                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-pencil-square"></i> Edit Notulensi
-                                    </button>
-                                {% else %}
-                                    <button type="button" 
-                                            class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
-                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-pencil-square"></i> Input Notulensi
-                                    </button>
-                                {% endif %}
-
-                                <button type="button" 
-                                        class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
-                                        onclick="bukaModalSelesai('{{ agenda.title|escapejs }}', '{{ agenda.archive.archive_number|default:agenda.title|escapejs }}', '{% url 'agendas:complete' agenda.pk %}')"
-                                        title="Selesaikan Agenda Kerja">
-                                    <i class="bi bi-check-circle-fill"></i> Selesai
-                                </button>
-
-                                <a href="{% url 'agendas:edit' agenda.pk %}" class="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit Agenda">
-                                    <i class="bi bi-pencil-square"></i> Edit
-                                </a>
-                            {% endif %}
-                            
-                            <form action="{% url 'agendas:cancel' agenda.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Batalkan agenda {{ agenda.title|escapejs }}?')">
-                                {% csrf_token %}
-                                <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1">
-                                    <i class="bi bi-x-circle"></i> Batal
-                                </button>
-                            </form>
-                        {% else %}
-                            <!-- AGENDA SELESAI -->
-                            {% if agenda.is_sppd_generated or agenda.sppd_ref %}
-                                {% if agenda.sppd_ref and agenda.sppd_ref.disposition and agenda.sppd_ref.disposition.archive and agenda.sppd_ref.disposition.archive.latest_report %}
-                                <a href="{% url 'reports:detail' agenda.sppd_ref.disposition.archive.latest_report.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-xs transition-all text-decoration-none inline-flex items-center gap-1.5" title="Lihat Rekap Data LHP">
-                                    <i class="bi bi-file-earmark-check-fill"></i> Rekap LHP
-                                </a>
-                                {% endif %}
-                            {% else %}
-                                {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
-                                    <button type="button" 
-                                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
-                                            onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-journal-text"></i> Baca Notulensi
-                                    </button>
-                                    <button type="button" 
-                                            class="px-2.5 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500 text-sky-600 dark:text-sky-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1" 
-                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-pencil-square"></i> Edit Notulensi
-                                    </button>
-                                {% else %}
-                                    <button type="button" 
-                                            class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
-                                            onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
-                                        <i class="bi bi-pencil-square"></i> Input Notulensi
-                                    </button>
-                                {% endif %}
-                            {% endif %}
-                            {% if agenda.completed_file %}
-                            <a href="{{ agenda.completed_file.url }}" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Unduh Berkas Dokumentasi">
-                                <i class="bi bi-file-earmark-arrow-down-fill text-emerald-600"></i> Berkas Foto/PDF
-                            </a>
-                            {% endif %}
-                        {% endif %}
-
-                        <form action="{% url 'agendas:delete' agenda.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Hapus agenda {{ agenda.title|escapejs }} ini secara permanen?')">
-                            {% csrf_token %}
-                            <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Agenda">
-                                <i class="bi bi-trash-fill text-xs"></i>
-                            </button>
-                        </form>
-
-                        <a href="{% if agenda.archive %}{% url 'archives:detail' agenda.archive.pk %}{% else %}#{% endif %}" class="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center justify-center" title="Detail Agenda/Arsip">
-                            <i class="bi bi-eye-fill text-xs"></i>
-                        </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- IN-APP GOOGLE CALENDAR EVENT POPOVER MODAL -->
-<div class="modal fade" id="modalGCalEventDetail" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content card-enterprise border-0">
-            <div class="modal-header border-bottom py-3">
-                <h5 class="modal-header-title fw-bold text-emerald mb-0" id="gcalModalTitle">Detail Kegiatan</h5>
-                <button type="button" class="btn-close" onclick="closePureAgendaModal()" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4 text-start">
-                <div class="p-3 card-enterprise mb-3" style="background-color: var(--surface-hover);">
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase" id="gcalModalTypeBadge">AGENDA</span>
-                        <span class="small font-mono fw-bold text-emerald" id="gcalModalStatusBadge">AKTIF</span>
-                    </div>
-                    <h6 class="fw-bold text-primary mb-1 fs-6" id="gcalModalSubjectText">-</h6>
-                    <small class="text-secondary fw-semibold font-mono d-block" id="gcalModalTimeText">-</small>
-                </div>
-
-                <div class="mb-3">
-                    <label class="small text-secondary fw-bold text-uppercase d-block mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Lokasi / Instansi:</label>
-                    <p class="small fw-semibold text-primary mb-0" id="gcalModalLocationText">-</p>
-                </div>
-
-                <div class="mb-3">
-                    <label class="small text-secondary fw-bold text-uppercase d-block mb-1"><i class="bi bi-people-fill text-success me-1"></i> Pegawai / Ditugaskan:</label>
-                    <p class="small fw-semibold text-emerald mb-0" id="gcalModalAssigneeText">-</p>
-                </div>
-            </div>
-            <div class="modal-footer border-top">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closePureAgendaModal()">Tutup</button>
-                <a href="#" id="gcalModalActionBtn" class="btn btn-enterprise-primary rounded-pill px-4 fw-bold">
-                    Lihat Detail SIMAP
+            <div class="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                {% if can_manage_agenda %}
+                <a href="{% url 'agendas:create' %}" class="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow-md transition-all no-underline inline-flex items-center gap-1.5">
+                    <i class="bi bi-plus-lg text-base"></i> Buat Agenda Baru
+                </a>
+                {% endif %}
+                <a href="{% url 'agendas:list' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}&export=1{% else %}?export=1{% endif %}" class="px-4 py-2.5 rounded-full border border-white/20 text-white hover:bg-white/10 text-xs font-bold transition-all no-underline inline-flex items-center gap-1.5">
+                    <i class="bi bi-file-earmark-excel-fill text-emerald-400"></i> Export Excel
                 </a>
             </div>
+        </div>
+    </div>
+
+    <!-- ⚡ 100% TAILWIND CSS + ALPINE.JS NATIVE CALENDAR ENGINE ⚡ -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6" x-data="simapCalendar()">
+        <!-- SIDEBAR KIRI KONTROL & FILTER LAPISAN -->
+        <div class="lg:col-span-3 space-y-4">
+            <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                    <h3 class="font-black text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                        <i class="bi bi-layers-fill text-emerald-600 dark:text-emerald-400"></i> Filter Lapisan Kalender
+                    </h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-mono">Live Sync</span>
+                </div>
+
+                <div class="space-y-1 text-xs font-bold">
+                    <label class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-all">
+                        <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-xs"></span>
+                            <span>Agenda BAZNAS</span>
+                        </div>
+                        <input type="checkbox" x-model="filters.agenda" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-all">
+                        <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                            <span class="w-3 h-3 rounded-full bg-sky-500 shadow-xs"></span>
+                            <span>Dinas Luar / SPPD</span>
+                        </div>
+                        <input type="checkbox" x-model="filters.sppd" class="rounded text-sky-600 focus:ring-sky-500 w-4 h-4 cursor-pointer">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-all">
+                        <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                            <span class="w-3 h-3 rounded-full bg-purple-500 shadow-xs"></span>
+                            <span>Rapat Pleno Pimpinan</span>
+                        </div>
+                        <input type="checkbox" x-model="filters.meeting" class="rounded text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-all">
+                        <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                            <span class="w-3 h-3 rounded-full bg-rose-500 shadow-xs"></span>
+                            <span>Tanggal Merah SKB</span>
+                        </div>
+                        <input type="checkbox" x-model="filters.holiday" class="rounded text-rose-600 focus:ring-rose-500 w-4 h-4 cursor-pointer">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-all">
+                        <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                            <span class="w-3 h-3 rounded-full bg-amber-500 shadow-xs"></span>
+                            <span>Cuti Bersama Resmi</span>
+                        </div>
+                        <input type="checkbox" x-model="filters.cuti" class="rounded text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer">
+                    </label>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs">
+                    <div class="font-bold text-emerald-600 dark:text-emerald-400 mb-1 flex items-center gap-1"><i class="bi bi-info-circle-fill text-amber-500"></i> Info Integrasi SIMAP:</div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-0 leading-relaxed">
+                        Seluruh tanggal merah hari libur nasional (Idul Fitri, Imlek, dll.) sudah terintegrasi otomatis di atas tanggal.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Mini Ringkasan Statistik -->
+            <div class="p-4 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                <h4 class="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">Statistik Bulan Ini</h4>
+                <div class="grid grid-cols-2 gap-2 text-center text-xs font-bold">
+                    <div class="p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <span class="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono" x-text="getMonthlyStats().agenda">0</span>
+                        <span class="block text-[9px] text-slate-400">Agenda</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <span class="text-base font-black text-sky-600 dark:text-sky-400 font-mono" x-text="getMonthlyStats().sppd">0</span>
+                        <span class="block text-[9px] text-slate-400">SPPD</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <span class="text-base font-black text-purple-600 dark:text-purple-400 font-mono" x-text="getMonthlyStats().meeting">0</span>
+                        <span class="block text-[9px] text-slate-400">Rapat</span>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <span class="text-base font-black text-rose-600 dark:text-rose-400 font-mono" x-text="getMonthlyStats().holiday">0</span>
+                        <span class="block text-[9px] text-slate-400">Libur</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UTAMA CALENDAR CANVAS VIEW -->
+        <div class="lg:col-span-9 space-y-4">
+            <!-- Top Toolbar Navigation Controls -->
+            <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                <!-- Nav Buttons & Title -->
+                <div class="flex items-center gap-3">
+                    <div class="inline-flex items-center rounded-2xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700">
+                        <button @click="prev()" type="button" class="p-2 rounded-xl hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all" title="Sebelumnya">
+                            <i class="bi bi-chevron-left text-xs font-bold"></i>
+                        </button>
+                        <button @click="goToToday()" type="button" class="px-3 py-1.5 rounded-xl hover:bg-white dark:hover:bg-slate-700 text-xs font-extrabold text-slate-800 dark:text-slate-100 transition-all">
+                            Hari Ini
+                        </button>
+                        <button @click="next()" type="button" class="p-2 rounded-xl hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all" title="Selanjutnya">
+                            <i class="bi bi-chevron-right text-xs font-bold"></i>
+                        </button>
+                    </div>
+
+                    <h2 class="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight mb-0" x-text="getHeaderTitle()"></h2>
+                </div>
+
+                <!-- View Switcher Tabs -->
+                <div class="inline-flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold">
+                    <button @click="activeView = 'year'" :class="activeView === 'year' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                        Tahun
+                    </button>
+                    <button @click="activeView = 'month'" :class="activeView === 'month' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                        Bulan
+                    </button>
+                    <button @click="activeView = 'week'" :class="activeView === 'week' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                        Minggu
+                    </button>
+                    <button @click="activeView = 'day'" :class="activeView === 'day' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                        Hari
+                    </button>
+                    <button @click="activeView = 'list'" :class="activeView === 'list' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                        Daftar
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW 1: TAHUN (YEAR VIEW - 12 BULAN RESPONSIVE GRID) -->
+            <div x-show="activeView === 'year'" x-transition class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <template x-for="(mName, mIdx) in monthNames" :key="mIdx">
+                    <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-emerald-500/40 hover:shadow-lg transition-all space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <button @click="goToMonth(mIdx)" class="font-extrabold text-sm text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1.5" title="Lihat Tampilan Penuh Bulan Ini">
+                                <span x-text="mName"></span>
+                                <i class="bi bi-arrow-right-short text-base opacity-70"></i>
+                            </button>
+                            <span class="text-[11px] font-mono font-bold text-slate-400" x-text="currentYear"></span>
+                        </div>
+
+                        <div class="w-full">
+                            <div class="grid grid-cols-7 gap-1 text-center mb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                                <span class="text-rose-500 font-extrabold">Min</span>
+                                <span>Sen</span>
+                                <span>Sel</span>
+                                <span>Rab</span>
+                                <span>Kam</span>
+                                <span>Jum</span>
+                                <span>Sab</span>
+                            </div>
+
+                            <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                                <template x-for="dayItem in getMonthDays(currentYear, mIdx)" :key="dayItem.dateStr">
+                                    <div @click="dayItem.events.length > 0 ? selectDateAndOpen(dayItem.dateStr) : null"
+                                         :class="{
+                                             'opacity-30': !dayItem.isCurrentMonth,
+                                             'bg-emerald-500 text-white font-black rounded-lg shadow-xs': dayItem.isToday,
+                                             'text-rose-500 dark:text-rose-400 font-extrabold': dayItem.isSunday || dayItem.holiday,
+                                             'text-slate-800 dark:text-slate-200 font-semibold': !dayItem.isSunday && !dayItem.holiday && !dayItem.isToday,
+                                             'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-lg': dayItem.events.length > 0
+                                         }"
+                                         class="py-1 px-0.5 relative rounded flex flex-col items-center justify-center transition-all group"
+                                         :title="dayItem.holiday ? (dayItem.holiday + (dayItem.events.length ? ' • ' + dayItem.events.length + ' kegiatan' : '')) : (dayItem.events.length ? dayItem.events.length + ' kegiatan' : '')">
+                                        
+                                        <span class="text-[11px]" x-text="dayItem.day"></span>
+
+                                        <div class="flex items-center justify-center gap-0.5 mt-0.5" x-show="dayItem.events.length > 0">
+                                            <span class="w-1.5 h-1.5 rounded-full"
+                                                  :class="{
+                                                      'bg-white': dayItem.isToday,
+                                                      'bg-emerald-500': !dayItem.isToday && dayItem.events[0].source_type === 'agenda',
+                                                      'bg-sky-500': !dayItem.isToday && dayItem.events[0].source_type === 'sppd',
+                                                      'bg-purple-500': !dayItem.isToday && dayItem.events[0].source_type === 'meeting'
+                                                  }"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- VIEW 2: BULAN (MONTH VIEW - GRID LENGKAP) -->
+            <div x-show="activeView === 'month'" x-transition class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <div class="grid grid-cols-7 gap-2 text-center text-xs font-black uppercase tracking-wider py-2 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-800">
+                    <span class="text-rose-500">Minggu</span>
+                    <span class="text-slate-700 dark:text-slate-300">Senin</span>
+                    <span class="text-slate-700 dark:text-slate-300">Selasa</span>
+                    <span class="text-slate-700 dark:text-slate-300">Rabu</span>
+                    <span class="text-slate-700 dark:text-slate-300">Kamis</span>
+                    <span class="text-slate-700 dark:text-slate-300">Jumat</span>
+                    <span class="text-slate-700 dark:text-slate-300">Sabtu</span>
+                </div>
+
+                <div class="grid grid-cols-7 gap-2">
+                    <template x-for="dayItem in getMonthDays(currentYear, currentMonth)" :key="dayItem.dateStr">
+                        <div class="min-h-[110px] p-2 rounded-2xl border transition-all flex flex-col justify-between"
+                             :class="{
+                                 'bg-slate-50/40 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800/40 opacity-40': !dayItem.isCurrentMonth,
+                                 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800': dayItem.isCurrentMonth,
+                                 'ring-2 ring-emerald-500/80 bg-emerald-50/30 dark:bg-emerald-950/20': dayItem.isToday,
+                                 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/60 dark:border-rose-900/40': dayItem.holiday
+                             }">
+                            
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-extrabold text-xs px-2 py-0.5 rounded-full"
+                                      :class="{
+                                          'bg-emerald-600 text-white shadow-xs': dayItem.isToday,
+                                          'text-rose-600 dark:text-rose-400': dayItem.isSunday || dayItem.holiday,
+                                          'text-slate-800 dark:text-slate-200': !dayItem.isSunday && !dayItem.holiday && !dayItem.isToday
+                                      }"
+                                      x-text="dayItem.day"></span>
+
+                                <span x-show="dayItem.events.length > 0" class="text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500" x-text="dayItem.events.length + ' item'"></span>
+                            </div>
+
+                            <template x-if="dayItem.holiday">
+                                <div @click="openHolidayModal(dayItem.dateStr, dayItem.holiday)"
+                                     class="mb-1.5 px-2 py-1 rounded-lg bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-[10px] font-bold line-clamp-2 cursor-pointer hover:bg-rose-500/25 transition-all">
+                                    <i class="bi bi-flag-fill text-rose-500 text-[9px] mr-0.5"></i>
+                                    <span x-text="dayItem.holiday"></span>
+                                </div>
+                            </template>
+
+                            <div class="space-y-1 overflow-y-auto max-h-[80px] custom-scrollbar flex-1">
+                                <template x-for="ev in dayItem.events" :key="ev.id">
+                                    <div @click="openEventModal(ev)"
+                                         class="px-2 py-0.5 rounded-lg text-[10px] font-bold truncate cursor-pointer transition-all border flex items-center gap-1 shadow-2xs"
+                                         :class="{
+                                             'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25': ev.source_type === 'agenda',
+                                             'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30 hover:bg-sky-500/25': ev.source_type === 'sppd',
+                                             'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30 hover:bg-purple-500/25': ev.source_type === 'meeting'
+                                         }"
+                                         :title="ev.title">
+                                        <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                                              :class="{
+                                                  'bg-emerald-500': ev.source_type === 'agenda',
+                                                  'bg-sky-500': ev.source_type === 'sppd',
+                                                  'bg-purple-500': ev.source_type === 'meeting'
+                                              }"></span>
+                                        <span class="truncate" x-text="ev.title"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- VIEW 3: MINGGU (WEEK VIEW) -->
+            <div x-show="activeView === 'week'" x-transition class="grid grid-cols-1 md:grid-cols-7 gap-3">
+                <template x-for="dayItem in getWeekDays()" :key="dayItem.dateStr">
+                    <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 min-h-[350px]">
+                        <div class="text-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <span class="text-[11px] font-bold uppercase tracking-wider block"
+                                  :class="dayItem.isSunday ? 'text-rose-500' : 'text-slate-400 dark:text-slate-500'"
+                                  x-text="dayNamesFull[new Date(dayItem.dateStr + 'T00:00:00').getDay()]"></span>
+                            <span class="text-lg font-black block mt-0.5"
+                                  :class="{
+                                      'text-emerald-600 dark:text-emerald-400': dayItem.isToday,
+                                      'text-rose-600 dark:text-rose-400': dayItem.isSunday || dayItem.holiday,
+                                      'text-slate-800 dark:text-slate-200': !dayItem.isToday && !dayItem.isSunday && !dayItem.holiday
+                                  }"
+                                  x-text="dayItem.day + ' ' + monthNames[dayItem.month]"></span>
+                        </div>
+
+                        <template x-if="dayItem.holiday">
+                            <div class="p-2 rounded-xl bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-xs font-bold">
+                                <i class="bi bi-flag-fill text-rose-500 mr-1"></i> <span x-text="dayItem.holiday"></span>
+                            </div>
+                        </template>
+
+                        <div class="space-y-2">
+                            <template x-for="ev in dayItem.events" :key="ev.id">
+                                <div @click="openEventModal(ev)"
+                                     class="p-2.5 rounded-2xl border text-xs font-semibold cursor-pointer hover:scale-[1.02] transition-all space-y-1"
+                                     :class="{
+                                         'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800': ev.source_type === 'agenda',
+                                         'bg-sky-50 dark:bg-sky-950/40 text-sky-900 dark:text-sky-200 border-sky-200 dark:border-sky-800': ev.source_type === 'sppd',
+                                         'bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 border-purple-200 dark:border-purple-800': ev.source_type === 'meeting'
+                                     }">
+                                    <div class="font-black text-xs line-clamp-2" x-text="ev.title"></div>
+                                    <div class="text-[10px] opacity-75 flex items-center gap-1 font-mono">
+                                        <i class="bi bi-clock"></i> <span x-text="ev.time || 'Sepanjang Hari'"></span>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="dayItem.events.length === 0 && !dayItem.holiday" class="text-center py-8 text-slate-400 text-xs italic">
+                                Tidak ada agenda
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- VIEW 4: HARI (DAY VIEW) -->
+            <div x-show="activeView === 'day'" x-transition class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div>
+                        <span class="text-xs font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">Detail Agenda Harian</span>
+                        <h3 class="text-xl font-black text-slate-900 dark:text-white" x-text="getHeaderTitle()"></h3>
+                    </div>
+                    <div class="text-end">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300" x-text="getDayEvents(selectedDateStr).length + ' Kegiatan Terjadwal'"></span>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <template x-for="ev in getDayEvents(selectedDateStr)" :key="ev.id">
+                        <div @click="openEventModal(ev)" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 cursor-pointer transition-all flex items-start justify-between gap-4">
+                            <div class="space-y-1.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase"
+                                          :class="{
+                                              'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30': ev.source_type === 'agenda',
+                                              'bg-sky-500/15 text-sky-600 border border-sky-500/30': ev.source_type === 'sppd',
+                                              'bg-purple-500/15 text-purple-600 border border-purple-500/30': ev.source_type === 'meeting'
+                                          }"
+                                          x-text="ev.source_type"></span>
+                                    <span class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400" x-text="ev.time || 'Sepanjang Hari'"></span>
+                                </div>
+                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white mb-0" x-text="ev.title"></h4>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-4">
+                                    <span class="flex items-center gap-1"><i class="bi bi-geo-alt text-rose-500"></i> <span x-text="ev.location || 'Kantor BAZNAS'"></span></span>
+                                    <span class="flex items-center gap-1"><i class="bi bi-people text-emerald-500"></i> <span x-text="ev.assigned_to || '-'"></span></span>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200">
+                                Detail <i class="bi bi-chevron-right ml-1"></i>
+                            </span>
+                        </div>
+                    </template>
+                    <div x-show="getDayEvents(selectedDateStr).length === 0" class="py-12 text-center text-slate-400">
+                        <i class="bi bi-calendar-x text-4xl block mb-2 opacity-50"></i>
+                        <p class="text-xs font-semibold">Tidak ada kegiatan yang dijadwalkan pada tanggal ini.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 5: DAFTAR (LIST VIEW / CHRONOLOGICAL TIMELINE) -->
+            <div x-show="activeView === 'list'" x-transition class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                <div class="flex items-center justify-between gap-4">
+                    <h3 class="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-0">
+                        Daftar Agenda & Kegiatan Bulan Ini (<span x-text="monthNames[currentMonth] + ' ' + currentYear"></span>)
+                    </h3>
+                    <input type="text" x-model="searchQuery" placeholder="Cari kegiatan..." class="px-3 py-1.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:ring-emerald-500">
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px]">
+                                <th class="py-3 px-3 rounded-l-xl">Tanggal</th>
+                                <th class="py-3 px-3">Tipe</th>
+                                <th class="py-3 px-3">Kegiatan / Agenda</th>
+                                <th class="py-3 px-3">Lokasi</th>
+                                <th class="py-3 px-3">Penanggung Jawab</th>
+                                <th class="py-3 px-3 text-end rounded-r-xl">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <template x-for="ev in getFilteredListEvents()" :key="ev.id">
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td class="py-3 px-3 font-mono font-bold text-slate-800 dark:text-slate-200" x-text="ev.start"></td>
+                                    <td class="py-3 px-3">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                                              :class="{
+                                                  'bg-emerald-500/15 text-emerald-600': ev.source_type === 'agenda',
+                                                  'bg-sky-500/15 text-sky-600': ev.source_type === 'sppd',
+                                                  'bg-purple-500/15 text-purple-600': ev.source_type === 'meeting'
+                                              }"
+                                              x-text="ev.source_type"></span>
+                                    </td>
+                                    <td class="py-3 px-3 font-bold text-slate-900 dark:text-white" x-text="ev.title"></td>
+                                    <td class="py-3 px-3 text-slate-500 dark:text-slate-400" x-text="ev.location || '-'"></td>
+                                    <td class="py-3 px-3 text-slate-500 dark:text-slate-400" x-text="ev.assigned_to || '-'"></td>
+                                    <td class="py-3 px-3 text-end">
+                                        <button @click="openEventModal(ev)" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-300 transition-all font-bold text-[10px]">
+                                            Lihat
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pop-up Detail Modal in Agenda Page (Alpine.js) -->
+        <div x-show="activeEventModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs" x-transition.opacity>
+            <div @click.away="closeEventModal()" class="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden" x-transition.scale>
+                <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0">Detail Informasi Kegiatan</h3>
+                    </div>
+                    <button @click="closeEventModal()" class="w-8 h-8 rounded-full bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all border-0">
+                        <i class="bi bi-x-lg text-xs"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-4 text-xs" x-if="activeEventModal">
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 space-y-1.5">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-600 text-white uppercase inline-block" x-text="activeEventModal.source_type || 'AGENDA'"></span>
+                        <h4 class="text-sm font-extrabold text-slate-900 dark:text-white mb-0" x-text="activeEventModal.title"></h4>
+                        <span class="text-slate-500 dark:text-slate-400 font-mono font-bold flex items-center gap-1">
+                            <i class="bi bi-calendar-check text-emerald-500"></i> <span x-text="activeEventModal.start + (activeEventModal.time ? ' • ' + activeEventModal.time : '')"></span>
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700 dark:text-slate-300">
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Lokasi / Instansi</span>
+                            <div class="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                                <i class="bi bi-geo-alt-fill text-rose-500"></i>
+                                <span x-text="activeEventModal.location || 'Kantor BAZNAS'"></span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Penanggung Jawab / Amil</span>
+                            <div class="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                                <i class="bi bi-people-fill text-emerald-500"></i>
+                                <span x-text="activeEventModal.assigned_to || 'Internal BAZNAS'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-end gap-2">
+                    <button @click="closeEventModal()" type="button" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-300 transition-all border-0">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTER PANEL & DATA GRID TABEL AGENDA -->
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div class="flex justify-between items-center flex-wrap gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                <i class="bi bi-journal-check text-emerald-600 dark:text-emerald-400"></i> Daftar Master Agenda & Penugasan Kerja
+            </h3>
+            <form method="get" class="flex gap-2 flex-wrap items-center">
+                <input type="text" name="q" class="w-48 px-3 py-1.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" placeholder="🔍 Cari agenda / SPPD..." value="{{ filters.q|default:'' }}">
+                
+                <select name="status" class="px-3 py-1.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" onchange="this.form.submit()">
+                    <option value="">Semua Status</option>
+                    <option value="terjadwal" {% if filters.status == 'terjadwal' or filters.status == 'upcoming' %}selected{% endif %}>Terjadwal</option>
+                    <option value="selesai" {% if filters.status == 'selesai' or filters.status == 'completed' %}selected{% endif %}>Selesai</option>
+                    <option value="diundur" {% if filters.status == 'diundur' or filters.status == 'postponed' %}selected{% endif %}>Diundur</option>
+                    <option value="dibatalkan" {% if filters.status == 'dibatalkan' or filters.status == 'cancelled' %}selected{% endif %}>Dibatalkan</option>
+                </select>
+
+                <select name="disposer" class="px-3 py-1.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" onchange="this.form.submit()">
+                    <option value="">Pengirim Disposisi</option>
+                    {% for u in disposer_users %}
+                    <option value="{{ u.id }}" {% if filters.disposer == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
+                    {% endfor %}
+                </select>
+
+                <select name="terkait_user" class="px-3 py-1.5 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" onchange="this.form.submit()">
+                    <option value="">User Terkait</option>
+                    {% for u in terkait_users %}
+                    <option value="{{ u.id }}" {% if filters.terkait_user == u.id|slugify %}selected{% endif %}>{{ u.username }}</option>
+                    {% endfor %}
+                </select>
+
+                {% if filters.status or filters.disposer or filters.terkait_user or filters.q %}
+                <a href="{% url 'agendas:list' %}" class="px-3 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs transition-all no-underline" title="Reset Filter">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- KATEGORI PILLS FUTURISTIK -->
+        <div class="flex gap-2 flex-wrap items-center">
+            <span class="font-bold text-slate-500 dark:text-slate-400 text-xs me-1 flex items-center gap-1"><i class="bi bi-folder-fill text-amber-500"></i> Kategori Jenis:</span>
+            <a href="{% url 'agendas:list' %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all no-underline {% if not current_type %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                <i class="bi bi-grid-3x3-gap me-1"></i> Semua Kategori
+            </a>
+            {% for code, label in archive_types %}
+            <a href="{% url 'agendas:list' %}?type={{ code }}{% if filters.q %}&q={{ filters.q }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.disposer %}&disposer={{ filters.disposer }}{% endif %}{% if filters.terkait_user %}&terkait_user={{ filters.terkait_user }}{% endif %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all no-underline {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                {{ label }}
+            </a>
+            {% endfor %}
+        </div>
+        
+        <div class="w-full overflow-x-auto touch-pan-x custom-scrollbar">
+            <table class="w-full text-left border-collapse text-xs" id="agendaTable">
+                <thead>
+                    <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                        <th class="py-3 px-2 text-center w-36">Waktu & Tanggal</th>
+                        <th class="py-3 px-2">Nama Kegiatan & Lokasi</th>
+                        <th class="py-3 px-2">Dokumen Acuan</th>
+                        <th class="py-3 px-2 text-center">Status Agenda</th>
+                        <th class="py-3 px-2">Pegawai Ditugaskan</th>
+                        <th class="py-3 px-2 text-center w-28">Notifikasi WA</th>
+                        <th class="py-3 px-2 text-end">Aksi Cepat</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    {% for agenda in agendas %}
+                    <tr id="agenda-{{ agenda.id }}" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors {% if request.GET.q and request.GET.q in agenda.title or request.GET.highlight == agenda.id|slugify %}bg-emerald-500/10{% endif %}">
+
+                        <!-- Waktu & Tanggal -->
+                        <td class="py-3 px-3 text-center" data-order="{{ agenda.scheduled_at|date:'U' }}">
+                            <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
+                                <span class="block font-bold text-emerald-600 dark:text-emerald-400 text-xs">{{ agenda.scheduled_at|date:"l" }}</span>
+                                <span class="block font-black text-slate-900 dark:text-white text-sm my-0.5">{{ agenda.scheduled_at|date:"d M Y" }}</span>
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono inline-flex items-center gap-1"><i class="bi bi-clock"></i>{{ agenda.scheduled_at|time:"H:i" }} WIB</span>
+                            </div>
+                        </td>
+
+                        <!-- Nama Kegiatan & Lokasi -->
+                        <td class="py-3 px-3">
+                            <h4 class="font-bold text-xs text-slate-900 dark:text-white mb-1 leading-snug">{{ agenda.title }}</h4>
+                            {% if agenda.location %}
+                            <div class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mb-1 flex items-center gap-1">
+                                <i class="bi bi-geo-alt-fill text-rose-500"></i>{{ agenda.location }}
+                            </div>
+                            {% endif %}
+                            {% if agenda.description %}
+                            <p class="mb-0 text-[11px] text-slate-400 italic leading-tight">{{ agenda.description|truncatechars:60 }}</p>
+                            {% endif %}
+                            <div class="mt-1.5 flex gap-1 flex-wrap">
+                                {% if agenda.is_recurring %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 flex items-center gap-1"><i class="bi bi-repeat"></i> Rutin ({{ agenda.get_recurrence_type_display }})</span>
+                                {% endif %}
+                                {% if agenda.is_sppd_generated or agenda.sppd_ref %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30 flex items-center gap-1"><i class="bi bi-briefcase-fill"></i> SPPD TERBIT</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- Dokumen Acuan -->
+                        <td class="py-3 px-3">
+                            {% if agenda.archive %}
+                            <a href="{% url 'archives:detail' agenda.archive.pk %}" class="no-underline font-extrabold text-emerald-600 dark:text-emerald-400 font-mono text-xs block hover:underline">
+                                <i class="bi bi-file-earmark-text me-1"></i>{{ agenda.archive.archive_number|default:"No. Arsip" }}
+                            </a>
+                            <span class="block text-slate-400 text-[11px] truncate max-w-[170px]" title="{{ agenda.archive.title }}">{{ agenda.archive.title }}</span>
+                            {% else %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center gap-1 w-fit"><i class="bi bi-journal"></i>Agenda Manual</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Status Agenda -->
+                        <td class="py-3 px-3 text-center">
+                            {% if agenda.status == 'selesai' %}
+                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
+                                    <i class="bi bi-check-circle-fill"></i> Selesai
+                                </span>
+                            {% elif agenda.status == 'diundur' %}
+                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 inline-flex items-center gap-1">
+                                    <i class="bi bi-clock-history"></i> Diundur
+                                </span>
+                            {% elif agenda.status == 'dibatalkan' %}
+                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-500/30 inline-flex items-center gap-1">
+                                    <i class="bi bi-x-circle-fill"></i> Dibatalkan
+                                </span>
+                            {% else %}
+                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30 inline-flex items-center gap-1">
+                                    <i class="bi bi-calendar-event"></i> Terjadwal
+                                </span>
+                            {% endif %}
+
+                            {% if agenda.completed_notes or agenda.completed_file %}
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 block mt-1 mx-auto w-fit">
+                                <i class="bi bi-journal-check me-1"></i>Notulensi Ada
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Pegawai Ditugaskan -->
+                        <td class="py-3 px-3">
+                            {% if agenda.assigned_employees.exists %}
+                                {% for emp in agenda.assigned_employees.all %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1 mb-1 me-1">
+                                    <i class="bi bi-person-fill text-emerald-500"></i>{{ emp.full_name }}
+                                </span>
+                                {% endfor %}
+                            {% elif agenda.assigned_to.exists %}
+                                {% for u in agenda.assigned_to.all %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1 mb-1 me-1">
+                                    <i class="bi bi-person-fill text-sky-500"></i>{{ u.get_full_name|default:u.username }}
+                                </span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-slate-400 text-xs italic">—</span>
+                            {% endif %}
+
+                            {% if agenda.internal_meeting and agenda.internal_meeting.notulis %}
+                            <div class="mt-1">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 inline-flex items-center gap-1" title="Notulis Rapat Internal">
+                                    <i class="bi bi-pencil-square"></i>Notulis: {{ agenda.internal_meeting.notulis.full_name }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </td>
+
+                        <!-- Notifikasi WA -->
+                        <td class="py-3 px-3 text-center">
+                            {% if agenda.notification_sent_at %}
+                                <span class="text-emerald-500 font-extrabold text-[10px] font-mono block mb-1">
+                                    <i class="bi bi-check-all me-1"></i>{{ agenda.notification_sent_at|date:"d/m H:i" }}
+                                </span>
+                            {% else %}
+                                <span class="text-slate-400 text-[10px] block mb-1">—</span>
+                            {% endif %}
+                            <form action="{% url 'agendas:notify' agenda.pk %}" method="post" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="px-2.5 py-1 rounded-full bg-emerald-500/15 hover:bg-emerald-600 text-emerald-600 hover:text-white text-[10px] font-extrabold border border-emerald-500/30 transition-all cursor-pointer inline-flex items-center gap-1" title="Kirim Pengingat WA">
+                                    <i class="bi bi-send"></i> WA
+                                </button>
+                            </form>
+                        </td>
+
+                        <!-- Aksi Cepat -->
+                        <td class="py-3 px-3 text-end">
+                            <script type="application/json" id="agenda-notulensi-json-{{ agenda.pk }}">{{ agenda.notulensi_json|safe }}</script>
+                            <div class="inline-flex items-center justify-end gap-1.5 flex-wrap">
+                            {% if agenda.status == 'terjadwal' or agenda.status == 'diundur' %}
+                                {% if agenda.is_sppd_generated or agenda.sppd_ref %}
+                                    <button type="button" 
+                                            class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
+                                            onclick="bukaModalSelesaiSPPD('{{ agenda.pk }}', '{{ agenda.sppd_ref.id|default:'' }}', '{{ agenda.sppd_ref.sppd_number|default:agenda.title|escapejs }}', '{{ agenda.title|escapejs }}')"
+                                            title="Input Laporan Hasil & Selesaikan SPPD/Agenda">
+                                        <i class="bi bi-check-circle-fill"></i> Selesai (LHP)
+                                    </button>
+                                {% else %}
+                                    {% if not agenda.is_sppd_generated and not agenda.sppd_ref %}
+                                    <a href="{% url 'agendas:generate_sppd' agenda.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-xs transition-all no-underline inline-flex items-center gap-1.5" title="Terbitkan SPPD & Surat Tugas untuk Agenda ini">
+                                        <i class="bi bi-briefcase-fill"></i> Terbitkan SPPD
+                                    </a>
+                                    {% endif %}
+
+                                    {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
+                                        <button type="button" 
+                                                class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
+                                                onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
+                                            <i class="bi bi-journal-text"></i> Baca Notulensi
+                                        </button>
+                                        <button type="button" 
+                                                class="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-600 text-sky-600 dark:text-sky-300 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1" 
+                                                onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
+                                            <i class="bi bi-pencil-square"></i> Edit Notulensi
+                                        </button>
+                                    {% else %}
+                                        <button type="button" 
+                                                class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
+                                                onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
+                                            <i class="bi bi-pencil-square"></i> Input Notulensi
+                                        </button>
+                                    {% endif %}
+
+                                    <button type="button" 
+                                            class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
+                                            onclick="bukaModalSelesai('{{ agenda.title|escapejs }}', '{{ agenda.archive.archive_number|default:agenda.title|escapejs }}', '{% url 'agendas:complete' agenda.pk %}')"
+                                            title="Selesaikan Agenda Kerja">
+                                        <i class="bi bi-check-circle-fill"></i> Selesai
+                                    </button>
+
+                                    <a href="{% url 'agendas:edit' agenda.pk %}" class="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all no-underline inline-flex items-center gap-1" title="Edit Agenda">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+                                {% endif %}
+                                
+                                <form action="{% url 'agendas:cancel' agenda.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Batalkan agenda {{ agenda.title|escapejs }}?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1">
+                                        <i class="bi bi-x-circle"></i> Batal
+                                    </button>
+                                </form>
+                            {% else %}
+                                <!-- AGENDA SELESAI -->
+                                {% if agenda.is_sppd_generated or agenda.sppd_ref %}
+                                    {% if agenda.sppd_ref and agenda.sppd_ref.disposition and agenda.sppd_ref.disposition.archive and agenda.sppd_ref.disposition.archive.latest_report %}
+                                    <a href="{% url 'reports:detail' agenda.sppd_ref.disposition.archive.latest_report.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-xs transition-all no-underline inline-flex items-center gap-1.5" title="Lihat Rekap Data LHP">
+                                        <i class="bi bi-file-earmark-check-fill"></i> Rekap LHP
+                                    </a>
+                                    {% endif %}
+                                {% else %}
+                                    {% if agenda.internal_meeting and agenda.internal_meeting.is_notulensi_completed or agenda.completed_notes or agenda.completed_file %}
+                                        <button type="button" 
+                                                class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
+                                                onclick="viewNotulensiModalAgenda('{{ agenda.pk }}')">
+                                            <i class="bi bi-journal-text"></i> Baca Notulensi
+                                        </button>
+                                    {% else %}
+                                        <button type="button" 
+                                                class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
+                                                onclick="bukaModalNotulensiAgenda('{{ agenda.pk }}')">
+                                            <i class="bi bi-pencil-square"></i> Input Notulensi
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                                {% if agenda.completed_file %}
+                                <a href="{{ agenda.completed_file.url }}" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] transition-all no-underline inline-flex items-center gap-1" title="Unduh Berkas Dokumentasi">
+                                    <i class="bi bi-file-earmark-arrow-down-fill text-emerald-600"></i> Berkas Foto/PDF
+                                </a>
+                                {% endif %}
+                            {% endif %}
+
+                            <form action="{% url 'agendas:delete' agenda.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Hapus agenda {{ agenda.title|escapejs }} ini secara permanen?')">
+                                {% csrf_token %}
+                                <button type="submit" class="p-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-600 text-rose-500 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Agenda">
+                                    <i class="bi bi-trash-fill text-xs"></i>
+                                </button>
+                            </form>
+
+                            <a href="{% if agenda.archive %}{% url 'archives:detail' agenda.archive.pk %}{% else %}#{% endif %}" class="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 font-extrabold text-[11px] transition-all no-underline inline-flex items-center justify-center" title="Detail Agenda/Arsip">
+                                <i class="bi bi-eye-fill text-xs"></i>
+                            </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_modals %}
-<!-- Modal Pop-Up Selesai SPPD / Unggah LHP Lapangan -->
-<div class="modal fade" id="modalSelesaiSPPD" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content card-enterprise border-0">
-            <div class="modal-header border-bottom py-3">
-                <h5 class="modal-header-title fw-bold text-emerald mb-0">
-                    <i class="bi bi-check-circle-fill me-2 text-success"></i>Selesaikan SPPD & Input Laporan Hasil Lapangan (LHP)
-                </h5>
-                <button type="button" class="btn-close" onclick="closePureAgendaModal()" aria-label="Close"></button>
-            </div>
-            <form id="formSelesaiSPPD" method="post" enctype="multipart/form-data" action="">
-                {% csrf_token %}
-                <div class="modal-body p-4 text-start">
-                    <div class="p-3 card-enterprise mb-3" style="background-color: var(--surface-hover);">
-                        <h6 class="fw-bold text-primary mb-1" id="sppdModalTitleText">-</h6>
-                        <span class="badge badge-node-sppd rounded-pill px-3 py-1 small" id="sppdModalNumBadge">SPPD / Penugasan Luar</span>
-                    </div>
+<!-- TAILWIND CSS + ALPINE.JS MODAL 1: NOTULENSI RAPAT INTERNAL -->
+<div x-data="{ open: false }" 
+     x-show="open" 
+     @open-notulensi-modal.window="open = true" 
+     @close-notulensi-modal.window="open = false" 
+     @keydown.escape.window="open = false" 
+     class="fixed inset-0 z-[99999] overflow-y-auto" 
+     style="display: none;">
+    <!-- Backdrop Blur -->
+    <div x-show="open" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-slate-900/80 transition-opacity" 
+         @click="open = false"></div>
 
-                    <div class="mb-3">
-                        <label for="id_report_notes_sppd" class="form-label fw-bold">Rangkuman Hasil Kegiatan / Catatan Lapangan <span class="text-danger">*</span></label>
-                        <textarea name="completed_notes" id="id_report_notes_sppd" rows="4" class="form-control custom-input p-3" placeholder="Tuliskan ringkasan hasil kegiatan / survei / penyaluran di sini..." required></textarea>
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6 text-center">
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+             class="relative w-full max-w-4xl transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 text-left shadow-2xl transition-all border border-slate-200 dark:border-slate-800 my-8">
+            
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-extrabold text-xl shadow-inner">
+                        <i class="bi bi-journal-text"></i>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="id_report_file_sppd" class="form-label fw-bold">Foto Utama / Berkas PDF LHP Lapangan</label>
-                        <input type="file" name="completed_file" id="id_report_file_sppd" class="form-control custom-input" accept="image/*,.pdf,.doc,.docx">
-                        <small class="text-secondary"><i class="bi bi-paperclip me-1"></i>Unggah foto bukti kegiatan atau berkas LHP fisik utama yang telah di-scan.</small>
-                    </div>
-
-                    <div class="mb-3 border-top pt-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-bold mb-0 text-emerald"><i class="bi bi-folder-plus me-1 text-primary"></i>Lampiran Berkas / Foto Tambahan</label>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="addAdditionalFileRowAgendaSPPD()">
-                                <i class="bi bi-plus-lg me-1"></i> Tambah File Lain
-                            </button>
-                        </div>
-                        <div id="additionalFilesContainerAgendaSPPD" class="d-flex flex-column gap-2"></div>
+                    <div>
+                        <h4 class="font-extrabold text-slate-900 dark:text-white text-base m-0" id="modalNotulensiHeaderTitle">Notulensi Rapat Internal & Audiensi</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 m-0">Input notulensi, kesimpulan, dan action plan rapat.</p>
                     </div>
                 </div>
-                <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closePureAgendaModal()">Batal</button>
-                    <button type="submit" class="btn btn-enterprise-primary rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="bi bi-check-circle-fill me-1"></i> Simpan LHP & Selesaikan
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Pop-Up Notulensi Rapat Internal (Quill.js Rich Text) -->
-<div class="modal fade" id="modalNotulensiRapat" tabindex="-1" aria-hidden="true" >
-    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-        <div class="modal-content card-enterprise border-0">
-            <div class="modal-header border-bottom py-3">
-                <h5 class="modal-header-title fw-bold text-emerald mb-0" id="modalNotulensiHeaderTitle">
-                    <i class="bi bi-journal-text me-2 text-success"></i>Notulensi Rapat Internal Pimpinan BAZNAS
-                </h5>
-                <button type="button" class="btn-close" onclick="closePureAgendaModal()" aria-label="Close"></button>
+                <button type="button" @click="open = false" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all border-0 cursor-pointer">
+                    <i class="bi bi-x-lg text-sm"></i>
+                </button>
             </div>
+
             <form id="formNotulensiRapat" method="post" enctype="multipart/form-data" action="">
                 {% csrf_token %}
                 <input type="hidden" name="meeting_id" id="notulensi_meeting_id" value="">
@@ -647,32 +1195,30 @@
                 <input type="hidden" name="notulensi_decision" id="hidden_notulensi_decision" value="">
                 <input type="hidden" name="notulensi_action_items" id="hidden_notulensi_action_items" value="">
 
-                <div class="modal-body p-4 text-start">
-                    <div class="p-3 card-enterprise mb-4" style="background-color: var(--surface-hover);">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-8">
-                                <h6 class="fw-bold text-primary mb-1" id="notulensiTitleText">-</h6>
-                                <span class="small text-secondary fw-semibold" id="notulensiDateText">-</span>
+                <div class="py-4 space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <div>
+                                <h6 class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm mb-0.5" id="notulensiTitleText">-</h6>
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400" id="notulensiDateText">-</span>
                             </div>
-                            <div class="col-md-4 text-md-end">
-                                <span class="badge badge-node-verified rounded-pill px-3 py-1" id="notulensiStatusBadge">Notulensi Rapat</span>
-                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-mono" id="notulensiStatusBadge">Notulensi Rapat</span>
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Notulis / Pencatat <span class="text-danger">*</span></label>
-                            <select name="notulis_id" id="notulensi_notulis_id" class="form-select custom-input" required>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Notulis / Pencatat <span class="text-rose-500">*</span></label>
+                            <select name="notulis_id" id="notulensi_notulis_id" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500" required>
                                 <option value="">Pilih Notulis...</option>
                                 {% for emp in employees %}
                                 <option value="{{ emp.id }}">{{ emp.full_name }} ({{ emp.position }})</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Jenis Rapat Internal</label>
-                            <select name="meeting_type" id="notulensi_meeting_type" class="form-select custom-input">
+                        <div>
+                            <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Jenis Rapat Internal</label>
+                            <select name="meeting_type" id="notulensi_meeting_type" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
                                 <option value="pimpinan">Rapat Pleno Pimpinan</option>
                                 <option value="koordinasi">Rapat Koordinasi Bidang</option>
                                 <option value="khusus">Rapat Khusus / Insidental</option>
@@ -681,31 +1227,31 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-emerald"><i class="bi bi-card-text me-1 text-primary"></i> 1. Ringkasan & Poin Pembahasan Rapat <span class="text-danger">*</span></label>
-                        <div id="quill_notulensi_summary"></div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mb-1"><i class="bi bi-card-text me-1"></i> 1. Ringkasan & Poin Pembahasan <span class="text-rose-500">*</span></label>
+                        <div id="quill_notulensi_summary" class="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 min-h-[120px]"></div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-emerald"><i class="bi bi-check2-square me-1 text-success"></i> 2. Kesimpulan / Keputusan Rapat</label>
-                        <div id="quill_notulensi_decision"></div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mb-1"><i class="bi bi-check2-square me-1"></i> 2. Kesimpulan / Keputusan Rapat</label>
+                        <div id="quill_notulensi_decision" class="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 min-h-[100px]"></div>
                     </div>
 
-                    <div class="mb-4 border-top pt-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-bold text-emerald mb-0"><i class="bi bi-list-task me-1 text-warning"></i> 3. Action Plan / Rencana Tindak Lanjut</label>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="addActionPlanRowAgenda()">
+                    <div class="border-t border-slate-200 dark:border-slate-800 pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mb-0"><i class="bi bi-list-task me-1"></i> 3. Action Plan / Rencana Tindak Lanjut</label>
+                            <button type="button" class="px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 font-extrabold text-[11px] border border-emerald-300 dark:border-emerald-800 transition-all cursor-pointer" onclick="addActionPlanRowAgenda()">
                                 + Tambah Action Plan
                             </button>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle small mb-0" id="tableActionPlanAgenda">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs mb-0" id="tableActionPlanAgenda">
                                 <thead>
-                                    <tr class="text-secondary small text-uppercase">
-                                        <th class="border-0">Tugas / Action Item</th>
-                                        <th class="border-0" style="width: 220px;">PIC (Penanggung Jawab)</th>
-                                        <th class="border-0" style="width: 160px;">Tgl Target (Deadline)</th>
-                                        <th class="border-0 text-center" style="width: 60px;">Hapus</th>
+                                    <tr class="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold border-b border-slate-200 dark:border-slate-700">
+                                        <th class="py-2 px-2">Tugas / Action Item</th>
+                                        <th class="py-2 px-2 w-56">PIC (Penanggung Jawab)</th>
+                                        <th class="py-2 px-2 w-40">Tgl Target (Deadline)</th>
+                                        <th class="py-2 px-2 text-center w-14">Hapus</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbodyActionPlanAgenda"></tbody>
@@ -713,20 +1259,110 @@
                         </div>
                     </div>
 
-                    <div class="mb-3 border-top pt-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-bold text-emerald mb-0"><i class="bi bi-paperclip me-1 text-primary"></i> 4. Dokumen Lampiran Berkas / Foto Presensi</label>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="addNotulensiFileRowAgenda()">
+                    <div class="border-t border-slate-200 dark:border-slate-800 pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mb-0"><i class="bi bi-paperclip me-1"></i> 4. Dokumen Lampiran / Foto Presensi</label>
+                            <button type="button" class="px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 font-extrabold text-[11px] border border-emerald-300 dark:border-emerald-800 transition-all cursor-pointer" onclick="addNotulensiFileRowAgenda()">
                                 + Tambah File
                             </button>
                         </div>
-                        <div id="notulensiFilesContainerAgenda" class="d-flex flex-column gap-2"></div>
+                        <div id="notulensiFilesContainerAgenda" class="flex flex-col gap-2"></div>
                     </div>
                 </div>
-                <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="closePureAgendaModal()">Batal</button>
-                    <button type="submit" class="btn btn-enterprise-primary rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="bi bi-check-circle-fill me-1"></i> Simpan Notulensi Rapat
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800 mt-2">
+                    <button type="button" @click="open = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-extrabold text-xs transition-all border-0 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 cursor-pointer inline-flex items-center gap-1.5">
+                        <i class="bi bi-check-circle-fill"></i> Simpan Notulensi Rapat
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- TAILWIND CSS + ALPINE.JS MODAL 2: SPPD / LHP LAPANGAN -->
+<div x-data="{ open: false }" 
+     x-show="open" 
+     @open-sppd-modal.window="open = true" 
+     @close-sppd-modal.window="open = false" 
+     @keydown.escape.window="open = false" 
+     class="fixed inset-0 z-[99999] overflow-y-auto" 
+     style="display: none;">
+    <!-- Backdrop Blur -->
+    <div x-show="open" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-slate-900/80 transition-opacity" 
+         @click="open = false"></div>
+
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6 text-center">
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+             class="relative w-full max-w-2xl transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 text-left shadow-2xl transition-all border border-slate-200 dark:border-slate-800 my-8">
+            
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-extrabold text-xl shadow-inner">
+                        <i class="bi bi-briefcase-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-slate-900 dark:text-white text-base m-0">Selesaikan SPPD & Input LHP Lapangan</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 m-0">Laporan hasil pelaksanaan tugas dinas luar kantor.</p>
+                    </div>
+                </div>
+                <button type="button" @click="open = false" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all border-0 cursor-pointer">
+                    <i class="bi bi-x-lg text-sm"></i>
+                </button>
+            </div>
+
+            <form id="formSelesaiSPPD" method="post" enctype="multipart/form-data" action="">
+                {% csrf_token %}
+                <div class="py-4 space-y-4">
+                    <div class="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60">
+                        <h6 class="font-extrabold text-slate-900 dark:text-white text-sm mb-1" id="sppdModalTitleText">-</h6>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-200 font-mono" id="sppdModalNumBadge">SPPD / Penugasan Luar</span>
+                    </div>
+
+                    <div>
+                        <label for="id_report_notes_sppd" class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Rangkuman Hasil Kegiatan / Catatan Lapangan <span class="text-rose-500">*</span></label>
+                        <textarea name="completed_notes" id="id_report_notes_sppd" rows="4" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500" placeholder="Tuliskan ringkasan hasil kegiatan / survei / penyaluran di sini..." required></textarea>
+                    </div>
+
+                    <div>
+                        <label for="id_report_file_sppd" class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1">Foto Utama / Berkas PDF LHP Lapangan</label>
+                        <input type="file" name="completed_file" id="id_report_file_sppd" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs text-slate-900 dark:text-white" accept="image/*,.pdf,.doc,.docx">
+                        <small class="text-slate-500 dark:text-slate-400 text-[11px] block mt-1"><i class="bi bi-paperclip me-1"></i>Unggah foto bukti kegiatan atau berkas LHP fisik utama yang telah di-scan.</small>
+                    </div>
+
+                    <div class="border-t border-slate-200 dark:border-slate-800 pt-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mb-0"><i class="bi bi-folder-plus me-1"></i>Lampiran Berkas / Foto Tambahan</label>
+                            <button type="button" class="px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 font-extrabold text-[11px] border border-emerald-300 dark:border-emerald-800 transition-all cursor-pointer" onclick="addAdditionalFileRowAgendaSPPD()">
+                                + Tambah File Lain
+                            </button>
+                        </div>
+                        <div id="additionalFilesContainerAgendaSPPD" class="flex flex-col gap-2"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800 mt-2">
+                    <button type="button" @click="open = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-extrabold text-xs transition-all border-0 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 cursor-pointer inline-flex items-center gap-1.5">
+                        <i class="bi bi-check-circle-fill"></i> Simpan LHP & Selesaikan
                     </button>
                 </div>
             </form>
@@ -736,13 +1372,11 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 <script>
-let calendarInstance = null;
 let quillSummary, quillDecision;
 
-const NATIONAL_HOLIDAY_DATES = {
+const NATIONAL_HOLIDAYS_DATA = {
     "2025-01-01": "Tahun Baru 2025 Masehi",
     "2025-01-27": "Isra Mikraj Nabi Muhammad SAW",
     "2025-01-28": "Cuti Bersama Imlek 2576",
@@ -812,6 +1446,303 @@ const NATIONAL_HOLIDAY_DATES = {
     "2027-12-25": "Hari Raya Natal"
 };
 
+function simapCalendar() {
+    const rawEvents = {% if events_json %}{{ events_json|safe }}{% else %}[]{% endif %};
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    return {
+        activeView: 'month',
+        currentYear: now.getFullYear(),
+        currentMonth: now.getMonth(),
+        selectedDate: now,
+        selectedDateStr: todayStr,
+        todayStr: todayStr,
+        searchQuery: '',
+        rawEvents: rawEvents,
+        holidays: NATIONAL_HOLIDAYS_DATA,
+        activeEventModal: null,
+
+        filters: {
+            agenda: true,
+            sppd: true,
+            meeting: true,
+            holiday: true,
+            cuti: true
+        },
+
+        monthNames: [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ],
+
+        dayNamesFull: [
+            "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"
+        ],
+
+        prev() {
+            if (this.activeView === 'year') {
+                this.currentYear--;
+            } else if (this.activeView === 'month' || this.activeView === 'list') {
+                if (this.currentMonth === 0) {
+                    this.currentMonth = 11;
+                    this.currentYear--;
+                } else {
+                    this.currentMonth--;
+                }
+            } else if (this.activeView === 'week') {
+                let d = new Date(this.selectedDate);
+                d.setDate(d.getDate() - 7);
+                this.selectedDate = d;
+                this.currentYear = d.getFullYear();
+                this.currentMonth = d.getMonth();
+                this.selectedDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            } else if (this.activeView === 'day') {
+                let d = new Date(this.selectedDate);
+                d.setDate(d.getDate() - 1);
+                this.selectedDate = d;
+                this.currentYear = d.getFullYear();
+                this.currentMonth = d.getMonth();
+                this.selectedDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            }
+        },
+
+        next() {
+            if (this.activeView === 'year') {
+                this.currentYear++;
+            } else if (this.activeView === 'month' || this.activeView === 'list') {
+                if (this.currentMonth === 11) {
+                    this.currentMonth = 0;
+                    this.currentYear++;
+                } else {
+                    this.currentMonth++;
+                }
+            } else if (this.activeView === 'week') {
+                let d = new Date(this.selectedDate);
+                d.setDate(d.getDate() + 7);
+                this.selectedDate = d;
+                this.currentYear = d.getFullYear();
+                this.currentMonth = d.getMonth();
+                this.selectedDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            } else if (this.activeView === 'day') {
+                let d = new Date(this.selectedDate);
+                d.setDate(d.getDate() + 1);
+                this.selectedDate = d;
+                this.currentYear = d.getFullYear();
+                this.currentMonth = d.getMonth();
+                this.selectedDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            }
+        },
+
+        goToToday() {
+            const today = new Date();
+            this.currentYear = today.getFullYear();
+            this.currentMonth = today.getMonth();
+            this.selectedDate = today;
+            this.selectedDateStr = this.todayStr;
+        },
+
+        goToMonth(mIdx) {
+            this.currentMonth = mIdx;
+            this.activeView = 'month';
+        },
+
+        selectDateAndOpen(dateStr) {
+            this.selectedDateStr = dateStr;
+            this.selectedDate = new Date(dateStr + 'T00:00:00');
+            this.activeView = 'day';
+        },
+
+        getHeaderTitle() {
+            if (this.activeView === 'year') {
+                return `Tahun ${this.currentYear}`;
+            } else if (this.activeView === 'month') {
+                return `${this.monthNames[this.currentMonth]} ${this.currentYear}`;
+            } else if (this.activeView === 'week') {
+                let weekDays = this.getWeekDays();
+                if (weekDays.length > 0) {
+                    let first = weekDays[0];
+                    let last = weekDays[6];
+                    return `${first.day} ${this.monthNames[first.month]} - ${last.day} ${this.monthNames[last.month]} ${this.currentYear}`;
+                }
+                return `${this.monthNames[this.currentMonth]} ${this.currentYear}`;
+            } else if (this.activeView === 'day') {
+                let d = new Date(this.selectedDateStr + 'T00:00:00');
+                return `${this.dayNamesFull[d.getDay()]}, ${d.getDate()} ${this.monthNames[d.getMonth()]} ${d.getFullYear()}`;
+            } else {
+                return this.monthNames[this.currentMonth] + ' ' + this.currentYear;
+            }
+        },
+
+        getMonthDays(year, month) {
+            let firstDayIndex = new Date(year, month, 1).getDay();
+            let totalDays = new Date(year, month + 1, 0).getDate();
+            let prevMonthTotalDays = new Date(year, month, 0).getDate();
+            
+            let days = [];
+
+            for (let i = firstDayIndex - 1; i >= 0; i--) {
+                let d = prevMonthTotalDays - i;
+                let prevM = month === 0 ? 11 : month - 1;
+                let prevY = month === 0 ? year - 1 : year;
+                let dateStr = `${prevY}-${String(prevM + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                days.push({
+                    day: d,
+                    month: prevM,
+                    year: prevY,
+                    dateStr: dateStr,
+                    isCurrentMonth: false,
+                    isToday: dateStr === this.todayStr,
+                    isSunday: new Date(prevY, prevM, d).getDay() === 0,
+                    holiday: this.getHoliday(dateStr),
+                    events: this.getEventsForDate(dateStr)
+                });
+            }
+
+            for (let d = 1; d <= totalDays; d++) {
+                let dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                days.push({
+                    day: d,
+                    month: month,
+                    year: year,
+                    dateStr: dateStr,
+                    isCurrentMonth: true,
+                    isToday: dateStr === this.todayStr,
+                    isSunday: new Date(year, month, d).getDay() === 0,
+                    holiday: this.getHoliday(dateStr),
+                    events: this.getEventsForDate(dateStr)
+                });
+            }
+
+            let remaining = (7 - (days.length % 7)) % 7;
+            if (days.length + remaining < 35) remaining += 7;
+            for (let d = 1; d <= remaining; d++) {
+                let nextM = month === 11 ? 0 : month + 1;
+                let nextY = month === 11 ? year + 1 : year;
+                let dateStr = `${nextY}-${String(nextM + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                days.push({
+                    day: d,
+                    month: nextM,
+                    year: nextY,
+                    dateStr: dateStr,
+                    isCurrentMonth: false,
+                    isToday: dateStr === this.todayStr,
+                    isSunday: new Date(nextY, nextM, d).getDay() === 0,
+                    holiday: this.getHoliday(dateStr),
+                    events: this.getEventsForDate(dateStr)
+                });
+            }
+
+            return days;
+        },
+
+        getWeekDays() {
+            let curr = new Date(this.selectedDate);
+            let first = curr.getDate() - curr.getDay();
+            let days = [];
+
+            for (let i = 0; i < 7; i++) {
+                let nextDate = new Date(curr.setDate(first + i));
+                let y = nextDate.getFullYear();
+                let m = nextDate.getMonth();
+                let d = nextDate.getDate();
+                let dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                days.push({
+                    day: d,
+                    month: m,
+                    year: y,
+                    dateStr: dateStr,
+                    isToday: dateStr === this.todayStr,
+                    isSunday: i === 0,
+                    holiday: this.getHoliday(dateStr),
+                    events: this.getEventsForDate(dateStr)
+                });
+            }
+            return days;
+        },
+
+        getDayEvents(dateStr) {
+            return this.getEventsForDate(dateStr);
+        },
+
+        getHoliday(dateStr) {
+            let h = this.holidays[dateStr];
+            if (!h) return null;
+            if (h.includes('Cuti Bersama') && !this.filters.cuti) return null;
+            if (!h.includes('Cuti Bersama') && !this.filters.holiday) return null;
+            return h;
+        },
+
+        getEventsForDate(dateStr) {
+            return this.rawEvents.filter(ev => {
+                if (ev.source_type === 'sppd' && !this.filters.sppd) return false;
+                if (ev.source_type === 'meeting' && !this.filters.meeting) return false;
+                if (ev.source_type === 'agenda' && !this.filters.agenda) return false;
+                
+                let start = ev.start;
+                let end = ev.end || ev.start;
+                return dateStr >= start && dateStr <= end;
+            });
+        },
+
+        getMonthlyStats() {
+            let monthPrefix = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}`;
+            let agendaCount = 0;
+            let sppdCount = 0;
+            let meetingCount = 0;
+            let holidayCount = 0;
+
+            this.rawEvents.forEach(ev => {
+                if (ev.start && ev.start.startsWith(monthPrefix)) {
+                    if (ev.source_type === 'agenda') agendaCount++;
+                    if (ev.source_type === 'sppd') sppdCount++;
+                    if (ev.source_type === 'meeting') meetingCount++;
+                }
+            });
+
+            Object.keys(this.holidays).forEach(dateStr => {
+                if (dateStr.startsWith(monthPrefix)) {
+                    holidayCount++;
+                }
+            });
+
+            return {
+                agenda: agendaCount,
+                sppd: sppdCount,
+                meeting: meetingCount,
+                holiday: holidayCount
+            };
+        },
+
+        getFilteredListEvents() {
+            let monthPrefix = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}`;
+            return this.rawEvents.filter(ev => {
+                let matchDate = ev.start && ev.start.startsWith(monthPrefix);
+                let matchQuery = !this.searchQuery || ev.title.toLowerCase().includes(this.searchQuery.toLowerCase());
+                return matchDate && matchQuery;
+            });
+        },
+
+        openEventModal(ev) {
+            this.activeEventModal = ev;
+        },
+
+        openHolidayModal(dateStr, holidayName) {
+            this.activeEventModal = {
+                title: holidayName,
+                start: dateStr,
+                source_type: 'HOLIDAY',
+                location: 'Nasional (Seluruh Indonesia)',
+                assigned_to: 'SKB 3 Menteri',
+            };
+        },
+
+        closeEventModal() {
+            this.activeEventModal = null;
+        }
+    };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // 1. DataTables Init
     if ($('#agendaTable tbody tr').length > 0 && !$('#agendaTable tbody tr td').hasClass('text-center')) {
@@ -853,160 +1784,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (quillDecision) document.getElementById('hidden_notulensi_decision').value = quillDecision.root.innerHTML;
         });
     }
-
-    const AGENDA_DATES_MAP = {{ agenda_dates_json|safe }};
-
-    // 3. FullCalendar Google Calendar In-App Experience Init
-    var calendarEl = document.getElementById('calendar');
-    if (calendarEl) {
-        calendarInstance = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'id',
-            dayMaxEvents: false,
-            dayMaxEventRows: false,
-            eventDisplay: 'block',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
-            },
-            events: '/agenda/events/',
-            dayCellDidMount: function(arg) {
-                var d = arg.date;
-                var year = d.getFullYear();
-                var month = String(d.getMonth() + 1).padStart(2, '0');
-                var day = String(d.getDate()).padStart(2, '0');
-                var dateStr = year + '-' + month + '-' + day;
-
-                var isSunday = (d.getDay() === 0);
-                var holidayName = NATIONAL_HOLIDAY_DATES[dateStr];
-
-                if (isSunday || holidayName) {
-                    var numEl = arg.el.querySelector('.fc-daygrid-day-number');
-                    if (numEl) {
-                        numEl.style.color = '#DC2626';
-                        numEl.style.fontWeight = '900';
-                        numEl.style.fontSize = '1.02rem';
-                    }
-                    if (holidayName) {
-                        arg.el.classList.add('is-national-holiday-cell');
-                        
-                        var topContainer = arg.el.querySelector('.fc-daygrid-day-frame') || arg.el;
-                        if (!arg.el.querySelector('.gcal-holiday-text-badge')) {
-                            var badge = document.createElement('div');
-                            badge.className = 'gcal-holiday-text-badge';
-                            badge.style.cssText = 'font-size: 0.72rem; font-weight: 800; color: #FFFFFF; background-color: #DC2626; padding: 3px 6px; border-radius: 6px; margin: 4px; line-height: 1.25; display: block; text-align: left; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);';
-                            badge.innerHTML = '🔴 ' + holidayName;
-                            topContainer.appendChild(badge);
-                        }
-                    }
-                }
-
-                // Cetak Teks Agenda & Rapat Internal Langsung di Sel Tanggal (Sama seperti Libur Nasional)
-                var agendaList = AGENDA_DATES_MAP[dateStr];
-                if (agendaList && agendaList.length > 0) {
-                    var frameEl = arg.el.querySelector('.fc-daygrid-day-frame') || arg.el;
-                    agendaList.forEach(function(item) {
-                        if (!arg.el.querySelector('.gcal-agenda-direct-badge[data-title="' + item.title.replace(/"/g, '&quot;') + '"]')) {
-                            var b = document.createElement('a');
-                            b.className = 'gcal-agenda-direct-badge text-decoration-none d-block';
-                            b.setAttribute('data-title', item.title);
-                            b.href = item.url || '#';
-                            var bgCol = item.type === 'meeting' ? '#8B5CF6' : '#10B981';
-                            b.style.cssText = 'font-size: 0.72rem; font-weight: 800; color: #FFFFFF; background-color: ' + bgCol + '; padding: 3px 6px; border-radius: 6px; margin: 3px 4px; line-height: 1.25; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.2);';
-                            b.innerHTML = item.title;
-                            frameEl.appendChild(b);
-                        }
-                    });
-                }
-            },
-            eventDidMount: function(info) {
-                const srcType = info.event.extendedProps.source_type;
-                if (srcType === 'holiday') {
-                    info.el.style.fontWeight = 'bold';
-                    info.el.style.boxShadow = '0 2px 6px rgba(220, 38, 38, 0.35)';
-                    var dayCell = info.el.closest('.fc-daygrid-day');
-                    if (dayCell) {
-                        dayCell.classList.add('is-national-holiday-cell');
-                    }
-                }
-            },
-            eventClick: function(info) {
-                info.jsEvent.preventDefault();
-                showGCalEventModal(info.event);
-            }
-        });
-        calendarInstance.render();
-    }
 });
 
-function showGCalEventModal(event) {
-    const props = event.extendedProps || {};
-    document.getElementById('gcalModalTitle').innerText = event.title;
-    document.getElementById('gcalModalSubjectText').innerText = event.title;
-    
-    let timeStr = event.start ? event.start.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB' : 'Sepanjang Hari';
-    document.getElementById('gcalModalTimeText').innerText = timeStr;
-    document.getElementById('gcalModalLocationText').innerText = props.location || 'Kantor BAZNAS';
-    document.getElementById('gcalModalAssigneeText').innerText = props.assigned_to || 'Seluruh Amil BAZNAS';
-    document.getElementById('gcalModalStatusBadge').innerText = props.status || 'Aktif';
-
-    const typeBadge = document.getElementById('gcalModalTypeBadge');
-    const actBtn = document.getElementById('gcalModalActionBtn');
-
-    if (props.source_type === 'holiday') {
-        typeBadge.className = 'badge bg-danger text-white rounded-pill px-3 py-1 fw-bold';
-        typeBadge.innerText = 'LIBUR NASIONAL / CUTI';
-        actBtn.style.display = 'none';
-    } else {
-        typeBadge.className = 'badge badge-node-verified rounded-pill px-3 py-1 fw-bold';
-        typeBadge.innerText = 'AGENDA BAZNAS';
-        actBtn.style.display = 'inline-block';
-        actBtn.href = event.url && event.url !== '#' ? event.url : '{% url "agendas:list" %}';
-    }
-
-    var modal = new bootstrap.Modal(document.getElementById('modalGCalEventDetail'));
-    modal.show();
-}
-
-function filterCalendarLayers() {
-    if (!calendarInstance) return;
-    const showAgenda = document.getElementById('layerAgenda').checked;
-    const showSPPD = document.getElementById('layerSPPD').checked;
-    const showMeeting = document.getElementById('layerMeeting').checked;
-    const showLibur = document.getElementById('layerLibur').checked;
-    const showCuti = document.getElementById('layerCuti').checked;
-
-    const events = calendarInstance.getEvents();
-    events.forEach(ev => {
-        const props = ev.extendedProps || {};
-        const st = props.source_type;
-        const title = ev.title || '';
-
-        let visible = true;
-        if (st === 'holiday') {
-            if (title.includes('CUTI BERSAMA')) {
-                visible = showCuti;
-            } else {
-                visible = showLibur;
-            }
-        } else if (st === 'sppd') {
-            visible = showSPPD;
-        } else if (st === 'meeting') {
-            visible = showMeeting;
-        } else {
-            visible = showAgenda;
-        }
-
-        if (visible) {
-            ev.setProp('display', 'auto');
-        } else {
-            ev.setProp('display', 'none');
-        }
-    });
-}
-
-// --- MODAL POP-UP HANDLERS UNTUK TOMBOL DAFTAR AGENDA ---
 function bukaModalNotulensiAgenda(agendaId) {
     const rawJson = document.getElementById('agenda-notulensi-json-' + agendaId);
     if (!rawJson) return;
@@ -1035,9 +1814,7 @@ function bukaModalNotulensiAgenda(agendaId) {
             formEl.action = '/agenda/' + agendaId + '/complete/';
         }
 
-        var modalEl = document.getElementById('modalNotulensiRapat');
-        var modal = new bootstrap.Modal(modalEl);
-        modal.show();
+        window.dispatchEvent(new CustomEvent('open-notulensi-modal'));
     } catch (e) {
         console.error("Error parsing notulensi JSON:", e);
     }
@@ -1097,8 +1874,7 @@ function bukaModalSelesaiSPPD(agendaId, sppdId, sppdNum, title) {
         formEl.action = '/agenda/' + agendaId + '/complete/';
     }
 
-    var modal = new bootstrap.Modal(document.getElementById('modalSelesaiSPPD'));
-    modal.show();
+    window.dispatchEvent(new CustomEvent('open-sppd-modal'));
 }
 
 function addActionPlanRowAgenda() {
@@ -1107,16 +1883,17 @@ function addActionPlanRowAgenda() {
     const rowId = Date.now();
     const tr = document.createElement('tr');
     tr.id = 'ap-row-' + rowId;
+    tr.className = 'border-b border-slate-100 dark:border-slate-800';
     tr.innerHTML = `
-        <td><input type="text" name="action_task[]" class="form-control form-control-sm custom-input" placeholder="Tuliskan tugas / action plan..." required></td>
-        <td><select name="action_pic[]" class="form-select form-select-sm custom-input">
+        <td class="py-2 px-2"><input type="text" name="action_task[]" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500" placeholder="Tuliskan tugas / action plan..." required></td>
+        <td class="py-2 px-2"><select name="action_pic[]" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
             <option value="">Pilih PIC...</option>
             {% for emp in employees %}
             <option value="{{ emp.id }}">{{ emp.full_name }}</option>
             {% endfor %}
         </select></td>
-        <td><input type="date" name="action_due_date[]" class="form-control form-control-sm custom-input"></td>
-        <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="document.getElementById('ap-row-${rowId}').remove()"><i class="bi bi-trash"></i></button></td>
+        <td class="py-2 px-2"><input type="date" name="action_due_date[]" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs font-mono text-slate-900 dark:text-white"></td>
+        <td class="py-2 px-2 text-center"><button type="button" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-500 hover:text-white transition-colors border-0 cursor-pointer" onclick="document.getElementById('ap-row-${rowId}').remove()"><i class="bi bi-trash"></i></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -1125,10 +1902,10 @@ function addNotulensiFileRowAgenda() {
     const container = document.getElementById('notulensiFilesContainerAgenda');
     if (!container) return;
     const div = document.createElement('div');
-    div.className = 'd-flex gap-2 align-items-center mb-2';
+    div.className = 'flex items-center gap-2 mb-2';
     div.innerHTML = `
-        <input type="file" name="notulensi_files[]" class="form-control form-control-sm custom-input" accept="image/*,.pdf,.doc,.docx">
-        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+        <input type="file" name="notulensi_files[]" class="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs text-slate-900 dark:text-white" accept="image/*,.pdf,.doc,.docx">
+        <button type="button" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-500 hover:text-white transition-colors border-0 cursor-pointer" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
     `;
     container.appendChild(div);
 }
@@ -1137,10 +1914,10 @@ function addAdditionalFileRowAgendaSPPD() {
     const container = document.getElementById('additionalFilesContainerAgendaSPPD');
     if (!container) return;
     const div = document.createElement('div');
-    div.className = 'd-flex gap-2 align-items-center mb-2';
+    div.className = 'flex items-center gap-2 mb-2';
     div.innerHTML = `
-        <input type="file" name="additional_files[]" class="form-control form-control-sm custom-input" accept="image/*,.pdf,.doc,.docx">
-        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+        <input type="file" name="additional_files[]" class="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs text-slate-900 dark:text-white" accept="image/*,.pdf,.doc,.docx">
+        <button type="button" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-500 hover:text-white transition-colors border-0 cursor-pointer" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
     `;
     container.appendChild(div);
 }

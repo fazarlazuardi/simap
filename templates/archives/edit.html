@@ -3,139 +3,183 @@
 {% block title %}Edit Arsip - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <!-- Header Banner Enterprise -->
-            <div class="glass-banner-enterprise mb-4">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 position-relative" style="z-index: 2;">
-                    <div>
-                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold mb-2" style="font-size: 0.7rem;">PERBAIKAN METADATA</span>
-                        <h3 class="fw-bold mb-1 text-white">Perbarui Dokumen Arsip</h3>
-                        <p class="mb-0 text-white opacity-75 small">Modifikasi rincian surat, perihal, pengirim, atau berkas digital terlampir.</p>
-                    </div>
-                    <div>
-                        <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
-                            <i class="bi bi-arrow-left me-1"></i> Kembali ke Detail
-                        </a>
-                    </div>
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- BREADCRUMB & HEADER NAV -->
+    <div class="p-4 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-sm flex items-center justify-between flex-wrap gap-2">
+        <div class="flex items-center gap-2 text-xs font-bold">
+            <a href="{% url 'archives:list' %}" class="text-emerald-600 dark:text-emerald-400 no-underline hover:underline">Arsip SDM</a>
+            <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
+            <a href="{% url 'archives:detail' archive.pk %}" class="text-slate-600 dark:text-slate-300 no-underline hover:underline">Detail Dokumen</a>
+            <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
+            <span class="text-slate-500 dark:text-slate-400">Edit Metadata</span>
+        </div>
+        <a href="{% url 'archives:detail' archive.pk %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs no-underline inline-flex items-center gap-1.5 transition-all">
+            <i class="bi bi-arrow-left"></i> Kembali ke Detail
+        </a>
+    </div>
+
+    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                    <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono inline-flex items-center gap-1.5">
+                        <i class="bi bi-pencil-square text-amber-400"></i> PERBAIKAN METADATA ARSIP
+                    </span>
+                    <span class="px-3 py-1 text-xs font-extrabold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                        {{ archive.archive_number|default:"DRAFT" }}
+                    </span>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Perbarui Dokumen Arsip</h1>
+                <p class="text-slate-300 text-xs md:text-sm mb-0">Modifikasi rincian surat, perihal, pengirim, atau berkas digital terlampir.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARD FORM EDIT (PERSIS SAMA DENGAN UPLOAD FORM: WHITE/SLATE-900 + EFEK BACKGROUND TEMBUS) -->
+    <div class="p-6 sm:p-8 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-xl space-y-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6" x-data="{ submitting: false }" @submit="submitting = true">
+            {% csrf_token %}
+
+            <!-- BARIS 1: TIPE, NOMOR, TANGGAL SURAT -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="space-y-1.5">
+                    <label for="archive_type" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Jenis Dokumen <span class="text-rose-500">*</span>
+                    </label>
+                    <select id="archive_type" name="archive_type" required class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        {% for code, name in archive_types %}
+                        <option value="{{ code }}" {% if archive.archive_type == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="archive_number" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Nomor Arsip / Surat Resmi
+                    </label>
+                    <input type="text" id="archive_number" name="archive_number" value="{{ archive.archive_number|default:'' }}" placeholder="Biarkan kosong jika belum ada" class="w-full px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="letter_date" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Tanggal Surat <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="date" id="letter_date" name="letter_date" value="{{ archive.letter_date|date:'Y-m-d' }}" required class="w-full px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
             </div>
 
-            <!-- Card Form Edit -->
-            <div class="card-enterprise p-4 mb-5">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    <!-- Baris 1: Tipe, Nomor, Tanggal Surat -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <label for="archive_type" class="form-label">Jenis Dokumen <span class="text-danger">*</span></label>
-                            <select class="form-select custom-input" id="archive_type" name="archive_type" required>
-                                {% for code, name in archive_types %}
-                                <option value="{{ code }}" {% if archive.archive_type == code %}selected{% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="archive_number" class="form-label">Nomor Arsip / Surat</label>
-                            <input type="text" class="form-control custom-input font-mono" id="archive_number" name="archive_number"
-                                   placeholder="Biarkan kosong jika belum ada"
-                                   value="{{ archive.archive_number|default:'' }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="letter_date" class="form-label">Tanggal Surat <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control custom-input" id="letter_date" name="letter_date" value="{{ archive.letter_date|date:'Y-m-d' }}" required>
-                        </div>
-                    </div>
+            <!-- BARIS 2: PENGIRIM/PENERIMA, ALAMAT & TANGGAL DITERIMA -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+                <div class="md:col-span-5 space-y-1.5">
+                    <label for="sender_receiver" id="sender_receiver_label" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        {% if archive.archive_type == 'surat_keluar' or archive.archive_type == 'sppd' %}
+                            Penerima / Tujuan Surat <span class="text-rose-500">*</span>
+                        {% else %}
+                            Pengirim / Asal Instansi <span class="text-rose-500">*</span>
+                        {% endif %}
+                    </label>
+                    <input type="text" id="sender_receiver" name="sender_receiver" value="{{ current_sender_receiver|default:archive.sender_receiver }}" required placeholder="Contoh: BAZNAS RI / Nama Pemohon" class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
 
-                    <!-- Baris 2: Pengirim/Penerima, Alamat Lengkap & Tanggal Diterima -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-5">
-                            <label for="sender_receiver" id="sender_receiver_label" class="form-label">
-                                {% if archive.archive_type == 'surat_keluar' or archive.archive_type == 'sppd' %}
-                                    Penerima / Tujuan Surat <span class="text-danger">*</span>
-                                {% else %}
-                                    Pengirim / Asal Instansi <span class="text-danger">*</span>
-                                {% endif %}
-                            </label>
-                            <input type="text" class="form-control custom-input" id="sender_receiver" name="sender_receiver" value="{{ current_sender_receiver|default:archive.sender_receiver }}" required placeholder="Contoh: BAZNAS RI / Nama Pemohon">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="address" class="form-label"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Alamat Lengkap Pemohon</label>
-                            <input type="text" class="form-control custom-input" id="address" name="address" value="{{ archive.address|default:'' }}" placeholder="Contoh: Ds. Jambe Rt 02/03 Kec. Jambe">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="received_date" class="form-label">Tanggal Diterima / Dikirim</label>
-                            <input type="date" class="form-control custom-input" id="received_date" name="received_date" value="{{ archive.received_date|date:'Y-m-d' }}">
-                        </div>
-                    </div>
+                <div class="md:col-span-4 space-y-1.5">
+                    <label for="address" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                        <i class="bi bi-geo-alt-fill text-rose-500"></i> Alamat Lengkap Pemohon
+                    </label>
+                    <input type="text" id="address" name="address" value="{{ archive.address|default:'' }}" placeholder="Contoh: Ds. Jambe Rt 02/03 Kec. Jambe" class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
 
-                    <!-- Baris 3: Perihal / Judul Dokumen -->
-                    <div class="mb-4">
-                        <label for="title" class="form-label">Perihal / Judul Dokumen <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input fw-semibold" id="title" name="title" value="{{ archive.title }}" required placeholder="Masukkan judul/perihal surat">
-                    </div>
-
-                    <!-- Baris 4: Keamanan & Urgensi -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label for="security_level" class="form-label">Sifat Keamanan</label>
-                            <select class="form-select custom-input" id="security_level" name="security_level">
-                                {% for code, name in archive.SECURITY_CHOICES %}
-                                <option value="{{ code }}" {% if archive.security_level == code %}selected{% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="urgency_level" class="form-label">Sifat Urgensi / Tanggapan</label>
-                            <select class="form-select custom-input" id="urgency_level" name="urgency_level">
-                                {% for code, name in archive.URGENCY_CHOICES %}
-                                <option value="{{ code }}" {% if archive.urgency_level == code %}selected{% endif %}>{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Baris 5: Kategori & Berkas Dokumen -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label for="category" class="form-label">Kategori Bidang <span class="text-danger">*</span></label>
-                            <select class="form-select custom-input" id="category" name="category" required>
-                                {% for cat in categories %}
-                                <option value="{{ cat.id }}" {% if archive.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="file_path" class="form-label">Ganti Berkas Digital (Opsional)</label>
-                            <input type="file" class="form-control custom-input" id="file_path" name="file_path">
-                            {% if archive.file_path %}
-                                <div class="form-text text-muted small mt-1">
-                                    <i class="bi bi-paperclip me-1"></i> File saat ini: <strong>{{ archive.file_path.name }}</strong>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Baris 6: Keterangan / Sinopsis -->
-                    <div class="mb-4">
-                        <label for="description" class="form-label">Keterangan Ringkas / Sinopsis</label>
-                        <textarea class="form-control p-3" id="description" name="description" rows="3">{{ archive.description|default:'' }}</textarea>
-                    </div>
-
-                    <!-- Tombol Aksi -->
-                    <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: var(--border-color) !important;">
-                        <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-outline-secondary px-4 rounded-pill">
-                            <i class="bi bi-arrow-left me-1"></i> Batal
-                        </a>
-                        <button type="submit" class="btn btn-enterprise-primary px-5 py-2.5 rounded-pill shadow-lg">
-                            <i class="bi bi-save me-2"></i> Simpan Perubahan Metadata
-                        </button>
-                    </div>
-                </form>
+                <div class="md:col-span-3 space-y-1.5">
+                    <label for="received_date" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Tanggal Diterima
+                    </label>
+                    <input type="date" id="received_date" name="received_date" value="{{ archive.received_date|date:'Y-m-d' }}" class="w-full px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
             </div>
-        </div>
+
+            <!-- BARIS 3: PERIHAL / JUDUL DOKUMEN -->
+            <div class="space-y-1.5">
+                <label for="title" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    Perihal / Judul Dokumen <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" id="title" name="title" value="{{ archive.title }}" required placeholder="Masukkan judul/perihal surat" class="w-full px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+
+            <!-- BARIS 4: KEAMANAN & URGENSI -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="space-y-1.5">
+                    <label for="security_level" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Sifat Keamanan
+                    </label>
+                    <select id="security_level" name="security_level" class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        {% for code, name in archive.SECURITY_CHOICES %}
+                        <option value="{{ code }}" {% if archive.security_level == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="urgency_level" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Sifat Urgensi / Tanggapan
+                    </label>
+                    <select id="urgency_level" name="urgency_level" class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        {% for code, name in archive.URGENCY_CHOICES %}
+                        <option value="{{ code }}" {% if archive.urgency_level == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- BARIS 5: KATEGORI & BERKAS DOKUMEN -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="space-y-1.5">
+                    <label for="category" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Kategori Bidang <span class="text-rose-500">*</span>
+                    </label>
+                    <select id="category" name="category" required class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if archive.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="file_path" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Ganti Berkas Digital (Opsional)
+                    </label>
+                    <input type="file" id="file_path" name="file_path" accept=".pdf,image/*" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none">
+                    {% if archive.file_path %}
+                        <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1">
+                            <i class="bi bi-paperclip me-1"></i> File terlampir: <strong>{{ archive.file_path.name }}</strong>
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- BARIS 6: KETERANGAN / SINOPSIS -->
+            <div class="space-y-1.5">
+                <label for="description" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    Keterangan Ringkas / Sinopsis
+                </label>
+                <textarea id="description" name="description" rows="3" placeholder="Tambahkan catatan ringkas perihal dokumen jika ada..." class="w-full p-3.5 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ archive.description|default:'' }}</textarea>
+            </div>
+
+            <!-- TOMBOL AKSI FOOTER -->
+            <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+                <a href="{% url 'archives:detail' archive.pk %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs no-underline transition-all inline-flex items-center gap-1.5">
+                    <i class="bi bi-x-circle"></i> Batal
+                </a>
+                <button type="submit" :disabled="submitting" class="px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer transition-all inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <template x-if="!submitting">
+                        <span class="inline-flex items-center gap-2"><i class="bi bi-save-fill text-sm"></i> Simpan Perubahan Metadata</span>
+                    </template>
+                    <template x-if="submitting">
+                        <span class="inline-flex items-center gap-2"><i class="bi bi-arrow-repeat text-sm animate-spin"></i> Memproses Perubahan Metadata...</span>
+                    </template>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -149,13 +193,13 @@
                 const selectedType = this.value;
                 if (senderReceiverLabel) {
                     if (selectedType === 'surat_keluar') {
-                        senderReceiverLabel.innerHTML = 'Penerima / Tujuan Surat Keluar <span class="text-danger">*</span>';
+                        senderReceiverLabel.innerHTML = 'Penerima / Tujuan Surat Keluar <span class="text-rose-500">*</span>';
                     } else if (selectedType === 'proposal') {
-                        senderReceiverLabel.innerHTML = 'Pengirim / Pemohon Bantuan <span class="text-danger">*</span>';
+                        senderReceiverLabel.innerHTML = 'Pengirim / Pemohon Bantuan <span class="text-rose-500">*</span>';
                     } else if (selectedType === 'dokumen_internal') {
-                        senderReceiverLabel.innerHTML = 'Pengirim / Unit Bidang Internal <span class="text-danger">*</span>';
+                        senderReceiverLabel.innerHTML = 'Pengirim / Unit Bidang Internal <span class="text-rose-500">*</span>';
                     } else {
-                        senderReceiverLabel.innerHTML = 'Pengirim / Instansi <span class="text-danger">*</span>';
+                        senderReceiverLabel.innerHTML = 'Pengirim / Instansi <span class="text-rose-500">*</span>';
                     }
                 }
             });

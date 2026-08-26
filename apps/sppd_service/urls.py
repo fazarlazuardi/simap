@@ -13,4 +13,6 @@ urlpatterns = [
     path('<int:pk>/cancel/', views.sppd_cancel, name='cancel'),
     path('print/', views.sppd_print, name='print'),
     path('<int:pk>/complete/', views.sppd_complete, name='complete'),
+    path('<int:pk>/selesai/', views.sppd_complete, name='complete_alt'),
+    path('selesai/<int:pk>/', views.sppd_complete, name='selesai'),
 ]

@@ -1,163 +1,199 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Profil Saya - BAZNAS{% endblock %}
-
-{% block extra_css %}
-
-<style>
-    .custom-modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.65);
-        z-index: 999999;
-        align-items: center;
-        justify-content: center;
-    }
-    .custom-modal-overlay.active {
-        display: flex !important;
-    }
-</style>
-{% endblock %}
+{% block title %}Profil Saya - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <h4 class="fw-bold mb-1" style="color: var(--text-primary);">Profil Pengguna</h4>
-        <p class="text-secondary small">Informasi detail akun dan kepegawaian Anda.</p>
-    </div>
-</div>
+<div class="w-full space-y-6" x-data="{ showModal: false }">
 
-<div class="row">
-    <div class="col-lg-4 mb-4">
-        <div class="card border-0 shadow-sm p-4 text-center h-100">
-            <div class="mb-4 position-relative d-inline-block mx-auto cursor-pointer" onclick="bukaModalFotoProfil()">
-                <img src="{{ user_obj.avatar_url }}" class="rounded-circle shadow-sm border border-4 border-white" style="width: 128px; height: 128px; object-fit: cover;">
-                <button type="button" class="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0 shadow" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Ubah Foto Profil">
-                    <i class="bi bi-camera-fill fs-6"></i>
-                </button>
+    <!-- HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 md:p-7 shadow-2xl border border-slate-700/50">
+        <div class="relative z-10 flex items-center justify-between flex-wrap gap-4">
+            <div class="space-y-1">
+                <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 font-mono">
+                    <i class="bi bi-person-badge-fill"></i> AKUN SAYA
+                </span>
+                <h1 class="text-xl md:text-2xl font-black text-white tracking-tight m-0">Profil Pengguna & Kepegawaian</h1>
+                <p class="text-slate-300 text-xs md:text-sm m-0">Informasi detail akun internal dan data kepegawaian BAZNAS Kabupaten Tangerang.</p>
             </div>
-            <h5 class="fw-bold mb-1" style="color: var(--text-primary);">{{ user_obj.get_full_name|default:user_obj.username }}</h5>
-            <p class="badge bg-primary rounded-pill px-3">{{ user_obj.get_role_display|default:"Member" }}</p>
-            <hr class="my-4 opacity-5">
-            <div class="d-grid">
-                <button type="button" class="btn btn-light rounded-3 fw-bold border" onclick="bukaModalFotoProfil()">
-                    <i class="bi bi-person-bounding-box me-2 text-primary"></i> Perbarui Foto & Akun
+            <div>
+                <button type="button" @click="showModal = true" class="btn-emerald-primary">
+                    <i class="bi bi-pencil-square"></i> Perbarui Akun & Foto
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-8 mb-4">
-        <div class="card border-0 shadow-sm p-4 h-100">
-            <h5 class="fw-bold mb-4 border-bottom pb-2" style="color: var(--text-primary);">Detail Informasi</h5>
-            
-            <div class="row mb-3">
-                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Nama Pengguna</div>
-                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.username }}</div>
+    <!-- PROFILE DETAILS GRID (1 COL MOBILE, 3 COLS DESKTOP) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- AVATAR & BASIC CARD -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col items-center justify-center text-center space-y-4">
+            <div class="relative group cursor-pointer" @click="showModal = true">
+                <img src="{{ user_obj.avatar_url }}" class="w-32 h-32 rounded-3xl object-cover shadow-lg border-4 border-emerald-500/30 group-hover:scale-105 transition-transform" alt="Avatar">
+                <button type="button" class="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md border-2 border-white dark:border-slate-900 min-h-[40px] min-w-[40px]">
+                    <i class="bi bi-camera-fill text-sm"></i>
+                </button>
             </div>
-            <div class="row mb-3">
-                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Email</div>
-                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.email|default:"-" }}</div>
+
+            <div>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white m-0">{{ user_obj.get_full_name|default:user_obj.username }}</h3>
+                <span class="badge-pill-emerald mt-2">{{ user_obj.get_role_display|default:"Member" }}</span>
             </div>
-            <div class="row mb-3">
-                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Status Akun</div>
-                <div class="col-sm-8">
-                    {% if user_obj.is_active %}
-                    <span class="badge bg-success bg-opacity-20 text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">Aktif</span>
-                    {% else %}
-                    <span class="badge bg-danger bg-opacity-20 text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold">Non-aktif</span>
-                    {% endif %}
+
+            <div class="w-full pt-4 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" @click="showModal = true" class="btn-slate-secondary w-full">
+                    <i class="bi bi-person-bounding-box text-emerald-500"></i> Perbarui Foto & Akun
+                </button>
+            </div>
+        </div>
+
+        <!-- DETAILS & KEPEGAWAIAN CARD (2 COLS DESKTOP) -->
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
+            <div>
+                <h4 class="font-extrabold text-base text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3 mb-4 flex items-center gap-2">
+                    <i class="bi bi-info-circle-fill text-emerald-600"></i> Detail Informasi Akun
+                </h4>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
+                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80">
+                        <span class="block text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase font-bold mb-1">Nama Pengguna (Username)</span>
+                        <span class="text-slate-900 dark:text-slate-100 font-extrabold text-sm">{{ user_obj.username }}</span>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80">
+                        <span class="block text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase font-bold mb-1">Alamat Email</span>
+                        <span class="text-slate-900 dark:text-slate-100 font-extrabold text-sm">{{ user_obj.email|default:"-" }}</span>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 sm:col-span-2">
+                        <span class="block text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase font-bold mb-1">Status Akun System</span>
+                        <div>
+                            {% if user_obj.is_active %}
+                            <span class="badge-pill-emerald">Aktif / Active</span>
+                            {% else %}
+                            <span class="badge-pill-rose">Non-aktif</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
-            
+
             {% if user_obj.employee %}
-            <h5 class="fw-bold mt-4 mb-4 border-bottom pb-2" style="color: var(--text-primary);">Informasi Kepegawaian</h5>
-            <div class="row mb-3">
-                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">NIP / NIK</div>
-                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.employee.nip }}</div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Jabatan</div>
-                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.employee.position }}</div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-sm-4 text-secondary small text-uppercase fw-bold">Bidang</div>
-                <div class="col-sm-8 fw-bold" style="color: var(--text-primary);">{{ user_obj.employee.dept_relation.name|default:'-' }}</div>
+            <div>
+                <h4 class="font-extrabold text-base text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3 mb-4 flex items-center gap-2">
+                    <i class="bi bi-briefcase-fill text-sky-500"></i> Informasi Kepegawaian
+                </h4>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold">
+                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80">
+                        <span class="block text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase font-bold mb-1">NIP / NIK Pegawai</span>
+                        <span class="text-slate-900 dark:text-slate-100 font-extrabold text-sm font-mono">{{ user_obj.employee.nip }}</span>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80">
+                        <span class="block text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase font-bold mb-1">Jabatan Reskrim</span>
+                        <span class="text-slate-900 dark:text-slate-100 font-extrabold text-sm">{{ user_obj.employee.position }}</span>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80">
+                        <span class="block text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase font-bold mb-1">Bidang Kerja</span>
+                        <span class="text-slate-900 dark:text-slate-100 font-extrabold text-sm">{{ user_obj.employee.dept_relation.name|default:'-' }}</span>
+                    </div>
+                </div>
             </div>
             {% endif %}
         </div>
+
     </div>
-</div>
 
-<!-- Modal Pop Up Independen Upload Foto Profil & Akun -->
-<div id="customProfileModal" class="custom-modal-overlay">
-    <div class="modal-dialog modal-dialog-centered w-100 px-3" style="max-width: 500px;">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; background: var(--card-bg, #ffffff);">
-            <div class="modal-header border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                <h5 class="modal-title fw-bold" style="color: var(--text-primary);"><i class="bi bi-camera-fill me-2 text-primary"></i>Perbarui Foto Profil & Akun</h5>
-                <button type="button" class="btn-close" onclick="tutupModalFotoProfil()"></button>
+    <!-- PURE ALPINE.JS RESPONSIVE MODAL PERBARUI AKUN -->
+    <div x-cloak 
+         x-show="showModal" 
+         @keydown.window.escape="showModal = false">
+        
+        <!-- BACKDROP -->
+        <div x-show="showModal" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="showModal = false" 
+             class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md"></div>
+
+        <!-- MODAL PANEL (BOTTOM SHEET MOBILE / CENTERED DESKTOP) -->
+        <div x-show="showModal" 
+             x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="opacity-0 translate-y-full md:translate-y-4 md:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 md:scale-100"
+             x-transition:leave="transition ease-in duration-200 transform"
+             x-transition:leave-start="opacity-100 translate-y-0 md:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-full md:translate-y-4 md:scale-95"
+             class="fixed inset-x-0 bottom-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl md:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <div class="px-6 py-4 bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950 border-b border-slate-800 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-camera-fill text-emerald-400"></i>
+                    <h3 class="font-extrabold text-base text-white m-0">Perbarui Foto Profil & Akun</h3>
+                </div>
+                <button type="button" @click="showModal = false" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer min-h-[32px] min-w-[32px]">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
             </div>
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <!-- Foto Profil Upload Section -->
-                    <div class="mb-4 text-center">
-                        <div class="position-relative d-inline-block mb-2 cursor-pointer" onclick="pilihFileFoto()">
-                            <img id="avatarPreview" src="{{ user_obj.avatar_url }}" class="rounded-circle shadow border border-4 border-success" style="width: 110px; height: 110px; object-fit: cover;">
-                            <span class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-1 shadow" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
-                                <i class="bi bi-pencil-fill" style="font-size: 0.75rem;"></i>
-                            </span>
-                        </div>
-                        <div class="mt-2">
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="pilihFileFoto()">
-                                <i class="bi bi-image me-1"></i> Pilih Foto Profil Baru
-                            </button>
-                            <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="d-none" onchange="previewAvatar(this)">
-                            <small class="d-block text-muted mt-1" style="font-size: 0.75rem;">Format gambar: JPG, PNG, GIF (Maks 5MB)</small>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Nama Depan</label>
-                            <input type="text" name="first_name" class="form-control rounded-3" value="{{ user_obj.first_name }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Nama Belakang</label>
-                            <input type="text" name="last_name" class="form-control rounded-3" value="{{ user_obj.last_name }}">
-                        </div>
+            <form method="post" enctype="multipart/form-data" class="overflow-y-auto flex-1 p-6 space-y-4">
+                {% csrf_token %}
+                
+                <!-- Foto Profil Upload Section -->
+                <div class="text-center">
+                    <div class="relative inline-block mb-2 cursor-pointer" onclick="document.getElementById('profile_picture').click()">
+                        <img id="avatarPreview" src="{{ user_obj.avatar_url }}" class="w-24 h-24 rounded-3xl object-cover shadow border-4 border-emerald-500 mx-auto">
+                        <span class="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-xl p-1.5 shadow flex items-center justify-center min-h-[28px] min-w-[28px]">
+                            <i class="bi bi-pencil-fill text-xs"></i>
+                        </span>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Email</label>
-                        <input type="email" name="email" class="form-control rounded-3" value="{{ user_obj.email }}">
-                    </div>
-                    <hr class="my-3 opacity-10">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-danger">Password Baru</label>
-                        <input type="password" name="password" class="form-control rounded-3" placeholder="Kosongkan jika tidak ingin ganti password">
-                        <small class="text-muted italic" style="font-size: 0.7rem;">Isi hanya jika ingin mengubah password akun Anda.</small>
+                    <div>
+                        <button type="button" class="btn-slate-secondary text-xs rounded-full py-1.5 px-4 min-h-[36px]" onclick="document.getElementById('profile_picture').click()">
+                            <i class="bi bi-image"></i> Pilih Foto Baru
+                        </button>
+                        <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="hidden" onchange="previewAvatar(this)">
+                        <span class="block text-[11px] text-slate-400 mt-1 font-mono">Format: JPG, PNG (Maks 5MB)</span>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pb-4 px-4 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold border" onclick="tutupModalFotoProfil()">Batal</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">Simpan Perubahan</button>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="label-enterprise">Nama Depan</label>
+                        <input type="text" name="first_name" class="input-enterprise" value="{{ user_obj.first_name }}">
+                    </div>
+                    <div>
+                        <label class="label-enterprise">Nama Belakang</label>
+                        <input type="text" name="last_name" class="input-enterprise" value="{{ user_obj.last_name }}">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="label-enterprise">Email</label>
+                    <input type="email" name="email" class="input-enterprise" value="{{ user_obj.email }}">
+                </div>
+
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <label class="label-enterprise text-rose-500">Password Baru (Opsional)</label>
+                    <input type="password" name="password" class="input-enterprise" placeholder="Kosongkan jika tidak ingin ubah password">
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" @click="showModal = false" class="btn-slate-secondary">Batal</button>
+                    <button type="submit" class="btn-emerald-primary">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
     </div>
+
 </div>
 
 <script>
-function bukaModalFotoProfil() {
-    document.getElementById('customProfileModal').classList.add('active');
-}
-function tutupModalFotoProfil() {
-    document.getElementById('customProfileModal').classList.remove('active');
-}
-function pilihFileFoto() {
-    document.getElementById('profile_picture').click();
-}
 function previewAvatar(input) {
     if (input.files && input.files[0]) {
         var reader = new FileReader();
@@ -169,6 +205,3 @@ function previewAvatar(input) {
 }
 </script>
 {% endblock %}
-
-
-

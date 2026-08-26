@@ -3,9 +3,9 @@
 {% block title %}E-Arsip SDM Enterprise - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3" x-data="{ selectedIds: [], searchKeyword: '' }">
+<div class="w-full space-y-6" x-data="{ selectedIds: [], searchKeyword: '' }">
     <!-- TAILWIND ENTERPRISE HEADER BANNER -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
@@ -17,12 +17,12 @@
 
             <div class="flex items-center gap-2 flex-shrink-0">
                 {% if user.is_superadmin and not request.session.active_pov %}
-                <a href="{% url 'archives:backup_gdrive_email' %}" class="px-3.5 py-2 rounded-full border border-white/20 text-white hover:bg-white/10 text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-1.5" title="Cadangkan seluruh dokumen ke Google Drive & kirim laporan email">
+                <a href="{% url 'archives:backup_gdrive_email' %}" class="px-3.5 py-2 rounded-full border border-white/20 text-white hover:bg-white/10 text-xs font-bold transition-all no-underline inline-flex items-center gap-1.5" title="Cadangkan seluruh dokumen ke Google Drive & kirim laporan email">
                     <i class="bi bi-cloud-arrow-up-fill text-amber-400 text-base"></i> Backup GDrive & Email
                 </a>
                 {% endif %}
-                {% if can_upload %}
-                <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all text-decoration-none inline-flex items-center gap-1.5">
+                {% if can_upload and can_manage %}
+                <a href="{% url 'archives:upload' %}{% if current_type %}?type={{ current_type }}{% endif %}" class="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow-md transition-all no-underline inline-flex items-center gap-1.5">
                     <i class="bi bi-plus-lg text-base"></i> Unggah Arsip Baru
                 </a>
                 {% endif %}
@@ -31,32 +31,32 @@
     </div>
 
     <!-- SYSTEM AUTOMATION BANNER -->
-    <div class="p-4 mb-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-900 dark:text-emerald-200 flex items-center gap-3 shadow-sm">
+    <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-900 dark:text-emerald-200 flex items-center gap-3 shadow-sm">
         <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl flex-shrink-0 font-bold">
             <i class="bi bi-shield-check"></i>
         </div>
         <div>
             <strong class="font-extrabold block text-sm text-slate-900 dark:text-white mb-0.5">Otomasi Alur Berkas BAZNAS:</strong>
             <p class="text-xs text-slate-600 dark:text-slate-300 mb-0">
-                Seluruh dokumen <strong>Permohonan Bantuan / Proposal</strong> dialokasikan otomatis ke <strong>Bidang II (Pendistribusian)</strong>. Cetak Tanda Terima Resmi tersedia secara instan setelah dokumen terdaftar.
+                Seluruh dokumen <strong>Permohonan Bantuan / Proposal</strong> dialokasikan otomatis ke <strong>Bidang II (Pendistribusian)</strong>. Cetak Tanda Terima Resmi & Disposisi Digital tersedia secara instan setelah dokumen terdaftar.
             </p>
         </div>
     </div>
 
     <!-- UNIFIED WORKFLOW & FILTER PANEL -->
-    <div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         <!-- STATUS WORKFLOW TABS (4 NAV PILLS) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'perlu_verifikasi' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=perlu_verifikasi{% if current_type %}&type={{ current_type }}{% endif %}">
+            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all no-underline {% if status_filter == 'perlu_verifikasi' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=perlu_verifikasi{% if current_type %}&type={{ current_type }}{% endif %}">
                 <i class="bi bi-clock-history me-1"></i> Perlu Verifikasi Kabid IV
             </a>
-            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'belum_disposition' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=belum_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
+            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all no-underline {% if status_filter == 'belum_disposition' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=belum_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
                 <i class="bi bi-file-earmark-arrow-up me-1"></i> Belum Disposisi Pimpinan
             </a>
-            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'sudah_disposition' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=sudah_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
+            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all no-underline {% if status_filter == 'sudah_disposition' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=sudah_disposition{% if current_type %}&type={{ current_type }}{% endif %}">
                 <i class="bi bi-check2-all me-1"></i> Sudah Disposisi / Berjalan
             </a>
-            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all text-decoration-none {% if status_filter == 'all' or not status_filter %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=all{% if current_type %}&type={{ current_type }}{% endif %}">
+            <a class="py-2.5 px-3 text-center text-xs font-bold rounded-xl transition-all no-underline {% if status_filter == 'all' or not status_filter %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="{% url 'archives:list' %}?status=all{% if current_type %}&type={{ current_type }}{% endif %}">
                 <i class="bi bi-collection me-1"></i> Semua Repositori Arsip
             </a>
         </div>
@@ -65,19 +65,19 @@
         <div class="flex justify-between items-center flex-wrap gap-3">
             <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-bold text-slate-500 dark:text-slate-400 text-xs me-1 flex items-center gap-1"><i class="bi bi-funnel-fill text-emerald-600 dark:text-emerald-400"></i> Filter Tipe:</span>
-                <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if not current_type %}bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all no-underline {% if not current_type %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
                     Semua Tipe
                 </a>
                 {% for code, label in archive_types %}
-                <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}&type={{ code }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                <a href="{% url 'archives:list' %}?status={{ status_filter|default:'perlu_verifikasi' }}&type={{ code }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all no-underline {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
                     {{ label }}
                 </a>
                 {% endfor %}
             </div>
 
-            {% if user.is_superuser or user.is_pimpinan or user.is_kabid or user.is_sdm %}
+            {% if can_manage %}
             <div x-show="selectedIds.length > 0" x-cloak class="flex items-center gap-2">
-                <button type="submit" form="batchVerificationForm" name="action" value="batch_verify_only" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all border-0 inline-flex items-center gap-1.5">
+                <button type="submit" form="batchVerificationForm" name="action" value="batch_verify_only" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all border-0 inline-flex items-center gap-1.5 cursor-pointer">
                     <i class="bi bi-check-all text-base"></i> Verifikasi Terpilih (<span x-text="selectedIds.length">0</span>)
                 </button>
             </div>
@@ -89,113 +89,145 @@
     <form id="batchVerificationForm" method="post" action="{% url 'archives:batch_verify' %}">
         {% csrf_token %}
 
-        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
-<!-- Table Enterprise Container -->
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="archiveEnterpriseTable">
-                    <thead class="bg-body-tertiary">
-                        <tr class="text-muted small text-uppercase font-mono" style="border-bottom: 2px solid var(--border-color);">
-                            <th class="py-3 text-center" style="width: 40px;">
+        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6 p-4">
+            <div class="w-full overflow-x-auto touch-pan-x custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs" id="archiveEnterpriseTable">
+                    <thead>
+                        <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                            <th class="py-3 px-2 text-center w-10">
+                                {% if can_manage %}
                                 <input type="checkbox" 
                                        @change="if($el.checked){ selectedIds = Array.from(document.querySelectorAll('.archive-checkbox')).map(c => c.value); document.querySelectorAll('.archive-checkbox').forEach(c => c.checked = true); } else { selectedIds = []; document.querySelectorAll('.archive-checkbox').forEach(c => c.checked = false); }" 
-                                       class="form-check-input" title="Pilih Semua">
+                                       class="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 cursor-pointer" title="Pilih Semua">
+                                {% else %}
+                                #
+                                {% endif %}
                             </th>
-                            <th class="py-3" style="min-width: 140px;">No. Arsip / Kode</th>
-                            <th class="py-3" style="min-width: 140px;">Jenis & Tanggal</th>
-                            <th class="py-3" style="min-width: 260px;">Judul / Perihal Dokumen</th>
-                            <th class="py-3" style="min-width: 180px;">Pengirim / Penanggung Jawab</th>
-                            <th class="py-3 text-center" style="min-width: 150px;">Status Workflow</th>
-                            <th class="py-3 text-end" style="min-width: 160px;">Aksi Cepat</th>
+                            <th class="py-3 px-2">No. Arsip / Kode</th>
+                            <th class="py-3 px-2">Jenis & Tanggal</th>
+                            <th class="py-3 px-2">Judul / Perihal Dokumen</th>
+                            <th class="py-3 px-2">Pengirim / PJ</th>
+                            <th class="py-3 px-2 text-center">Status Workflow</th>
+                            <th class="py-3 px-2 text-end">Aksi Cepat</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         {% for archive in archives %}
-                        <tr class="card-hover-lift">
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                             <!-- Checkbox -->
-                            <td class="text-center">
-                                {% if archive.status in 'baru,pending,masuk' %}
-                                    <input type="checkbox" 
-                                           name="archive_ids" 
-                                           value="{{ archive.pk }}" 
-                                           @change="if($el.checked){ if(!selectedIds.includes('{{ archive.pk }}')) selectedIds.push('{{ archive.pk }}'); } else { selectedIds = selectedIds.filter(id => id !== '{{ archive.pk }}'); }"
-                                           class="form-check-input archive-checkbox">
+                            <td class="py-3 px-3 text-center">
+                                {% if can_manage %}
+                                    {% if archive.status in 'baru,pending,masuk' %}
+                                        <input type="checkbox" 
+                                               name="archive_ids" 
+                                               value="{{ archive.pk }}" 
+                                               @change="if($el.checked){ if(!selectedIds.includes('{{ archive.pk }}')) selectedIds.push('{{ archive.pk }}'); } else { selectedIds = selectedIds.filter(id => id !== '{{ archive.pk }}'); }"
+                                               class="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 cursor-pointer archive-checkbox">
+                                    {% else %}
+                                        <i class="bi bi-check-circle-fill text-emerald-500 text-base" title="Dokumen Telah Diverifikasi"></i>
+                                    {% endif %}
                                 {% else %}
-                                    <i class="bi bi-check-circle-fill text-success" title="Dokumen Telah Diverifikasi"></i>
+                                    <span class="text-slate-400 font-mono text-[10px]">{{ forloop.counter }}</span>
                                 {% endif %}
                             </td>
 
                             <!-- Nomor Arsip -->
-                            <td>
-                                <a href="{% url 'archives:detail' archive.pk %}" class="fw-bold text-emerald text-decoration-none font-mono">
+                            <td class="py-3 px-3">
+                                <a href="{% url 'archives:detail' archive.pk %}" class="font-extrabold text-emerald-600 dark:text-emerald-400 no-underline hover:underline font-mono">
                                     {{ archive.archive_number|default:'(DRAFT)' }}
                                 </a>
                                 {% if archive.file_path %}
-                                    <a href="{{ archive.file_path.url }}" target="_blank" class="ms-1 text-danger small" title="Unduh Berkas Digital PDF">
+                                    <a href="{{ archive.file_path.url }}" target="_blank" class="ms-1 text-rose-500 hover:text-rose-600 text-xs inline-flex items-center" title="Unduh Berkas Digital PDF">
                                         <i class="bi bi-file-earmark-pdf-fill"></i>
                                     </a>
                                 {% endif %}
                             </td>
 
                             <!-- Jenis & Tanggal -->
-                            <td>
-                                <span class="badge bg-secondary bg-opacity-15 text-dark rounded-pill px-2.5 py-1 fw-semibold mb-1" style="font-size: 0.72rem;">
+                            <td class="py-3 px-3">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-block mb-1">
                                     {{ archive.get_archive_type_display }}
                                 </span>
-                                <div class="text-muted small font-mono">
-                                    <i class="bi bi-calendar3 me-1"></i>{{ archive.letter_date|date:"d/m/Y"|default:'-' }}
+                                <div class="text-slate-400 text-[11px] font-mono flex items-center gap-1">
+                                    <i class="bi bi-calendar3"></i> {{ archive.letter_date|date:"d/m/Y"|default:'-' }}
                                 </div>
                             </td>
 
                             <!-- Judul / Perihal -->
-                            <td>
-                                <a href="{% url 'archives:detail' archive.pk %}" class="fw-semibold text-dark text-decoration-none d-block text-wrap mb-1" style="line-height: 1.35;">
+                            <td class="py-3 px-3">
+                                <a href="{% url 'archives:detail' archive.pk %}" class="font-bold text-slate-900 dark:text-white no-underline hover:text-emerald-600 dark:hover:text-emerald-400 block mb-1 leading-snug">
                                     {{ archive.title }}
                                 </a>
-                                <span class="badge bg-light text-muted border rounded-pill px-2" style="font-size: 0.68rem;">
+                                <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                                     Kategori: {{ archive.category.name|default:'Umum' }}
                                 </span>
                             </td>
 
                             <!-- Pengirim / Penanggung Jawab -->
-                            <td>
-                                <strong class="d-block text-dark small text-truncate" style="max-width: 180px;">{{ archive.sender_receiver|default:'-' }}</strong>
-                                <span class="text-muted small" style="font-size: 0.7rem;">Oleh: {{ archive.uploaded_by.get_full_name|default:archive.uploaded_by.username }}</span>
+                            <td class="py-3 px-3">
+                                <strong class="block text-slate-800 dark:text-slate-200 text-xs truncate max-w-[180px]">{{ archive.sender_receiver|default:'-' }}</strong>
+                                <span class="text-slate-400 text-[10px]">Oleh: {{ archive.uploaded_by.get_full_name|default:archive.uploaded_by.username }}</span>
                             </td>
 
                             <!-- Status Workflow -->
-                            <td class="text-center">
-                                {% if archive.verified_by_kabid %}
-                                    <span class="badge-pill-enterprise badge-pill-success"><span class="pulse-dot"></span> Terverifikasi Kabid IV</span>
+                            <td class="py-3 px-3 text-center">
+                                {% if archive.status == 'telah_disalurkan' or archive.latest_sppd.sppd_type == 'penyaluran' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-purple-600 text-white shadow-2xs">
+                                        <i class="bi bi-car-front-fill"></i> PENYALURAN BANTUAN
+                                    </span>
+                                {% elif archive.status == 'dalam_survei' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950 shadow-2xs">
+                                        <span class="w-2 h-2 rounded-full bg-amber-950 animate-pulse"></span> SURVEI LAPANGAN
+                                    </span>
+                                {% elif archive.status == 'telah_disurvei' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-sky-500 text-white shadow-2xs">
+                                        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> TELAH DISURVEI
+                                    </span>
+                                {% elif archive.status == 'selesai' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-600 text-white shadow-2xs">
+                                        <i class="bi bi-check-all"></i> SELESAI DISALURKAN
+                                    </span>
+                                {% elif archive.status == 'sudah_ditugaskan' or archive.latest_st %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">
+                                        <i class="bi bi-file-earmark-person"></i> SURAT TUGAS TERBIT
+                                    </span>
+                                {% elif archive.status == 'didisposisikan' or archive.dispositions.exists %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30">
+                                        <i class="bi bi-send-check"></i> DISPOSISI PIMPINAN
+                                    </span>
+                                {% elif archive.verified_by_kabid %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
+                                        <i class="bi bi-patch-check"></i> TERVERIFIKASI KABID IV
+                                    </span>
                                 {% else %}
-                                    <span class="badge-pill-enterprise badge-pill-warning"><span class="pulse-dot"></span> Menunggu Verifikasi</span>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30">
+                                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> MENUNGGU VERIFIKASI
+                                    </span>
                                 {% endif %}
                                 <div class="mt-1">
-                                    <span class="badge bg-info bg-opacity-20 text-info rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
-                                        {{ archive.get_status_display }}
+                                    <span class="text-[10px] font-extrabold text-slate-400 font-mono">
+                                        {{ archive.workflow_status_display }}
                                     </span>
                                 </div>
                             </td>
 
                             <!-- Aksi Cepat -->
-                            <td class="text-end">
-                                <div class="btn-group">
-                                    <!-- Slide-Over Drawer Quick View Trigger (HTMX) -->
+                            <td class="py-3 px-3 text-end">
+                                <div class="inline-flex rounded-xl shadow-2xs overflow-hidden border border-slate-200 dark:border-slate-700">
                                     <button type="button" 
                                             hx-get="{% url 'archives:quick_detail' archive.pk %}"
                                             hx-target="#drawerBodyContent"
                                             @click="$store.drawer.open('Detail Arsip {{ archive.archive_number|escapejs }}', '{{ archive.get_archive_type_display|escapejs }}')"
-                                            class="btn btn-sm btn-outline-emerald rounded-start-pill px-2.5" 
-                                            title="Quick View Samping">
+                                            class="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-600 text-slate-700 dark:text-slate-300 hover:text-white transition-colors cursor-pointer" 
+                                            title="Quick View Samping & Fitur Disposisi">
                                         <i class="bi bi-layout-sidebar-reverse"></i>
                                     </button>
 
-                                    <!-- Detail Halaman Lengkap -->
-                                    <a href="{% url 'archives:detail' archive.pk %}" class="btn btn-sm btn-outline-secondary px-2.5" title="Buka Detail Halaman">
+                                    <a href="{% url 'archives:detail' archive.pk %}" class="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors no-underline border-l border-r border-slate-200 dark:border-slate-700" title="Buka Detail Halaman">
                                         <i class="bi bi-eye"></i>
                                     </a>
 
-                                    <!-- Tanda Terima -->
-                                    <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-end-pill px-2.5" title="Cetak Tanda Terima">
+                                    <a href="{% url 'archives:receipt' archive.pk %}" target="_blank" class="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors no-underline" title="Cetak Tanda Terima">
                                         <i class="bi bi-printer"></i>
                                     </a>
                                 </div>
@@ -203,10 +235,10 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                <i class="bi bi-folder-x fs-1 d-block text-secondary opacity-50 mb-3"></i>
-                                <h5 class="fw-bold">Tidak Ada Arsip Dokumen</h5>
-                                <p class="small text-muted mb-0">Belum ada dokumen yang sesuai dengan filter atau kriteria pencarian saat ini.</p>
+                            <td colspan="7" class="text-center py-10 text-slate-400">
+                                <i class="bi bi-folder-x text-4xl block opacity-50 mb-3"></i>
+                                <h4 class="font-bold text-sm text-slate-300 mb-1">Tidak Ada Arsip Dokumen</h4>
+                                <p class="text-xs text-slate-500 mb-0">Belum ada dokumen yang sesuai dengan filter atau kriteria pencarian saat ini.</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -214,43 +246,57 @@
                 </table>
             </div>
 
-            <!-- Pagination Bar -->
-            {% if page_obj.has_other_pages %}
-            <div class="p-3 border-top bg-body-tertiary d-flex justify-content-between align-items-center flex-wrap gap-2 rounded-bottom-4">
-                <span class="text-muted small">
-                    Menampilkan {{ page_obj.start_index }} s.d. {{ page_obj.end_index }} dari {{ page_obj.paginator.count }} dokumen arsip.
-                </span>
-
-                <nav aria-label="Page navigation">
-                    <ul class="pagination pagination-sm mb-0 gap-1">
-                        {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link rounded-circle px-2" href="?page={{ page_obj.previous_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}&status={{ status_filter|default:'all' }}">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                            <li class="page-item active"><span class="page-link rounded-circle px-3 bg-emerald border-emerald">{{ num }}</span></li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item"><a class="page-link rounded-circle px-3 text-dark" href="?page={{ num }}{% if current_type %}&type={{ current_type }}{% endif %}&status={{ status_filter|default:'all' }}">{{ num }}</a></li>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link rounded-circle px-2" href="?page={{ page_obj.next_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}&status={{ status_filter|default:'all' }}">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            </div>
-            {% endif %}
+            <!-- Pagination Bar Include -->
+            {% include 'includes/pagination.html' %}
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if uploaded_archive %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            title: '<div class="flex items-center justify-center gap-2 text-emerald-600 font-black text-xl"><i class="bi bi-check-circle-fill text-emerald-500 text-2xl"></i> Dokumen Berhasil Diunggah!</div>',
+            html: `
+                <div class="text-left p-2 space-y-3">
+                    <div class="bg-slate-100 dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">Nomor Arsip / Agenda FO</span>
+                        <span class="font-black text-emerald-600 dark:text-emerald-400 font-mono block text-base mb-2">{{ uploaded_archive.archive_number|default:"DRAFT" }}</span>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">Perihal Dokumen / Surat</span>
+                        <span class="font-extrabold text-slate-900 dark:text-white block text-xs mb-1">{{ uploaded_archive.title|escapejs }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 block text-[11px]">Pengirim / Instansi: <strong>{{ uploaded_archive.sender_receiver|default:"-"|escapejs }}</strong></span>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-300 text-xs mb-0">
+                        Dokumen telah tersimpan di Manajemen Arsip dengan status <strong>BELUM DISPOSISI</strong>. Silakan pilih opsi percetakan di bawah ini:
+                    </p>
+                </div>
+            `,
+            icon: 'success',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#059669',
+            denyButtonColor: '#D97706',
+            cancelButtonColor: '#475569',
+            confirmButtonText: '🖨️ Cetak Disposisi Blank (Kosong)',
+            denyButtonText: '🧾 Cetak Tanda Terima Resmi',
+            cancelButtonText: 'Tutup & Lihat Manajemen Arsip',
+            customClass: {
+                popup: 'rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900',
+                confirmButton: 'rounded-full px-4 py-2.5 font-extrabold text-xs shadow-md',
+                denyButton: 'rounded-full px-4 py-2.5 font-extrabold text-xs shadow-md',
+                cancelButton: 'rounded-full px-4 py-2.5 font-bold text-xs'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open("{% url 'dispositions:print' %}?blank=1&archive_id={{ uploaded_archive.pk }}", "_blank");
+            } else if (result.isDenied) {
+                window.open("{% url 'archives:receipt' uploaded_archive.pk %}", "_blank");
+            }
+        });
+    });
+</script>
+{% endif %}
 {% endblock %}

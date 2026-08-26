@@ -3,362 +3,395 @@
 
 {% block title %}Rapat Internal Pimpinan - BAZNAS Kab. Tangerang{% endblock %}
 
-{% block extra_css %}
-
-<style>
-    .notulensi-content ol, .notulensi-content ul { padding-left: 1.5rem; margin-bottom: 0.5rem; }
-    .notulensi-content ul { list-style-type: disc !important; }
-    .notulensi-content ol { list-style-type: decimal; }
-    .notulensi-content li[data-list="bullet"], .notulensi-content ol li[data-list="bullet"], .notulensi-content ul li[data-list="bullet"] { list-style-type: disc !important; }
-    .notulensi-content li[data-list="ordered"], .notulensi-content ol li[data-list="ordered"], .notulensi-content ul li[data-list="ordered"] { list-style-type: decimal !important; }
-    .notulensi-content ol ul, .notulensi-content ul ul, .notulensi-content ol li ul { list-style-type: disc !important; padding-left: 1.5rem; }
-    .notulensi-content ol[type="a"], .notulensi-content ol[type="a" i], .notulensi-content ol.type-a, .notulensi-content ol ol { list-style-type: lower-alpha; }
-    .notulensi-content ol[type="I"], .notulensi-content ol[type="I" i], .notulensi-content ol ol ol { list-style-type: lower-roman; }
-    .notulensi-content li.ql-indent-1, .notulensi-content .ql-indent-1 { padding-left: 1.5em; }
-    .notulensi-content li.ql-indent-2, .notulensi-content .ql-indent-2 { padding-left: 3.0em; }
-    .notulensi-content li.ql-indent-3, .notulensi-content .ql-indent-3 { padding-left: 4.5em; }
-    .notulensi-content p { margin-bottom: 0.35rem; }
-    .notulensi-content p:last-child { margin-bottom: 0; }
-
-    table.dataTable > thead > tr > th { border-bottom: none !important; color: var(--text-primary) !important; font-weight: 700 !important; }
-    table.dataTable.no-footer { border-bottom: 1px solid var(--border-color) !important; }
-    div.dataTables_wrapper div.dataTables_info,
-    div.dataTables_wrapper div.dataTables_paginate { padding-top: 1rem !important; color: var(--text-secondary) !important; }
-    div.dataTables_wrapper .dataTables_length select,
-    div.dataTables_wrapper .dataTables_filter input {
-        border-radius: 10px !important;
-        background-color: var(--card-bg) !important;
-        color: var(--text-primary) !important;
-        border-color: var(--border-color) !important;
-    }
-    div.dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: var(--color-emerald-600) !important;
-        color: #fff !important;
-        border-color: var(--color-emerald-600) !important;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
-<div class="glass-banner-enterprise mb-4">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-7">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
-                    <i class="bi bi-people-fill me-1 text-warning"></i> Modul Rapat Internal Pimpinan
-                </span>
+<div class="w-full space-y-6" x-data="{
+    activeTab: 'scheduled',
+    searchQuery: '',
+    matchesSearch(title, location, leader, notulis, number) {
+        if (!this.searchQuery) return true;
+        let query = this.searchQuery.toLowerCase().trim();
+        let combined = ((title || '') + ' ' + (location || '') + ' ' + (leader || '') + ' ' + (notulis || '') + ' ' + (number || '')).toLowerCase();
+        return combined.includes(query);
+    }
+}">
+    <!-- ⚡ HEADER BANNER ENTERPRISE GLASSMORPHISM ⚡ -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/30 p-6 md:p-8 shadow-2xl text-white">
+        <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute left-1/3 -top-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black tracking-wider uppercase font-mono">
+                    <i class="bi bi-people-fill text-amber-400"></i> Modul Rapat Internal Pimpinan BAZNAS
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+                    Manajemen Rapat Pleno & Notulensi
+                </h1>
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    Kelola agenda rapat pleno pimpinan, koordinasi bidang, risalah notulensi digital terverifikasi, serta pemantauan aksi tindak lanjut (action plan) secara real-time.
+                </p>
             </div>
-            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Manajemen Rapat Pleno & Notulensi BAZNAS</h3>
-            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 620px;">
-                Kelola agenda rapat pleno pimpinan, koordinasi bidang, risalah notulensi digital, serta monitoring action plan tindak lanjut secara terintegrasi.
-            </p>
-        </div>
-        <div class="col-lg-5 text-lg-end">
-            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                <a href="{% url 'internal_meetings:action_plan_list' %}" class="btn btn-warning text-dark rounded-pill px-4 py-2.5 fw-bold shadow-sm">
-                    <i class="bi bi-pie-chart-fill me-1"></i> Monitoring Action Plan
+
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
+                <a href="{% url 'internal_meetings:action_plan_list' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-lg shadow-amber-900/30 hover:scale-[1.02] transition-all no-underline">
+                    <i class="bi bi-pie-chart-fill text-base"></i>
+                    <span>Monitoring Action Plan</span>
                 </a>
-                {% if user.is_superadmin or user.is_pimpinan or user.is_kabid %}
-                <a href="{% url 'internal_meetings:create' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
-                    <i class="bi bi-plus-circle-fill me-1 text-success"></i> + Buat Rapat Baru
+                {% if user.is_superadmin or user.is_pimpinan or user.is_kabid or user.is_staff or user.is_superuser %}
+                <a href="{% url 'internal_meetings:create' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-900/30 hover:scale-[1.02] transition-all no-underline">
+                    <i class="bi bi-plus-circle-fill text-base"></i>
+                    <span>Buat Rapat Baru</span>
                 </a>
                 {% endif %}
             </div>
         </div>
     </div>
-</div>
 
-<!-- KPI SUMMARY CARDS -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="stat-card-enterprise p-3 h-100" onclick="filterByStat('total')" style="cursor: pointer;">
-            <div class="d-flex align-items-center gap-3">
-                <div class="stat-icon-box bg-primary bg-opacity-20 text-primary rounded-circle">
-                    <i class="bi bi-calendar-event-fill fs-4"></i>
-                </div>
-                <div>
-                    <span class="text-secondary extra-small fw-bold text-uppercase d-block">Total Rapat</span>
-                    <h4 class="fw-extrabold mb-0 text-primary">{{ total_meetings }}</h4>
-                </div>
+    <!-- ⚡ INTERACTIVE KPI SUMMARY METRICS ⚡ -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Rapat -->
+        <div @click="activeTab = 'scheduled'" class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-emerald-500/50 hover:shadow-md transition-all cursor-pointer group flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                <i class="bi bi-calendar-event-fill"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Total Rapat</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ total_meetings }}</span>
+            </div>
+        </div>
+
+        <!-- Terjadwal & Berlangsung -->
+        <div @click="activeTab = 'scheduled'" class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition-all cursor-pointer group flex items-center gap-4" :class="activeTab === 'scheduled' ? 'ring-2 ring-amber-500/50' : ''">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">Terjadwal</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ upcoming_count }}</span>
+            </div>
+        </div>
+
+        <!-- Notulensi Terbit Selesai -->
+        <div @click="activeTab = 'completed'" class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-emerald-500/50 hover:shadow-md transition-all cursor-pointer group flex items-center gap-4" :class="activeTab === 'completed' ? 'ring-2 ring-emerald-500/50' : ''">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                <i class="bi bi-journal-check"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Notulensi Terbit</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ completed_count }}</span>
+            </div>
+        </div>
+
+        <!-- Pelaksanaan Bulan Ini -->
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xl">
+                <i class="bi bi-calendar-month-fill"></i>
+            </div>
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Bulan Ini</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ this_month_count }}</span>
             </div>
         </div>
     </div>
 
-    <div class="col-6 col-md-3">
-        <div class="stat-card-enterprise p-3 h-100" onclick="filterByStat('scheduled')" style="cursor: pointer;">
-            <div class="d-flex align-items-center gap-3">
-                <div class="stat-icon-box bg-warning bg-opacity-20 text-warning rounded-circle">
-                    <i class="bi bi-clock-history fs-4"></i>
-                </div>
-                <div>
-                    <span class="text-secondary extra-small fw-bold text-uppercase d-block">Terjadwal</span>
-                    <h4 class="fw-extrabold mb-0 text-warning">{{ upcoming_count }}</h4>
-                </div>
+    <!-- ⚡ SEGMENTED TABS & DATA GRID SECTION ⚡ -->
+    <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+        <!-- Top Controls: Tabs & Live Search -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+            <!-- Segmented Tab Switcher -->
+            <div class="inline-flex items-center p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-black">
+                <button @click="activeTab = 'scheduled'"
+                        :class="activeTab === 'scheduled' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                        class="px-4 py-2.5 rounded-xl transition-all inline-flex items-center gap-2 border-0 cursor-pointer">
+                    <i class="bi bi-calendar-check text-sm"></i>
+                    <span>1. Agenda Terjadwal</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                          :class="activeTab === 'scheduled' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'">
+                        {{ scheduled_meetings|length }}
+                    </span>
+                </button>
+
+                <button @click="activeTab = 'completed'"
+                        :class="activeTab === 'completed' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                        class="px-4 py-2.5 rounded-xl transition-all inline-flex items-center gap-2 border-0 cursor-pointer">
+                    <i class="bi bi-journal-check text-sm"></i>
+                    <span>2. Riwayat Notulensi Selesai</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                          :class="activeTab === 'completed' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'">
+                        {{ completed_meetings|length }}
+                    </span>
+                </button>
+            </div>
+
+            <!-- Instant Live Search Bar -->
+            <div class="relative min-w-[260px] md:w-80">
+                <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                <input type="text"
+                       x-model="searchQuery"
+                       placeholder="Cari judul, notulis, pemimpin, tempat..."
+                       class="w-full pl-9 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                <button x-show="searchQuery" @click="searchQuery = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 text-xs border-0 bg-transparent cursor-pointer">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
             </div>
         </div>
-    </div>
 
-    <div class="col-6 col-md-3">
-        <div class="stat-card-enterprise p-3 h-100" onclick="filterByStat('completed')" style="cursor: pointer;">
-            <div class="d-flex align-items-center gap-3">
-                <div class="stat-icon-box bg-success bg-opacity-20 text-success rounded-circle">
-                    <i class="bi bi-journal-check fs-4"></i>
-                </div>
-                <div>
-                    <span class="text-secondary extra-small fw-bold text-uppercase d-block">Notulensi Terbit</span>
-                    <h4 class="fw-extrabold mb-0 text-success">{{ completed_count }}</h4>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-6 col-md-3">
-        <div class="stat-card-enterprise p-3 h-100" onclick="filterByStat('month')" style="cursor: pointer;">
-            <div class="d-flex align-items-center gap-3">
-                <div class="stat-icon-box bg-info bg-opacity-20 text-info rounded-circle">
-                    <i class="bi bi-calendar-month-fill fs-4"></i>
-                </div>
-                <div>
-                    <span class="text-secondary extra-small fw-bold text-uppercase d-block">Pelaksanaan Bulan Ini</span>
-                    <h4 class="fw-extrabold mb-0 text-info">{{ this_month_count }}</h4>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- SEGMENTED NAV TABS & DATA GRID TABEL RAPAT INTERNAL -->
-<div class="card-enterprise p-4 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 border-bottom pb-3">
-        <div class="p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex flex-wrap gap-2" id="meetingPureTabNav">
-            <button type="button" class="meeting-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-emerald-600 text-white shadow-sm" data-tab-target="tab-scheduled" id="scheduled-tab">
-                <i class="bi bi-calendar-check text-sm"></i> 1. Agenda Terjadwal & Berlangsung
-                <span class="px-2 py-0.5 text-[10px] bg-white/20 text-white rounded-full font-mono font-bold">{{ scheduled_meetings|length }}</span>
-            </button>
-            <button type="button" class="meeting-tab-btn px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all border-0 cursor-pointer inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700" data-tab-target="tab-completed" id="completed-tab">
-                <i class="bi bi-journal-check text-sm"></i> 2. Riwayat Notulensi Selesai
-                <span class="px-2 py-0.5 text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-full font-mono font-bold">{{ completed_meetings|length }}</span>
-            </button>
-        </div>
-    </div>
-
-    <div class="tab-content" id="meetingTabContent">
-        <!-- TAB 1: AGENDA RAPAT TERJADWAL -->
-        <div class="tab-pane fade show active" id="tab-scheduled" role="tabpanel">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle w-100 small" id="tableScheduled">
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- TAB 1: AGENDA RAPAT TERJADWAL & BERLANGSUNG -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div x-show="activeTab === 'scheduled'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
                     <thead>
-                        <tr class="text-secondary small text-uppercase">
-                            <th class="border-0 text-center" style="width: 140px;">Waktu & Tanggal</th>
-                            <th class="border-0" style="min-width: 240px;">Judul Rapat & Tempat</th>
-                            <th class="border-0" style="width: 170px;">Jenis Rapat</th>
-                            <th class="border-0" style="min-width: 180px;">Pemimpin & Notulis</th>
-                            <th class="border-0 text-center" style="width: 120px;">Status Notulensi</th>
-                            <th class="border-0 text-end" style="min-width: 220px;">Aksi Cepat</th>
+                        <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
+                            <th class="py-3.5 px-4 rounded-l-2xl text-center" style="width: 140px;">Waktu & Tanggal</th>
+                            <th class="py-3.5 px-4" style="min-width: 240px;">Judul Rapat & Tempat</th>
+                            <th class="py-3.5 px-4" style="width: 160px;">Jenis Rapat</th>
+                            <th class="py-3.5 px-4" style="min-width: 200px;">Pemimpin & Notulis</th>
+                            <th class="py-3.5 px-4 text-center" style="width: 140px;">Status Notulensi</th>
+                            <th class="py-3.5 px-4 text-end rounded-r-2xl" style="min-width: 180px;">Aksi Cepat</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         {% for mtg in scheduled_meetings %}
-                        <tr>
+                        <tr x-show="matchesSearch('{{ mtg.title|escapejs }}', '{{ mtg.location|escapejs }}', '{{ mtg.leader_names_display|escapejs }}', '{{ mtg.notulis_name_display|escapejs }}', '{{ mtg.meeting_number|escapejs }}')"
+                            class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
                             <!-- Waktu & Tanggal -->
-                            <td class="text-center" data-order="{{ mtg.scheduled_at|date:'U' }}">
-                                <div class="p-2 card-enterprise text-center" style="background-color: var(--surface-hover);">
-                                    <span class="d-block fw-bold text-emerald small">{{ mtg.scheduled_at|date:"l" }}</span>
-                                    <span class="d-block fw-extrabold fs-6 text-primary">{{ mtg.scheduled_at|date:"d M Y" }}</span>
-                                    <span class="badge badge-node-dispatched px-2 py-0.5 mt-1" style="font-size: 0.68rem;"><i class="bi bi-clock me-1"></i>{{ mtg.scheduled_at|time:"H:i" }} WIB</span>
+                            <td class="py-3.5 px-4 text-center">
+                                <div class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-center space-y-0.5">
+                                    <span class="block text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{{ mtg.scheduled_at|date:"l" }}</span>
+                                    <span class="block text-xs font-black text-slate-900 dark:text-white font-mono">{{ mtg.scheduled_at|date:"d M Y" }}</span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                        <i class="bi bi-clock text-[9px]"></i> {{ mtg.scheduled_at|time:"H:i" }} WIB
+                                    </span>
                                 </div>
                             </td>
 
                             <!-- Judul Rapat & Tempat -->
-                            <td>
-                                <h6 class="fw-bold mb-1 text-primary" style="font-size: 0.9rem;">
-                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="text-decoration-none text-primary">
+                            <td class="py-3.5 px-4 space-y-1.5">
+                                <h4 class="font-extrabold text-xs text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-0">
+                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="no-underline text-inherit hover:underline">
                                         {{ mtg.title }}
                                     </a>
-                                </h6>
-                                <div class="small fw-semibold text-emerald mb-1">
-                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ mtg.location|default:"Ruang Rapat Utama BAZNAS" }}
+                                </h4>
+                                <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                    <i class="bi bi-geo-alt-fill text-rose-500 text-xs"></i>
+                                    <span>{{ mtg.location|default:"Ruang Rapat Utama BAZNAS" }}</span>
                                 </div>
                                 {% if mtg.agenda %}
-                                <span class="badge badge-node-verified rounded-pill px-2.5 py-0.5 small" title="Terkait Agenda SIMAP">
-                                    <i class="bi bi-calendar-event me-1"></i>{{ mtg.agenda.title|truncatechars:40 }}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" title="Terkait Agenda SIMAP">
+                                    <i class="bi bi-calendar-event"></i> {{ mtg.agenda.title|truncatechars:35 }}
                                 </span>
                                 {% endif %}
                             </td>
 
                             <!-- Jenis Rapat -->
-                            <td>
-                                <span class="badge badge-node-st rounded-pill px-3 py-1 fw-bold small">
-                                    <i class="bi bi-tag-fill me-1"></i>{{ mtg.get_meeting_type_display }}
+                            <td class="py-3.5 px-4">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/25 uppercase">
+                                    <i class="bi bi-tag-fill text-[9px]"></i> {{ mtg.get_meeting_type_display }}
                                 </span>
                             </td>
 
                             <!-- Pemimpin & Notulis -->
-                            <td class="align-middle">
-                                <div class="space-y-1.5 min-w-[190px] max-w-[250px]">
-                                    <div>
-                                        {% with leaders=mtg.ordered_leaders %}
-                                        {% if leaders %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-2xs max-w-full cursor-help" title="Pimpinan Rapat: {{ mtg.leader_names_display }}">
-                                                <i class="bi bi-person-badge-fill text-emerald-600 dark:text-emerald-400 text-xs shrink-0"></i>
-                                                <span class="truncate">{{ leaders.0.full_name }}</span>
-                                                {% if leaders|length > 1 %}
-                                                <span class="px-1.5 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-extrabold shrink-0 shadow-2xs">+{{ leaders|length|add:"-1" }}</span>
-                                                {% endif %}
-                                            </span>
-                                        {% else %}
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
-                                                <i class="bi bi-person-fill text-slate-400"></i> Pimpinan BAZNAS
-                                            </span>
-                                        {% endif %}
-                                        {% endwith %}
-                                    </div>
-                                    {% if mtg.notulis %}
-                                    <div>
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 shadow-2xs max-w-full" title="Notulis Rapat: {{ mtg.notulis.full_name }}">
-                                            <i class="bi bi-pencil-square text-cyan-600 dark:text-cyan-400 text-xs shrink-0"></i>
-                                            <span class="truncate">{{ mtg.notulis.full_name }}</span>
+                            <td class="py-3.5 px-4 space-y-1.5">
+                                <div>
+                                    {% with leaders=mtg.ordered_leaders %}
+                                    {% if leaders %}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80" title="Pimpinan Rapat: {{ mtg.leader_names_display }}">
+                                            <i class="bi bi-person-badge-fill text-emerald-600 dark:text-emerald-400 text-xs shrink-0"></i>
+                                            <span class="truncate max-w-[150px]">{{ leaders.0.full_name }}</span>
+                                            {% if leaders|length > 1 %}
+                                            <span class="px-1.5 py-0.2 rounded-md bg-emerald-600 text-white text-[9px] font-mono font-extrabold">+{{ leaders|length|add:"-1" }}</span>
+                                            {% endif %}
                                         </span>
-                                    </div>
+                                    {% else %}
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                            <i class="bi bi-person-fill text-slate-400"></i> Pimpinan BAZNAS
+                                        </span>
                                     {% endif %}
+                                    {% endwith %}
                                 </div>
+                                {% if mtg.notulis %}
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xl text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800/80" title="Notulis: {{ mtg.notulis.full_name }}">
+                                        <i class="bi bi-pencil-square text-sky-600 dark:text-sky-400 text-[10px]"></i>
+                                        <span class="truncate max-w-[140px]">{{ mtg.notulis.full_name }}</span>
+                                    </span>
+                                </div>
+                                {% endif %}
                             </td>
 
                             <!-- Status Notulensi -->
-                            <td class="text-center">
+                            <td class="py-3.5 px-4 text-center">
                                 {% if mtg.is_notulensi_completed %}
-                                <span class="badge badge-node-verified rounded-pill px-3 py-1 fw-bold small">
-                                    <i class="bi bi-check-circle-fill me-1"></i>Notulensi Tuntas
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>Notulensi Tuntas</span>
                                 </span>
                                 {% else %}
-                                <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold small">
-                                    <i class="bi bi-clock-history me-1"></i>Belum Notulensi
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 uppercase">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    <span>Belum Notulensi</span>
                                 </span>
                                 {% endif %}
                             </td>
 
                             <!-- Aksi Cepat -->
-                            <td class="text-end">
-                                <div class="inline-flex items-center gap-1.5 justify-end flex-wrap">
-                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Buka Lembar Detail & Notulensi">
-                                        <i class="bi bi-journal-text"></i> Detail & Notulensi
+                            <td class="py-3.5 px-4 text-end">
+                                <div class="inline-flex items-center gap-1.5 justify-end">
+                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all no-underline inline-flex items-center gap-1" title="Buka Lembar Detail & Notulensi">
+                                        <i class="bi bi-journal-text"></i>
+                                        <span>Detail</span>
                                     </a>
                                     {% if user.is_superuser or user.is_superadmin or user.is_staff or user.is_pimpinan or user.is_kabid or user.employee == mtg.notulis %}
-                                    <a href="{% url 'internal_meetings:edit' mtg.pk %}" class="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit Agenda Rapat">
-                                        <i class="bi bi-pencil-square"></i> Edit
+                                    <a href="{% url 'internal_meetings:edit' mtg.pk %}" class="p-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-bold text-xs transition-all no-underline inline-flex items-center justify-center" title="Edit Rapat">
+                                        <i class="bi bi-pencil-square"></i>
                                     </a>
                                     {% endif %}
                                     {% if user.is_superuser or user.is_superadmin or user.is_staff or user.is_pimpinan %}
                                     <form action="{% url 'internal_meetings:delete' mtg.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Hapus agenda rapat {{ mtg.title|escapejs }}?')">
                                         {% csrf_token %}
-                                        <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-extrabold text-[11px] transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Rapat">
-                                            <i class="bi bi-trash-fill text-xs"></i>
+                                        <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-bold text-xs transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Rapat">
+                                            <i class="bi bi-trash-fill"></i>
                                         </button>
                                     </form>
                                     {% endif %}
                                 </div>
                             </td>
                         </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-slate-400">
+                                <i class="bi bi-calendar-x text-4xl block mb-2 opacity-50"></i>
+                                <p class="text-xs font-semibold mb-0">Belum ada agenda rapat yang terjadwal.</p>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════════ -->
         <!-- TAB 2: RIWAYAT NOTULENSI RAPAT SELESAI -->
-        <div class="tab-pane fade" id="tab-completed" role="tabpanel">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle w-100 small" id="tableCompleted">
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <div x-show="activeTab === 'completed'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
                     <thead>
-                        <tr class="text-secondary small text-uppercase">
-                            <th class="border-0 text-center" style="width: 140px;">Waktu & Tanggal</th>
-                            <th class="border-0" style="min-width: 240px;">Judul Rapat & No. Notulensi</th>
-                            <th class="border-0" style="width: 170px;">Jenis Rapat</th>
-                            <th class="border-0" style="min-width: 180px;">Pemimpin & Notulis</th>
-                            <th class="border-0 text-center" style="width: 130px;">Capaian Action Plan</th>
-                            <th class="border-0 text-end" style="min-width: 220px;">Aksi Cepat</th>
+                        <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
+                            <th class="py-3.5 px-4 rounded-l-2xl text-center" style="width: 140px;">Waktu & Tanggal</th>
+                            <th class="py-3.5 px-4" style="min-width: 240px;">Judul Rapat & No. Risalah</th>
+                            <th class="py-3.5 px-4" style="width: 160px;">Jenis Rapat</th>
+                            <th class="py-3.5 px-4" style="min-width: 200px;">Pemimpin & Notulis</th>
+                            <th class="py-3.5 px-4 text-center" style="width: 140px;">Status Notulensi</th>
+                            <th class="py-3.5 px-4 text-end rounded-r-2xl" style="min-width: 220px;">Aksi Cepat</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         {% for mtg in completed_meetings %}
-                        <tr>
+                        <tr x-show="matchesSearch('{{ mtg.title|escapejs }}', '{{ mtg.location|escapejs }}', '{{ mtg.leader_names_display|escapejs }}', '{{ mtg.notulis_name_display|escapejs }}', '{{ mtg.meeting_number|escapejs }}')"
+                            class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
                             <!-- Waktu & Tanggal -->
-                            <td class="text-center" data-order="{{ mtg.scheduled_at|date:'U' }}">
-                                <div class="p-2 card-enterprise text-center" style="background-color: var(--surface-hover);">
-                                    <span class="d-block fw-bold text-emerald small">{{ mtg.scheduled_at|date:"l" }}</span>
-                                    <span class="d-block fw-extrabold fs-6 text-primary">{{ mtg.scheduled_at|date:"d M Y" }}</span>
-                                    <span class="badge badge-node-verified px-2 py-0.5 mt-1" style="font-size: 0.68rem;"><i class="bi bi-check-all me-1"></i>Selesai</span>
+                            <td class="py-3.5 px-4 text-center">
+                                <div class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-center space-y-0.5">
+                                    <span class="block text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{{ mtg.scheduled_at|date:"l" }}</span>
+                                    <span class="block text-xs font-black text-slate-900 dark:text-white font-mono">{{ mtg.scheduled_at|date:"d M Y" }}</span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        <i class="bi bi-check-circle-fill text-[9px]"></i> Selesai
+                                    </span>
                                 </div>
                             </td>
 
-                            <!-- Judul Rapat & No Notulensi -->
-                            <td>
-                                <h6 class="fw-bold mb-1 text-primary" style="font-size: 0.9rem;">
-                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="text-decoration-none text-primary">
+                            <!-- Judul Rapat & No. Risalah -->
+                            <td class="py-3.5 px-4 space-y-1.5">
+                                <h4 class="font-extrabold text-xs text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-0">
+                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="no-underline text-inherit hover:underline">
                                         {{ mtg.title }}
                                     </a>
-                                </h6>
-                                <div class="font-mono text-emerald fw-bold small mb-1">
-                                    <i class="bi bi-file-earmark-text-fill me-1"></i>No: {{ mtg.meeting_number|default:"N/A" }}
+                                </h4>
+                                <div class="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                    <i class="bi bi-file-earmark-text-fill text-xs"></i>
+                                    <span>No: {{ mtg.meeting_number|default:"N/A" }}</span>
                                 </div>
                             </td>
 
                             <!-- Jenis Rapat -->
-                            <td>
-                                <span class="badge badge-node-st rounded-pill px-3 py-1 fw-bold small">
-                                    <i class="bi bi-tag-fill me-1"></i>{{ mtg.get_meeting_type_display }}
+                            <td class="py-3.5 px-4">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/25 uppercase">
+                                    <i class="bi bi-tag-fill text-[9px]"></i> {{ mtg.get_meeting_type_display }}
                                 </span>
                             </td>
 
                             <!-- Pemimpin & Notulis -->
-                            <td class="align-middle">
-                                <div class="space-y-1.5 min-w-[190px] max-w-[250px]">
-                                    <div>
-                                        {% with leaders=mtg.ordered_leaders %}
-                                        {% if leaders %}
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-2xs max-w-full cursor-help" title="Pimpinan Rapat: {{ mtg.leader_names_display }}">
-                                                <i class="bi bi-person-badge-fill text-emerald-600 dark:text-emerald-400 text-xs shrink-0"></i>
-                                                <span class="truncate">{{ leaders.0.full_name }}</span>
-                                                {% if leaders|length > 1 %}
-                                                <span class="px-1.5 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-extrabold shrink-0 shadow-2xs">+{{ leaders|length|add:"-1" }}</span>
-                                                {% endif %}
-                                            </span>
-                                        {% else %}
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
-                                                <i class="bi bi-person-fill text-slate-400"></i> Pimpinan BAZNAS
-                                            </span>
-                                        {% endif %}
-                                        {% endwith %}
-                                    </div>
-                                    {% if mtg.notulis %}
-                                    <div>
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 shadow-2xs max-w-full" title="Notulis Rapat: {{ mtg.notulis.full_name }}">
-                                            <i class="bi bi-pencil-square text-cyan-600 dark:text-cyan-400 text-xs shrink-0"></i>
-                                            <span class="truncate">{{ mtg.notulis.full_name }}</span>
+                            <td class="py-3.5 px-4 space-y-1.5">
+                                <div>
+                                    {% with leaders=mtg.ordered_leaders %}
+                                    {% if leaders %}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80" title="Pimpinan Rapat: {{ mtg.leader_names_display }}">
+                                            <i class="bi bi-person-badge-fill text-emerald-600 dark:text-emerald-400 text-xs shrink-0"></i>
+                                            <span class="truncate max-w-[150px]">{{ leaders.0.full_name }}</span>
+                                            {% if leaders|length > 1 %}
+                                            <span class="px-1.5 py-0.2 rounded-md bg-emerald-600 text-white text-[9px] font-mono font-extrabold">+{{ leaders|length|add:"-1" }}</span>
+                                            {% endif %}
                                         </span>
-                                    </div>
+                                    {% else %}
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                            <i class="bi bi-person-fill text-slate-400"></i> Pimpinan BAZNAS
+                                        </span>
                                     {% endif %}
+                                    {% endwith %}
                                 </div>
+                                {% if mtg.notulis %}
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xl text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800/80" title="Notulis: {{ mtg.notulis.full_name }}">
+                                        <i class="bi bi-pencil-square text-sky-600 dark:text-sky-400 text-[10px]"></i>
+                                        <span class="truncate max-w-[140px]">{{ mtg.notulis.full_name }}</span>
+                                    </span>
+                                </div>
+                                {% endif %}
                             </td>
 
-                            <!-- Capaian Action Plan -->
-                            <td class="text-center">
-                                <span class="badge badge-node-verified rounded-pill px-3 py-1 fw-bold small">
-                                    <i class="bi bi-check2-square me-1"></i>Notulensi Sah
+                            <!-- Capaian / Status Notulensi -->
+                            <td class="py-3.5 px-4 text-center">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase">
+                                    <i class="bi bi-check2-square"></i>
+                                    <span>Notulensi Sah</span>
                                 </span>
                             </td>
 
                             <!-- Aksi Cepat -->
-                            <td class="text-end">
-                                <div class="d-flex justify-content-end gap-1 flex-wrap">
-                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="btn btn-enterprise-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Lihat Notulensi Digital">
-                                        <i class="bi bi-eye-fill me-1"></i> Lihat Notulensi
+                            <td class="py-3.5 px-4 text-end">
+                                <div class="inline-flex items-center gap-1.5 justify-end">
+                                    <a href="{% url 'internal_meetings:detail' mtg.pk %}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-sm transition-all no-underline inline-flex items-center gap-1" title="Lihat Notulensi Digital">
+                                        <i class="bi bi-eye-fill"></i>
+                                        <span>Notulensi</span>
                                     </a>
-                                    <a href="{% url 'internal_meetings:print_notulensi' mtg.pk %}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Cetak Berkas PDF Notulensi Resmi">
-                                        <i class="bi bi-printer-fill me-1"></i> Cetak PDF
+                                    <a href="{% url 'internal_meetings:print_notulensi' mtg.pk %}" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-[11px] shadow-2xs transition-all no-underline inline-flex items-center gap-1" title="Cetak Berkas PDF Notulensi Resmi">
+                                        <i class="bi bi-printer-fill text-emerald-500"></i>
+                                        <span>PDF</span>
                                     </a>
+                                    {% if user.is_superuser or user.is_superadmin or user.is_staff or user.is_pimpinan or user.is_kabid or user.employee == mtg.notulis %}
+                                    <a href="{% url 'internal_meetings:edit' mtg.pk %}" class="p-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-bold text-xs transition-all no-underline inline-flex items-center justify-center" title="Edit Rapat">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if user.is_superuser or user.is_superadmin or user.is_staff or user.is_pimpinan %}
+                                    <form action="{% url 'internal_meetings:delete' mtg.pk %}" method="post" class="inline mb-0" onsubmit="return confirm('Hapus agenda rapat {{ mtg.title|escapejs }}?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-bold text-xs transition-all border-0 cursor-pointer inline-flex items-center justify-center" title="Hapus Rapat">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
                                 </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-slate-400">
+                                <i class="bi bi-journal-x text-4xl block mb-2 opacity-50"></i>
+                                <p class="text-xs font-semibold mb-0">Belum ada riwayat notulensi rapat yang selesai.</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -368,107 +401,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    if ($('#tableScheduled tbody tr').length > 0) {
-        $('#tableScheduled').DataTable({
-            pagingType: "full_numbers",
-            language: {
-                search: "🔍 Cari Data:",
-                lengthMenu: "Tampilkan _MENU_ baris",
-                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                infoEmpty: "Menampilkan 0 data",
-                infoFiltered: "(difilter dari _MAX_ total data)",
-                paginate: {
-                    first: "« Pertama",
-                    previous: "‹ Prev",
-                    next: "Next ›",
-                    last: "Terakhir »"
-                },
-                emptyTable: "Belum ada data yang tersedia."
-            },
-            pageLength: 10,
-            order: [[0, 'desc']],
-            columnDefs: [{ orderable: false, targets: [5] }]
-        });
-    }
-
-    if ($('#tableCompleted tbody tr').length > 0) {
-        $('#tableCompleted').DataTable({
-            pagingType: "full_numbers",
-            language: {
-                search: "🔍 Cari Data:",
-                lengthMenu: "Tampilkan _MENU_ baris",
-                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                infoEmpty: "Menampilkan 0 data",
-                infoFiltered: "(difilter dari _MAX_ total data)",
-                paginate: {
-                    first: "« Pertama",
-                    previous: "‹ Prev",
-                    next: "Next ›",
-                    last: "Terakhir »"
-                },
-                emptyTable: "Belum ada data yang tersedia."
-            },
-            pageLength: 10,
-            order: [[0, 'desc']],
-            columnDefs: [{ orderable: false, targets: [5] }]
-        });
-    }
-});
-
-function filterByStat(type) {
-    const targetId = type === 'scheduled' ? 'tab-scheduled' : 'tab-completed';
-    const btn = document.querySelector(`.meeting-tab-btn[data-tab-target="${targetId}"]`);
-    if (btn) btn.click();
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const meetingTabButtons = document.querySelectorAll('#meetingPureTabNav button');
-    const meetingTabPanes = document.querySelectorAll('#meetingTabContent .tab-pane');
-
-    meetingTabButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('data-tab-target');
-
-            meetingTabButtons.forEach(b => {
-                b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
-                b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
-                const badge = b.querySelector('span');
-                if (badge) {
-                    badge.classList.remove('bg-white/20', 'text-white');
-                    badge.classList.add('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
-                }
-            });
-
-            this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
-            this.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
-            const activeBadge = this.querySelector('span');
-            if (activeBadge) {
-                activeBadge.classList.add('bg-white/20', 'text-white');
-                activeBadge.classList.remove('bg-slate-200', 'dark:bg-slate-700', 'text-slate-700', 'dark:text-slate-200');
-            }
-
-            meetingTabPanes.forEach(pane => {
-                pane.classList.remove('active', 'show');
-                pane.classList.add('hidden');
-            });
-
-            const targetPane = document.getElementById(targetId);
-            if (targetPane) {
-                targetPane.classList.add('active', 'show');
-                targetPane.classList.remove('hidden');
-            }
-
-            if (window.jQuery && $.fn.DataTable) {
-                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-            }
-        });
-    });
-});
-</script>
 {% endblock %}

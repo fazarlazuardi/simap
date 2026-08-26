@@ -2,41 +2,10 @@
 
 {% block title %}Pusat Disposisi Digital - BAZNAS Kab. Tangerang{% endblock %}
 
-{% block extra_css %}
-
-<style>
-    .style-btn-dispo {
-        font-size: 0.78rem !important;
-        padding: 5px 12px !important;
-        letter-spacing: 0.2px;
-        white-space: nowrap;
-        box-shadow: var(--shadow-xs) !important;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .style-btn-dispo:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-sm) !important;
-    }
-    .action-icon-btn {
-        width: 32px !important;
-        height: 32px !important;
-        padding: 0 !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        font-size: 0.88rem !important;
-        transition: all 0.2s ease !important;
-    }
-    .action-icon-btn:hover {
-        transform: translateY(-1px);
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid py-3">
+<div class="w-full space-y-6">
     <!-- TAILWIND ENTERPRISE HEADER BANNER -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono mb-2">
@@ -50,7 +19,7 @@
                 {% if is_batch_ready %}
                 <form method="post" action="{% url 'dispositions:batch_notify' %}">
                     {% csrf_token %}
-                    <button type="submit" class="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all border-0 inline-flex items-center gap-2">
+                    <button type="submit" class="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow-md transition-all border-0 inline-flex items-center gap-2 cursor-pointer">
                         <i class="bi bi-whatsapp text-lg"></i>Kirim Notifikasi Batch Disposisi ({{ pending_batch_count }})
                     </button>
                 </form>
@@ -64,15 +33,15 @@
     </div>
 
     <!-- UNIFIED FILTER & CATEGORY PANEL -->
-    <div class="p-4 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+    <div class="p-4 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-sm space-y-4">
         <!-- TABS KATEGORI ARSIP -->
         <div class="flex gap-2 flex-wrap items-center border-b border-slate-200 dark:border-slate-800 pb-3">
             <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs me-1 flex items-center gap-1"><i class="bi bi-folder-fill"></i> Filter Kategori:</span>
-            <a href="{% url 'dispositions:list' %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if not current_type %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+            <a href="{% url 'dispositions:list' %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all no-underline {% if not current_type %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
                 <i class="bi bi-grid-3x3-gap me-1"></i> Semua Dokumen
             </a>
             {% for code, label in archive_types %}
-            <a href="{% url 'dispositions:list' %}?type={{ code }}{% if penerima %}&penerima={{ penerima }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all text-decoration-none {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+            <a href="{% url 'dispositions:list' %}?type={{ code }}{% if penerima %}&penerima={{ penerima }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all no-underline {% if current_type == code %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
                 {{ label }}
             </a>
             {% endfor %}
@@ -106,37 +75,37 @@
                 <input type="date" name="date_to" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ date_to }}">
             </div>
             <div class="md:col-span-3 flex gap-2">
-                <button type="submit" class="flex-1 py-2 px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5">
+                <button type="submit" class="flex-1 py-2 px-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5 cursor-pointer">
                     <i class="bi bi-funnel-fill"></i> Filter Data
                 </button>
-                <a href="{% url 'dispositions:list' %}" class="px-3.5 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-all inline-flex items-center justify-center text-decoration-none" title="Reset Filter">
+                <a href="{% url 'dispositions:list' %}" class="px-3.5 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-all inline-flex items-center justify-center no-underline" title="Reset Filter">
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </a>
             </div>
         </form>
     </div>
-<!-- DOKUMEN TERVERIFIKASI BELUM ADA DISPOSISI -->
+
+    <!-- DOKUMEN TERVERIFIKASI BELUM ADA DISPOSISI -->
     {% if archives_verified_no_dispo %}
-    <div class="card-enterprise mb-4 p-3 border-start border-4 border-warning">
-        <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
-            <h6 class="fw-bold mb-0 text-warning d-flex align-items-center gap-2">
-                <i class="bi bi-exclamation-triangle-fill fs-5"></i> Dokumen Terverifikasi — Menunggu Lembar Disposisi ({{ archives_verified_no_dispo|length }})
-            </h6>
-            <span class="badge bg-warning text-dark rounded-pill px-3 font-mono fw-bold">Action Required</span>
+    <div class="p-4 rounded-2xl bg-amber-500/10 border-l-4 border-amber-500 border border-amber-500/30 text-amber-900 dark:text-amber-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
+            <h3 class="font-extrabold text-sm text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                <i class="bi bi-exclamation-triangle-fill text-amber-500 text-base"></i> Dokumen Terverifikasi — Menunggu Lembar Disposisi ({{ archives_verified_no_dispo|length }})
+            </h3>
+            <span class="px-3 py-1 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black font-mono shadow-xs">Action Required</span>
         </div>
-        <div class="row g-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             {% for arc in archives_verified_no_dispo %}
-            <div class="col-md-6">
-                <div class="p-3 rounded-3 border bg-body-tertiary d-flex justify-content-between align-items-center">
-                    <div class="me-2 overflow-hidden">
-                        <span class="fw-bold text-emerald d-block font-mono small">{{ arc.archive_number|default:'DRAFT' }}</span>
-                        <span class="fw-bold text-truncate d-block small text-dark">{{ arc.title }}</span>
-                        <span class="text-secondary small font-mono" style="font-size: 0.73rem;">{{ arc.get_archive_type_display }} • {{ arc.updated_at|date:"d M Y" }}</span>
-                    </div>
-                    <a href="{% url 'dispositions:create' arc.pk %}" class="btn btn-emerald btn-sm rounded-pill px-3 py-1.5 fw-bold flex-shrink-0 shadow-sm">
-                        <i class="bi bi-plus-circle-fill me-1"></i> Buat Disposisi
-                    </a>
+            <!-- KOTAK ARSIP DENGAN WARNA ASLI WHITE/SLATE-900 + EFEK BACKGROUND TEMBUS (BACKDROP-BLUR) -->
+            <div class="p-4 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-md flex items-center justify-between gap-3 transition-all hover:border-emerald-500/50">
+                <div class="min-w-0 space-y-1">
+                    <span class="font-black text-emerald-600 dark:text-emerald-400 block font-mono text-xs">{{ arc.archive_number|default:'DRAFT' }}</span>
+                    <h4 class="font-extrabold truncate block text-xs text-slate-900 dark:text-white mb-0" title="{{ arc.title }}">{{ arc.title }}</h4>
+                    <span class="text-slate-500 dark:text-slate-400 font-mono text-[10px] block">{{ arc.get_archive_type_display }} • {{ arc.updated_at|date:"d M Y" }}</span>
                 </div>
+                <a href="{% url 'dispositions:create' arc.pk %}" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow-md transition-all no-underline shrink-0 inline-flex items-center gap-1.5 border-0">
+                    <i class="bi bi-plus-circle-fill"></i> Buat Disposisi
+                </a>
             </div>
             {% endfor %}
         </div>
@@ -144,150 +113,125 @@
     {% endif %}
 
     <!-- DATA TABLE DISPOSISI DIGITAL -->
-    <div class="card-enterprise p-4">
-        <div class="table-responsive table-mobile-cards">
-            <table class="table table-hover align-middle" id="dispoTable">
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md">
+        <div class="w-full overflow-x-auto touch-pan-x custom-scrollbar">
+            <table class="w-full text-left border-collapse text-xs" id="dispoTable">
                 <thead>
-                    <tr class="text-secondary small text-uppercase">
-                        <th class="border-0">Tanggal & No. Disposisi</th>
-                        <th class="border-0">Pengirim / Pimpinan</th>
-                        <th class="border-0">Penerima Disposisi</th>
-                        <th class="border-0">Arsip Terkait</th>
-                        <th class="border-0 text-center">Status Alur</th>
-                        <th class="border-0 text-end">Aksi Penanganan</th>
+                    <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                        <th class="py-3 px-2">Tanggal & No. Disposisi</th>
+                        <th class="py-3 px-2">Pengirim / Pimpinan</th>
+                        <th class="py-3 px-2">Penerima Disposisi</th>
+                        <th class="py-3 px-2">Arsip Terkait</th>
+                        <th class="py-3 px-2 text-center">Status Alur</th>
+                        <th class="py-3 px-2 text-end">Aksi Penanganan</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     {% for dispo in dispositions %}
-                    <tr>
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                         <!-- Tanggal & No. Disposisi -->
-                        <td data-order="{{ dispo.created_at|date:'U' }}" data-label="Tanggal & No. Disposisi">
-                            <span class="fw-bold text-emerald font-mono d-block" style="font-size: 0.85rem;">{{ dispo.disposition_number|default:"-" }}</span>
-                            <span class="text-secondary font-mono small" style="font-size: 0.75rem;"><i class="bi bi-clock me-1"></i>{{ dispo.created_at|date:"d M Y, H:i" }} WIB</span>
+                        <td class="py-3 px-3" data-order="{{ dispo.created_at|date:'U' }}">
+                            <span class="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono block text-xs">{{ dispo.disposition_number|default:"-" }}</span>
+                            <span class="text-slate-400 font-mono text-[11px] flex items-center gap-1 mt-0.5"><i class="bi bi-clock"></i>{{ dispo.created_at|date:"d M Y, H:i" }} WIB</span>
                         </td>
                         
                         <!-- Pengirim / Pimpinan -->
-                        <td data-label="Pengirim">
-                            <span class="fw-bold d-block text-dark small"><i class="bi bi-person-badge text-emerald me-1"></i>{{ dispo.sender_label|default:dispo.display_sender_name }}</span>
+                        <td class="py-3 px-3">
+                            <span class="font-bold block text-slate-900 dark:text-white text-xs flex items-center gap-1"><i class="bi bi-person-badge text-emerald-500"></i>{{ dispo.sender_label|default:dispo.display_sender_name }}</span>
                             {% if dispo.is_stage_waka or dispo.status == 'proses' or dispo.status == 'selesai' %}
-                                <small class="text-primary d-block mt-0.5" style="font-size: 0.75rem;">
-                                    <i class="bi bi-arrow-return-right me-1"></i>Waka IV: <strong>{{ dispo.display_waka_name }}</strong>
-                                </small>
+                                <span class="text-sky-600 dark:text-sky-400 block text-[11px] font-medium mt-0.5 flex items-center gap-1">
+                                    <i class="bi bi-arrow-return-right"></i> Waka IV: <strong>{{ dispo.display_waka_name }}</strong>
+                                </span>
                             {% endif %}
                         </td>
 
                         <!-- Penerima Disposisi -->
-                        <td data-label="Penerima">
-                            <div class="d-flex flex-wrap gap-1">
+                        <td class="py-3 px-3">
+                            <div class="flex flex-wrap gap-1">
                             {% if dispo.is_stage_waka %}
                                 {% for emp in dispo.waka_forwarded_to.all %}
-                                <span class="badge badge-employee-tag me-1 mb-1"><i class="bi bi-person-fill me-1"></i>{{ emp.full_name }}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1"><i class="bi bi-person-fill text-emerald-500"></i>{{ emp.full_name }}</span>
                                 {% empty %}
                                 {% for emp in dispo.forwarded_to.all %}
-                                <span class="badge badge-employee-tag me-1 mb-1"><i class="bi bi-person-fill me-1"></i>{{ emp.full_name }}</span>
-                                {% empty %}<span class="text-muted small">-</span>{% endfor %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1"><i class="bi bi-person-fill text-emerald-500"></i>{{ emp.full_name }}</span>
+                                {% empty %}<span class="text-slate-400 text-xs">-</span>{% endfor %}
                                 {% endfor %}
                             {% else %}
                                 {% for emp in dispo.forwarded_to.all %}
-                                <span class="badge badge-employee-tag me-1 mb-1"><i class="bi bi-person-fill me-1"></i>{{ emp.full_name }}</span>
-                                {% empty %}<span class="text-muted small">-</span>{% endfor %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1"><i class="bi bi-person-fill text-emerald-500"></i>{{ emp.full_name }}</span>
+                                {% empty %}<span class="text-slate-400 text-xs">-</span>{% endfor %}
                             {% endif %}
                             </div>
                         </td>
 
                         <!-- Arsip Terkait -->
-                        <td data-label="Arsip Terkait">
-                            <div style="max-width: 220px;">
-                                <p class="mb-0 fw-bold small text-truncate text-dark">{{ dispo.archive.title }}</p>
-                                <span class="text-muted font-mono" style="font-size: 0.72rem;">{{ dispo.archive.archive_number|default:"(No Number)" }}</span>
+                        <td class="py-3 px-3">
+                            <div class="max-w-[220px]">
+                                <p class="mb-0 font-bold text-xs text-slate-900 dark:text-white truncate" title="{{ dispo.archive.title }}">{{ dispo.archive.title }}</p>
+                                <span class="text-slate-400 font-mono text-[10px]">{{ dispo.archive.archive_number|default:"(No Number)" }}</span>
                             </div>
                         </td>
 
                         <!-- Status Alur -->
-                        <td class="text-center" data-label="Status">
+                        <td class="py-3 px-3 text-center">
                             {% if dispo.is_completed or dispo.status == 'selesai' or dispo.archive.status == 'selesai' or dispo.report %}
-                                <span class="badge badge-node-verified rounded-pill px-3 py-1 font-mono"><i class="bi bi-check-circle-fill me-1"></i> SELESAI</span>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono inline-flex items-center gap-1"><i class="bi bi-check-circle-fill"></i> SELESAI</span>
                             {% elif dispo.status == 'baru' %}
-                                <span class="badge badge-node-dispatched rounded-pill px-3 py-1 font-mono">DISPOSISI KETUA</span>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30 font-mono">DISPOSISI KETUA</span>
                             {% elif dispo.status == 'didisposisi_ketua' %}
-                                <span class="badge badge-node-sppd rounded-pill px-3 py-1 font-mono">MENUNGGU WAKA IV</span>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 font-mono">MENUNGGU WAKA IV</span>
                             {% elif dispo.status == 'proses' %}
-                                <span class="badge badge-node-st rounded-pill px-3 py-1 font-mono">DIPROSES</span>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 font-mono">DIPROSES</span>
                             {% else %}
-                                <span class="badge badge-node-scheduled rounded-pill px-3 py-1 font-mono">{{ dispo.get_status_display|upper }}</span>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-500/15 text-slate-600 dark:text-slate-300 border border-slate-500/30 font-mono">{{ dispo.get_status_display|upper }}</span>
                             {% endif %}
                         </td>
 
                         <!-- Aksi Penanganan -->
-                        <td class="text-end" data-label="Aksi">
-                            <div class="d-flex justify-content-end align-items-center gap-1.5 flex-wrap">
+                        <td class="py-3 px-3 text-end">
+                            <div class="flex items-center justify-end gap-1.5 flex-wrap">
                                 {% if dispo.status == 'baru' %}
                                     {% if request.session.active_pov == 'ketua' or request.session.active_pov == 'waka_4' or request.session.active_pov == 'kabid_4' or user.is_superadmin and not request.session.active_pov or user.is_ketua and not request.session.active_pov or user.is_waka_4 and not request.session.active_pov or user.is_kabid_4 and not request.session.active_pov %}
-                                    <a href="{% url 'dispositions:edit' dispo.pk %}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm style-btn-dispo" title="Isi Disposisi Ketua BAZNAS (Tahap 1)">
-                                        <i class="bi bi-pencil-square me-1"></i> Disposisi (Ketua)
+                                    <a href="{% url 'dispositions:edit' dispo.pk %}" class="px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-extrabold shadow-2xs transition-all no-underline inline-flex items-center gap-1" title="Isi Disposisi Ketua BAZNAS (Tahap 1)">
+                                        <i class="bi bi-pencil-square"></i> Disposisi (Ketua)
                                     </a>
                                     {% endif %}
                                 {% endif %}
 
                                 {% if dispo.status == 'didisposisi_ketua' %}
                                     {% if request.session.active_pov == 'waka_4' or request.session.active_pov == 'kabid_4' or user.is_superadmin and not request.session.active_pov or user.is_waka_4 and not request.session.active_pov or user.is_kabid_4 and not request.session.active_pov %}
-                                    <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="btn btn-info btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm text-white style-btn-dispo" title="Isi Disposisi Waka IV (Tahap 2)">
-                                        <i class="bi bi-2-circle-fill me-1"></i> Disposisi (Waka IV)
+                                    <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-3 py-1 rounded-full bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-extrabold shadow-2xs transition-all no-underline inline-flex items-center gap-1" title="Isi Disposisi Waka IV (Tahap 2)">
+                                        <i class="bi bi-2-circle-fill"></i> Disposisi (Waka IV)
                                     </a>
                                     {% endif %}
                                 {% endif %}
 
                                 {% if dispo.status == 'proses' or dispo.is_stage_waka %}
                                     {% if user.is_kabid or user.is_superadmin or request.session.active_pov %}
-                                    <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="btn btn-emerald btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm style-btn-dispo" title="Terbitkan Surat Tugas Amil sebagai Dasar SPPD/Survei">
-                                        <i class="bi bi-file-earmark-text-fill me-1"></i> Buat Surat Tugas (ST)
+                                    <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-extrabold shadow-2xs transition-all no-underline inline-flex items-center gap-1" title="Terbitkan Surat Tugas Amil sebagai Dasar SPPD/Survei">
+                                        <i class="bi bi-file-earmark-text-fill"></i> Buat Surat Tugas (ST)
                                     </a>
                                     {% endif %}
                                 {% endif %}
 
-                                {% if dispo.archive and dispo.archive.archive_type == 'proposal' or dispo.archive and 'bantuan' in dispo.archive.category.name|lower %}
-                                    {% if dispo.report %}
-                                        <a href="{% url 'reports:detail' dispo.report.pk %}" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-sm style-btn-dispo" title="Lihat LHP Selesai">
-                                            <i class="bi bi-file-earmark-check-fill me-1"></i> LHP Selesai
-                                        </a>
-                                    {% elif dispo.status == 'selesai' or dispo.archive.status == 'selesai' or dispo.is_completed %}
-                                        <span class="badge badge-node-verified rounded-pill px-2.5 py-1.5 font-mono" style="font-size: 0.75rem;">
-                                            <i class="bi bi-check-circle-fill me-1"></i> DISALURKAN
-                                        </span>
-                                    {% else %}
-                                        {% if user.is_waka_2 or user.is_kabid_2 or user.username == 'waka2' or user.username == 'kabid2' or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' or user.is_superuser and not request.session.active_pov %}
-                                        <div class="dropdown d-inline-block">
-                                            <button class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-bold dropdown-toggle shadow-sm text-dark style-btn-dispo" type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-handbag-fill me-1"></i> Bidang II
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2" style="z-index: 1080;">
-                                                <li><h6 class="dropdown-header fw-bold text-dark mb-0"><i class="bi bi-handbag-fill text-warning me-1"></i>Opsi Penanganan Bantuan</h6></li>
-                                                <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=survei"><i class="bi bi-geo-alt-fill text-warning me-2"></i>📋 1. Survei Lapangan (Buat ST/SPPD)</a></li>
-                                                <li><a class="dropdown-item rounded-3 small py-2 fw-bold text-dark" href="{% url 'reports:create' dispo.pk %}?type=penyaluran"><i class="bi bi-box-seam-fill text-success me-2"></i>🎁 2. Langsung Disalurkan (Input LHP)</a></li>
-                                            </ul>
-                                        </div>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endif %}
-
-                                <a href="{% url 'dispositions:detail' dispo.pk %}" class="btn btn-outline-secondary btn-sm rounded-circle action-icon-btn" title="Lihat Detail Disposisi">
-                                    <i class="bi bi-eye-fill"></i>
+                                <a href="{% url 'dispositions:detail' dispo.pk %}" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all no-underline" title="Lihat Detail Disposisi">
+                                    <i class="bi bi-eye-fill text-xs"></i>
                                 </a>
                                 {% if dispo.status != 'baru' %}
-                                <a href="{% url 'dispositions:print' %}?ids={{ dispo.id }}" target="_blank" class="btn btn-outline-success btn-sm rounded-circle action-icon-btn" title="Cetak Lembar Disposisi Terisi">
-                                    <i class="bi bi-printer-fill"></i>
+                                <a href="{% url 'dispositions:print' %}?ids={{ dispo.id }}" target="_blank" class="w-8 h-8 rounded-full bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 flex items-center justify-center transition-all no-underline" title="Cetak Lembar Disposisi Terisi">
+                                    <i class="bi bi-printer-fill text-xs"></i>
                                 </a>
                                 {% endif %}
                                 {% if request.session.active_pov == 'fo' or request.session.active_pov == 'ketua' or request.session.active_pov == 'waka_4' or request.session.active_pov == 'kabid_4' or user.is_superadmin and not request.session.active_pov or user.is_fo and not request.session.active_pov or user.is_ketua and not request.session.active_pov or user.is_waka_4 and not request.session.active_pov or user.is_kabid_4 and not request.session.active_pov %}
-                                <a href="{% url 'dispositions:print' %}?blank=1{% if dispo.archive %}&archive_id={{ dispo.archive.pk }}{% endif %}" target="_blank" class="btn btn-outline-warning btn-sm rounded-circle action-icon-btn" title="Cetak Lembar Disposisi Blank (Kosong)">
-                                    <i class="bi bi-file-earmark-word-fill"></i>
+                                <a href="{% url 'dispositions:print' %}?blank=1{% if dispo.archive %}&archive_id={{ dispo.archive.pk }}{% endif %}" target="_blank" class="w-8 h-8 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 flex items-center justify-center transition-all no-underline" title="Cetak Lembar Disposisi Blank (Kosong)">
+                                    <i class="bi bi-file-earmark-word-fill text-xs"></i>
                                 </a>
                                 {% endif %}
                                 {% if user.is_superadmin and not request.session.active_pov %}
-                                <form action="{% url 'dispositions:delete' dispo.pk %}" method="post" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus lembar disposisi ini?')">
+                                <form action="{% url 'dispositions:delete' dispo.pk %}" method="post" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus lembar disposisi ini?')">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle action-icon-btn" title="Hapus">
-                                        <i class="bi bi-trash-fill"></i>
+                                    <button type="submit" class="w-8 h-8 rounded-full bg-rose-500/15 hover:bg-rose-600 text-rose-500 hover:text-white flex items-center justify-center transition-all border-0 cursor-pointer" title="Hapus">
+                                        <i class="bi bi-trash-fill text-xs"></i>
                                     </button>
                                 </form>
                                 {% endif %}
@@ -303,6 +247,51 @@
 {% endblock %}
 
 {% block extra_js %}
+{% if dispo_success_obj %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            title: '<div class="flex items-center justify-center gap-2 text-emerald-600 font-black text-xl"><i class="bi bi-check-circle-fill text-emerald-500 text-2xl"></i> Disposisi Berhasil Diterbitkan!</div>',
+            html: `
+                <div class="text-left p-2 space-y-3">
+                    <div class="bg-slate-100 dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">Nomor Disposisi Resmi</span>
+                        <span class="font-black text-emerald-600 dark:text-emerald-400 font-mono block text-base mb-2">{{ dispo_success_obj.disposition_number|default:"-" }}</span>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">Perihal Dokumen</span>
+                        <span class="font-extrabold text-slate-900 dark:text-white block text-xs mb-1">{{ dispo_success_obj.archive.title|escapejs }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 block text-[11px]">Pengirim / Pimpinan: <strong>{{ dispo_success_obj.sender_label|default:dispo_success_obj.display_sender_name|escapejs }}</strong></span>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-300 text-xs mb-0">
+                        Lembar disposisi digital telah resmi terbit dan tersimpan di sistem. Pilih opsi tindakan di bawah ini:
+                    </p>
+                </div>
+            `,
+            icon: 'success',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#059669',
+            denyButtonColor: '#0284C7',
+            cancelButtonColor: '#475569',
+            confirmButtonText: '🖨️ Cetak Disposisi Terisi',
+            denyButtonText: '👁️ Detail Disposisi',
+            cancelButtonText: 'Tutup & Lihat Pusat Disposisi',
+            customClass: {
+                popup: 'rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900',
+                confirmButton: 'rounded-full px-4 py-2.5 font-extrabold text-xs shadow-md',
+                denyButton: 'rounded-full px-4 py-2.5 font-extrabold text-xs shadow-md',
+                cancelButton: 'rounded-full px-4 py-2.5 font-bold text-xs'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open("{% url 'dispositions:print' %}?ids={{ dispo_success_obj.pk }}", "_blank");
+            } else if (result.isDenied) {
+                window.location.href = "{% url 'dispositions:detail' dispo_success_obj.pk %}";
+            }
+        });
+    });
+</script>
+{% endif %}
 <script>
     $(document).ready(function () {
         requestAnimationFrame(function() {

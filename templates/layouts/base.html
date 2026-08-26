@@ -1,1523 +1,264 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}BAZNAS - Sistem Arsip SDM{% endblock %}</title>
-    
-    <!-- ⚡ SENIOR QA ZERO-FLICKER ANTI-FLASH CRITICAL STYLES ⚡ -->
-    <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-        html, body, #main-wrapper {
-            background-color: #F8FAFC !important;
-            background-image: 
-                radial-gradient(ellipse 90% 60% at 50% -10%, rgba(16, 185, 129, 0.15), transparent 75%),
-                radial-gradient(ellipse 70% 50% at 90% 90%, rgba(6, 182, 212, 0.10), transparent 75%) !important;
-            background-size: 100% 100%, 100% 100% !important;
-            background-attachment: fixed !important;
-            color: #0F172A;
-            height: 100% !important;
-            max-height: 100vh !important;
-            overflow: hidden !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        html.dark, html.dark body, html.dark #main-wrapper,
-        [data-theme="dark"], [data-theme="dark"] body, [data-theme="dark"] #main-wrapper {
-            background-color: #090D16 !important;
-            background-image: 
-                radial-gradient(ellipse 90% 60% at 50% -10%, rgba(16, 185, 129, 0.22), transparent 75%),
-                radial-gradient(ellipse 70% 50% at 90% 90%, rgba(6, 182, 212, 0.16), transparent 75%) !important;
-            background-size: 100% 100%, 100% 100% !important;
-            background-attachment: fixed !important;
-            color: #F8FAFC !important;
-        }
-        [x-cloak] { display: none !important; }
-
-        #sidebar {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            bottom: 0 !important;
-            width: 260px !important;
-            z-index: 1040 !important;
-            transition: width 0.3s ease, left 0.3s ease !important;
-        }
-
-        #sidebar.collapsed {
-            width: 80px !important;
-        }
-
-        #main-wrapper {
-            position: fixed !important;
-            top: 0 !important;
-            left: 260px !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            height: 100vh !important;
-            display: flex !important;
-            flex-direction: column !important;
-            z-index: 1000 !important;
-            transition: left 0.3s ease !important;
-            background: transparent !important;
-        }
-
-        #main-wrapper.expanded {
-            left: 80px !important;
-        }
-
-        .top-navbar {
-            position: relative !important;
-            flex-shrink: 0 !important;
-            z-index: 1030 !important;
-        }
-
-        .main-global-footer {
-            position: relative !important;
-            flex-shrink: 0 !important;
-            z-index: 1030 !important;
-        }
-
-        .content-area {
-            flex: 1 1 auto !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            position: relative !important;
-            z-index: 1000 !important;
-            padding: 1.5rem !important;
-            background-color: transparent !important;
-            background: transparent !important;
-            color: var(--text-primary);
-            animation: pageFadeIn 0.28s ease both;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(16, 185, 129, 0.35) transparent;
-        }
-
-        .content-area::-webkit-scrollbar {
-            width: 6px;
-        }
-        .content-area::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .content-area::-webkit-scrollbar-thumb {
-            background: rgba(16, 185, 129, 0.35);
-            border-radius: 9999px;
-        }
-        .content-area::-webkit-scrollbar-thumb:hover {
-            background: rgba(16, 185, 129, 0.6);
-        }
-
-        @media (max-width: 991.98px) {
-            #sidebar {
-                left: -260px !important;
-            }
-            #sidebar.active {
-                left: 0 !important;
-            }
-            #main-wrapper, #main-wrapper.expanded {
-                left: 0 !important;
-            }
-        }
-
-        @media (max-width: 767.98px) {
-            .content-area {
-                padding: 0.75rem !important;
-            }
-        }
-    </style>
-    <script>
-        (function() {
-            var t = localStorage.getItem('theme');
-            var isDark = (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches));
-            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        })();
-
-        window.applyTheme = function(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            if (theme === 'dark') document.documentElement.classList.add('dark');
-            else document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', theme);
-            var isDark = (theme === 'dark');
-            
-            var icon = document.getElementById('themeIconGlobal');
-            var text = document.getElementById('themeTextGlobal');
-            if (icon) {
-                if (isDark) {
-                    icon.className = 'bi bi-sun-fill text-amber-400 text-sm font-bold opacity-100';
-                    if (text) text.textContent = 'Mode Gelap';
-                } else {
-                    icon.className = 'bi bi-moon-stars-fill text-amber-400 text-sm font-bold opacity-100';
-                    if (text) text.textContent = 'Mode Terang';
-                }
-            }
-        };
-
-        window.toggleThemeGlobal = function() {
-            var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            window.applyTheme(cur);
-        };
-    </script>
-
-    <style>
-        #themeIconGlobal {
-            color: #FBBF24 !important;
-            font-size: 0.95rem !important;
-            opacity: 1 !important;
-            display: inline-block !important;
-            filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6)) !important;
-        }
-        .main-global-footer {
-            flex-shrink: 0;
-            position: relative;
-            z-index: 1030;
-            background: #003728 !important;
-            color: #FFFFFF !important;
-            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-        [data-theme="dark"] .main-global-footer {
-            background: #041f17 !important;
-        }
-
-
-
-        @media (max-width: 575.98px) {
-            .table-responsive .table {
-                font-size: 0.82rem !important;
-            }
-            .table-responsive .btn-sm {
-                padding: 0.25rem 0.5rem !important;
-                font-size: 0.75rem !important;
-            }
-            .card-body {
-                padding: 1rem !important;
-            }
-
-            /* Mobile Stacked Cards Transform */
-            .table-mobile-cards table, 
-            .table-mobile-cards thead, 
-            .table-mobile-cards tbody, 
-            .table-mobile-cards th, 
-            .table-mobile-cards td, 
-            .table-mobile-cards tr {
-                display: block !important;
-            }
-            .table-mobile-cards thead tr {
-                position: absolute !important;
-                top: -9999px !important;
-                left: -9999px !important;
-            }
-            .table-mobile-cards tr {
-                background: var(--card-bg) !important;
-                border: 1px solid var(--border-color) !important;
-                border-radius: var(--radius-card, 16px) !important;
-                margin-bottom: 14px !important;
-                padding: 14px !important;
-                box-shadow: var(--shadow-sm) !important;
-            }
-            .table-mobile-cards td {
-                border: none !important;
-                position: relative !important;
-                text-align: right !important;
-                min-height: 40px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: space-between !important;
-                padding: 8px 0 !important;
-                border-bottom: 1px dashed var(--border-color) !important;
-            }
-            .table-mobile-cards td:last-child {
-                border-bottom: none !important;
-            }
-            .table-mobile-cards td::before {
-                content: attr(data-label);
-                font-weight: 700;
-                color: var(--text-secondary);
-                font-size: 0.78rem;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-        }
-
-        #sidebar {
-            background: linear-gradient(180deg, #090D16 0%, #0F172A 50%, #064E3B 100%) !important;
-            position: relative;
-            z-index: 1020;
-            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.45) !important;
-            border-right: 1px solid rgba(16, 185, 129, 0.15) !important;
-        }
-        [data-theme="dark"] #sidebar {
-            background: linear-gradient(180deg, #050810 0%, #090D16 50%, #022C22 100%) !important;
-        }
-
-        html[data-theme="dark"], html[data-theme="dark"] body {
-            color: #F8FAFC !important;
-        }
-    </style>
-    
-    <!-- Fonts: Plus Jakarta Sans & Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <!-- Enterprise Design System CSS -->
-    <link rel="stylesheet" href="{% static 'css/enterprise-design-system.css' %}">
-    <!-- TailwindCSS Compiled Utility System -->
-    <link rel="stylesheet" href="{% static 'css/tailwind-compiled.css' %}">
-    <!-- Flatpickr Large Datepicker CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_green.css">
-    <!-- DataTables BS5 CSS -->
-    
-    <!-- Select2 & BS5 Theme CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
-    <!-- FullCalendar 5.11.3 CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-    
-    <!-- HTMX (1.9.10) & Alpine.js (3.13.5) Frameworks -->
-    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
-    <script src="{% static 'js/enterprise-core.js' %}"></script>
-    
-    <style>
-        :root {
-            --radius-card: 16px;
-            --radius-btn: 12px;
-            --radius-badge: 20px;
-            --btn-height-sm: 36px;
-            --btn-height-md: 46px;
-            --input-height: 48px;
-
-            --primary: #047857;
-            --primary-dark: #064E3B;
-            --primary-light: #10B981;
-            --accent-gold: #D97706;
-            --accent-gold-light: #FEF3C7;
-            --sidebar-bg: #0F172A;
-            --sidebar-hover: #1E293B;
-            --sidebar-active: #047857;
-            --body-bg: #F8FAFC;
-            --card-bg: #FFFFFF;
-            --surface-alt: #F1F5F9;
-            --text-primary: #0F172A;
-            --text-secondary: #64748B;
-            --border-color: #E2E8F0;
-            --navbar-bg: #FFFFFF;
-            --navbar-text: #0F172A;
-            --sidebar-text: rgba(255,255,255,0.88);
-            --sidebar-width: 260px;
-            --sidebar-collapsed-width: 80px;
-            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        [data-theme="dark"] {
-            --body-bg: #090D16;
-            --card-bg: #111827;
-            --surface-alt: #1F2937;
-            --text-primary: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --border-color: #1E293B;
-            --navbar-bg: #111827;
-            --navbar-text: #F8FAFC;
-            --sidebar-text: rgba(255,255,255,0.88);
-        }
-
-        /* Figma & Odoo Class Elevation & Animation Utilities */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.85) !important;
-            backdrop-filter: blur(12px) !important;
-            -webkit-backdrop-filter: blur(12px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        }
-
-        [data-theme="dark"] .glass-card {
-            background: rgba(17, 24, 39, 0.85) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        }
-
-        /* High-contrast Alert Banners for Light & Dark Mode */
-        .alert-banner-sppd {
-            background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%) !important;
-            border-left: 5px solid #10B981 !important;
-        }
-        .alert-banner-sppd .alert-title { color: #065F46 !important; }
-        .alert-banner-sppd .alert-desc { color: #047857 !important; }
-
-        .alert-banner-verify {
-            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%) !important;
-            border-left: 5px solid #F59E0B !important;
-        }
-        .alert-banner-verify .alert-title { color: #78350F !important; }
-        .alert-banner-verify .alert-desc { color: #92400E !important; }
-
-        .alert-banner-dispo {
-            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important;
-            border-left: 5px solid #3B82F6 !important;
-        }
-        .alert-banner-dispo .alert-title { color: #1E40AF !important; }
-        .alert-banner-dispo .alert-desc { color: #1D4ED8 !important; }
-
-        [data-theme="dark"] .alert-banner-sppd {
-            background: linear-gradient(135deg, #064E3B 0%, #022C22 100%) !important;
-            border-left: 5px solid #34D399 !important;
-        }
-        [data-theme="dark"] .alert-banner-sppd .alert-title { color: #A7F3D0 !important; }
-        [data-theme="dark"] .alert-banner-sppd .alert-desc { color: #6EE7B7 !important; }
-
-        [data-theme="dark"] .alert-banner-verify {
-            background: linear-gradient(135deg, #78350F 0%, #451A03 100%) !important;
-            border-left: 5px solid #F59E0B !important;
-        }
-        [data-theme="dark"] .alert-banner-verify .alert-title { color: #FDE68A !important; }
-        [data-theme="dark"] .alert-banner-verify .alert-desc { color: #FCD34D !important; }
-
-        [data-theme="dark"] .alert-banner-dispo {
-            background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%) !important;
-            border-left: 5px solid #60A5FA !important;
-        }
-        [data-theme="dark"] .alert-banner-dispo .alert-title { color: #BFDBFE !important; }
-        [data-theme="dark"] .alert-banner-dispo .alert-desc { color: #93C5FD !important; }
-
-        .card-hover-lift {
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .card-hover-lift:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md) !important;
-        }
-
-        /* Pulse Animation for BPMN Stepper Active Nodes */
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .pulse-active-node {
-            animation: pulse-green 2s infinite;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            color: var(--text-primary);
-            overflow-x: hidden;
-            background-color: var(--body-bg, #F8FAFC) !important;
-            background-image: 
-                radial-gradient(rgba(16, 185, 129, 0.10) 1px, transparent 1px),
-                radial-gradient(circle at 90% 10%, rgba(16, 185, 129, 0.08) 0%, transparent 55%),
-                radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.06) 0%, transparent 55%) !important;
-            background-size: 24px 24px, 100% 100%, 100% 100% !important;
-            background-attachment: fixed !important;
-        }
-
-        [data-theme="dark"] body {
-            background-color: #090D16 !important;
-            background-image: 
-                radial-gradient(rgba(52, 211, 153, 0.14) 1px, transparent 1px),
-                radial-gradient(circle at 90% 10%, rgba(16, 185, 129, 0.14) 0%, transparent 60%),
-                radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.10) 0%, transparent 60%) !important;
-            background-size: 24px 24px, 100% 100%, 100% 100% !important;
-            background-attachment: fixed !important;
-        }
-
-        .top-navbar {
-            background: #003728 !important;
-            color: #FFFFFF !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-            position: relative;
-            z-index: 1030;
-        }
-        [data-theme="dark"] .top-navbar {
-            background: #041f17 !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-
-        .top-navbar > div > .text-muted,
-        .top-navbar > div > i,
-        .top-navbar > div > p,
-        .top-navbar > div > a,
-        .top-navbar #toggleSidebar i {
-            color: #FFFFFF !important;
-        }
-
-        /* Scoped Dropdown Menu Overrides inside Top Navbar */
-        .top-navbar .dropdown-menu {
-            background-color: var(--card-bg) !important;
-            border: 1px solid var(--border-color) !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .top-navbar .dropdown-menu .dropdown-item,
-        .top-navbar .dropdown-menu .dropdown-item *,
-        .top-navbar .dropdown-menu .dropdown-item i,
-        .top-navbar .dropdown-menu .dropdown-item p,
-        .top-navbar .dropdown-menu .dropdown-item span {
-            color: var(--text-primary) !important;
-        }
-
-        .top-navbar .dropdown-menu .dropdown-item:hover,
-        .top-navbar .dropdown-menu .dropdown-item:focus {
-            background-color: var(--surface-alt) !important;
-            color: var(--primary) !important;
-        }
-
-        .top-navbar .dropdown-menu .dropdown-item:hover *,
-        .top-navbar .dropdown-menu .dropdown-item:hover i,
-        .top-navbar .dropdown-menu .dropdown-item:hover p,
-        .top-navbar .dropdown-menu .dropdown-item:hover span,
-        .top-navbar .dropdown-menu .dropdown-item:focus *,
-        .top-navbar .dropdown-menu .dropdown-item:focus i,
-        .top-navbar .dropdown-menu .dropdown-item:focus p,
-        .top-navbar .dropdown-menu .dropdown-item:focus span {
-            color: var(--primary) !important;
-        }
-
-        .top-navbar .dropdown-menu .dropdown-item.text-danger,
-        .top-navbar .dropdown-menu .dropdown-item.text-danger *,
-        .top-navbar .dropdown-menu .dropdown-item.text-danger i {
-            color: #dc3545 !important;
-        }
-
-        .top-navbar .dropdown-menu .dropdown-item.text-danger:hover,
-        .top-navbar .dropdown-menu .dropdown-item.text-danger:hover *,
-        .top-navbar .dropdown-menu .dropdown-item.text-danger:hover i {
-            background-color: rgba(220, 53, 69, 0.1) !important;
-            color: #dc3545 !important;
-        }
-
-        .main-global-footer {
-            background: #003728 !important;
-            color: #FFFFFF !important;
-            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-            position: relative;
-            z-index: 1030;
-        }
-        [data-theme="dark"] .main-global-footer {
-            background: #041f17 !important;
-        }
-
-
-        .content-area {
-            background-color: transparent !important;
-            background: transparent !important;
-            color: var(--text-primary);
-        }
-
-        .card, .table, .form-control, .form-select, .dropdown-menu, .modal-content, .alert, .list-group-item, .btn, .badge, .breadcrumb {
-            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
-        }
-
-        .card {
-            background-color: rgba(255, 255, 255, 0.88) !important;
-            backdrop-filter: blur(14px) !important;
-            -webkit-backdrop-filter: blur(14px) !important;
-            border-color: var(--border-color) !important;
-            border-radius: var(--radius-card, 16px) !important;
-            color: var(--text-primary);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
-        }
-
-        .badge {
-            border-radius: var(--radius-badge, 20px) !important;
-        }
-
-        .form-control, .form-select {
-            border-radius: var(--radius-btn, 12px) !important;
-        }
-
-        [data-theme="dark"] .card {
-            background-color: rgba(15, 23, 42, 0.75) !important;
-            backdrop-filter: blur(14px) !important;
-            -webkit-backdrop-filter: blur(14px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35) !important;
-        }
-
-        .table, .table th, .table td, .form-control, .form-select, .form-check-label, .dropdown-menu, .modal-content, .alert,
-        .input-group-text, .list-group-item, .accordion-item, .accordion-button, .offcanvas, .nav-pills, .pagination .page-link,
-        .modal-header, .modal-body, .modal-footer, .form-control:focus, .form-select:focus, .form-check-input,
-        .dropdown-item, .breadcrumb, .breadcrumb-item, .tooltip-inner {
-            color: var(--text-primary);
-            border-color: var(--border-color);
-        }
-
-        .form-control, .form-select, .form-check-input, .input-group-text, textarea, select, input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="datetime-local"], input[type="number"], input[type="file"] {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        .form-control::placeholder, .form-select::placeholder, textarea::placeholder {
-            color: var(--text-secondary) !important;
-        }
-
-        .form-control:focus, .form-select:focus {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 0.2rem rgba(14, 159, 110, 0.15);
-        }
-
-        .form-check-input:checked {
-            background-color: var(--primary) !important;
-            border-color: var(--primary) !important;
-        }
-
-        .form-check-input:focus {
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 0.2rem rgba(14, 159, 110, 0.15);
-        }
-
-        .bg-light, .bg-white, .bg-body-tertiary {
-            background-color: var(--card-bg) !important;
-        }
-
-        .badge.bg-light, .badge.bg-white {
-            background-color: var(--surface-alt) !important;
-            color: var(--text-primary) !important;
-        }
-
-        .list-group-item, .list-group-item-action {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        /* Dropdown & Select Box Contrast Control */
-        .dropdown-menu {
-            background-color: var(--card-bg) !important;
-            border: 1px solid var(--border-color) !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .dropdown-item {
-            color: var(--text-primary) !important;
-            background-color: transparent !important;
-        }
-
-        .dropdown-item *, .dropdown-item i {
-            color: var(--text-primary) !important;
-        }
-
-        .dropdown-item:hover, .dropdown-item:focus {
-            background-color: var(--surface-alt) !important;
-            color: var(--primary) !important;
-        }
-
-        .dropdown-item:hover *, .dropdown-item:hover i,
-        .dropdown-item:focus *, .dropdown-item:focus i {
-            color: var(--primary) !important;
-        }
-
-        .dropdown-item.text-danger, .dropdown-item.text-danger i {
-            color: #dc3545 !important;
-        }
-
-        .dropdown-item.text-danger:hover, .dropdown-item.text-danger:hover i {
-            background-color: rgba(220, 53, 69, 0.1) !important;
-            color: #dc3545 !important;
-        }
-
-        select, option, .form-select option {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-        }
-
-        [data-theme="dark"] select,
-        [data-theme="dark"] option,
-        [data-theme="dark"] .form-select option {
-            background-color: #1E293B !important;
-            color: #F8FAFC !important;
-        }
-
-        [data-theme="light"] select,
-        [data-theme="light"] option,
-        [data-theme="light"] .form-select option {
-            background-color: #FFFFFF !important;
-            color: #111827 !important;
-        }
-
-
-        .modal-content, .modal-header, .modal-body, .modal-footer {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-        }
-
-        .alert {
-            background-color: var(--surface-alt) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        .table {
-            --bs-table-bg: var(--card-bg) !important;
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-        }
-
-        .table > :not(caption) > * > * {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        .table thead:not(.table-dark) th,
-        .table thead:not(.table-dark) td {
-            background-color: var(--surface-alt) !important;
-            color: var(--text-primary) !important;
-        }
-
-        .table-striped > tbody > tr:nth-of-type(odd) > * {
-            background-color: var(--surface-alt) !important;
-        }
-
-        .table-hover > tbody > tr:hover > * {
-            background-color: var(--surface-alt) !important;
-        }
-
-        .table-bordered > :not(caption) > * {
-            border-width: 1px;
-        }
-
-        .btn-light {
-            background-color: var(--surface-alt) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        .btn-outline-secondary {
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        .btn-outline-secondary:hover {
-            background-color: var(--surface-alt) !important;
-            color: var(--text-primary) !important;
-        }
-
-        .dropdown-item:hover, .dropdown-item:focus {
-            background-color: var(--surface-alt) !important;
-            color: var(--text-primary) !important;
-        }
-
-        /* Dynamic Theme Text Contrast Control */
-        .text-dark {
-            color: var(--text-primary) !important;
-        }
-
-        .text-white, .btn-primary, .btn-success, .btn-danger, .btn-secondary, .btn-dark,
-        .table-dark, .table-dark th, .table-dark td, .main-global-footer {
-            color: #FFFFFF !important;
-        }
-
-        .text-warning, .btn-warning, .bg-warning {
-            color: #1E293B !important;
-        }
-
-        .text-muted, .text-secondary, .text-black-50 {
-            color: var(--text-secondary) !important;
-        }
-
-        .border, .border-top, .border-bottom, .border-start, .border-end {
-            border-color: var(--border-color) !important;
-        }
-
-        /* Protect Logo Images from Dark Mode Filter/Dimming */
-        img, img.logo, .card-header img, .top-navbar img, .navbar-brand img, .kop-container img {
-            filter: none !important;
-            opacity: 1 !important;
-        }
-
-
-
-        .nav-link {
-            color: var(--sidebar-text) !important;
-        }
-
-        /* Sidebar Style */
-        #sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 1000;
-            background: linear-gradient(180deg, #111827, #0F172A);
-            transition: all 0.3s ease;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
-        }
-
-        #sidebar.collapsed {
-            width: var(--sidebar-collapsed-width);
-        }
-
-        #sidebar.collapsed .sidebar-text, 
-        #sidebar.collapsed .sidebar-header h3,
-        #sidebar.collapsed .sidebar-header .app-name,
-        #sidebar.collapsed .menu-category-title,
-        #sidebar.collapsed .app-sub-text {
-            display: none !important;
-        }
-        #sidebar.collapsed .sidebar-nav-item {
-            justify-content: center !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-        #sidebar.collapsed .sidebar-header {
-            padding: 12px 6px !important;
-        }
-        #sidebar.collapsed .app-logo-img {
-            height: 32px !important;
-            max-height: 32px !important;
-            width: auto !important;
-            margin: 0 auto !important;
-            display: block !important;
-        }
-        #sidebar.collapsed .app-logo-icon {
-            margin: 0 auto !important;
-            display: flex !important;
-        }
-
-        .sidebar-header {
-            padding: 12px 14px !important;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .sidebar-header h3 {
-            color: var(--primary);
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: 1px;
-        }
-
-        .sidebar-menu {
-            padding: 20px 0;
-        }
-
-        .nav-link {
-            padding: 12px 25px;
-            color: rgba(255,255,255,0.6);
-            display: flex;
-            align-items: center;
-            transition: all 0.2s;
-            border-radius: 0;
-            margin-bottom: 4px;
-        }
-
-        .nav-link i {
-            font-size: 1.25rem;
-            margin-right: 15px;
-        }
-
-        .nav-link:hover {
-            color: #fff;
-            background-color: var(--sidebar-hover);
-        }
-
-        .nav-link.active {
-            color: #fff;
-            background-color: var(--sidebar-active);
-            font-weight: 600;
-        }
-
-        /* Main Content */
-        #main-wrapper {
-            margin-left: var(--sidebar-width);
-            transition: all 0.3s ease;
-        }
-
-        #main-wrapper.expanded {
-            margin-left: var(--sidebar-collapsed-width);
-        }
-
-        .top-navbar {
-            height: 70px;
-            background: var(--navbar-bg);
-            color: var(--navbar-text);
-            display: flex;
-            align-items: center;
-            padding: 0 30px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
-
-        .content-area {
-            padding: 30px;
-        }
-
-        /* Card Design */
-        .card {
-            background: var(--card-bg);
-            color: var(--text-primary);
-            border-radius: 18px;
-            padding: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        }
-
-        /* Universal Fix for Bootstrap Modal Stacking Context & Backdrop Overlap */
-        .modal-backdrop {
-            z-index: 1060 !important;
-        }
-        .modal {
-            z-index: 1070 !important;
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background-color: var(--primary);
-            border-color: var(--primary);
-            border-radius: 12px;
-            height: 48px;
-            font-weight: 600;
-            padding-left: 20px;
-            padding-right: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
-            transform: translateY(-1px);
-        }
-
-        /* Badge Style - High Contrast Dual Theme */
-        .badge {
-            font-weight: 600 !important;
-            letter-spacing: 0.2px;
-        }
-
-        .bg-success, .badge-success, .badge-selesai, .badge-approved {
-            background-color: #0d8a52 !important;
-            color: #FFFFFF !important;
-            border: 1px solid #09683e !important;
-        }
-
-        .bg-warning, .badge-warning, .badge-pending {
-            background-color: #f59e0b !important;
-            color: #0f172a !important;
-            border: 1px solid #d97706 !important;
-        }
-
-        .bg-primary, .badge-primary {
-            background-color: #0d6efd !important;
-            color: #FFFFFF !important;
-        }
-
-        .bg-danger, .badge-danger, .badge-rejected {
-            background-color: #dc3545 !important;
-            color: #FFFFFF !important;
-        }
-
-        .bg-info, .badge-info {
-            background-color: #0dcaf0 !important;
-            color: #0f172a !important;
-        }
-
-        .bg-secondary, .badge-secondary {
-            background-color: #6c757d !important;
-            color: #FFFFFF !important;
-        }
-
-        .badge.bg-success.bg-opacity-10,
-        .badge.bg-success.bg-opacity-20 {
-            background-color: rgba(13, 138, 82, 0.15) !important;
-            color: var(--primary) !important;
-            border: 1px solid rgba(13, 138, 82, 0.3) !important;
-        }
-
-        [data-theme="dark"] .badge.bg-success.bg-opacity-10,
-        [data-theme="dark"] .badge.bg-success.bg-opacity-20 {
-            background-color: rgba(13, 138, 82, 0.25) !important;
-            color: #34d399 !important;
-            border: 1px solid rgba(52, 211, 153, 0.3) !important;
-        }
-
-        /* =========================================================
-           FIX & PERBESAR IKON KALENDER / POPUP TANGGAL (NATIVE & FLATPICKR)
-           ========================================================= */
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator {
-            cursor: pointer !important;
-            transform: scale(1.5) !important;
-            padding: 4px !important;
-            margin-right: 6px !important;
-            transition: transform 0.2s ease, filter 0.2s ease;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator:hover,
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
-            transform: scale(1.8) !important;
-        }
-        [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
-        [data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-        [data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
-            filter: invert(1) brightness(2);
-            cursor: pointer;
-        }
-
-        /* Enlarge Date Input Fields for Readability */
-        input[type="date"], input[type="datetime-local"] {
-            font-size: 1rem !important;
-            font-weight: 600 !important;
-        }
-
-
-        /* =========================================================
-           FIX MUTLAK PAGINASI SAAT DARK THEME (NAVY)
-           ========================================================= */
-        [data-theme="dark"] .pagination .page-link {
-            background-color: #151C2C !important;
-            border-color: #1F2937 !important;
-            color: #F3F4F6 !important;
-        }
-
-        [data-theme="dark"] .pagination .page-link:hover {
-            background-color: #1B2436 !important;
-            color: #FFFFFF !important;
-            border-color: #374151 !important;
-        }
-
-        [data-theme="dark"] .pagination .page-item.active .page-link {
-            background-color: var(--primary) !important;
-            border-color: var(--primary) !important;
-            color: #FFFFFF !important;
-        }
-
-        [data-theme="dark"] .pagination .page-item.disabled .page-link {
-            background-color: #0B0F19 !important;
-            border-color: #1F2937 !important;
-            color: #4B5563 !important;
-        }
-
-        /* =========================================================
-           FIX MUTLAK SELECT2 MULTIPLE & SINGLE DARK THEME
-           ========================================================= */
-        [data-theme="dark"] .select2-container--default .select2-selection--single,
-        [data-theme="dark"] .select2-container--default .select2-selection--multiple {
-            background-color: var(--card-bg) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        [data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: #FFFFFF !important;
-        }
-
-        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            background-color: #1B2436 !important;
-            border-color: #374151 !important;
-            color: #FFFFFF !important;
-        }
-
-        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice span,
-        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice__display {
-            color: #FFFFFF !important;
-        }
-
-        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-            color: #9CA3AF !important;
-        }
-        [data-theme="dark"] .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-            color: #FFFFFF !important;
-        }
-
-        [data-theme="dark"] .select2-dropdown {
-            background-color: var(--card-bg) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        [data-theme="dark"] .select2-container--default .select2-search--dropdown .select2-search__field {
-            background-color: var(--card-bg) !important;
-            color: #FFFFFF !important;
-            border-color: var(--border-color) !important;
-        }
-
-        [data-theme="dark"] .select2-container--default .select2-results__option {
-            color: #F3F4F6 !important;
-        }
-
-        [data-theme="dark"] .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background-color: var(--primary) !important;
-            color: #FFFFFF !important;
-        }
-
-        [data-theme="dark"] .select2-container--default .select2-results__option[aria-selected=true] {
-            background-color: var(--surface-alt) !important;
-            color: #F3F4F6 !important;
-        }
-
-        /* =========================================================
-           DATATABLES & FULLCALENDAR & SWEETALERT DUAL MODE OVERRIDES
-           ========================================================= */
-        .dataTables_wrapper,
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter,
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_paginate,
-        .dataTables_wrapper .dataTables_length label,
-        .dataTables_wrapper .dataTables_filter label {
-            color: var(--text-primary) !important;
-        }
-
-        [data-theme="dark"] div.dataTables_wrapper div.dataTables_filter input,
-        [data-theme="dark"] div.dataTables_wrapper div.dataTables_length select {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        [data-theme="dark"] table.dataTable thead th,
-        [data-theme="dark"] table.dataTable thead td,
-        [data-theme="dark"] .table-light,
-        [data-theme="dark"] .table-light th,
-        [data-theme="dark"] .table-light td {
-            background-color: var(--surface-alt) !important;
-            color: var(--text-primary) !important;
-            border-bottom-color: var(--border-color) !important;
-        }
-
-        [data-theme="dark"] table.dataTable tbody tr {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-        }
-
-        [data-theme="dark"] table.dataTable tbody tr:hover {
-            background-color: var(--surface-alt) !important;
-        }
-
-        [data-theme="dark"] .swal2-popup {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-        }
-        [data-theme="dark"] .swal2-title,
-        [data-theme="dark"] .swal2-html-container {
-            color: var(--text-primary) !important;
-        }
-
-        [data-theme="dark"] .fc {
-            --fc-page-bg-color: var(--card-bg);
-            --fc-neutral-bg-color: var(--surface-alt);
-            --fc-list-day-cbg: var(--surface-alt);
-            --fc-border-color: var(--border-color);
-            color: var(--text-primary);
-        }
-        [data-theme="dark"] .fc-theme-standard td,
-        [data-theme="dark"] .fc-theme-standard th,
-        [data-theme="dark"] .fc-theme-standard .fc-scrollgrid {
-            border-color: var(--border-color) !important;
-        }
-        [data-theme="dark"] .fc .fc-toolbar-title,
-        [data-theme="dark"] .fc .fc-col-header-cell-cushion,
-        [data-theme="dark"] .fc .fc-daygrid-day-number {
-            color: var(--text-primary) !important;
-        }
-        [data-theme="dark"] .fc .fc-button-primary {
-            background-color: var(--surface-alt) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-        [data-theme="dark"] .fc .fc-button-primary:hover {
-            background-color: var(--primary) !important;
-            color: #FFFFFF !important;
-        }
-
-        /* Nav & Tab Contrast Control */
-        .nav-tabs .nav-link:not(.active), .nav-pills .nav-link:not(.active) {
-            color: var(--text-secondary) !important;
-        }
-        .nav-tabs .nav-link:hover, .nav-pills .nav-link:hover {
-            color: var(--text-primary) !important;
-        }
-
-        /* Card Header Contrast Control */
-        .card-header:not(.bg-primary):not(.bg-success):not(.bg-danger):not(.bg-warning):not(.bg-dark) {
-            background-color: var(--card-bg) !important;
-            color: var(--text-primary) !important;
-            border-bottom: 1px solid var(--border-color) !important;
-        }
-        
-        /* =========================================================
-           RESPONSIVE SYSTEM-WIDE BREAKPOINTS (MOBILE, TABLET, DESKTOP)
-           ========================================================= */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin-bottom: 1rem;
-        }
-
-        @media (max-width: 991.98px) {
-            #sidebar {
-                position: fixed;
-                top: 0;
-                left: -280px;
-                width: 280px;
-                height: 100vh;
-                z-index: 1050;
-                transition: left 0.3s ease;
-                background-color: var(--sidebar-bg);
-                overflow-y: auto;
-            }
-            #sidebar.active {
-                left: 0 !important;
-                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
-            }
-            #main-wrapper {
-                margin-left: 0 !important;
-            }
-            .content-area {
-                padding: 16px 12px !important;
-            }
-            .top-navbar {
-                padding: 0 16px !important;
-            }
-            .table-responsive {
-                border-radius: 12px;
-                -webkit-overflow-scrolling: touch;
-            }
-        }
-
-        @media (max-width: 767.98px) {
-            div.dataTables_wrapper div.dataTables_filter,
-            div.dataTables_wrapper div.dataTables_length,
-            div.dataTables_wrapper div.dataTables_info,
-            div.dataTables_wrapper div.dataTables_paginate {
-                text-align: center !important;
-                justify-content: center !important;
-                float: none !important;
-                margin: 0.5rem auto !important;
-            }
-            div.dataTables_wrapper div.dataTables_filter input {
-                width: 100% !important;
-                margin-left: 0 !important;
-                margin-top: 0.25rem;
-            }
-            .pagination {
-                flex-wrap: wrap !important;
-                justify-content: center !important;
-            }
-        }
-
-        @media (max-width: 575.98px) {
-            .content-area {
-                padding: 12px 8px !important;
-            }
-            .card {
-                padding: 14px 12px !important;
-                border-radius: 14px !important;
-            }
-            .modal-dialog {
-                margin: 8px !important;
-                max-width: calc(100% - 16px) !important;
-            }
-            .dropdown-menu {
-                max-width: 90vw !important;
-            }
-            h3, .h3 { font-size: 1.35rem !important; }
-            h4, .h4 { font-size: 1.2rem !important; }
-            h5, .h5 { font-size: 1.05rem !important; }
-            .btn-sm {
-                padding: 0.35rem 0.65rem !important;
-                font-size: 0.8rem !important;
-            }
-        }
-    </style>
-    {% block extra_css %}{% endblock %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>{% block title %}BAZNAS - Sistem Arsip SDM{% endblock %}</title>
+  
+  <!-- ⚡ EARLY ANTI-FLASH DARK MODE INITIALIZER ⚡ -->
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+
+  <!-- ⚡ TAILWIND CSS & ALPINE.JS ENGINE CDN ⚡ -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- ⚡ HTMX ENGINE CDN ⚡ -->
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+  <!-- ⚡ ESSENTIAL TAILWIND CSS & ICONS STYLESHEETS ⚡ -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'css/tailwind-compiled.css' %}">
+  <link rel="stylesheet" href="{% static 'css/enterprise-design-system.css' %}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+
+  <!-- ⚡ SENIOR QA ZERO-FLICKER ANTI-FLASH CRITICAL STYLES ⚡ -->
+  <style>
+    [x-cloak] { display: none !important; }
+
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+    html, body {
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(16, 185, 129, 0.35);
+        border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(16, 185, 129, 0.6);
+    }
+
+    /* Protect Logo Images from Dark Mode Filter/Dimming */
+    img, img.logo, .card-header img, .top-navbar img, .navbar-brand img, .kop-container img {
+        filter: none !important;
+        opacity: 1 !important;
+    }
+
+    /* ⚡ SENIOR QA ZERO-BLUR & CRYSTAL CLEAR TEXT ENGINE ⚡ */
+    *, *::before, *::after,
+    html, body, input, select, textarea, button, label, form, a, span, p, h1, h2, h3, h4, h5, h6,
+    div, section, main, article, header, footer, table, tr, td, th {
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+    }
+
+    /* High Contrast & Crisp Text inside Form Inputs */
+    input[type="text"], input[type="date"], input[type="number"], input[type="email"], input[type="file"], input[type="password"], select, textarea {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        font-weight: 600 !important;
+        opacity: 1 !important;
+    }
+
+    .dark input[type="text"], .dark input[type="date"], .dark input[type="number"], .dark input[type="email"], .dark input[type="file"], .dark input[type="password"], .dark select, .dark textarea {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+        opacity: 1 !important;
+    }
+
+    /* Button Text Sharpness */
+    button, a.btn, .btn, [role="button"] {
+        opacity: 1 !important;
+        font-weight: 700 !important;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <!-- Top HTMX Progress Loading Indicator Bar -->
-    <div id="htmx-progress-bar"></div>
+<body class="h-full overflow-hidden text-slate-800 dark:text-slate-100 font-sans antialiased bg-slate-100 dark:bg-[#061118] transition-colors duration-200">
 
-    <!-- Enterprise Command Palette (Ctrl+K) & Slide-Over Drawer Components -->
-    {% include 'includes/command_palette.html' %}
-    {% include 'includes/slide_over_drawer.html' %}
+  <!-- Top HTMX Progress Loading Indicator Bar -->
+  <div id="htmx-progress-bar"></div>
 
-    {% include 'layouts/sidebar.html' %}
+  <!-- Enterprise Command Palette (Ctrl+K) & Slide-Over Drawer Components -->
+  {% include 'includes/command_palette.html' %}
+  {% include 'includes/slide_over_drawer.html' %}
 
-    <!-- Main Wrapper with HTMX Ultra-Smooth Boost Navigation (Flex Column Layout) -->
-    <div id="main-wrapper" class="flex flex-col min-h-screen">
+  <!-- ⚡ 100% PURE TAILWIND CSS MASTER LAYOUT (DESKTOP + MOBILE OFF-CANVAS) ⚡ -->
+  <div class="flex h-screen w-full overflow-hidden" x-data="{ sidebarOpen: false, desktopSidebarOpen: true }">
+
+    <!-- BACKDROP OVERLAY FOR MOBILE OFF-CANVAS DRAWER -->
+    <div x-cloak 
+         x-show="sidebarOpen" 
+         @click="sidebarOpen = false" 
+         x-transition:enter="transition ease-out duration-300" 
+         x-transition:enter-start="opacity-0" 
+         x-transition:enter-end="opacity-100" 
+         x-transition:leave="transition ease-in duration-200" 
+         x-transition:leave-start="opacity-100" 
+         x-transition:leave-end="opacity-0" 
+         class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-40 lg:hidden"></div>
+
+    <!-- 1A. MOBILE OFF-CANVAS DRAWER (< lg) -->
+    <aside class="fixed inset-y-0 left-0 z-50 w-72 h-full flex flex-col bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 shadow-2xl transition-all duration-300 lg:hidden"
+           x-cloak
+           x-show="sidebarOpen"
+           x-transition:enter="transition ease-out duration-300 transform"
+           x-transition:enter-start="-translate-x-full"
+           x-transition:enter-end="translate-x-0"
+           x-transition:leave="transition ease-in duration-200 transform"
+           x-transition:leave-start="translate-x-0"
+           x-transition:leave-end="-translate-x-full">
+      {% include 'layouts/sidebar.html' %}
+    </aside>
+
+    <!-- 1B. DESKTOP COLLAPSIBLE SIDEBAR (lg:) -->
+    <aside class="hidden lg:flex flex-col h-full shrink-0 bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 z-30 transition-all duration-300 relative overflow-hidden" 
+           :class="{ 'w-64 min-w-[16rem]': desktopSidebarOpen, 'w-20 min-w-[5rem]': !desktopSidebarOpen }">
+      {% include 'layouts/sidebar.html' %}
+    </aside>
+
+    <!-- 2. MAIN VIEWPORT WRAPPER -->
+    <div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
+
+      <!-- HEADER / TOPBAR -->
+      <header class="h-16 shrink-0 bg-gradient-to-r from-[#041a14] via-[#06241b] to-[#041a14] border-b border-emerald-500/40 px-4 sm:px-6 flex items-center justify-between z-20 w-full shadow-lg relative transition-colors duration-200">
         {% include 'layouts/navbar.html' %}
+      </header>
 
-        {% if user.is_superadmin and request.session.active_pov %}
-        <!-- STICKY FLOATING POV BANNER FOR SUPERADMIN -->
-        <div class="sticky top-[52px] z-[1025] shrink-0 alert alert-warning border-0 rounded-0 m-0 py-2 px-4 shadow-sm text-dark d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(90deg, #FEF3C7 0%, #FDE68A 100%); border-bottom: 2px solid #F59E0B !important;">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-eye-fill fs-5 me-2" style="color: #D97706;"></i>
-                <div>
-                    <strong class="text-dark">Mode Simulasi POV Tampilan Aktif:</strong>
-                    <span class="ms-1 text-dark">Anda sedang melihat sistem dari perspektif <strong>{{ active_pov_name|default:request.session.active_pov|upper }}</strong>.</span>
-                </div>
-            </div>
-            <div>
-                <a href="{% url 'users:switch_pov' %}?role=admin" class="btn btn-sm btn-dark rounded-pill px-3 fw-bold shadow-sm">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Tampilan ke Superadmin
-                </a>
-            </div>
+      {% if user.is_superadmin and request.session.active_pov %}
+      <!-- STICKY FLOATING POV BANNER FOR SUPERADMIN -->
+      <div class="shrink-0 bg-gradient-to-r from-amber-200 to-amber-300 border-b-2 border-amber-500 py-2 px-4 sm:px-6 text-slate-950 flex justify-between items-center flex-wrap gap-2 text-xs font-bold shadow-sm z-20 w-full">
+        <div class="flex items-center gap-2">
+          <i class="bi bi-eye-fill text-amber-700 text-sm"></i>
+          <span>Mode Simulasi POV Tampilan Aktif: Anda sedang melihat sistem dari perspektif <strong>{{ active_pov_name|default:request.session.active_pov|upper }}</strong>.</span>
         </div>
-        {% endif %}
+        <a href="{% url 'users:switch_pov' %}?role=admin" class="px-3 py-1 bg-slate-900 text-white rounded-full hover:bg-slate-800 text-[11px] font-bold no-underline transition-all shadow-sm">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Tampilan ke Superadmin
+        </a>
+      </div>
+      {% endif %}
 
-        <!-- Content Area (Middle Scrollable Flex-1) -->
-        <main class="content-area position-relative flex-1">
-            <!-- FUTURISTIC BAZNAS SIMAP CYBER WATERMARK ICON ENGINE -->
-            <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-60 dark:opacity-75">
-                <!-- Icon 1: Security Shield (Top Left) -->
-                <div class="absolute -top-10 -left-10 text-[14rem] text-emerald-600/25 dark:text-emerald-400/30 transform -rotate-12">
-                    <i class="bi bi-shield-check"></i>
-                </div>
+      <!-- DYNAMIC CONTENT (TEMPAT KONTEN DASHBOARD DI-RENDER) -->
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-safe bg-slate-100 dark:bg-[#040e13] text-slate-800 dark:text-slate-100 w-full relative transition-colors duration-200">
+        <!-- FUTURISTIC BAZNAS SIMAP CYBER WATERMARK ICON ENGINE -->
+        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-80 dark:opacity-85 transition-opacity duration-300">
+          <!-- Cyber Matrix Tech Grid Overlay -->
+          <div class="absolute inset-0 bg-[radial-gradient(#059669_1.5px,transparent_1.5px)] dark:bg-[radial-gradient(#10b981_1.5px,transparent_1.5px)] [background-size:28px_28px] opacity-25 dark:opacity-35"></div>
 
-                <!-- Icon 2: Document Archive (Top Right) -->
-                <div class="absolute top-12 right-12 text-[12rem] text-teal-600/25 dark:text-teal-400/30 transform rotate-12">
-                    <i class="bi bi-folder-fill"></i>
-                </div>
+          <!-- Ambient Glowing Orbs -->
+          <div class="absolute -top-32 left-1/4 w-[600px] h-[600px] bg-emerald-500/20 dark:bg-emerald-500/30 rounded-full blur-[130px]"></div>
+          <div class="absolute bottom-10 right-10 w-[650px] h-[650px] bg-cyan-500/20 dark:bg-cyan-500/30 rounded-full blur-[140px]"></div>
+          <div class="absolute top-1/2 left-1/3 w-[500px] h-[500px] bg-amber-500/15 dark:bg-amber-500/20 rounded-full blur-[120px]"></div>
+        </div>
 
-                <!-- Icon 3: Workflow Diagram (Center Right) -->
-                <div class="absolute top-1/3 -right-16 text-[16rem] text-emerald-500/25 dark:text-emerald-400/25 transform -rotate-45">
-                    <i class="bi bi-diagram-3-fill"></i>
-                </div>
-
-                <!-- Icon 4: Mustahik & Bantuan (Bottom Left) -->
-                <div class="absolute bottom-20 -left-12 text-[15rem] text-amber-500/25 dark:text-amber-400/25 transform rotate-15">
-                    <i class="bi bi-heart-pulse-fill"></i>
-                </div>
-
-                <!-- Icon 5: LHP & Audit (Bottom Right) -->
-                <div class="absolute -bottom-16 right-1/4 text-[13rem] text-sky-500/25 dark:text-sky-400/25 transform -rotate-12">
-                    <i class="bi bi-file-earmark-check-fill"></i>
-                </div>
-
-                <!-- Ambient Glowing Cyber Orbs -->
-                <div class="absolute -top-40 left-1/3 w-[500px] h-[500px] bg-emerald-500/20 dark:bg-emerald-500/25 rounded-full blur-[120px]"></div>
-                <div class="absolute bottom-0 right-10 w-[450px] h-[450px] bg-cyan-500/20 dark:bg-cyan-500/22 rounded-full blur-[100px]"></div>
+        <div class="w-full space-y-6 relative z-10">
+          {% if is_kabid_4_active and unverified_count > 0 %}
+          <div class="p-4 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-100 flex items-center justify-between flex-wrap gap-4 shadow-lg backdrop-blur-md relative z-10">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xl shrink-0 font-bold shadow-md">
+                <i class="bi bi-shield-exclamation"></i>
+              </div>
+              <div>
+                <h3 class="font-extrabold text-sm text-slate-900 dark:text-white mb-0.5 flex items-center gap-1.5">
+                  <i class="bi bi-patch-check-fill text-amber-500 dark:text-amber-400"></i> Perhatian Kabid IV: Ada {{ unverified_count }} Dokumen Baru Membutuhkan Verifikasi!
+                </h3>
+                <p class="text-xs text-slate-700 dark:text-amber-200/90 mb-0">
+                  Terdapat <strong>{{ unverified_count }} dokumen / proposal baru</strong> yang memerlukan verifikasi kelengkapan berkas & penomoran resmi dari Anda sebelum didisposisikan ke Ketua BAZNAS.
+                </p>
+              </div>
             </div>
-
-            {% if is_kabid_4_active and unverified_count > 0 %}
-            <div class="alert alert-banner-verify border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown">
-                <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-warning text-dark p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                        <i class="bi bi-shield-exclamation fs-4"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-1 alert-title">
-                            <i class="bi bi-patch-check-fill text-warning me-1"></i> Perhatian Kabid IV: Ada {{ unverified_count }} Dokumen Baru Membutuhkan Verifikasi!
-                        </h6>
-                        <span class="small alert-desc">
-                            Terdapat <strong>{{ unverified_count }} dokumen / proposal baru</strong> yang memerlukan verifikasi kelengkapan berkas & penomoran resmi dari Anda sebelum didisposisikan ke Ketua BAZNAS.
-                        </span>
-                    </div>
-                </div>
-                <div class="ms-3 flex-shrink-0">
-                    <a href="{% url 'archives:list' %}?status=perlu_verifikasi" class="btn btn-warning btn-sm rounded-pill px-4 fw-bold shadow-sm text-dark">
-                        <i class="bi bi-patch-check me-1"></i> Periksa & Verifikasi Sekarang ({{ unverified_count }})
-                    </a>
-                </div>
+            <div class="shrink-0 w-full sm:w-auto">
+              <a href="{% url 'archives:list' %}?status=perlu_verifikasi" class="w-full sm:w-auto px-4 py-2.5 min-h-[44px] rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md transition-all no-underline inline-flex items-center justify-center gap-1.5">
+                <i class="bi bi-patch-check"></i> Periksa & Verifikasi Sekarang ({{ unverified_count }})
+              </a>
             </div>
-            {% endif %}
-            {% if is_waka_4_active and pending_waka4_dispo_count > 0 %}
-            <div class="alert alert-banner-dispo border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown">
-                <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-primary text-white p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                        <i class="bi bi-file-earmark-text-fill fs-4"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-1 alert-title">
-                            <i class="bi bi-bell-fill text-primary me-1"></i> Perhatian Waka IV: Ada {{ pending_waka4_dispo_count }} Disposisi Dari Ketua Membutuhkan Disposisi Pelaksana!
-                        </h6>
-                        <span class="small alert-desc">
-                            Terdapat <strong>{{ pending_waka4_dispo_count }} lembar disposisi</strong> yang telah didisposisikan oleh Ketua BAZNAS dan siap Anda teruskan / disposisikan ke unit kerja pelaksana.
-                        </span>
-                    </div>
-                </div>
-                <div class="ms-3 flex-shrink-0">
-                    <a href="{% url 'dispositions:list' %}?status=didisposisi_ketua" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm text-white">
-                        <i class="bi bi-send-check me-1"></i> Disposisikan Sekarang ({{ pending_waka4_dispo_count }})
-                    </a>
-                </div>
-            </div>
-            {% endif %}
-            {% if is_kabid_4_active and pending_st_sppd_count > 0 %}
-            <div class="alert alert-banner-sppd border-0 shadow-lg rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 animate__animated animate__fadeInDown">
-                <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-success text-white p-2 me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                        <i class="bi bi-file-earmark-plus-fill fs-4"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-1 alert-title">
-                            <i class="bi bi-bell-fill text-success me-1"></i> Perhatian FO & Kabid IV: Ada {{ pending_st_sppd_count }} Surat Tugas Baru Perlu Dibuatkan SPPD!
-                        </h6>
-                        <span class="small alert-desc">
-                            Terdapat <strong>{{ pending_st_sppd_count }} Surat Tugas terbit</strong> dari Pimpinan / Bidang (termasuk penugasan mandiri) yang memerlukan pembuatan dokumen Surat Perintah Perjalanan Dinas (SPPD) oleh Anda.
-                        </span>
-                    </div>
-                </div>
-                <div class="ms-3 flex-shrink-0">
-                    <a href="{% url 'sppd_service:list' %}" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm text-white">
-                        <i class="bi bi-plus-circle me-1"></i> Buatkan SPPD Sekarang ({{ pending_st_sppd_count }})
-                    </a>
-                </div>
-            </div>
-            {% endif %}
+          </div>
+          {% endif %}
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 d-none" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
+          {% if messages %}
+              {% for message in messages %}
+                  <div x-data="{ show: true }" x-show="show" x-transition class="p-4 rounded-2xl border flex items-center justify-between shadow-md text-xs font-bold transition-all relative z-10 {% if message.tags == 'error' or message.tags == 'danger' %}bg-rose-500/15 border-rose-500/30 text-rose-800 dark:text-rose-200{% elif message.tags == 'success' %}bg-emerald-500/15 border-emerald-500/30 text-emerald-800 dark:text-emerald-200{% elif message.tags == 'warning' %}bg-amber-500/15 border-amber-500/30 text-amber-900 dark:text-amber-200{% else %}bg-sky-500/15 border-sky-500/30 text-sky-800 dark:text-sky-200{% endif %}" role="alert">
+                      <div class="flex items-center gap-2">
+                          <i class="bi {% if message.tags == 'error' or message.tags == 'danger' %}bi-x-circle-fill text-rose-500{% elif message.tags == 'success' %}bi-check-circle-fill text-emerald-500{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill text-amber-500{% else %}bi-info-circle-fill text-sky-500{% endif %} text-base"></i>
+                          <span>{{ message }}</span>
+                      </div>
+                      <button type="button" @click="show = false" class="w-8 h-8 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer min-h-[32px] min-w-[32px]" aria-label="Close">
+                          <i class="bi bi-x-lg text-xs"></i>
+                      </button>
+                  </div>
+              {% endfor %}
+          {% endif %}
 
-            <div id="module-page-container" class="transition-opacity duration-150 ease-out opacity-100">
-                {% block content %}{% endblock %}
-            </div>
-        </main>
+          <div id="module-page-container" class="relative z-10 w-full space-y-6">
+            {% block content %}{% endblock %}
+          </div>
+        </div>
+      </main>
 
-        <!-- Global Executive Futuristic Cyber Footer (Sticky Fixed Bottom) -->
-        <footer class="main-global-footer sticky bottom-0 z-[1030] shrink-0 bg-slate-950/90 dark:bg-slate-950/95 border-t border-slate-800/80 backdrop-blur-xl py-3.5 px-4 sm:px-6 text-slate-300 select-none">
-            <div class="h-[1px] bg-gradient-to-r from-emerald-500/0 via-emerald-500/40 to-emerald-500/0 absolute top-0 left-0 right-0"></div>
-            <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
-                <!-- Left Info -->
-                <div class="flex items-center gap-2.5 flex-wrap">
-                    <span class="font-extrabold text-white flex items-center gap-1.5">
-                        <i class="bi bi-shield-check text-emerald-400"></i>
-                        <span>SIMAP BAZNAS Kab. Tangerang</span>
-                    </span>
-                    <span class="text-slate-600 hidden sm:inline">|</span>
-                    <span class="text-slate-400 text-[11px] font-medium hidden sm:inline">Sistem Informasi Manajemen Arsip & Monitoring Proses</span>
-                </div>
-
-                <!-- Right Badges & Copyright -->
-                <div class="flex items-center gap-3 flex-wrap ms-auto">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-[10px] font-extrabold text-emerald-300 shadow-2xs">
-                        <i class="bi bi-heart-fill text-rose-400 text-[10px]"></i>
-                        <span>Amanah Dikelola, Umat Sejahtera</span>
-                    </span>
-                    <span class="px-2.5 py-0.5 rounded-full bg-slate-900 text-slate-400 font-mono text-[10px] border border-slate-800 font-bold">v2.5 Enterprise</span>
-                    <span class="text-slate-400 text-[11px] font-semibold">© 2026 BAZNAS Kab. Tangerang</span>
-                </div>
-            </div>
-        </footer>
+      <!-- FOOTER -->
+      <footer class="h-10 shrink-0 bg-gradient-to-r from-[#041a14] via-[#06241b] to-[#041a14] border-t border-emerald-500/40 px-4 sm:px-6 flex items-center justify-between text-xs text-emerald-200 select-none relative z-10 shadow-lg">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-emerald-400 font-mono">SIMAP BAZNAS</span>
+          <span class="hidden sm:inline text-slate-300">| Sistem Informasi Manajemen Arsip & Monitoring Proses</span>
+        </div>
+        <div>
+          <span class="font-mono text-emerald-400 font-semibold text-[11px] sm:text-xs">v2.5 Enterprise © 2026</span>
+        </div>
+      </footer>
 
     </div>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- DataTables BS5 JS -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    
-    <!-- Select2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <!-- FullCalendar 5.11.3 JS & Locale ID -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/id.js"></script>
-    <!-- ApexCharts -->
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <script>
-        $(document).ready(function () {
-            const savedTheme = localStorage.getItem('theme') || (document.documentElement.getAttribute('data-theme') || 'light');
-            if (window.applyTheme) window.applyTheme(savedTheme);
+  </div>
 
-            if ($(window).width() > 991.98 && localStorage.getItem('sidebarCollapsed') === 'true') {
-                $('#sidebar').addClass('collapsed');
-                $('#main-wrapper').addClass('expanded');
-            }
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/id.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="{% static 'js/enterprise-core.js' %}"></script>
 
-            $('#toggleSidebar').on('click', function () {
-                if ($(window).width() <= 991.98) {
-                    $('#sidebar').toggleClass('active');
-                    if ($('#sidebar-backdrop').length === 0) {
-                        $('body').append('<div id="sidebar-backdrop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1040;"></div>');
-                        $('#sidebar-backdrop').on('click', function() {
-                            $('#sidebar').removeClass('active');
-                            $(this).remove();
-                        });
-                    } else {
-                        $('#sidebar-backdrop').remove();
-                    }
-                } else {
-                    $('#sidebar').toggleClass('collapsed');
-                    $('#main-wrapper').toggleClass('expanded');
-                    var isCollapsed = $('#sidebar').hasClass('collapsed');
-                    localStorage.setItem('sidebarCollapsed', isCollapsed);
-                }
-            });
-
-            $('#sidebar .nav-link').on('click', function() {
-                if ($(window).width() <= 991.98) {
-                    $('#sidebar').removeClass('active');
-                    $('#sidebar-backdrop').remove();
-                }
-            });
-
-            $(document).on('click', '#themeToggleGlobal', function (e) {
-                e.preventDefault();
-                if (window.toggleThemeGlobal) window.toggleThemeGlobal();
-            });
-
-            function fixSelect2Colors() {
-                if (document.documentElement.getAttribute('data-theme') === 'dark') {
-                    $('.select2-selection__choice, .select2-selection__choice__display, .select2-selection__rendered').css('color', '#FFFFFF');
-                }
-            }
-
-            $(document).on('select2:select select2:unselect change', function() {
-                setTimeout(fixSelect2Colors, 50);
-            });
-
-            fixSelect2Colors();
-
-            {% if messages %}
-                {% for message in messages %}
-                if (window.showEnterpriseNotificationToast) {
-                    window.showEnterpriseNotificationToast('Notifikasi SIMAP', '{{ message|escapejs }}', '{{ message.tags }}' === 'debug' ? 'info' : '{{ message.tags }}');
-                }
-                {% endfor %}
-            {% endif %}
-
-            {% if unread_direct_msg_count > 0 and latest_unread_direct_msg %}
-                setTimeout(function() {
-                    if (window.showEnterpriseNotificationToast) {
-                        window.showEnterpriseNotificationToast(
-                            '💬 Pesan Baru dari {{ latest_unread_direct_msg.sender.employee.full_name|default:latest_unread_direct_msg.sender.username|escapejs }}',
-                            '{{ latest_unread_direct_msg.body|truncatechars:60|escapejs }}',
-                            'info',
-                            "{% url 'notifications:chat_inbox_user' latest_unread_direct_msg.sender.pk %}"
-                        );
-                    }
-                }, 800);
-            {% endif %}
-        });
-    </script>
-    {% block extra_modals %}{% endblock %}
-    {% block extra_js %}{% endblock %}
+  <script>
+      $(document).ready(function () {
+          $(document).on('click', '#themeToggleGlobal', function (e) {
+              e.preventDefault();
+              if (window.toggleThemeGlobal) window.toggleThemeGlobal();
+          });
+      });
+  </script>
+  {% block extra_modals %}{% endblock %}
+  {% block extra_js %}{% endblock %}
 </body>
 </html>

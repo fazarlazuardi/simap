@@ -1,89 +1,102 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Detail Agenda {{ agenda.title }} - BAZNAS{% endblock %}
+{% block title %}Detail Agenda {{ agenda.title }} - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER EKSEKUTIF GLASSMORPHISM -->
-<div class="glass-banner-enterprise mb-4">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-8">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item"><a href="{% url 'agendas:list' %}" class="text-white text-opacity-75 text-decoration-none"><i class="bi bi-calendar3 me-1"></i>Kalender Kerja</a></li>
-                    <li class="breadcrumb-item text-white active" aria-current="page">Detail Agenda</li>
-                </ol>
-            </nav>
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="letter-spacing: 0.05em; font-size: 0.72rem;">
-                    <i class="bi bi-calendar-event-fill me-1 text-warning"></i> Agenda & Rapat Kerja
-                </span>
-                {% if agenda.status == 'selesai' %}
-                    <span class="badge badge-node-verified rounded-pill px-3 py-1 fw-bold"><i class="bi bi-check-all me-1"></i> SELESAI</span>
-                {% elif agenda.status == 'diundur' %}
-                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold"><i class="bi bi-clock-history me-1"></i> DIUNDUR</span>
-                {% elif agenda.status == 'dibatalkan' %}
-                    <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold"><i class="bi bi-x-circle me-1"></i> DIBATALKAN</span>
-                {% else %}
-                    <span class="badge badge-node-dispatched rounded-pill px-3 py-1 fw-bold"><i class="bi bi-calendar-event me-1"></i> TERJADWAL</span>
-                {% endif %}
+<div class="w-full space-y-6">
+    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+                <nav class="flex mb-2" aria-label="Breadcrumb">
+                    <ol class="inline-flex items-center space-x-1 md:space-x-2 text-xs font-semibold">
+                        <li class="inline-flex items-center">
+                            <a href="{% url 'agendas:list' %}" class="text-slate-300 hover:text-white no-underline inline-flex items-center gap-1">
+                                <i class="bi bi-calendar3"></i> Kalender Kerja
+                            </a>
+                        </li>
+                        <li>
+                            <div class="flex items-center">
+                                <i class="bi bi-chevron-right text-slate-500 mx-1 text-[10px]"></i>
+                                <span class="text-white">Detail Agenda</span>
+                            </div>
+                        </li>
+                    </ol>
+                </nav>
+                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                    <span class="px-3.5 py-1 text-xs font-bold uppercase rounded-full bg-white/10 text-white border border-white/20 inline-flex items-center gap-1.5 font-mono">
+                        <i class="bi bi-calendar-event-fill text-amber-400"></i> Agenda & Rapat Kerja
+                    </span>
+                    {% if agenda.status == 'selesai' %}
+                        <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-600 text-white shadow-sm inline-flex items-center gap-1 font-mono"><i class="bi bi-check-all"></i> SELESAI</span>
+                    {% elif agenda.status == 'diundur' %}
+                        <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500 text-slate-950 shadow-sm inline-flex items-center gap-1 font-mono"><i class="bi bi-clock-history"></i> DIUNDUR</span>
+                    {% elif agenda.status == 'dibatalkan' %}
+                        <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-600 text-white shadow-sm inline-flex items-center gap-1 font-mono"><i class="bi bi-x-circle"></i> DIBATALKAN</span>
+                    {% else %}
+                        <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-sky-600 text-white shadow-sm inline-flex items-center gap-1 font-mono"><i class="bi bi-calendar-event"></i> TERJADWAL</span>
+                    {% endif %}
+                </div>
+                <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">{{ agenda.title }}</h1>
+                <p class="text-slate-300 text-xs font-medium mb-0">
+                    Waktu Kegiatan: <strong class="text-white font-mono">{{ agenda.scheduled_at|date:"d M Y, H:i" }} WIB</strong>
+                </p>
             </div>
-            <h3 class="fw-extrabold text-white mb-1" style="letter-spacing: -0.02em;">{{ agenda.title }}</h3>
-            <p class="text-white text-opacity-80 mb-0 small">
-                Waktu Kegiatan: <strong>{{ agenda.scheduled_at|date:"d M Y, H:i" }} WIB</strong>
-            </p>
-        </div>
-        <div class="col-lg-4 text-lg-end">
-            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                <a href="{% url 'agendas:edit' agenda.pk %}" class="btn btn-warning text-dark rounded-pill px-4 py-2.5 fw-bold shadow-sm">
-                    <i class="bi bi-pencil-fill me-1"></i> Edit Agenda
+            <div class="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                <a href="{% url 'agendas:edit' agenda.pk %}" class="px-4 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-md transition-all no-underline inline-flex items-center gap-1.5">
+                    <i class="bi bi-pencil-fill"></i> Edit Agenda
                 </a>
-                <a href="{% url 'agendas:list' %}" class="btn btn-light rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="color: var(--color-emerald-700);">
-                    <i class="bi bi-arrow-left me-1"></i> Kembali
+                <a href="{% url 'agendas:list' %}" class="px-4 py-2.5 rounded-full border border-white/20 text-white hover:bg-white/10 text-xs font-bold transition-all no-underline inline-flex items-center gap-1.5">
+                    <i class="bi bi-arrow-left"></i> Kembali
                 </a>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row g-4 justify-content-center mb-5">
-    <div class="col-lg-10">
-        <div class="card-enterprise p-4">
-            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-                <h5 class="fw-bold text-emerald mb-0"><i class="bi bi-journal-text me-2 text-success"></i>Informasi Detail Agenda BAZNAS</h5>
-                <span class="small text-secondary fw-semibold"><i class="bi bi-clock me-1"></i>Tgl Dibuat: {{ agenda.created_at|date:"d M Y, H:i" }} WIB</span>
+    <div class="max-w-4xl mx-auto">
+        <div class="p-6 sm:p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="font-extrabold text-emerald-600 dark:text-emerald-400 text-base mb-0 flex items-center gap-2">
+                    <i class="bi bi-journal-text"></i> Informasi Detail Agenda BAZNAS
+                </h3>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1 font-mono"><i class="bi bi-clock"></i>Tgl Dibuat: {{ agenda.created_at|date:"d M Y, H:i" }} WIB</span>
             </div>
 
-            <div class="table-responsive mb-4">
-                <table class="table table-hover align-middle mb-0">
-                    <tbody>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         <tr>
-                            <td class="text-secondary fw-semibold py-3" style="width: 220px;"><i class="bi bi-calendar-event me-2 text-primary"></i>Waktu & Tanggal</td>
-                            <td class="fw-bold font-mono text-emerald fs-6 py-3">{{ agenda.scheduled_at|date:"l, d F Y, H:i" }} WIB</td>
+                            <td class="text-slate-500 dark:text-slate-400 font-bold py-3 w-56"><i class="bi bi-calendar-event me-2 text-emerald-600"></i>Waktu & Tanggal</td>
+                            <td class="font-extrabold font-mono text-emerald-600 dark:text-emerald-400 text-sm py-3">{{ agenda.scheduled_at|date:"l, d F Y, H:i" }} WIB</td>
                         </tr>
                         <tr>
-                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-geo-alt-fill me-2 text-danger"></i>Lokasi Tujuan</td>
-                            <td class="fw-bold py-3 text-primary">{{ agenda.location|default:"-" }}</td>
+                            <td class="text-slate-500 dark:text-slate-400 font-bold py-3"><i class="bi bi-geo-alt-fill me-2 text-rose-500"></i>Lokasi Tujuan</td>
+                            <td class="font-extrabold text-slate-900 dark:text-white py-3 text-xs">{{ agenda.location|default:"-" }}</td>
                         </tr>
                         <tr>
-                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-file-earmark-text me-2 text-info"></i>Dokumen Acuan Arsip</td>
+                            <td class="text-slate-500 dark:text-slate-400 font-bold py-3"><i class="bi bi-file-earmark-text me-2 text-sky-500"></i>Dokumen Acuan Arsip</td>
                             <td class="py-3">
                                 {% if agenda.archive %}
-                                <a href="{% url 'archives:detail' agenda.archive.pk %}" class="text-decoration-none fw-bold text-emerald font-mono">
+                                <a href="{% url 'archives:detail' agenda.archive.pk %}" class="no-underline font-bold text-emerald-600 dark:text-emerald-400 font-mono hover:underline">
                                     {{ agenda.archive.archive_number|default:"No. Arsip" }} - {{ agenda.archive.title }}
                                 </a>
                                 {% else %}
-                                <span class="text-muted">- (Agenda Standalone)</span>
+                                <span class="text-slate-400">- (Agenda Standalone)</span>
                                 {% endif %}
                             </td>
                         </tr>
                         <tr>
-                            <td class="text-secondary fw-semibold py-3"><i class="bi bi-people-fill me-2 text-success"></i>Pegawai Ditugaskan</td>
+                            <td class="text-slate-500 dark:text-slate-400 font-bold py-3"><i class="bi bi-people-fill me-2 text-emerald-500"></i>Pegawai Ditugaskan</td>
                             <td class="py-3">
-                                {% for emp in agenda.assigned_employees.all %}
-                                <span class="badge-employee-tag me-1 mb-1"><i class="bi bi-person-fill me-1 text-emerald"></i>{{ emp.full_name }}</span>
-                                {% empty %}
-                                <span class="text-muted">-</span>
-                                {% endfor %}
+                                <div class="flex flex-wrap gap-1">
+                                    {% for emp in agenda.assigned_employees.all %}
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1.5">
+                                        <i class="bi bi-person-fill text-emerald-500"></i>{{ emp.full_name }}
+                                    </span>
+                                    {% empty %}
+                                    <span class="text-slate-400">-</span>
+                                    {% endfor %}
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -92,45 +105,49 @@
 
             <!-- Isi Deskripsi Agenda -->
             {% if agenda.description %}
-            <div class="card-enterprise p-4 mb-4" style="background-color: var(--surface-hover); border-left: 4px solid var(--color-emerald-600) !important;">
-                <h6 class="fw-bold text-emerald mb-2"><i class="bi bi-card-text me-2 text-success"></i>Deskripsi & Agenda Pembahasan:</h6>
-                <div class="p-3 card-enterprise" style="background-color: var(--card-bg);">
-                    <p class="mb-0 text-primary" style="white-space: pre-wrap; line-height: 1.6;">{{ agenda.description }}</p>
+            <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-l-4 border-emerald-500 dark:border-emerald-400 border border-slate-200 dark:border-slate-700/60 space-y-3">
+                <h4 class="font-extrabold text-emerald-700 dark:text-emerald-300 text-xs uppercase tracking-wider mb-0 flex items-center gap-2">
+                    <i class="bi bi-card-text text-emerald-600"></i> Deskripsi & Agenda Pembahasan:
+                </h4>
+                <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                    <p class="mb-0 text-slate-800 dark:text-slate-200 font-medium text-xs leading-relaxed whitespace-pre-line">{{ agenda.description }}</p>
                 </div>
             </div>
             {% endif %}
 
             <!-- Notulensi / Berkas Hasil -->
             {% if agenda.completed_notes or agenda.completed_file or agenda.internal_meeting %}
-            <div class="card-enterprise p-4 mb-4">
-                <h6 class="fw-bold text-emerald mb-3"><i class="bi bi-journal-check me-2 text-primary"></i>Notulensi Rapat & Dokumen Hasil Agenda</h6>
+            <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 space-y-3">
+                <h4 class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-0 flex items-center gap-2">
+                    <i class="bi bi-journal-check text-emerald-600"></i> Notulensi Rapat & Dokumen Hasil Agenda
+                </h4>
                 {% if agenda.completed_notes %}
-                <div class="p-3 card-enterprise mb-3" style="background-color: var(--surface-hover);">
-                    <span class="d-block small text-secondary fw-bold text-uppercase mb-1">Catatan Hasil / Notulensi:</span>
-                    <p class="mb-0 text-primary" style="white-space: pre-wrap;">{{ agenda.completed_notes }}</p>
+                <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                    <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Catatan Hasil / Notulensi:</span>
+                    <p class="mb-0 text-slate-800 dark:text-slate-200 font-medium text-xs leading-relaxed whitespace-pre-line">{{ agenda.completed_notes }}</p>
                 </div>
                 {% endif %}
 
                 {% if agenda.completed_file %}
-                <a href="{{ agenda.completed_file.url }}" target="_blank" class="card-enterprise p-3 d-flex align-items-center gap-3 text-decoration-none">
-                    <div class="stat-icon-box bg-success bg-opacity-20 text-success rounded-circle flex-shrink-0">
-                        <i class="bi bi-file-earmark-arrow-down-fill fs-4"></i>
+                <a href="{{ agenda.completed_file.url }}" target="_blank" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 no-underline transition-all hover:scale-[1.01]">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg font-bold shrink-0">
+                        <i class="bi bi-file-earmark-arrow-down-fill"></i>
                     </div>
-                    <div class="flex-grow-1 text-truncate">
-                        <span class="fw-bold text-emerald d-block">Berkas Dokumentasi / PDF Hasil</span>
-                        <small class="text-secondary text-truncate d-block">{{ agenda.completed_file.name }}</small>
+                    <div class="min-w-0 flex-1">
+                        <span class="font-bold text-slate-900 dark:text-white text-xs block truncate">Berkas Dokumentasi / PDF Hasil</span>
+                        <small class="text-slate-500 dark:text-slate-400 text-[11px] block truncate">{{ agenda.completed_file.name }}</small>
                     </div>
-                    <span class="badge badge-node-verified rounded-pill px-3 py-1.5 fw-bold">Unduh Berkas</span>
+                    <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 shrink-0">Unduh Berkas</span>
                 </a>
                 {% endif %}
             </div>
             {% endif %}
 
-            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                <a href="{% url 'agendas:list' %}" class="btn btn-outline-secondary px-4 rounded-pill">
+            <div class="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-800">
+                <a href="{% url 'agendas:list' %}" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all shadow-2xs no-underline">
                     <i class="bi bi-arrow-left me-1"></i> Kembali ke Kalender
                 </a>
-                <a href="{% url 'agendas:edit' agenda.pk %}" class="btn btn-enterprise-primary px-4 rounded-pill fw-bold shadow-sm">
+                <a href="{% url 'agendas:edit' agenda.pk %}" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-sm border-0 no-underline">
                     <i class="bi bi-pencil-fill me-1"></i> Edit Agenda
                 </a>
             </div>

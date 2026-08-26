@@ -46,7 +46,7 @@
 
             <!-- CARD FORM EDIT DISPOSISI -->
             <div class="p-6 mb-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <form method="post" action="{% if dispo and dispo.pk %}{% url 'dispositions:edit' dispo.pk %}{% elif archive %}{% url 'dispositions:create' archive.pk %}{% endif %}" id="formCreateDisposisi">
+                <form method="post" action="{% if dispo and dispo.pk %}{% url 'dispositions:edit' dispo.pk %}{% elif archive %}{% url 'dispositions:create' archive.pk %}{% endif %}" id="formCreateDisposisi" x-data="{ submitting: false }" @submit="submitting = true">
                     {% csrf_token %}
 
                     <!-- BARIS 1: RINCIAN METADATA DOKUMEN -->
@@ -187,8 +187,13 @@
                         <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-all text-decoration-none inline-flex items-center gap-2">
                             <i class="bi bi-x-circle"></i> Batal & Kembali
                         </a>
-                        <button type="submit" class="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center gap-2 cursor-pointer">
-                            <i class="bi bi-send-check-fill text-base"></i> Simpan Perubahan Disposisi
+                        <button type="submit" :disabled="submitting" class="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                            <template x-if="!submitting">
+                                <span class="inline-flex items-center gap-2"><i class="bi bi-send-check-fill text-base"></i> Simpan Perubahan Disposisi</span>
+                            </template>
+                            <template x-if="submitting">
+                                <span class="inline-flex items-center gap-2"><i class="bi bi-arrow-repeat text-base animate-spin"></i> Memproses Disposisi...</span>
+                            </template>
                         </button>
                     </div>
                 </form>

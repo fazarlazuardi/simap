@@ -3,604 +3,605 @@
 
 {% block title %}Pusat Konfigurasi & Pengaturan Sistem - BAZNAS{% endblock %}
 
-{% block extra_css %}
-<style>
-    .custom-input { 
-        height: 48px; 
-        border-radius: 12px; 
-        border: 1px solid var(--border-color, #E5E7EB);
-        background-color: var(--card-bg, #FFFFFF);
-        color: var(--text-primary, #1F2937);
-        font-weight: 500;
-        transition: all 0.2s ease;
-    }
-    .custom-input:focus {
-        border-color: #0E9F6E;
-        box-shadow: 0 0 0 4px rgba(14, 159, 110, 0.15);
-    }
-    .settings-nav-pills .nav-link {
-        border-radius: 14px;
-        padding: 12px 20px;
-        font-weight: 700;
-        font-size: 0.88rem;
-        color: var(--text-secondary, #6B7280);
-        transition: all 0.25s ease;
-        border: 1px solid transparent;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .settings-nav-pills .nav-link:hover {
-        background-color: var(--surface-hover, rgba(14, 159, 110, 0.08));
-        color: #046C4E;
-    }
-    .settings-nav-pills .nav-link.active {
-        background: linear-gradient(135deg, #059669 0%, #046C4E 100%) !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
-    }
-    .setting-section-card {
-        background-color: var(--card-bg, #FFFFFF);
-        border: 1px solid var(--border-color, #E5E7EB);
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-        padding: 28px;
-    }
-    .badge-status-pill {
-        padding: 6px 14px;
-        border-radius: 50px;
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.03em;
-        text-uppercase: true;
-    }
-    .logo-preview-box {
-        width: 120px;
-        height: 120px;
-        border-radius: 20px;
-        border: 2px dashed #0E9F6E;
-        background-color: rgba(14, 159, 110, 0.04);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        margin: 0 auto;
-        position: relative;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<!-- BANNER KONTROL SISTEM EKSEKUTIF GLASSMORPHISM -->
-<div class="glass-banner-enterprise mb-4">
-    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
-        <div class="col-lg-8">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase fw-bold font-mono" style="letter-spacing: 0.05em; font-size: 0.72rem;">
-                    <i class="bi bi-shield-lock-fill me-1 text-warning"></i> Control Center Exec-Admin
-                </span>
-                <span class="badge bg-success bg-opacity-30 text-white rounded-pill px-3 py-1 text-uppercase fw-bold font-mono" style="font-size: 0.72rem;">
-                    <i class="bi bi-cpu-fill me-1"></i> SIMAP Core Engine v2.5
-                </span>
+<div class="w-full space-y-6" x-data="{ activeTab: 'identity' }">
+
+    <!-- BANNER KONTROL SISTEM EKSEKUTIF GLASSMORPHISM -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                    <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 font-mono">
+                        <i class="bi bi-shield-lock-fill text-amber-400"></i> CONTROL CENTER EXEC-ADMIN
+                    </span>
+                    <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 font-mono">
+                        <i class="bi bi-cpu-fill text-emerald-400"></i> SIMAP CORE ENGINE V2.5
+                    </span>
+                </div>
+                <h1 class="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">Pengaturan Sistem & Konfigurasi Lembaga</h1>
+                <p class="text-slate-300 text-sm max-w-2xl mb-0">
+                    Kelola identitas resmi BAZNAS, penomoran otomatis, Google Cloud Drive, SMTP Email, WA Gateway, serta taksonomi bidang & kategori arsip.
+                </p>
             </div>
-            <h3 class="fw-extrabold text-white mb-2" style="letter-spacing: -0.02em;">Pengaturan Sistem & Konfigurasi Lembaga</h3>
-            <p class="text-white text-opacity-80 mb-0 small" style="max-width: 680px;">
-                Kelola identitas resmi BAZNAS, kustomisasi penomoran otomatis, sinkronisasi Google Cloud Drive, kredensial SMTP Email, Gateway WhatsApp, serta taksonomi master data bidang dan kategori arsip.
-            </p>
-        </div>
-        <div class="col-lg-4 text-lg-end">
-            <div class="d-flex flex-column align-items-lg-end gap-2">
-                <div class="badge bg-white text-dark rounded-4 p-3 shadow-sm text-start" style="min-width: 220px;">
-                    <small class="text-uppercase text-secondary d-block fw-bold extra-small mb-1"><i class="bi bi-cloud-check-fill text-success me-1"></i> Integration Status</small>
-                    <span class="fw-bold text-emerald font-mono fs-6">
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-left min-w-[210px] shadow-sm">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1 font-mono flex items-center gap-1">
+                        <i class="bi bi-cloud-check-fill text-emerald-400"></i> Status Integrasi
+                    </span>
+                    <span class="font-extrabold text-xs font-mono inline-flex items-center gap-1.5">
                         {% if oauth_status == 'connected' %}
-                            <i class="bi bi-check-circle-fill text-success me-1"></i> Google Cloud Linked
+                            <span class="text-emerald-400 inline-flex items-center gap-1"><i class="bi bi-check-circle-fill"></i> Google Cloud Linked</span>
                         {% elif oauth_status == 'config_uploaded' %}
-                            <i class="bi bi-clock-history text-warning me-1"></i> Ready To Auth
+                            <span class="text-amber-400 inline-flex items-center gap-1"><i class="bi bi-clock-history"></i> Ready To Auth</span>
                         {% else %}
-                            <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> Local Storage
+                            <span class="text-rose-400 inline-flex items-center gap-1"><i class="bi bi-exclamation-triangle-fill"></i> Local Storage</span>
                         {% endif %}
                     </span>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- STATISTIK RINGKAS SISTEM (KPI CARDS) -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3 col-sm-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-4 p-3 bg-success bg-opacity-10 text-success">
-                <i class="bi bi-diagram-3-fill fs-3"></i>
+    <!-- STATISTIK RINGKAS SISTEM (4 KPI CARDS HIGH VISIBILITY ICONS) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- KPI 1 -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl font-extrabold shrink-0 border border-emerald-500/30 shadow-inner">
+                <i class="bi bi-diagram-3-fill"></i>
             </div>
-            <div>
-                <small class="text-secondary text-uppercase fw-bold extra-small d-block">Unit Bidang</small>
-                <span class="fs-4 fw-extrabold text-emerald font-mono">{{ departments.count }}</span>
-                <small class="text-muted d-block extra-small">Struktur BAZNAS</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-4 p-3 bg-primary bg-opacity-10 text-primary">
-                <i class="bi bi-tags-fill fs-3"></i>
-            </div>
-            <div>
-                <small class="text-secondary text-uppercase fw-bold extra-small d-block">Kategori Arsip</small>
-                <span class="fs-4 fw-extrabold text-primary font-mono">{{ categories.count }}</span>
-                <small class="text-muted d-block extra-small">Jenis Berkas Resmi</small>
+            <div class="min-w-0">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">Unit Bidang</span>
+                <span class="text-xl font-black text-slate-900 dark:text-white font-mono block leading-tight">{{ departments.count }}</span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 truncate block">Struktur BAZNAS</span>
             </div>
         </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-4 p-3 bg-warning bg-opacity-10 text-warning">
-                <i class="bi bi-envelope-check-fill fs-3"></i>
-            </div>
-            <div>
-                <small class="text-secondary text-uppercase fw-bold extra-small d-block">Notifikasi Email</small>
-                <span class="fs-6 fw-bold text-dark d-block text-truncate">{{ settings.SMTP_HOST|default:"smtp.gmail.com" }}</span>
-                <small class="text-success d-block extra-small"><i class="bi bi-check2-circle"></i> SMTP Port {{ settings.SMTP_PORT|default:"587" }}</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="card-enterprise p-3 d-flex align-items-center gap-3">
-            <div class="rounded-4 p-3 bg-info bg-opacity-10 text-info">
-                <i class="bi bi-whatsapp fs-3"></i>
-            </div>
-            <div>
-                <small class="text-secondary text-uppercase fw-bold extra-small d-block">WA Gateway</small>
-                <span class="fs-6 fw-bold text-dark d-block text-truncate">Fonnte / Baileys API</span>
-                <small class="text-info d-block extra-small"><i class="bi bi-broadcast"></i> Disposisi Notification</small>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- NAVIGATION TABS FUTURISTIK & HUB CONFIGURATION -->
-<div class="row g-4 mb-5">
-    <!-- NAV PILLS PANEL KIRI -->
-    <div class="col-lg-3">
-        <div class="card-enterprise p-3 position-sticky" style="top: 90px;">
-            <h6 class="fw-bold text-emerald mb-3 px-2 border-bottom pb-2">
-                <i class="bi bi-sliders me-2 text-success"></i>Menu Konfigurasi
-            </h6>
-            <div class="flex flex-col gap-1.5" id="settingsPureTabNav">
-                <button type="button" class="settings-tab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all border-0 cursor-pointer bg-emerald-600 text-white shadow-sm flex items-center gap-2.5" data-tab-target="tab-identity">
-                    <i class="bi bi-building-gear text-base"></i> Identitas & Branding
-                </button>
-                <button type="button" class="settings-tab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-2.5" data-tab-target="tab-cloud">
-                    <i class="bi bi-cloud-arrow-up-fill text-base"></i> Cloud & WhatsApp
-                </button>
-                <button type="button" class="settings-tab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-2.5" data-tab-target="tab-smtp">
-                    <i class="bi bi-envelope-paper-heart-fill text-base"></i> Server Email (SMTP)
-                </button>
-                <button type="button" class="settings-tab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-2.5" data-tab-target="tab-numbering">
-                    <i class="bi bi-sort-numeric-up-alt text-base"></i> Pola Penomoran
-                </button>
-                <button type="button" class="settings-tab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-2.5" data-tab-target="tab-master">
-                    <i class="bi bi-grid-1x2-fill text-base"></i> Master Bidang & Kategori
-                </button>
+        <!-- KPI 2 -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center text-2xl font-extrabold shrink-0 border border-sky-500/30 shadow-inner">
+                <i class="bi bi-tags-fill"></i>
             </div>
+            <div class="min-w-0">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">Kategori Arsip</span>
+                <span class="text-xl font-black text-slate-900 dark:text-white font-mono block leading-tight">{{ categories.count }}</span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 truncate block">Jenis Berkas Resmi</span>
+            </div>
+        </div>
 
-            <!-- CARD MAINTENANCE STATUS WITH INTERACTIVE SWITCH TOGGLE -->
-            <div class="p-3 rounded-4 mt-4 border" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3) !important;">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="fw-bold small text-dark"><i class="bi bi-tools text-warning me-1"></i> Maintenance Mode</span>
-                    <span class="badge {% if settings.SYSTEM_MAINTENANCE == 'on' %}bg-danger{% else %}bg-success{% endif %} text-white rounded-pill px-2 py-0.5 extra-small" id="maintenanceBadgeSidebar">
-                        {% if settings.SYSTEM_MAINTENANCE == 'on' %}🔴 AKTIF{% else %}🟢 NON-AKTIF{% endif %}
-                    </span>
+        <!-- KPI 3 -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl font-extrabold shrink-0 border border-amber-500/30 shadow-inner">
+                <i class="bi bi-envelope-check-fill"></i>
+            </div>
+            <div class="min-w-0">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">Notifikasi Email</span>
+                <span class="text-xs font-extrabold text-slate-900 dark:text-white truncate block max-w-[130px]">{{ settings.SMTP_HOST|default:"smtp.gmail.com" }}</span>
+                <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block"><i class="bi bi-check2-circle me-0.5"></i> Port {{ settings.SMTP_PORT|default:"587" }}</span>
+            </div>
+        </div>
+
+        <!-- KPI 4 -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-2xl font-extrabold shrink-0 border border-indigo-500/30 shadow-inner">
+                <i class="bi bi-whatsapp"></i>
+            </div>
+            <div class="min-w-0">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">WA Gateway</span>
+                <span class="text-xs font-extrabold text-slate-900 dark:text-white truncate block">Fonnte / Baileys API</span>
+                <span class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold block"><i class="bi bi-broadcast me-0.5"></i> Disposisi Notification</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVIGATION TABS FUTURISTIK & HUB CONFIGURATION -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- NAV PILLS PANEL KIRI (STICKY SIDEBAR) -->
+        <div class="lg:col-span-3">
+            <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 sticky top-24">
+                <div class="pb-2.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                        <i class="bi bi-sliders text-emerald-600 dark:text-emerald-400 text-base"></i> Menu Konfigurasi
+                    </h3>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Settings</span>
                 </div>
-                <div class="form-check form-switch mb-1">
-                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="sidebar_maintenance_switch" form="mainSystemSettingsForm" name="maintenance" value="on" 
-                           {% if settings.SYSTEM_MAINTENANCE == 'on' %}checked{% endif %} onchange="syncMaintenanceSwitches(this)">
-                    <label class="form-check-label fw-bold small text-dark cursor-pointer" for="sidebar_maintenance_switch">
-                        Sakelar Pemeliharaan
+
+                <div class="flex flex-col gap-1.5" id="settingsPureTabNav">
+                    <button type="button" 
+                            @click="activeTab = 'identity'"
+                            :class="activeTab === 'identity' ? 'bg-emerald-600 text-white shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                            class="w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition-all border-0 cursor-pointer flex items-center gap-2.5">
+                        <i class="bi bi-building-gear text-base text-amber-400"></i> Identitas & Branding
+                    </button>
+
+                    <button type="button" 
+                            @click="activeTab = 'cloud'"
+                            :class="activeTab === 'cloud' ? 'bg-emerald-600 text-white shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                            class="w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition-all border-0 cursor-pointer flex items-center gap-2.5">
+                        <i class="bi bi-cloud-arrow-up-fill text-base text-sky-400"></i> Cloud & WhatsApp
+                    </button>
+
+                    <button type="button" 
+                            @click="activeTab = 'smtp'"
+                            :class="activeTab === 'smtp' ? 'bg-emerald-600 text-white shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                            class="w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition-all border-0 cursor-pointer flex items-center gap-2.5">
+                        <i class="bi bi-envelope-paper-heart-fill text-base text-amber-400"></i> Server Email (SMTP)
+                    </button>
+
+                    <button type="button" 
+                            @click="activeTab = 'numbering'"
+                            :class="activeTab === 'numbering' ? 'bg-emerald-600 text-white shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                            class="w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition-all border-0 cursor-pointer flex items-center gap-2.5">
+                        <i class="bi bi-sort-numeric-up-alt text-base text-indigo-400"></i> Pola Penomoran
+                    </button>
+
+                    <button type="button" 
+                            @click="activeTab = 'master'"
+                            :class="activeTab === 'master' ? 'bg-emerald-600 text-white shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold'"
+                            class="w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition-all border-0 cursor-pointer flex items-center gap-2.5">
+                        <i class="bi bi-grid-1x2-fill text-base text-teal-400"></i> Master Bidang & Kategori
+                    </button>
+                </div>
+
+                <!-- CARD MAINTENANCE STATUS -->
+                <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-slate-900 dark:text-amber-200 space-y-2 mt-4">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs flex items-center gap-1.5">
+                            <i class="bi bi-tools text-amber-500 text-base"></i> Maintenance Mode
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold text-white font-mono {% if settings.SYSTEM_MAINTENANCE == 'on' %}bg-rose-600{% else %}bg-emerald-600{% endif %}" id="maintenanceBadgeSidebar">
+                            {% if settings.SYSTEM_MAINTENANCE == 'on' %}🔴 AKTIF{% else %}🟢 NON-AKTIF{% endif %}
+                        </span>
+                    </div>
+                    <label class="flex items-center gap-2 text-xs font-extrabold cursor-pointer">
+                        <input type="checkbox" role="switch" id="sidebar_maintenance_switch" form="mainSystemSettingsForm" name="maintenance" value="on" 
+                               {% if settings.SYSTEM_MAINTENANCE == 'on' %}checked{% endif %} onchange="syncMaintenanceSwitches(this)"
+                               class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                        <span>Sakelar Pemeliharaan</span>
                     </label>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-0 leading-tight">Aktifkan untuk membatasi akses sementara.</p>
                 </div>
-                <small class="text-secondary extra-small d-block">Aktifkan untuk membatasi akses sementara.</small>
             </div>
         </div>
-    </div>
 
-    <!-- MAIN FORM TAB CONTENT KANAN -->
-    <div class="col-lg-9">
-        <form method="post" enctype="multipart/form-data" id="mainSystemSettingsForm">
-            {% csrf_token %}
-            <div class="tab-content" id="v-pills-tabContent">
-                
-                <!-- TAB 1: IDENTITAS & BRANDING -->
-                <div class="tab-pane fade show active" id="tab-identity" role="tabpanel">
-                    <div class="setting-section-card mb-4">
-                        <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
-                            <div>
-                                <h5 class="fw-bold mb-1 text-emerald"><i class="bi bi-building me-2 text-success"></i>Identitas Resmi & Branding Lembaga</h5>
-                                <p class="text-secondary small mb-0">Atur nama resmi instansi, logo kop surat, alamat kantor, dan kontak email resmi BAZNAS.</p>
-                            </div>
-                            <span class="badge bg-emerald text-white rounded-pill px-3 py-1 fw-bold small">Profil Lembaga</span>
-                        </div>
-
-                        <div class="row g-4 align-items-center mb-4">
-                            <div class="col-md-4 text-center">
-                                <div class="logo-preview-box mb-3 shadow-sm">
-                                    {% if config.app_logo %}
-                                    <img src="{{ config.app_logo.url }}" id="logoPreviewImg" alt="Logo BAZNAS" class="img-fluid p-2" style="max-height: 100px; object-fit: contain;">
-                                    {% else %}
-                                    <img src="{% static 'img/logo_baznas.png' %}" id="logoPreviewImg" alt="Logo BAZNAS" class="img-fluid p-2" style="max-height: 100px; object-fit: contain;">
-                                    {% endif %}
-                                </div>
-                                <label for="app_logo" class="btn btn-sm btn-outline-emerald rounded-pill px-4 fw-bold shadow-sm cursor-pointer">
-                                    <i class="bi bi-upload me-1.5"></i> Unggah Logo Baru
-                                </label>
-                                <input type="file" id="app_logo" name="app_logo" class="d-none" accept="image/*" onchange="previewUploadedLogo(this)">
-                                <small class="text-muted d-block mt-1 extra-small">Format PNG / JPG transparan (Maks. 2MB)</small>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="mb-3">
-                                    <label for="app_name" class="form-label fw-bold small">Nama Instansi / Aplikasi <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control custom-input fw-bold text-dark" name="app_name" id="app_name" value="{{ config.app_name|default:'BAZNAS KABUPATEN TANGERANG' }}">
-                                </div>
+        <!-- MAIN FORM TAB CONTENT KANAN -->
+        <div class="lg:col-span-9">
+            <form method="post" enctype="multipart/form-data" id="mainSystemSettingsForm" class="space-y-6">
+                {% csrf_token %}
+                <div class="tab-content" id="v-pills-tabContent">
+                    
+                    <!-- TAB 1: IDENTITAS & BRANDING -->
+                    <div x-show="activeTab === 'identity'" class="tab-pane">
+                        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 flex-wrap gap-2">
                                 <div>
-                                    <label for="office_email" class="form-label fw-bold small">Email Resmi Lembaga <span class="text-danger">*</span></label>
-                                    <input type="email" class="form-control custom-input" name="office_email" id="office_email_input" value="{{ settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}">
+                                    <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                                        <i class="bi bi-building text-emerald-600 dark:text-emerald-400 text-xl"></i> Identitas Resmi & Branding Lembaga
+                                    </h2>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">Atur nama resmi instansi, logo kop surat, alamat kantor, dan kontak email resmi BAZNAS.</p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">Profil Lembaga</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                                <div class="md:col-span-4 text-center space-y-3">
+                                    <div class="w-32 h-32 rounded-2xl border-2 border-dashed border-emerald-500/50 bg-emerald-500/5 flex items-center justify-center overflow-hidden mx-auto p-2 relative shadow-inner">
+                                        {% if config.app_logo %}
+                                        <img src="{{ config.app_logo.url }}" id="logoPreviewImg" alt="Logo BAZNAS" class="max-h-24 object-contain">
+                                        {% else %}
+                                        <img src="{% static 'img/logo_baznas.png' %}" id="logoPreviewImg" alt="Logo BAZNAS" class="max-h-24 object-contain">
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <label for="app_logo" class="px-4 py-2 rounded-full border border-emerald-600 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white font-extrabold text-xs shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5">
+                                            <i class="bi bi-upload text-base"></i> Unggah Logo Baru
+                                        </label>
+                                        <input type="file" id="app_logo" name="app_logo" class="hidden" accept="image/*" onchange="previewUploadedLogo(this)">
+                                        <span class="text-[11px] text-slate-400 block mt-1">Format PNG / JPG transparan (Maks 2MB)</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="md:col-span-8 space-y-4">
+                                    <div>
+                                        <label for="app_name" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                            Nama Instansi / Aplikasi <span class="text-rose-500">*</span>
+                                        </label>
+                                        <input type="text" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-extrabold focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs" name="app_name" id="app_name" value="{{ config.app_name|default:'BAZNAS KABUPATEN TANGERANG' }}">
+                                    </div>
+                                    <div>
+                                        <label for="office_email_input" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                            Email Resmi Lembaga <span class="text-rose-500">*</span>
+                                        </label>
+                                        <input type="email" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs" name="office_email" id="office_email_input" value="{{ settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="mb-4">
-                            <label for="office_address" class="form-label fw-bold small">Alamat Lengkap Kantor Utama</label>
-                            <textarea class="form-control custom-input" name="office_address" id="office_address" rows="3" style="height: 90px; padding: 12px;">{{ settings.OFFICE_ADDRESS|default:'Jl. Somawinata No. 1, Tigaraksa, Kec. Tigaraksa, Kabupaten Tangerang, Banten 15720' }}</textarea>
+                            <div>
+                                <label for="office_address" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                    Alamat Lengkap Kantor Utama
+                                </label>
+                                <textarea class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs" name="office_address" id="office_address" rows="3">{{ settings.OFFICE_ADDRESS|default:'Jl. Somawinata No. 1, Tigaraksa, Kec. Tigaraksa, Kabupaten Tangerang, Banten 15720' }}</textarea>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- TAB 2: CLOUD & WHATSAPP -->
-                <div class="tab-pane fade" id="tab-cloud" role="tabpanel">
-                    <div class="setting-section-card mb-4">
-                        <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
-                            <div>
-                                <h5 class="fw-bold mb-1 text-emerald"><i class="bi bi-cloud-arrow-up-fill me-2 text-primary"></i>Integrasi Google Cloud Drive & WhatsApp</h5>
-                                <p class="text-secondary small mb-0">Pengaturan pencadangan otomatis dokumen ke Google Drive dan pengiriman notifikasi via WhatsApp.</p>
-                            </div>
-                            <span class="badge bg-primary text-white rounded-pill px-3 py-1 fw-bold small">Cloud Services</span>
-                        </div>
-
-                        <!-- OAUTH GOOGLE CLOUD CARD -->
-                        <div class="p-4 rounded-4 border mb-4 bg-body-tertiary">
-                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <!-- TAB 2: CLOUD & WHATSAPP -->
+                    <div x-show="activeTab === 'cloud'" x-cloak class="tab-pane">
+                        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 flex-wrap gap-2">
                                 <div>
-                                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-google text-danger me-2"></i>Google Drive API (OAuth 2.0 Auto Backup)</h6>
-                                    <p class="text-secondary extra-small mb-0">Hubungkan akun Google Drive lembaga untuk otomatis backup berkas arsip setiap bulannya.</p>
+                                    <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                                        <i class="bi bi-cloud-arrow-up-fill text-sky-500 text-xl"></i> Integrasi Google Cloud Drive & WhatsApp
+                                    </h2>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">Pengaturan pencadangan otomatis dokumen ke Google Drive dan notifikasi via WhatsApp.</p>
                                 </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30">Cloud Services</span>
+                            </div>
+
+                            <!-- OAUTH GOOGLE CLOUD CARD -->
+                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <div>
+                                        <h3 class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                                            <i class="bi bi-google text-rose-500 text-base"></i> Google Drive API (OAuth 2.0 Auto Backup)
+                                        </h3>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-0">Hubungkan akun Google Drive lembaga untuk otomatis backup berkas arsip setiap bulan.</p>
+                                    </div>
+                                    <div>
+                                        {% if oauth_status == 'connected' %}
+                                            <span class="px-3 py-1.5 rounded-full text-xs font-extrabold bg-emerald-600 text-white shadow-sm inline-flex items-center gap-1">
+                                                <i class="bi bi-check-circle-fill"></i> Terhubung
+                                            </span>
+                                        {% elif oauth_status == 'config_uploaded' %}
+                                            <a href="{% url 'reports:oauth_login' %}" class="px-4 py-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center gap-1.5">
+                                                <i class="bi bi-google"></i> Authorize Login Google
+                                            </a>
+                                        {% else %}
+                                            <span class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">Belum Terkonfigurasi</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
                                 <div>
-                                    {% if oauth_status == 'connected' %}
-                                        <span class="badge bg-success text-white rounded-pill px-3 py-1.5 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Terhubung</span>
-                                    {% elif oauth_status == 'config_uploaded' %}
-                                        <a href="{% url 'reports:oauth_login' %}" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm">
-                                            <i class="bi bi-google me-1"></i> Authorize Login Google
-                                        </a>
-                                    {% else %}
-                                        <span class="badge bg-secondary text-white rounded-pill px-3 py-1.5 fw-bold">Belum Terkonfigurasi</span>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        File Kredensial OAuth Client ID (Format .JSON)
+                                    </label>
+                                    {% if settings.GOOGLE_OAUTH_CLIENT_CONFIG %}
+                                    <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2 mb-2">
+                                        <i class="bi bi-file-earmark-check-fill text-emerald-500 text-base"></i>
+                                        <span>File OAuth Client ID JSON telah terkonfigurasi di sistem.</span>
+                                    </div>
                                     {% endif %}
+                                    <input type="file" class="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-medium" name="oauth_credentials" accept=".json">
+                                    <span class="text-[11px] text-slate-400 block mt-1"><i class="bi bi-info-circle me-1"></i> Download file JSON OAuth 2.0 Client ID dari Google Cloud Console.</span>
+                                </div>
+
+                                <div class="pt-2 border-t border-slate-200 dark:border-slate-700">
+                                    <label class="flex items-center gap-2 text-xs font-extrabold cursor-pointer text-slate-900 dark:text-white">
+                                        <input type="checkbox" role="switch" id="drive_backup" name="DRIVE_BACKUP_ENABLED" value="on" 
+                                               {% if settings.DRIVE_BACKUP_ENABLED == 'on' or settings.DRIVE_BACKUP_ENABLED is None %}checked{% endif %}
+                                               class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                        <span><i class="bi bi-cloud-check-fill text-emerald-500 me-1"></i> Aktifkan Fitur Backup Otomatis Google Drive</span>
+                                    </label>
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small">File Kredensial OAuth Client ID (Format .JSON)</label>
-                                {% if settings.GOOGLE_OAUTH_CLIENT_CONFIG %}
-                                <div class="alert alert-success py-2 px-3 small mb-2 d-flex align-items-center gap-2 rounded-3">
-                                    <i class="bi bi-file-earmark-check-fill text-success fs-5"></i>
-                                    <span>File OAuth Client ID JSON telah terkonfigurasi di sistem.</span>
-                                </div>
-                                {% endif %}
-                                <input type="file" class="form-control custom-input pt-2" name="oauth_credentials" accept=".json">
-                                <div class="form-text extra-small text-muted mt-1">
-                                    <i class="bi bi-info-circle me-1"></i> Download file JSON OAuth 2.0 Client ID (Desktop App) dari Google Cloud Console.
-                                </div>
-                            </div>
+                            <!-- WHATSAPP GATEWAY CARD -->
+                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+                                <h3 class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2 mb-0">
+                                    <i class="bi bi-whatsapp text-emerald-500 text-base"></i> WhatsApp Gateway Service (Baileys / Fonnte)
+                                </h3>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-0">Gateway pesan otomatis untuk mengirim notifikasi disposisi baru dan penugasan survei ke WA amil.</p>
 
-                            <div class="form-check form-switch mt-3 pt-2 border-top">
-                                <input class="form-check-input" type="checkbox" role="switch" id="drive_backup" name="DRIVE_BACKUP_ENABLED" value="on" 
-                                       {% if settings.DRIVE_BACKUP_ENABLED == 'on' or settings.DRIVE_BACKUP_ENABLED is None %}checked{% endif %}>
-                                <label class="form-check-label fw-bold small text-dark" for="drive_backup">
-                                    <i class="bi bi-cloud-check-fill me-1 text-success"></i> Aktifkan Fitur Backup Otomatis Google Drive
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- WHATSAPP GATEWAY CARD -->
-                        <div class="p-4 rounded-4 border bg-body-tertiary">
-                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-whatsapp text-success me-2"></i>WhatsApp Gateway Service (Baileys / Fonnte)</h6>
-                            <p class="text-secondary extra-small mb-3">Gateway pesan otomatis untuk mengirim notifikasi disposisi baru dan penugasan survei ke nomor WA amil.</p>
-
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <label for="wa_url" class="form-label fw-bold small">URL API Gateway WhatsApp</label>
-                                    <input type="url" class="form-control custom-input font-mono" name="wa_url" id="wa_url"
+                                <div>
+                                    <label for="wa_url" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                        URL API Gateway WhatsApp
+                                    </label>
+                                    <input type="url" class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="wa_url" id="wa_url"
                                            value="{{ settings.WA_GATEWAY_URL|default:'http://localhost:3000' }}" placeholder="http://localhost:3000 atau https://api.fonnte.com">
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- TAB 3: SERVER EMAIL (SMTP) -->
-                <div class="tab-pane fade" id="tab-smtp" role="tabpanel">
-                    <div class="setting-section-card mb-4">
-                        <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
-                            <div>
-                                <h5 class="fw-bold mb-1 text-emerald"><i class="bi bi-envelope-at-fill me-2 text-warning"></i>Server Pengiriman Email Notifikasi (SMTP)</h5>
-                                <p class="text-secondary small mb-0">Konfigurasi server SMTP email pengirim resmi untuk pengiriman notifikasi disposisi dan laporan bulanan.</p>
-                            </div>
-                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold small">SMTP Server</span>
-                        </div>
-
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-8">
-                                <label for="smtp_host" class="form-label fw-bold small">SMTP Host Server <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control custom-input font-mono" name="smtp_host" id="smtp_host"
-                                       value="{{ settings.SMTP_HOST|default:'smtp.gmail.com' }}" placeholder="smtp.gmail.com">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="smtp_port" class="form-label fw-bold small">SMTP Port <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control custom-input font-mono" name="smtp_port" id="smtp_port"
-                                       value="{{ settings.SMTP_PORT|default:'587' }}" placeholder="587">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="smtp_host_user" class="form-label fw-bold small">Username / Akun Email Sender <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control custom-input" name="smtp_host_user" id="smtp_host_user"
-                                       value="{{ settings.SMTP_HOST_USER|default:settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="smtp_host_password" class="form-label fw-bold small">App Password SMTP (16-Digit) <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control custom-input" name="smtp_host_password" id="smtp_host_password"
-                                           value="{{ settings.SMTP_HOST_PASSWORD|default:'' }}" placeholder="Kata sandi aplikasi 16 digit..." style="border-radius: 12px 0 0 12px;">
-                                    <button class="btn btn-outline-secondary px-3" type="button" onclick="toggleSmtpPassword()" style="border-radius: 0 12px 12px 0;">
-                                        <i class="bi bi-eye" id="togglePassIcon"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <label for="smtp_from_email" class="form-label fw-bold small">Alamat Header From Email</label>
-                                <input type="email" class="form-control custom-input" name="smtp_from_email" id="smtp_from_email"
-                                       value="{{ settings.SMTP_FROM_EMAIL|default:settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}">
-                            </div>
-                        </div>
-
-                        <!-- TEST KONEKSI SMTP CARD -->
-                        <div class="p-3 border rounded-4 bg-success bg-opacity-10 d-flex align-items-center justify-content-between flex-wrap gap-3">
-                            <div>
-                                <span class="fw-bold small text-dark d-block"><i class="bi bi-send-check-fill text-success me-1"></i> Uji Koneksi Server Email Live</span>
-                                <small class="text-secondary">Uji kirim pesan pengujian ke: <strong><span id="testTargetEmailDisplay">{{ settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}</span></strong></small>
-                            </div>
-                            <button type="button" class="btn btn-emerald rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="runEmailTest()">
-                                <i class="bi bi-envelope-paper-fill me-1.5"></i> Tes Kirim Email Sekarang
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 4: POLA PENOMORAN & PEMELIHARAAN -->
-                <div class="tab-pane fade" id="tab-numbering" role="tabpanel">
-                    <div class="setting-section-card mb-4">
-                        <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
-                            <div>
-                                <h5 class="fw-bold mb-1 text-emerald"><i class="bi bi-sort-numeric-up me-2 text-info"></i>Format Penomoran & Mode Pemeliharaan</h5>
-                                <p class="text-secondary small mb-0">Atur struktur kode penomoran otomatis untuk Arsip, SPPD, LHP, dan Disposisi Pimpinan.</p>
-                            </div>
-                            <span class="badge bg-info text-white rounded-pill px-3 py-1 fw-bold small">Auto Numbering</span>
-                        </div>
-
-                        <div class="alert alert-info py-3 px-4 rounded-4 small mb-4">
-                            <i class="bi bi-info-circle-fill me-2"></i><strong>Variabel Penomoran Otomatis:</strong><br>
-                            <code>{index}</code> (Indeks urut), <code>{type_code}</code> (Kode jenis arsip), <code>{month_roman}</code> (Bulan Romawi), <code>{year}</code> (Tahun 4-digit), <code>{month}</code> (Bulan 2-digit).
-                        </div>
-
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small">Pola Nomor Arsip Surat Masuk / Keluar</label>
-                                <input type="text" class="form-control custom-input font-mono" name="NUMBERING_ARCHIVE_PATTERN"
-                                       value="{{ settings.NUMBERING_ARCHIVE_PATTERN|default:'{index}/BZ-{type_code}/{month_roman}/{year}' }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small">Pola Nomor SPPD Perjalanan Dinas</label>
-                                <input type="text" class="form-control custom-input font-mono" name="NUMBERING_SPPD_PATTERN"
-                                       value="{{ settings.NUMBERING_SPPD_PATTERN|default:'{index}/SPPD/{month_roman}/{year}' }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small">Pola Nomor Laporan Hasil Pelaksanaan (LHP)</label>
-                                <input type="text" class="form-control custom-input font-mono" name="NUMBERING_REPORT_PATTERN"
-                                       value="{{ settings.NUMBERING_REPORT_PATTERN|default:'{index}/LHP/{month_roman}/{year}' }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small">Pola Nomor Agenda Disposisi</label>
-                                <input type="text" class="form-control custom-input font-mono" name="NUMBERING_DISPOSITION_PATTERN"
-                                       value="{{ settings.NUMBERING_DISPOSITION_PATTERN|default:'DISP-{index}' }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small">Jumlah Digit Indeks Urut</label>
-                                <input type="number" class="form-control custom-input font-mono" name="NUMBERING_INDEX_DIGITS" min="1" max="10"
-                                       value="{{ settings.NUMBERING_INDEX_DIGITS|default:'3' }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small">Periode Reset Indeks Nomor</label>
-                                <select name="NUMBERING_RESET" class="form-select custom-input">
-                                    <option value="yearly" {% if settings.NUMBERING_RESET == 'yearly' or not settings.NUMBERING_RESET %}selected{% endif %}>Reset Setiap Tahun (Yearly)</option>
-                                    <option value="monthly" {% if settings.NUMBERING_RESET == 'monthly' %}selected{% endif %}>Reset Setiap Bulan (Monthly)</option>
-                                    <option value="never" {% if settings.NUMBERING_RESET == 'never' %}selected{% endif %}>Tidak Pernah Reset (Continuous)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <hr class="my-4 opacity-10">
-
-                        <div class="p-3 border rounded-4 bg-body-tertiary">
-                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <!-- TAB 3: SERVER EMAIL (SMTP) -->
+                    <div x-show="activeTab === 'smtp'" x-cloak class="tab-pane">
+                        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 flex-wrap gap-2">
                                 <div>
-                                    <label class="form-check-label fw-bold text-dark small d-block mb-1" for="maintenance">
-                                        <i class="bi bi-tools text-warning me-1.5 fs-5"></i> Mode Pemeliharaan Sistem (System Maintenance Mode)
+                                    <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                                        <i class="bi bi-envelope-at-fill text-amber-500 text-xl"></i> Server Pengiriman Email Notifikasi (SMTP)
+                                    </h2>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">Konfigurasi server SMTP email pengirim resmi untuk pengiriman notifikasi disposisi & laporan.</p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30">SMTP Server</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-8">
+                                    <label for="smtp_host" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                        SMTP Host Server <span class="text-rose-500">*</span>
                                     </label>
-                                    <small class="text-secondary extra-small d-block">Batasi akses seluruh amil sementara waktu saat terjadi pembaruan atau pemeliharaan server.</small>
+                                    <input type="text" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="smtp_host" id="smtp_host"
+                                           value="{{ settings.SMTP_HOST|default:'smtp.gmail.com' }}" placeholder="smtp.gmail.com">
                                 </div>
-                                <div class="form-check form-switch m-0 ms-auto">
-                                    <input class="form-check-input cursor-pointer fs-4" type="checkbox" role="switch" id="maintenance" name="maintenance" value="on" 
-                                           {% if settings.SYSTEM_MAINTENANCE == 'on' %}checked{% endif %} onchange="syncMaintenanceSwitches(this)">
+                                <div class="md:col-span-4">
+                                    <label for="smtp_port" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                        SMTP Port <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="number" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="smtp_port" id="smtp_port"
+                                           value="{{ settings.SMTP_PORT|default:'587' }}" placeholder="587">
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 5: MASTER BIDANG & KATEGORI -->
-                <div class="tab-pane fade" id="tab-master" role="tabpanel">
-                    <div class="row g-4">
-                        <!-- MASTER BIDANG -->
-                        <div class="col-md-6">
-                            <div class="setting-section-card h-100">
-                                <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
-                                    <h6 class="fw-bold mb-0 text-emerald"><i class="bi bi-diagram-3 me-2 text-success"></i> Master Unit Bidang</h6>
-                                    <span class="badge bg-success text-white rounded-pill px-2.5 py-0.5 small">{{ departments.count }} Unit</span>
+                                <div class="md:col-span-6">
+                                    <label for="smtp_host_user" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                        Username / Email Sender <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="email" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="smtp_host_user" id="smtp_host_user"
+                                           value="{{ settings.SMTP_HOST_USER|default:settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}">
                                 </div>
-
-                                <div class="input-group mb-3">
-                                    <input type="text" id="new_dept_name" class="form-control custom-input" placeholder="Nama Bidang Baru..." style="border-radius: 12px 0 0 12px;">
-                                    <button class="btn btn-emerald px-3 fw-bold" type="button" onclick="submitNewDepartment()" style="border-radius: 0 12px 12px 0;">+ Tambah</button>
-                                </div>
-
-                                <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-                                    <table class="table table-hover align-middle small">
-                                        <thead class="bg-body-tertiary">
-                                            <tr>
-                                                <th class="border-0">Nama Bidang</th>
-                                                <th class="border-0 text-end">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for dept in departments %}
-                                            <tr>
-                                                <td class="fw-bold"><span class="badge {{ dept.badge_color_class }} rounded-pill px-3 py-1 me-2"><i class="bi bi-building me-1"></i>{{ dept.name }}</span></td>
-                                                <td class="text-end">
-                                                    <form action="{% url 'users:department_delete' dept.id %}" method="post" class="d-inline">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('Apakah Anda yakin ingin menghapus bidang {{ dept.name|escapejs }}?')">
-                                                            <i class="bi bi-trash-fill fs-6"></i>
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- MASTER KATEGORI ARSIP -->
-                        <div class="col-md-6">
-                            <div class="setting-section-card h-100">
-                                <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
-                                    <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-tags me-2 text-primary"></i> Master Kategori Arsip</h6>
-                                    <span class="badge bg-primary text-white rounded-pill px-2.5 py-0.5 small">{{ categories.count }} Kategori</span>
-                                </div>
-
-                                <div class="input-group mb-3">
-                                    <input type="text" id="new_cat_name" class="form-control custom-input" placeholder="Nama Kategori Baru..." style="border-radius: 12px 0 0 12px;">
-                                    <button class="btn btn-primary px-3 fw-bold" type="button" onclick="submitNewCategory()" style="border-radius: 0 12px 12px 0;">+ Tambah</button>
-                                </div>
-
-                                <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-                                    <table class="table table-hover align-middle small">
-                                        <thead class="bg-body-tertiary">
-                                            <tr>
-                                                <th class="border-0">Nama Kategori</th>
-                                                <th class="border-0 text-center">Dokumen</th>
-                                                <th class="border-0 text-end">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for cat in categories %}
-                                            <tr>
-                                                <td class="fw-bold text-dark">{{ cat.name }}</td>
-                                                <td class="text-center">
-                                                    <span class="badge bg-secondary rounded-pill px-2 py-0.5 font-mono">{{ cat.doc_count|default:0 }}</span>
-                                                </td>
-                                                <td class="text-end">
-                                                    <button type="button" class="btn btn-sm btn-link text-primary p-0 me-2 text-decoration-none" onclick="openEditCategoryModal('{{ cat.id }}', '{{ cat.name|escapejs }}')">
-                                                        <i class="bi bi-pencil-square me-1"></i>Edit
-                                                    </button>
-                                                    <form action="{% url 'users:category_delete' cat.id %}" method="post" class="d-inline">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" onclick="return confirm('Apakah Anda yakin ingin menghapus kategori {{ cat.name|escapejs }}?')">
-                                                            <i class="bi bi-trash-fill"></i>
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- PEMBERSIHAN NOTIFIKASI LONCENG -->
-                        <div class="col-12">
-                            <div class="p-4 rounded-4 border shadow-sm" style="background: linear-gradient(135deg, rgba(254, 243, 199, 0.5) 0%, rgba(254, 215, 170, 0.3) 100%); border-left: 5px solid #F59E0B !important;">
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                                    <div>
-                                        <h6 class="fw-bold mb-1 text-dark">
-                                            <i class="bi bi-bell-slash-fill text-warning me-2 fs-5"></i> Pembersihan Notifikasi Lonceng (Seluruh Akun Pengguna)
-                                        </h6>
-                                        <p class="text-secondary small mb-0">
-                                            Bersihkan seluruh riwayat notifikasi lonceng web dashboard di <strong>semua akun (Ketua, Waka IV, Waka II, Kabid IV, FO, Staff)</strong> sekaligus dengan satu klik tanpa harus menghapus arsip.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <button type="button" class="btn btn-warning text-dark rounded-pill px-4 py-2.5 fw-bold shadow-sm" onclick="confirmClearNotifications()">
-                                            <i class="bi bi-trash3-fill me-1.5"></i> Hapus Seluruh Notifikasi Lonceng
+                                <div class="md:col-span-6">
+                                    <label for="smtp_host_password" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                        App Password SMTP (16-Digit) <span class="text-rose-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="password" class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="smtp_host_password" id="smtp_host_password"
+                                               value="{{ settings.SMTP_HOST_PASSWORD|default:'' }}" placeholder="Kata sandi aplikasi 16 digit...">
+                                        <button type="button" onclick="toggleSmtpPassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-0 bg-transparent cursor-pointer">
+                                            <i class="bi bi-eye" id="togglePassIcon"></i>
                                         </button>
                                     </div>
                                 </div>
+                                <div class="md:col-span-12">
+                                    <label for="smtp_from_email" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                        Alamat Header From Email
+                                    </label>
+                                    <input type="email" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="smtp_from_email" id="smtp_from_email"
+                                           value="{{ settings.SMTP_FROM_EMAIL|default:settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}">
+                                </div>
+                            </div>
+
+                            <!-- TEST KONEKSI SMTP CARD -->
+                            <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between flex-wrap gap-3">
+                                <div>
+                                    <span class="font-extrabold text-xs text-slate-900 dark:text-white block"><i class="bi bi-send-check-fill text-emerald-500 me-1"></i> Uji Koneksi Server Email Live</span>
+                                    <span class="text-xs text-slate-600 dark:text-slate-300">Target email pengujian: <strong><span id="testTargetEmailDisplay">{{ settings.OFFICE_EMAIL|default:'kabupatenbaznastangerang@gmail.com' }}</span></strong></span>
+                                </div>
+                                <button type="button" class="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-1.5 transition-all" onclick="runEmailTest()">
+                                    <i class="bi bi-envelope-paper-fill me-1"></i> Tes Kirim Email Sekarang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: POLA PENOMORAN & PEMELIHARAAN -->
+                    <div x-show="activeTab === 'numbering'" x-cloak class="tab-pane">
+                        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 flex-wrap gap-2">
+                                <div>
+                                    <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                                        <i class="bi bi-sort-numeric-up text-indigo-500 text-xl"></i> Format Penomoran & Mode Pemeliharaan
+                                    </h2>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">Atur struktur kode penomoran otomatis untuk Arsip, SPPD, LHP, dan Disposisi Pimpinan.</p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">Auto Numbering</span>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-900 dark:text-sky-200 text-xs">
+                                <i class="bi bi-info-circle-fill me-1.5 text-sky-500 text-base"></i><strong>Variabel Penomoran Otomatis:</strong><br>
+                                <code class="bg-white/60 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-[11px] me-1">{index}</code> (Indeks urut), 
+                                <code class="bg-white/60 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-[11px] me-1">{type_code}</code> (Kode jenis arsip), 
+                                <code class="bg-white/60 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-[11px] me-1">{month_roman}</code> (Bulan Romawi), 
+                                <code class="bg-white/60 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-[11px] me-1">{year}</code> (Tahun 4-digit), 
+                                <code class="bg-white/60 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-[11px] me-1">{month}</code> (Bulan 2-digit).
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Pola Nomor Surat Masuk / Keluar</label>
+                                    <input type="text" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="NUMBERING_ARCHIVE_PATTERN"
+                                           value="{{ settings.NUMBERING_ARCHIVE_PATTERN|default:'{index}/BZ-{type_code}/{month_roman}/{year}' }}">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Pola Nomor SPPD Perjalanan Dinas</label>
+                                    <input type="text" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="NUMBERING_SPPD_PATTERN"
+                                           value="{{ settings.NUMBERING_SPPD_PATTERN|default:'{index}/SPPD/{month_roman}/{year}' }}">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Pola Nomor LHP Penyaluran</label>
+                                    <input type="text" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="NUMBERING_REPORT_PATTERN"
+                                           value="{{ settings.NUMBERING_REPORT_PATTERN|default:'{index}/LHP/{month_roman}/{year}' }}">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Pola Nomor Agenda Disposisi</label>
+                                    <input type="text" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="NUMBERING_DISPOSITION_PATTERN"
+                                           value="{{ settings.NUMBERING_DISPOSITION_PATTERN|default:'DISP-{index}' }}">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Jumlah Digit Indeks Urut</label>
+                                    <input type="number" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" name="NUMBERING_INDEX_DIGITS" min="1" max="10"
+                                           value="{{ settings.NUMBERING_INDEX_DIGITS|default:'3' }}">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Periode Reset Indeks Nomor</label>
+                                    <select name="NUMBERING_RESET" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                        <option value="yearly" {% if settings.NUMBERING_RESET == 'yearly' or not settings.NUMBERING_RESET %}selected{% endif %}>Reset Setiap Tahun (Yearly)</option>
+                                        <option value="monthly" {% if settings.NUMBERING_RESET == 'monthly' %}selected{% endif %}>Reset Setiap Bulan (Monthly)</option>
+                                        <option value="never" {% if settings.NUMBERING_RESET == 'never' %}selected{% endif %}>Tidak Pernah Reset (Continuous)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <hr class="border-slate-200 dark:border-slate-800 my-4">
+
+                            <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between flex-wrap gap-2">
+                                <div>
+                                    <span class="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1.5 mb-1">
+                                        <i class="bi bi-tools text-amber-500 text-lg"></i> Mode Pemeliharaan Sistem (Maintenance Mode)
+                                    </span>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400 block">Batasi akses seluruh amil sementara waktu saat terjadi pemeliharaan server.</span>
+                                </div>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" role="switch" id="maintenance" name="maintenance" value="on" 
+                                           {% if settings.SYSTEM_MAINTENANCE == 'on' %}checked{% endif %} onchange="syncMaintenanceSwitches(this)"
+                                           class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: MASTER BIDANG & KATEGORI -->
+                    <div x-show="activeTab === 'master'" x-cloak class="tab-pane">
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- MASTER BIDANG -->
+                                <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                                    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                                        <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                                            <i class="bi bi-diagram-3 text-emerald-600 dark:text-emerald-400 text-lg"></i> Master Unit Bidang
+                                        </h3>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-mono">{{ departments.count }} Unit</span>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" id="new_dept_name" class="flex-1 px-3.5 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Nama Bidang Baru...">
+                                        <button type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-sm border-0 cursor-pointer transition-all" onclick="submitNewDepartment()">+ Tambah</button>
+                                    </div>
+
+                                    <div class="overflow-y-auto max-h-96 custom-scrollbar">
+                                        <table class="w-full text-left border-collapse text-xs">
+                                            <thead>
+                                                <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                                    <th class="py-2.5 px-3">Nama Bidang</th>
+                                                    <th class="py-2.5 px-3 text-end">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                                {% for dept in departments %}
+                                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                                    <td class="py-2.5 px-3 font-bold text-slate-900 dark:text-white">
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                                            <i class="bi bi-building text-emerald-500"></i> {{ dept.name }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="py-2.5 px-3 text-end">
+                                                        <form action="{% url 'users:department_delete' dept.id %}" method="post" class="inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="text-rose-500 hover:text-rose-600 border-0 bg-transparent cursor-pointer" onclick="return confirm('Apakah Anda yakin ingin menghapus bidang {{ dept.name|escapejs }}?')">
+                                                                <i class="bi bi-trash-fill text-sm"></i>
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- MASTER KATEGORI ARSIP -->
+                                <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                                    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                                        <h3 class="font-extrabold text-xs text-slate-900 dark:text-white mb-0 flex items-center gap-2">
+                                            <i class="bi bi-tags text-sky-500 text-lg"></i> Master Kategori Arsip
+                                        </h3>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 font-mono">{{ categories.count }} Kategori</span>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" id="new_cat_name" class="flex-1 px-3.5 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Nama Kategori Baru...">
+                                        <button type="button" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-sm border-0 cursor-pointer transition-all" onclick="submitNewCategory()">+ Tambah</button>
+                                    </div>
+
+                                    <div class="overflow-y-auto max-h-96 custom-scrollbar">
+                                        <table class="w-full text-left border-collapse text-xs">
+                                            <thead>
+                                                <tr class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                                    <th class="py-2.5 px-3">Nama Kategori</th>
+                                                    <th class="py-2.5 px-3 text-center">Dokumen</th>
+                                                    <th class="py-2.5 px-3 text-end">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                                {% for cat in categories %}
+                                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                                    <td class="py-2.5 px-3 font-bold text-slate-900 dark:text-white">{{ cat.name }}</td>
+                                                    <td class="py-2.5 px-3 text-center">
+                                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-mono">{{ cat.doc_count|default:0 }}</span>
+                                                    </td>
+                                                    <td class="py-2.5 px-3 text-end">
+                                                        <div class="inline-flex items-center gap-2">
+                                                            <button type="button" class="text-sky-500 hover:text-sky-600 border-0 bg-transparent cursor-pointer font-bold" onclick="openEditCategoryModal('{{ cat.id }}', '{{ cat.name|escapejs }}')">
+                                                                <i class="bi bi-pencil-square"></i> Edit
+                                                            </button>
+                                                            <form action="{% url 'users:category_delete' cat.id %}" method="post" class="inline">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="text-rose-500 hover:text-rose-600 border-0 bg-transparent cursor-pointer" onclick="return confirm('Apakah Anda yakin ingin menghapus kategori {{ cat.name|escapejs }}?')">
+                                                                    <i class="bi bi-trash-fill"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- PEMBERSIHAN NOTIFIKASI LONCENG -->
+                            <div class="p-5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-100 flex items-center justify-between flex-wrap gap-4 shadow-sm">
+                                <div>
+                                    <h3 class="font-extrabold text-sm text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+                                        <i class="bi bi-bell-slash-fill text-amber-500 text-lg"></i> Pembersihan Notifikasi Lonceng (Seluruh Akun Pengguna)
+                                    </h3>
+                                    <p class="text-xs text-slate-600 dark:text-amber-200/90 mb-0 max-w-2xl">
+                                        Bersihkan seluruh riwayat notifikasi lonceng web dashboard di <strong>semua akun (Ketua, Waka IV, Waka II, Kabid IV, FO, Staff)</strong> sekaligus dengan satu klik tanpa harus menghapus arsip.
+                                    </p>
+                                </div>
+                                <div>
+                                    <button type="button" class="px-4 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-1.5 transition-all" onclick="confirmClearNotifications()">
+                                        <i class="bi bi-trash3-fill"></i> Hapus Seluruh Notifikasi Lonceng
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- STICKY ACTION BAR FOOTER -->
-            <div class="card-enterprise p-3 mt-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-info-circle-fill text-emerald fs-5"></i>
-                    <span class="small text-secondary fw-semibold">Pastikan seluruh data konfigurasi sudah sesuai sebelum menyimpan.</span>
+                <!-- STICKY ACTION BAR FOOTER -->
+                <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-info-circle-fill text-emerald-600 dark:text-emerald-400 text-lg"></i>
+                        <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold">Pastikan seluruh data konfigurasi sudah sesuai sebelum menyimpan.</span>
+                    </div>
+                    <button type="submit" class="px-6 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-2 transition-all">
+                        <i class="bi bi-save-fill"></i> Simpan Seluruh Pengaturan Sistem
+                    </button>
                 </div>
-                <button type="submit" class="btn btn-enterprise-primary px-5 py-2.5 rounded-pill fw-bold shadow-lg">
-                    <i class="bi bi-save-fill me-2"></i> Simpan Seluruh Pengaturan Sistem
-                </button>
-            </div>
-        </form>
+            </form>
 
-        <form action="{% url 'users:department_create' %}" method="post" id="formCreateDept" class="d-none">
-            {% csrf_token %}
-            <input type="hidden" name="name" id="hidden_dept_name">
-        </form>
+            <form action="{% url 'users:department_create' %}" method="post" id="formCreateDept" class="hidden">
+                {% csrf_token %}
+                <input type="hidden" name="name" id="hidden_dept_name">
+            </form>
 
-        <form action="{% url 'users:category_create' %}" method="post" id="formCreateCat" class="d-none">
-            {% csrf_token %}
-            <input type="hidden" name="name" id="hidden_cat_name">
-        </form>
+            <form action="{% url 'users:category_create' %}" method="post" id="formCreateCat" class="hidden">
+                {% csrf_token %}
+                <input type="hidden" name="name" id="hidden_cat_name">
+            </form>
 
-        <form method="post" action="{% url 'users:app_settings' %}" id="clearNotifForm" class="d-none">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="clear_all_notifications">
-        </form>
+            <form method="post" action="{% url 'users:app_settings' %}" id="clearNotifForm" class="hidden">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="clear_all_notifications">
+            </form>
+        </div>
     </div>
 </div>
 
 <!-- PURE TAILWIND MODAL EDIT KATEGORI ARSIP -->
-<div id="pureEditCategoryModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="pureEditCategoryModal" class="fixed inset-0 z-50 hidden bg-slate-900/80 items-center justify-center p-4">
     <div class="relative w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
         <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
             <h3 class="font-extrabold text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2 mb-0">
@@ -646,10 +647,10 @@
         
         if (badge) {
             if (isChecked) {
-                badge.className = 'badge bg-danger text-white rounded-pill px-2 py-0.5 extra-small';
+                badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold text-white font-mono bg-rose-600';
                 badge.innerHTML = '🔴 AKTIF';
             } else {
-                badge.className = 'badge bg-success text-white rounded-pill px-2 py-0.5 extra-small';
+                badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold text-white font-mono bg-emerald-600';
                 badge.innerHTML = '🟢 NON-AKTIF';
             }
         }
@@ -702,38 +703,6 @@
             modal.classList.remove('flex');
         }
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Pure Native Tailwind Settings Tab Controller
-        const settingTabButtons = document.querySelectorAll('#settingsPureTabNav button');
-        const settingTabPanes = document.querySelectorAll('.tab-content .tab-pane');
-
-        settingTabButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('data-tab-target');
-
-                settingTabButtons.forEach(b => {
-                    b.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm', 'font-extrabold');
-                    b.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300', 'font-bold');
-                });
-
-                this.classList.add('bg-emerald-600', 'text-white', 'shadow-sm', 'font-extrabold');
-                this.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300', 'font-bold');
-
-                settingTabPanes.forEach(pane => {
-                    pane.classList.remove('active', 'show');
-                    pane.classList.add('hidden');
-                });
-
-                const targetPane = document.getElementById(targetId);
-                if (targetPane) {
-                    targetPane.classList.add('active', 'show');
-                    targetPane.classList.remove('hidden');
-                }
-            });
-        });
-    });
 
     function confirmClearNotifications() {
         Swal.fire({

@@ -45,7 +45,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
+<div class="w-full space-y-6">
 
     <!-- TAILWIND ENTERPRISE HEADER BANNER -->
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl mb-6 border border-slate-700/50">
@@ -93,7 +93,7 @@
                     </span>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="w-full overflow-x-auto touch-pan-x custom-scrollbar">
                     <table class="w-full text-left border-collapse" id="tableDisposisiPendingST">
                         <thead>
                             <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200 dark:border-slate-700">
@@ -145,22 +145,9 @@
                                             <i class="bi bi-check-circle-fill"></i> Disalurkan
                                         </span>
                                     {% else %}
-                                        {% if dispo.archive and dispo.archive.archive_type == 'proposal' or dispo.archive and 'bantuan' in dispo.archive.category.name|lower %}
-                                            {% if user.is_superuser or user.is_waka_2 or user.is_kabid_2 or request.session.active_pov == 'waka_2' or request.session.active_pov == 'kabid_2' %}
-                                            <div class="flex items-center justify-end gap-1.5 flex-wrap">
-                                                <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}?st_type=survei" class="px-3 py-1.5 rounded-full bg-amber-500 text-slate-950 font-bold text-[11px] shadow-sm hover:bg-amber-600 text-decoration-none inline-flex items-center gap-1">
-                                                    <i class="bi bi-geo-alt-fill"></i> Survei
-                                                </a>
-                                                <a href="{% url 'reports:create' dispo.pk %}?type=penyaluran" class="px-3 py-1.5 rounded-full bg-emerald-600 text-white font-bold text-[11px] shadow-sm hover:bg-emerald-700 text-decoration-none inline-flex items-center gap-1">
-                                                    <i class="bi bi-box-seam-fill"></i> Direct LHP
-                                                </a>
-                                            </div>
-                                            {% endif %}
-                                        {% else %}
-                                            <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="px-3 py-1.5 rounded-full bg-emerald-600 text-white font-bold text-[11px] shadow-sm hover:bg-emerald-700 text-decoration-none inline-flex items-center gap-1">
-                                                <i class="bi bi-plus-lg"></i> Buat Surat Tugas
-                                            </a>
-                                        {% endif %}
+                                        <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" class="px-3 py-1.5 rounded-full bg-emerald-600 text-white font-bold text-[11px] shadow-sm hover:bg-emerald-700 text-decoration-none inline-flex items-center gap-1">
+                                            <i class="bi bi-plus-lg"></i> Buat Surat Tugas
+                                        </a>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -183,7 +170,7 @@
                     </span>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="w-full overflow-x-auto touch-pan-x custom-scrollbar">
                     <table class="w-full text-left border-collapse" id="tableRiwayatSuratTugas">
                         <thead>
                             <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200 dark:border-slate-700">
@@ -222,6 +209,13 @@
                                         <a href="{% url 'surat_tugas:detail' surat.pk %}" class="px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-600 text-sky-600 dark:text-sky-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Lihat Detail Surat Tugas">
                                             <i class="bi bi-eye-fill"></i> Detail
                                         </a>
+
+                                        <!-- TERBITKAN SPPD -->
+                                        {% if surat.disposition %}
+                                        <a href="{% url 'sppd_service:create_with_st' surat.pk %}" class="px-2.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[11px] shadow-sm transition-all text-decoration-none inline-flex items-center gap-1" title="Terbitkan Berkas SPPD dari Surat Tugas Resmi ini">
+                                            <i class="bi bi-car-front-fill"></i> Terbitkan SPPD
+                                        </a>
+                                        {% endif %}
 
                                         <!-- EDIT -->
                                         <a href="{% url 'surat_tugas:update' surat.pk %}" class="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white font-extrabold text-[11px] transition-all text-decoration-none inline-flex items-center gap-1" title="Edit Surat Tugas">

@@ -122,6 +122,26 @@ class SPPD(models.Model):
         super().save(*args, **kwargs)
 
         try:
+            arch = None
+            if self.disposition and self.disposition.archive:
+                arch = self.disposition.archive
+            elif self.surat_tugas and self.surat_tugas.disposition and self.surat_tugas.disposition.archive:
+                arch = self.surat_tugas.disposition.archive
+
+            if arch and arch.status != 'selesai':
+                purp = ((self.purpose or '') + ' ' + (self.sppd_type or '')).lower()
+                if self.sppd_type == 'penyaluran' or any(k in purp for k in ['penyaluran', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin', 'bedah rumah', 'kursi roda']):
+                    if arch.status != 'telah_disalurkan':
+                        arch.status = 'telah_disalurkan'
+                        arch.save(update_fields=['status', 'updated_at'])
+                elif self.sppd_type == 'survei' or any(k in purp for k in ['survei', 'peninjauan', 'lokasi', 'lapangan', 'cek', 'mustahik']):
+                    if arch.status not in ['dalam_survei', 'telah_disurvei', 'telah_disalurkan']:
+                        arch.status = 'dalam_survei'
+                        arch.save(update_fields=['status', 'updated_at'])
+        except Exception as e:
+            print('Failed to sync SPPD -> Archive status:', e)
+
+        try:
             if self.status in ['disetujui', 'berlangsung'] or self.departure_date:
                 from notifications.tasks import create_calendar_event
               
