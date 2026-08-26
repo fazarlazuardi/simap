@@ -130,23 +130,31 @@ class WhatsAppService:
                 )
                 n = Notification.objects.filter(pk=notif_id_val).first()
                 if n:
-                    if resp.status_code == 200 and resp.json().get('success', True):
+                    if resp.status_code == 200 and (resp.headers.get('content-type', '').startswith('application/json') and resp.json().get('success', True)):
+                        n.status = 'sent'
+                        n.sent_at = timezone.now()
+                    elif resp.status_code == 200:
                         n.status = 'sent'
                         n.sent_at = timezone.now()
                     else:
                         n.status = 'failed'
                         n.error_log = f"HTTP {resp.status_code}"
-                    n.save()
+                    n.save(update_fields=['status', 'sent_at', 'error_log'])
             except Exception as ex:
                 n = Notification.objects.filter(pk=notif_id_val).first()
                 if n:
                     n.status = 'failed'
                     n.error_log = f"Gateway offline: {str(ex)}"
-                    n.save()
+                    n.save(update_fields=['status', 'error_log'])
             finally:
                 connections.close_all()
 
-        threading.Thread(target=_dispatch_async, daemon=True).start()
+        try:
+            from django.db import transaction
+            transaction.on_commit(lambda: threading.Thread(target=_dispatch_async, daemon=True).start())
+        except Exception:
+            threading.Thread(target=_dispatch_async, daemon=True).start()
+
         return {'status': 'sent', 'message': 'Notifikasi WA dikirim di latar belakang', 'notif_id': notif.id}
 
     @staticmethod

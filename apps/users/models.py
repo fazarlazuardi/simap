@@ -159,6 +159,44 @@ class Employee(models.Model):
         return f"https://ui-avatars.com/api/?name={name_str}&background=046C4E&color=fff&size=128&bold=true"
 
     @property
+    def bidang_name(self):
+        """Mendapatkan nama Bidang/Bagian pegawai secara cerdas untuk visualisasi & rekap."""
+        if self.dept_relation and self.dept_relation.name:
+            return self.dept_relation.name.strip()
+        
+        pos_lower = (self.position or '').lower()
+        lead_lower = (self.leadership_type or '').lower()
+        combined = f"{pos_lower} {lead_lower}"
+        
+        if 'ketua' in combined or 'pimpinan' in combined:
+            return 'Pimpinan BAZNAS'
+        elif any(k in combined for k in ['1', 'i', 'pengumpulan']):
+            return 'Bidang I (Pengumpulan)'
+        elif any(k in combined for k in ['2', 'ii', 'pendistribusian', 'pendayagunaan']):
+            return 'Bidang II (Pendistribusian)'
+        elif any(k in combined for k in ['3', 'iii', 'perencanaan', 'keuangan']):
+            return 'Bidang III (Perencanaan & Keuangan)'
+        elif any(k in combined for k in ['4', 'iv', 'administrasi', 'sdm', 'umum']):
+            return 'Bidang IV (Administrasi & SDM)'
+        return 'Staf Pelaksana'
+
+    @property
+    def bidang_color(self):
+        """Mendapatkan kode warna HEX khas per Bidang untuk grafik visual yang variatif & futuristik."""
+        b_name = self.bidang_name.lower()
+        if any(k in b_name for k in ['ketua', 'pimpinan', 'waka']):
+            return '#f43f5e'  # Rose Crimson (Pimpinan BAZNAS)
+        if any(k in b_name for k in ['bidang iv', 'bidang 4', 'sdm', 'umum', 'administrasi', 'sekertaris', 'sekretariat', 'sekretaris']):
+            return '#06b6d4'  # Electric Cyan (Bidang IV - SDM & Umum)
+        if any(k in b_name for k in ['bidang iii', 'bidang 3', 'perencanaan', 'keuangan', 'pelaporan']):
+            return '#8b5cf6'  # Purple Violet (Bidang III - Perencanaan & Keuangan)
+        if any(k in b_name for k in ['bidang ii', 'bidang 2', 'pendistribusian', 'pendayagunaan', 'bantuan', 'mustahik']):
+            return '#f59e0b'  # Amber Gold (Bidang II - Pendistribusian)
+        if any(k in b_name for k in ['bidang i', 'bidang 1', 'pengumpulan', 'zakat', 'infaq', 'munfiq']):
+            return '#10b981'  # Emerald Cyber (Bidang I - Pengumpulan)
+        return '#3b82f6'  # Royal Blue (Default)
+
+    @property
     def phone(self):
         """Property alias untuk phone_number agar notifikasi WA kompatibel di semua modul."""
         return self.phone_number

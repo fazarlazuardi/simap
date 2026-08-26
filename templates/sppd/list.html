@@ -157,18 +157,39 @@
 
     <!-- GRAFIK RANGKING SPPD PEGAWAI -->
     <div class="mb-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-5">
-        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-3">
             <div>
                 <h3 class="font-extrabold text-sm text-slate-900 dark:text-white flex items-center gap-2 mb-0">
-                    <i class="bi bi-bar-chart-line-fill text-emerald-600 dark:text-emerald-400"></i> Grafik Rangking Frekuensi SPPD Pegawai (Bulan Ini)
+                    <i class="bi bi-bar-chart-line-fill text-emerald-600 dark:text-emerald-400"></i> Grafik Rangking Frekuensi SPPD Pegawai per Bidang (Bulan Ini)
                 </h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">Pemantauan frekuensi perjalanan dinas dan survei mustahik pegawai secara visual</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-0">Pemantauan frekuensi perjalanan dinas dan survei mustahik pegawai dengan distingsi warna per Bidang / Bagian</p>
             </div>
             <span class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono">
                 Realtime Ranking
             </span>
         </div>
-        <div id="sppdModuleChart" style="min-height: 250px;"></div>
+
+        <!-- LEGEND WARNA BIDANG PEGAWAI (MODERN & FUTURISTIC) -->
+        <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-3 mb-4">
+            <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono me-1">Distingsi Warna Bidang:</span>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 shadow-2xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span> Bidang I (Pengumpulan)
+            </span>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 inline-flex items-center gap-1.5 shadow-2xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span> Bidang II (Pendistribusian)
+            </span>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 inline-flex items-center gap-1.5 shadow-2xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]"></span> Bidang III (Perencanaan & Keuangan)
+            </span>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 inline-flex items-center gap-1.5 shadow-2xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#06b6d4]"></span> Bidang IV (Administrasi & SDM)
+            </span>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 inline-flex items-center gap-1.5 shadow-2xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#f43f5e]"></span> Pimpinan BAZNAS
+            </span>
+        </div>
+
+        <div id="sppdModuleChart" style="min-height: 280px;"></div>
     </div>
 
     <!-- FILTER PANEL GLASS -->
@@ -622,13 +643,13 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // ApexChart Grafis SPPD
+        // ApexChart Grafis SPPD per Bidang Pegawai
         const chartContainer = document.querySelector("#sppdModuleChart");
         if (chartContainer && typeof ApexCharts !== 'undefined') {
             var labels = [{% for emp, cnt in top_employees %}"{{ emp.full_name|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
             var seriesData = [{% for emp, cnt in top_employees %}{{ cnt }}{% if not forloop.last %}, {% endif %}{% endfor %}];
-
-            var sppdBarColors = ['#059669', '#10b981', '#34d399', '#0284c7', '#38bdf8', '#f59e0b', '#fbbf24', '#6366f1', '#818cf8', '#a855f7'];
+            var bidangNames = [{% for emp, cnt in top_employees %}"{{ emp.bidang_name|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+            var sppdBarColors = [{% for emp, cnt in top_employees %}"{{ emp.bidang_color }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
 
             function getSppdChartTheme() {
                 const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -642,13 +663,13 @@
 
             var options = {
                 series: [{ name: 'Frekuensi SPPD', data: seriesData }],
-                chart: { type: 'bar', height: 260, toolbar: { show: false }, background: 'transparent' },
+                chart: { type: 'bar', height: Math.max(280, labels.length * 38), toolbar: { show: false }, background: 'transparent' },
                 theme: { mode: t.mode },
                 plotOptions: { 
                     bar: { 
                         horizontal: true, 
                         borderRadius: 8, 
-                        barHeight: '55%', 
+                        barHeight: '60%', 
                         distributed: true,
                         dataLabels: { position: 'top' }
                     } 
@@ -661,20 +682,32 @@
                     axisTicks: { show: false }
                 },
                 yaxis: {
-                    labels: { style: { colors: t.text, fontSize: '12px', fontWeight: 600 } }
+                    labels: { 
+                        style: { colors: t.text, fontSize: '12px', fontWeight: 700 }
+                    }
                 },
                 legend: { show: false },
                 grid: { borderColor: t.grid, strokeDashArray: 4 },
                 dataLabels: {
                     enabled: true,
                     textAnchor: 'start',
-                    style: { fontSize: '12px', fontWeight: 'bold', colors: ['#ffffff'] },
-                    formatter: function (val) { return val + " SPPD"; },
+                    style: { fontSize: '11px', fontWeight: 'bold', colors: ['#ffffff'] },
+                    formatter: function (val, opts) {
+                        var idx = opts.dataPointIndex;
+                        var bName = bidangNames[idx] ? (" • " + bidangNames[idx]) : "";
+                        return val + " SPPD" + bName; 
+                    },
                     offsetX: 10
                 },
                 tooltip: { 
                     theme: t.mode,
-                    y: { formatter: function(val) { return val + " Kali Perjalanan Dinas"; } }
+                    y: { 
+                        formatter: function(val, opts) {
+                            var idx = opts.dataPointIndex;
+                            var bName = bidangNames[idx] ? (" [" + bidangNames[idx] + "]") : "";
+                            return val + " Kali Perjalanan Dinas" + bName; 
+                        } 
+                    }
                 }
             };
             var chart = new ApexCharts(chartContainer, options);

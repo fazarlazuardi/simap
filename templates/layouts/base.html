@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>{% block title %}BAZNAS - Sistem Arsip SDM{% endblock %}</title>
   
-  <!-- ⚡ EARLY ANTI-FLASH DARK MODE INITIALIZER ⚡ -->
+  <!-- ⚡ EARLY ANTI-FLASH DARK MODE & SIDEBAR INITIALIZER ⚡ -->
   <script>
     (function() {
       var savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -16,6 +16,13 @@
         document.documentElement.classList.remove('dark');
       }
       document.documentElement.setAttribute('data-theme', savedTheme);
+
+      var savedSidebar = localStorage.getItem('desktopSidebarOpen');
+      if (savedSidebar === 'false') {
+        document.documentElement.classList.add('sidebar-collapsed');
+      } else {
+        document.documentElement.classList.remove('sidebar-collapsed');
+      }
     })();
   </script>
 
@@ -50,6 +57,41 @@
         height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
+    }
+
+    /* Zero-Flash Anti-Flicker Desktop Sidebar Engine */
+    @media (min-width: 1024px) {
+      html.sidebar-collapsed aside.desktop-sidebar {
+        width: 5rem !important;
+        min-width: 5rem !important;
+      }
+      html.sidebar-collapsed aside.desktop-sidebar .sidebar-text,
+      html.sidebar-collapsed aside.desktop-sidebar .menu-category-title,
+      html.sidebar-collapsed aside.desktop-sidebar .app-name,
+      html.sidebar-collapsed aside.desktop-sidebar .app-status-badge {
+        display: none !important;
+      }
+      html.sidebar-collapsed aside.desktop-sidebar .sidebar-nav-item {
+        justify-content: center !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+    }
+
+    /* Silky Smooth Page Entrance Animation */
+    @keyframes pageFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #module-page-container {
+      animation: pageFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .custom-scrollbar::-webkit-scrollbar {
@@ -114,7 +156,19 @@
   {% include 'includes/slide_over_drawer.html' %}
 
   <!-- ⚡ 100% PURE TAILWIND CSS MASTER LAYOUT (DESKTOP + MOBILE OFF-CANVAS) ⚡ -->
-  <div class="flex h-screen w-full overflow-hidden" x-data="{ sidebarOpen: false, desktopSidebarOpen: true }">
+  <div class="flex h-screen w-full overflow-hidden" 
+       x-data="{ 
+         sidebarOpen: false, 
+         desktopSidebarOpen: localStorage.getItem('desktopSidebarOpen') === null ? true : (localStorage.getItem('desktopSidebarOpen') === 'true')
+       }"
+       x-init="$watch('desktopSidebarOpen', val => {
+         localStorage.setItem('desktopSidebarOpen', val);
+         if (val) {
+           document.documentElement.classList.remove('sidebar-collapsed');
+         } else {
+           document.documentElement.classList.add('sidebar-collapsed');
+         }
+       })">
 
     <!-- BACKDROP OVERLAY FOR MOBILE OFF-CANVAS DRAWER -->
     <div x-cloak 
@@ -142,7 +196,7 @@
     </aside>
 
     <!-- 1B. DESKTOP COLLAPSIBLE SIDEBAR (lg:) -->
-    <aside class="hidden lg:flex flex-col h-full shrink-0 bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 z-30 transition-all duration-300 relative overflow-hidden" 
+    <aside class="desktop-sidebar hidden lg:flex flex-col h-full shrink-0 bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 z-30 transition-all duration-300 relative overflow-hidden" 
            :class="{ 'w-64 min-w-[16rem]': desktopSidebarOpen, 'w-20 min-w-[5rem]': !desktopSidebarOpen }">
       {% include 'layouts/sidebar.html' %}
     </aside>

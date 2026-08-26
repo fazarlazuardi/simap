@@ -535,19 +535,47 @@ def agenda_edit(request, pk):
                     f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
                 )
                 
-                user_map = {u.employee_id: u for u in User.objects.filter(employee__in=wa_emps)}
-                for emp in wa_emps:
-                    user = user_map.get(emp.pk)
-                    WhatsAppService.send_notification(
-                        user=user, 
-                        message=msg, 
-                        employee=emp, 
-                        category='agenda', 
-                        title="Perubahan Jadwal Agenda"
-                    )
-                
-                agenda.notification_sent_at = timezone.now()
-                agenda.save(update_fields=['notification_sent_at'])
+                agenda_id_val = agenda.pk
+                msg_val = msg
+                wa_emp_ids = list(wa_emps.values_list('id', flat=True))
+
+                import threading
+                def _bg_notify_agenda_edit():
+                    from django.db import connections
+                    connections.close_all()
+                    try:
+                        from agendas.models import Agenda
+                        from users.models import Employee, User
+                        from services.integrations.gateway_service import WhatsAppService
+                        
+                        ag_obj = Agenda.objects.filter(pk=agenda_id_val).first()
+                        if not ag_obj:
+                            return
+                        
+                        emps_list = list(Employee.objects.filter(id__in=wa_emp_ids))
+                        user_map_bg = {u.employee_id: u for u in User.objects.filter(employee__in=emps_list)}
+                        for emp in emps_list:
+                            u_target = user_map_bg.get(emp.pk)
+                            WhatsAppService.send_notification(
+                                user=u_target,
+                                message=msg_val,
+                                employee=emp,
+                                category='agenda',
+                                title="Perubahan Jadwal Agenda"
+                            )
+                        ag_obj.notification_sent_at = timezone.now()
+                        ag_obj.save(update_fields=['notification_sent_at'])
+                    except Exception as ex_ag:
+                        import logging
+                        logging.getLogger(__name__).error("Error in async agenda_edit notification: %s", ex_ag)
+                    finally:
+                        connections.close_all()
+
+                try:
+                    from django.db import transaction
+                    transaction.on_commit(lambda: threading.Thread(target=_bg_notify_agenda_edit, daemon=True).start())
+                except Exception:
+                    threading.Thread(target=_bg_notify_agenda_edit, daemon=True).start()
 
             AuditService.log_action(request.user, f"Perbarui Agenda: {title}", request)
             messages.success(request, f"Agenda '{title}' berhasil diperbarui.")
@@ -657,20 +685,49 @@ def agenda_create(request):
                 f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
             )
             
-            user_map = {u.employee_id: u for u in User.objects.filter(employee__in=wa_emps)}
-            for emp in wa_emps:
-                user = user_map.get(emp.pk)
-                WhatsAppService.send_notification(
-                    user=user, 
-                    message=msg, 
-                    employee=emp, 
-                    category='agenda', 
-                    title="Agenda Baru"
-                )
-            
-            agenda.notification_sent_at = timezone.now()
-            agenda.save(update_fields=['notification_sent_at'])
-            msg_notif = f"dan notifikasi WA terkirim ke {wa_emps.count()} pegawai"
+            agenda_id_val = agenda.pk
+            msg_val = msg
+            wa_emp_ids = list(wa_emps.values_list('id', flat=True))
+
+            import threading
+            def _bg_notify_agenda_create():
+                from django.db import connections
+                connections.close_all()
+                try:
+                    from agendas.models import Agenda
+                    from users.models import Employee, User
+                    from services.integrations.gateway_service import WhatsAppService
+
+                    ag_obj = Agenda.objects.filter(pk=agenda_id_val).first()
+                    if not ag_obj:
+                        return
+
+                    emps_list = list(Employee.objects.filter(id__in=wa_emp_ids))
+                    user_map_bg = {u.employee_id: u for u in User.objects.filter(employee__in=emps_list)}
+                    for emp in emps_list:
+                        u_target = user_map_bg.get(emp.pk)
+                        WhatsAppService.send_notification(
+                            user=u_target,
+                            message=msg_val,
+                            employee=emp,
+                            category='agenda',
+                            title="Agenda Baru"
+                        )
+                    ag_obj.notification_sent_at = timezone.now()
+                    ag_obj.save(update_fields=['notification_sent_at'])
+                except Exception as ex_ag:
+                    import logging
+                    logging.getLogger(__name__).error("Error in async agenda_create notification: %s", ex_ag)
+                finally:
+                    connections.close_all()
+
+            try:
+                from django.db import transaction
+                transaction.on_commit(lambda: threading.Thread(target=_bg_notify_agenda_create, daemon=True).start())
+            except Exception:
+                threading.Thread(target=_bg_notify_agenda_create, daemon=True).start()
+
+            msg_notif = f"dan notifikasi WA diproses untuk {wa_emps.count()} pegawai"
         else:
             msg_notif = "tanpa notifikasi WA"
 
@@ -751,18 +808,50 @@ def agenda_notify(request, pk):
             messages.warning(request, f"Tidak ada pegawai yang ditugaskan untuk agenda '{agenda.title}'. Tambahkan pegawai melalui edit agenda.")
             return redirect('agendas:list')
 
-        sent = 0
-        user_map = {u.employee_id: u for u in User.objects.filter(employee__in=target_employees)}
-        for emp in target_employees:
-            user = user_map.get(emp.pk)
-            if WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='agenda', title="Pengingat Agenda"):
-                sent += 1
+        agenda_id_val = agenda.pk
+        msg_val = msg
+        target_emp_ids = [e.pk for e in target_employees]
 
-        agenda.notification_sent_at = timezone.now()
-        agenda.save(update_fields=['notification_sent_at'])
+        import threading
+        def _bg_notify_agenda_reminder():
+            from django.db import connections
+            connections.close_all()
+            try:
+                from agendas.models import Agenda
+                from users.models import Employee, User
+                from services.integrations.gateway_service import WhatsAppService
+
+                ag_obj = Agenda.objects.filter(pk=agenda_id_val).first()
+                if not ag_obj:
+                    return
+
+                emps_list = list(Employee.objects.filter(id__in=target_emp_ids))
+                user_map_bg = {u.employee_id: u for u in User.objects.filter(employee__in=emps_list)}
+                for emp in emps_list:
+                    u_target = user_map_bg.get(emp.pk)
+                    WhatsAppService.send_notification(
+                        user=u_target,
+                        message=msg_val,
+                        employee=emp,
+                        category='agenda',
+                        title="Pengingat Agenda"
+                    )
+                ag_obj.notification_sent_at = timezone.now()
+                ag_obj.save(update_fields=['notification_sent_at'])
+            except Exception as ex_ag:
+                import logging
+                logging.getLogger(__name__).error("Error in async agenda_notify notification: %s", ex_ag)
+            finally:
+                connections.close_all()
+
+        try:
+            from django.db import transaction
+            transaction.on_commit(lambda: threading.Thread(target=_bg_notify_agenda_reminder, daemon=True).start())
+        except Exception:
+            threading.Thread(target=_bg_notify_agenda_reminder, daemon=True).start()
 
         AuditService.log_action(request.user, f"Kirim Notifikasi Pengingat Agenda: {agenda.title}", request)
-        messages.success(request, f"Notifikasi WA dikirim ke {sent} dari {len(target_employees)} pegawai ditugaskan untuk agenda '{agenda.title}'.")
+        messages.success(request, f"Notifikasi WA diproses di latar belakang untuk {len(target_employees)} pegawai ditugaskan untuk agenda '{agenda.title}'.")
     return redirect('agendas:list')
 
 

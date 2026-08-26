@@ -245,20 +245,43 @@ class Disposition(models.Model):
                     self.archive.save(update_fields=['status', 'updated_at'])
 
         # Trigger notifikasi WhatsApp (Sentralisasi via WhatsAppService untuk mematuhi Matriks Pengaturan WA)
-        try:
-            from services.integrations.gateway_service import WhatsAppService
-            for emp in self.forwarded_to.all():
-                if emp and (getattr(emp, 'phone_number', None) or getattr(emp, 'phone', None)):
-                    message = f"Disposisi {self.disposition_number or ''} untuk arsip: {self.archive.title if self.archive else ''}. Instruksi: {(self.note or '')[:120]}"
-                    WhatsAppService.send_notification(
-                        user=getattr(emp, 'user_account', None),
-                        message=message,
-                        employee=emp,
-                        category='disposition',
-                        title="Disposisi Pimpinan"
-                    )
-        except Exception as ex:
-            logger.warning(f"Failed to trigger dispo WA notification: {ex}")
+        if self.pk:
+            dispo_pk = self.pk
+            note_val = (self.note or '')[:120]
+            num_val = self.disposition_number or ''
+            arc_title_val = self.archive.title if self.archive else ''
+
+            import threading
+            def _bg_notify_dispo_save():
+                from django.db import connections
+                connections.close_all()
+                try:
+                    from dispositions.models import Disposition
+                    from services.integrations.gateway_service import WhatsAppService
+
+                    d_obj = Disposition.objects.filter(pk=dispo_pk).first()
+                    if not d_obj:
+                        return
+                    for emp in d_obj.forwarded_to.all():
+                        if emp and (getattr(emp, 'phone_number', None) or getattr(emp, 'phone', None)):
+                            message = f"Disposisi {num_val} untuk arsip: {arc_title_val}. Instruksi: {note_val}"
+                            WhatsAppService.send_notification(
+                                user=getattr(emp, 'user_account', None),
+                                message=message,
+                                employee=emp,
+                                category='disposition',
+                                title="Disposisi Pimpinan"
+                            )
+                except Exception as ex:
+                    logger.warning(f"Failed to trigger dispo WA notification: {ex}")
+                finally:
+                    connections.close_all()
+
+            try:
+                from django.db import transaction
+                transaction.on_commit(lambda: threading.Thread(target=_bg_notify_dispo_save, daemon=True).start())
+            except Exception:
+                threading.Thread(target=_bg_notify_dispo_save, daemon=True).start()
 
     def __str__(self):
         num = self.disposition_number or f"DISP-{self.pk:03d}"
