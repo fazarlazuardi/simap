@@ -158,10 +158,7 @@ def disposition_edit(request, pk):
             return redirect('archives:detail', pk=dispo.archive.pk)
         return redirect('dispositions:list')
 
-    if dispo.status not in ('baru',):
-        messages.error(request, "Disposisi Ketua sudah diisi, tidak bisa diedit ulang dari sini.")
-        return redirect('dispositions:detail', pk=dispo.pk)
-
+    # Catatan: Pengguna (Pimpinan, Kabid IV, FO, Superadmin) dapat melakukan edit/perbaikan kapan saja jika ada kesalahan disposisi
     archive = dispo.archive
 
     if request.method == 'POST':
@@ -177,14 +174,45 @@ def disposition_edit(request, pk):
         dispo.inst_koordinasikan = 'inst_koordinasikan' in request.POST
 
         forwarded_emp_ids = request.POST.getlist('forwarded_to')
-        dispo.forwarded_to.set(Employee.objects.filter(id__in=forwarded_emp_ids))
+        forwarded_emps = Employee.objects.filter(id__in=forwarded_emp_ids)
+        dispo.forwarded_to.set(forwarded_emps)
+
+        # Cek apakah penerima disposisi Ketua mencakup Waka IV / Bidang IV
+        has_waka_4_target = False
+        for emp in forwarded_emps:
+            pos_lower = (emp.position or '').lower()
+            lead_type = getattr(emp, 'leadership_type', '')
+            if lead_type == 'waka_4' or any(kw in pos_lower for kw in ['waka iv', 'waka 4', 'wakil ketua iv', 'wakil ketua 4', 'bidang iv', 'bidang 4']):
+                has_waka_4_target = True
+                break
 
         # Tentukan sender_label Ketua
         dispo.sender_label = _resolve_sender_label(request.user, 'ketua')
-        dispo.disposition_stage = 'ketua'
-        dispo.status = 'didisposisi_ketua'
 
-        # Update status arsip → terverifikasi sudah didisposisi ketua
+        # Logika Cerdas: Jika Disposisi Ketua di-edit dan sebelumnya sudah ada Disposisi Waka IV
+        had_waka_dispo = bool(dispo.waka_note or dispo.waka_forwarded_to.exists() or dispo.disposition_stage == 'waka_iv')
+        if had_waka_dispo:
+            if not has_waka_4_target:
+                # Ketua mendisposisikan langsung ke Waka/Bidang lain (misal Waka III / Waka II) tanpa melalui Waka IV -> Batalkan/Hapus disposisi Waka IV lama
+                dispo.waka_note = ''
+                dispo.waka_forwarded_to.clear()
+                dispo.waka_inst_selesaikan = False
+                dispo.waka_inst_untuk_diketahui = False
+                dispo.waka_inst_laporkan_hasilnya = False
+                dispo.waka_inst_koordinasikan = False
+                dispo.disposition_stage = 'ketua'
+                dispo.status = 'didisposisi_ketua'
+                messages.info(request, "Disposisi Ketua diperbarui ke unit lain. Disposisi Waka IV sebelumnya otomatis dibatalkan/dihapus.")
+            else:
+                # Waka IV masih menjadi tujuan, reset status ke 'didisposisi_ketua' agar Waka IV dapat memperbarui arahan
+                dispo.disposition_stage = 'ketua'
+                dispo.status = 'didisposisi_ketua'
+                messages.info(request, "Disposisi Ketua diperbarui. Disposisi Waka IV dikembalikan ke status 'Menunggu Waka IV' untuk penyesuaian.")
+        else:
+            if dispo.status == 'baru':
+                dispo.disposition_stage = 'ketua'
+                dispo.status = 'didisposisi_ketua'
+
         if archive:
             archive.status = 'didisposisikan'
             archive.save(update_fields=['status', 'updated_at'])
@@ -203,8 +231,8 @@ def disposition_edit(request, pk):
         from services.notifications.notification_service import NotificationService
         NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
 
-        AuditService.log_action(request.user, f"Disposisi Ketua: {dispo.disposition_number}", request)
-        messages.success(request, f"Disposisi Ketua berhasil dikirim atas nama: {dispo.sender_label}")
+        AuditService.log_action(request.user, f"Edit Disposisi Ketua: {dispo.disposition_number}", request)
+        messages.success(request, f"Disposisi Ketua ({dispo.disposition_number}) berhasil diperbarui.")
         return redirect(f"/dispositions/?dispo_success_id={dispo.pk}")
 
     employees = Employee.objects.select_related('user_account', 'dept_relation').order_by('full_name')
@@ -241,8 +269,8 @@ def disposition_waka_edit(request, pk):
         messages.error(request, "Hanya Pimpinan, Kabid IV, atau Superadmin yang bisa melakukan disposisi Waka IV.")
         return redirect('dispositions:list')
 
-    if dispo.status != 'didisposisi_ketua':
-        messages.warning(request, "Disposisi Waka IV hanya bisa diisi setelah Disposisi Ketua selesai.")
+    if dispo.status == 'baru':
+        messages.warning(request, "Disposisi Waka IV hanya bisa diisi setelah Disposisi Ketua dibuat.")
         return redirect('dispositions:detail', pk=dispo.pk)
 
     archive = dispo.archive
@@ -261,13 +289,14 @@ def disposition_waka_edit(request, pk):
         waka_fwd_ids = request.POST.getlist('waka_forwarded_to')
         dispo.waka_forwarded_to.set(Employee.objects.filter(id__in=waka_fwd_ids))
 
-        # Update stage ke waka_iv, status ke proses
-        dispo.disposition_stage = 'waka_iv'
-        dispo.status = 'proses'
+        # Update stage ke waka_iv, status ke proses jika sebelumnya baru didisposisi ketua
+        if dispo.status == 'didisposisi_ketua':
+            dispo.disposition_stage = 'waka_iv'
+            dispo.status = 'proses'
 
-        if archive:
-            archive.status = 'proses'
-            archive.save(update_fields=['status', 'updated_at'])
+            if archive:
+                archive.status = 'proses'
+                archive.save(update_fields=['status', 'updated_at'])
 
         dispo.save()
 
@@ -418,33 +447,87 @@ def disposition_create(request, archive_pk):
         if existing.disposition_stage == 'ketua' and existing.status == 'didisposisi_ketua':
             return redirect('dispositions:waka_edit', pk=existing.pk)
         elif existing.status in ('proses', 'selesai'):
-            messages.info(request, "Dokumen ini sudah melalui kedua tahap disposisi.")
+            messages.info(request, "Dokumen ini sudah melalui tahap disposisi.")
             return redirect('dispositions:detail', pk=existing.pk)
-        else:
+        elif existing.note or existing.forwarded_to.exists():
             return redirect('dispositions:edit', pk=existing.pk)
 
-    # Otomatis kunci sender_label Ketua BAZNAS saat pembuatan disposisi baru (atau takeover)
+    # PROSES FORM DISPOSISI KETUA SAAT USER MENEKAN SIMPAN (POST)
+    if request.method == 'POST':
+        from services.archives.numbering_service import NumberingService
+        dispo_number = request.POST.get('disposition_number') or NumberingService.generate_number('disposition')
+        
+        if not existing:
+            dispo = Disposition.objects.create(
+                archive=archive,
+                sender=request.user,
+                disposition_number=dispo_number,
+                sender_label=_resolve_sender_label(request.user, 'ketua'),
+                disposition_stage='ketua',
+                status='didisposisi_ketua',
+            )
+        else:
+            dispo = existing
+            dispo.disposition_number = dispo_number or dispo.disposition_number
+            dispo.status = 'didisposisi_ketua'
+
+        dispo.priority = request.POST.get('priority', 'biasa')
+        dispo.note = request.POST.get('note', '')
+        imp_date = request.POST.get('target_date') or request.POST.get('implementation_date')
+        if imp_date:
+            dispo.implementation_date = imp_date
+        dispo.inst_selesaikan = 'inst_selesaikan' in request.POST
+        dispo.inst_untuk_diketahui = 'inst_untuk_diketahui' in request.POST
+        dispo.inst_laporkan_hasilnya = 'inst_laporkan_hasilnya' in request.POST
+        dispo.inst_koordinasikan = 'inst_koordinasikan' in request.POST
+
+        forwarded_emp_ids = request.POST.getlist('forwarded_to')
+        dispo.forwarded_to.set(Employee.objects.filter(id__in=forwarded_emp_ids))
+        dispo.save()
+
+        archive.status = 'didisposisikan'
+        archive.save(update_fields=['status', 'updated_at'])
+
+        AuditService.log_action(request.user, f"Buat Disposisi Ketua: {dispo.disposition_number}", request)
+        messages.success(request, f"Disposisi Ketua ({dispo.disposition_number}) berhasil disimpan.")
+        return redirect(f"/dispositions/?dispo_success_id={dispo.pk}")
+
+    # JIKA HANYA TAMPILKAN FORM (GET): TIDAK SIMPAN DISPOSISI DRAFT AGAR STATUS ARSIP TIDAK BERUBAH JIKA BATAL
+    employees = Employee.objects.select_related('user_account', 'dept_relation').order_by('full_name')
     from services.archives.numbering_service import NumberingService
-    dispo_number = NumberingService.generate_number('disposition')
-    dispo = Disposition.objects.create(
-        archive=archive,
-        sender=request.user,
-        disposition_number=dispo_number,
-        sender_label=_resolve_sender_label(request.user, 'ketua'),
-        disposition_stage='ketua',
-        status='baru',
-    )
-    messages.success(request, f"Lembar disposisi untuk '{archive.title}' berhasil dibuat. Silakan isi instruksi Ketua.")
-    return redirect('dispositions:edit', pk=dispo.pk)
+    generated_disp_no = NumberingService.get_default_number('disposition', {})
+
+    return render(request, 'dispositions/edit.html', {
+        'dispo': existing,
+        'disposition': existing,
+        'archive': archive,
+        'employees': employees,
+        'generated_disp_no': generated_disp_no,
+        'stage': 'ketua',
+        'sender_label': _resolve_sender_label(request.user, 'ketua'),
+    })
 
 
 @login_required
-@pimpinan_required
 def disposition_delete(request, pk):
     dispo = get_object_or_404(Disposition, pk=pk)
-    if request.method == 'POST':
-        dispo.delete()
-        messages.success(request, "Disposisi berhasil dihapus.")
+    active_pov = request.session.get('active_pov')
+    is_authorized = (
+        active_pov in ['ketua', 'waka_4', 'kabid_4', 'sdm', 'fo'] or
+        request.user.is_pimpinan or
+        request.user.is_superadmin or
+        getattr(request.user, 'is_kabid_4', False) or
+        getattr(request.user, 'is_sdm', False) or
+        getattr(request.user, 'is_fo', False)
+    )
+    if not is_authorized:
+        messages.error(request, "Akses ditolak. Anda tidak memiliki wewenang untuk menghapus disposisi ini.")
+        return redirect('dispositions:list')
+
+    num = dispo.disposition_number or f"ID-{dispo.pk}"
+    AuditService.log_action(request.user, f"Hapus Disposisi: {num}", request)
+    dispo.delete()
+    messages.success(request, f"Lembar Disposisi {num} berhasil dihapus.")
     return redirect('dispositions:list')
 
 

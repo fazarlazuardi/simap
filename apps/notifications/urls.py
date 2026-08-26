@@ -20,5 +20,6 @@ urlpatterns = [
     path('chat/send/', views.send_direct_message, name='send_direct_message'),
     path('chat/message/<int:pk>/delete/', views.delete_direct_message, name='delete_direct_message'),
     path('chat/<int:recipient_id>/clear/', views.clear_chat_thread, name='clear_chat_thread'),
+    path('chat/<int:recipient_id>/poll/', views.poll_chat_messages, name='poll_chat_messages'),
     path('chat/presence-status/', views.presence_status_json, name='presence_status'),
 ]

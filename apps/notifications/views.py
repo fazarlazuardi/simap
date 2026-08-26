@@ -326,8 +326,9 @@ def clear_chat_thread(request, recipient_id):
 
 @login_required
 def presence_status_json(request):
-    """API JSON Real-time untuk memantau presensi Online/Offline seluruh amil."""
+    """API JSON Real-time untuk memantau presensi Online/Offline & total unread chat/notifikasi."""
     from users.models import User
+    from .models import DirectMessage, Notification
     all_users = User.objects.filter(is_active=True).exclude(pk=request.user.pk)
     presence_map = {}
     for u in all_users:
@@ -335,6 +336,75 @@ def presence_status_json(request):
             'is_online': u.is_online,
             'last_seen_display': u.last_seen_display,
         }
-    return JsonResponse({'success': True, 'presence': presence_map})
+    
+    total_unread_chat = DirectMessage.objects.filter(recipient=request.user, is_read=False).count()
+    global_notif_count = Notification.objects.filter(user=request.user, status='unread').count()
+
+    return JsonResponse({
+        'success': True,
+        'presence': presence_map,
+        'total_unread_chat': total_unread_chat,
+        'global_notif_count': global_notif_count,
+    })
+
+
+@login_required
+def poll_chat_messages(request, recipient_id):
+    """API JSON Real-time untuk polling pesan obrolan terbaru dengan amil tertentu."""
+    from users.models import User
+    from .models import DirectMessage
+
+    recipient = get_object_or_404(User, pk=recipient_id, is_active=True)
+    try:
+        last_id = int(request.GET.get('last_id', 0))
+    except (ValueError, TypeError):
+        last_id = 0
+
+    new_messages = DirectMessage.objects.filter(
+        (Q(sender=request.user) & Q(recipient=recipient)) |
+        (Q(sender=recipient) & Q(recipient=request.user)),
+        id__gt=last_id
+    ).order_by('created_at')
+
+    # Tandai pesan yang diterima dari recipient sebagai sudah dibaca
+    DirectMessage.objects.filter(
+        sender=recipient,
+        recipient=request.user,
+        is_read=False
+    ).update(is_read=True)
+
+    messages_data = []
+    has_incoming = False
+    for msg in new_messages:
+        is_self = (msg.sender_id == request.user.pk)
+        if not is_self:
+            has_incoming = True
+
+        sender_avatar = ""
+        if hasattr(msg.sender, 'employee') and msg.sender.employee and msg.sender.employee.photo:
+            sender_avatar = msg.sender.employee.photo.url
+        else:
+            name_val = msg.sender.employee.full_name if hasattr(msg.sender, 'employee') and msg.sender.employee else msg.sender.username
+            sender_avatar = f"https://ui-avatars.com/api/?name={name_val}&background=059669&color=FFFFFF"
+
+        messages_data.append({
+            'id': msg.id,
+            'body': msg.body,
+            'sender_id': msg.sender_id,
+            'is_self': is_self,
+            'created_at': msg.created_at.strftime('%H:%M WIB'),
+            'sender_name': msg.sender.employee.full_name if hasattr(msg.sender, 'employee') and msg.sender.employee else msg.sender.username,
+            'sender_avatar': sender_avatar,
+        })
+
+    total_unread_chat = DirectMessage.objects.filter(recipient=request.user, is_read=False).count()
+
+    return JsonResponse({
+        'success': True,
+        'new_messages': messages_data,
+        'has_incoming': has_incoming,
+        'total_unread_chat': total_unread_chat,
+    })
+
 
 

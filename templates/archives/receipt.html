@@ -413,19 +413,19 @@
 
             <!-- Footer Tanda Tangan & QR Scan -->
             <div class="receipt-footer">
-                <div class="qr-section">
-                    <div style="position: relative; display: inline-block; width: 55px; height: 55px;">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ request.scheme }}://{{ request.get_host }}{% url 'archives:detail' archive.pk %}" 
+                <a href="{% url 'archives:public_track' archive.pk %}" target="_blank" title="Klik untuk Pratinjau Tampilan Tracking Publik" style="text-decoration: none; color: inherit; display: flex; items-center; gap: 8px;">
+                    <div style="position: relative; display: inline-block; width: 60px; height: 60px; flex-shrink: 0;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&ecc=H&margin=1&data={% if public_base_url %}{{ public_base_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% endif %}{% url 'archives:public_track' archive.pk %}" 
                              alt="QR Tracking Dokumen" 
-                             style="width: 55px; height: 55px; display: block;">
+                             style="width: 60px; height: 60px; display: block; border-radius: 4px;">
                         <img src="{% static 'img/logo_baznas.png' %}" 
-                             style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; background: white; padding: 1.5px; border-radius: 3px; border: 1px solid #046C4E;" 
+                             style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; background: white; padding: 1px; border-radius: 3px; border: 1px solid #046C4E;" 
                              alt="Logo BAZNAS">
                     </div>
                     <div>
-                        <span>PINDAI UNTUK<br>CEK PROSES & TRACKING</span>
+                        <span style="font-size: 8px; font-weight: bold; color: #046C4E; text-decoration: underline;">PINDAI / KLIK UNTUK<br>CEK PROSES & TRACKING</span>
                     </div>
-                </div>
+                </a>
 
 
                 <div class="signature-section">

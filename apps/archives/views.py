@@ -66,8 +66,10 @@ def can_view_arsip_sdm(request):
 
 def can_upload_archive(request):
     """
-    Hanya Front Office / Resepsionis (POV sdm / user.is_sdm tanpa role kabid/pimpinan)
-    dan Superadmin IT (dalam mode default / tanpa POV) yang dapat mengunggah arsip baru.
+    Menentukan apakah user berhak mengunggah arsip/dokumen baru:
+    - Front Office / Resepsionis / Staf SDM
+    - Kabid IV (Kepala Bidang IV - Administrasi, SDM & Umum)
+    - Superadmin IT
     """
     user = request.user
     if not user.is_authenticated:
@@ -75,13 +77,17 @@ def can_upload_archive(request):
 
     active_pov = request.session.get('active_pov')
     if active_pov:
-        return active_pov in ['sdm', 'front_office', 'fo', 'admin']
+        return active_pov in ['sdm', 'front_office', 'fo', 'admin', 'kabid_4']
         
     if getattr(user, 'is_superadmin', False) or getattr(user, 'is_superuser', False) or getattr(user, 'role', '') == 'admin':
         return True
         
-    # Pimpinan & Kabid (Ketua, Waka 4, Kabid 4, Waka 2, Kabid 2, dll) TIDAK BOLEH upload
-    if getattr(user, 'is_pimpinan', False) or getattr(user, 'is_kabid', False) or getattr(user, 'is_waka_4', False) or getattr(user, 'is_kabid_4', False):
+    # Kabid IV berhak mengunggah arsip
+    if getattr(user, 'is_kabid_4', False):
+        return True
+        
+    # Pimpinan & Kabid lainnya (selain Kabid 4) TIDAK BOLEH upload
+    if getattr(user, 'is_pimpinan', False) or (getattr(user, 'is_kabid', False) and not getattr(user, 'is_kabid_4', False)) or getattr(user, 'is_waka_4', False):
         return False
         
     emp = getattr(user, 'employee', None)
@@ -193,14 +199,13 @@ def archive_quick_detail(request, pk):
 
 
 @login_required
-@sdm_required
 def archive_upload(request):
     if not can_view_arsip_sdm(request):
         messages.error(request, "Modul Arsip SDM hanya dapat diakses oleh Bidang IV (Administrasi, SDM & Umum) dan Superadmin IT.")
         return redirect('users:dashboard')
 
     if not can_upload_archive(request):
-        messages.error(request, "Hak akses mengunggah arsip/dokumen baru HANYA dimiliki oleh Front Office / Resepsionis dan Superadmin IT.")
+        messages.error(request, "Hak akses mengunggah arsip/dokumen baru hanya dimiliki oleh Front Office / Resepsionis, Kabid IV, dan Superadmin IT.")
         return redirect('archives:list')
 
     if request.method == 'POST':
@@ -457,12 +462,15 @@ def archive_edit(request, pk):
         'archive_types': Archive.TYPE_CHOICES
     })
 
-@login_required
 def archive_detail(request, pk):
     """
     Detail Arsip & Berkas Digital.
     Dapat diakses oleh seluruh akun / seluruh bidang (Read-Only bagi non-Bidang IV/Admin).
+    Jika dibuka oleh publik/tanpa login, otomatis diarahkan ke halaman Tracking Alur BPMN.
     """
+    if not request.user.is_authenticated:
+        return redirect('archives:public_track', pk=pk)
+
     from services.workflows.workflow_engine import WorkflowEngine
     from services.timeline.timeline_service import TimelineService
     archive = get_object_or_404(
@@ -735,3 +743,108 @@ def trigger_backup_gdrive_email(request):
         else:
             messages.error(request, f"Gagal memproses pencadangan: {err_msg}")
     return redirect(request.META.get('HTTP_REFERER') or 'archives:list')
+
+
+def archive_public_track(request, pk):
+    """
+    Halaman Publik Tracking Alur BPMN (Hasil Scan QR Barcode Tanda Terima).
+    Dapat diakses oleh publik / siapa saja (Tanpa Login).
+    HANYA menampilkan Log Alur Tahap BPMN yang SUDAH / SEDANG dilalui.
+    Tahap yang belum tercapai TIDAK ditampilkan.
+    Tahap penugasan hanya tampil jika ada ST/SPPD.
+    Sama sekali tidak menampilkan nama-nama amil/pimpinan, tanpa berkas/file, tanpa tombol aksi.
+    """
+    from services.workflows.workflow_engine import WorkflowEngine
+
+    archive = get_object_or_404(Archive, pk=pk)
+    is_bantuan = WorkflowEngine.is_bantuan(archive)
+    status = archive.status
+
+    has_st_or_sppd = archive.dispositions.filter(
+        Q(surat_tugas__isnull=False) | Q(sppd_list__isnull=False)
+    ).exists() or archive.latest_st is not None or archive.latest_sppd is not None
+
+    # Tentukan secara dinamis tahap-tahap yang SUDAH / SEDANG dilalui
+    stages = []
+
+    # 1. Tahap 1: Registrasi Arsip (Front Office) - Selalu Tampil
+    stages.append({
+        'key': 'registrasi',
+        'title': 'Tahap 1: Registrasi Arsip (Front Office)',
+    })
+
+    # 2. Tahap 2: Verifikasi & Penomoran (Kabid IV) - Tampil jika status bukan 'baru' atau sudah diverifikasi
+    if status != 'baru' or archive.verified_by_kabid:
+        stages.append({
+            'key': 'verifikasi',
+            'title': 'Tahap 2: Verifikasi & Penomoran (Kabid IV)',
+        })
+
+    # 3. Disposisi (Pimpinan) / Disposisi - Tampil jika sudah tahap disposisi atau seterusnya
+    if status in ['disposisi_pimpinan', 'didisposisikan', 'proses', 'sudah_ditugaskan', 'dalam_survei', 'telah_disalurkan', 'laporan', 'telah_dilaporkan', 'selesai'] or archive.dispositions.exists():
+        stages.append({
+            'key': 'disposisi',
+            'title': 'Disposisi (Pimpinan)' if is_bantuan else 'Disposisi',
+        })
+
+    # 4. Penugasan - Hanya tampil jika ada Surat Tugas (ST) atau SPPD
+    if has_st_or_sppd or status == 'sudah_ditugaskan':
+        stages.append({
+            'key': 'penugasan',
+            'title': 'penugasan' if is_bantuan else 'penugasan (jika ada ST/SPPD)',
+        })
+
+    # 5. Penyaluran - Untuk dokumen bantuan jika sudah survei / penyaluran
+    if is_bantuan and status in ['dalam_survei', 'telah_disalurkan', 'laporan', 'telah_dilaporkan']:
+        stages.append({
+            'key': 'penyaluran',
+            'title': 'penyaluran',
+        })
+
+    # 6. Selesai - Hanya tampil jika dokumen sudah selesai
+    if status == 'selesai':
+        if is_bantuan and not any(s['key'] == 'penyaluran' for s in stages):
+            stages.append({
+                'key': 'penyaluran',
+                'title': 'penyaluran',
+            })
+        stages.append({
+            'key': 'selesai',
+            'title': 'selesai',
+        })
+
+    # Atur penomoran dan status visual untuk setiap tahap (completed / active)
+    total_stages = len(stages)
+    for idx, s in enumerate(stages):
+        s['num'] = idx + 1
+        is_last = (idx == total_stages - 1)
+        if status == 'selesai':
+            s['state'] = 'completed'
+            s['state_label'] = 'SELESAI'
+            s['icon'] = 'bi-check-circle-fill'
+            s['badge_class'] = 'bg-emerald-500 text-white shadow-xs'
+            s['circle_class'] = 'bg-emerald-600 text-white ring-4 ring-emerald-500/20'
+            s['text_class'] = 'text-slate-900 dark:text-white font-bold'
+        else:
+            if is_last:
+                s['state'] = 'active'
+                s['state_label'] = 'SEDANG DIPROSES'
+                s['icon'] = 'bi-arrow-repeat animate-spin'
+                s['badge_class'] = 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                s['circle_class'] = 'bg-amber-500 text-slate-950 ring-4 ring-amber-500/30 font-bold scale-110'
+                s['text_class'] = 'text-emerald-700 dark:text-emerald-400 font-extrabold'
+            else:
+                s['state'] = 'completed'
+                s['state_label'] = 'SELESAI'
+                s['icon'] = 'bi-check-circle-fill'
+                s['badge_class'] = 'bg-emerald-500 text-white shadow-xs'
+                s['circle_class'] = 'bg-emerald-600 text-white ring-4 ring-emerald-500/20'
+                s['text_class'] = 'text-slate-900 dark:text-white font-bold'
+
+    return render(request, 'archives/public_track.html', {
+        'archive': archive,
+        'is_bantuan': is_bantuan,
+        'stages': stages,
+        'current_step': total_stages,
+    })
+

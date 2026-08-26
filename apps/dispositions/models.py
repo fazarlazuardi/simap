@@ -107,6 +107,68 @@ class Disposition(models.Model):
         return self.disposition_stage == 'waka_iv'
 
     @property
+    def has_waka_disposition(self):
+        """Menentukan apakah disposisi Waka IV (Tahap 2) sudah pernah dibuat/diisi."""
+        return bool(self.waka_note or self.waka_forwarded_to.exists() or self.disposition_stage == 'waka_iv')
+
+    @property
+    def st_count(self):
+        """Menghitung jumlah Surat Tugas (ST) yang telah dibuat untuk disposisi/arsip ini."""
+        try:
+            from surat_tugas.models import SuratTugas
+            if self.archive_id:
+                return SuratTugas.objects.filter(models.Q(disposition=self) | models.Q(disposition__archive_id=self.archive_id)).distinct().count()
+            return self.surat_tugas.count()
+        except Exception:
+            return 0
+
+    @property
+    def can_create_waka_disposition(self):
+        """
+        Menentukan apakah tombol 'Buat Disposisi Waka IV' boleh tampil:
+        - Dokumen BELUM selesai
+        - Disposisi Waka IV BELUM pernah diisi
+        - Disposisi Ketua ditujukan ke Waka IV (atau status baru/didisposisi_ketua dengan target Waka IV)
+        """
+        if self.is_completed:
+            return False
+        if self.has_waka_disposition:
+            return False
+        # Jika Ketua mendisposisikan khusus ke selain Waka IV (misal ke Waka I/II/III), jangan tampilkan 'Buat Waka IV'
+        if self.status == 'didisposisi_ketua' and not self.chk_waka4 and self.forwarded_to.exists():
+            return False
+        return True
+
+    @property
+    def can_create_surat_tugas(self):
+        """
+        Menentukan apakah tombol 'Buat Surat Tugas (ST)' boleh tampil:
+        - Dokumen BELUM selesai (status != 'selesai' dan archive.status != 'selesai')
+        - Jumlah Surat Tugas (ST) saat ini MASIH kurang dari 2 (Maksimal 2x ST per dokumen)
+        - Aturan 1: Jika Disposisi Ketua mengarah ke Waka IV (chk_waka4=True), HARUS MENUNGGU Disposisi Waka IV terisi (has_waka_disposition=True).
+        - Aturan 2: Jika Disposisi Ketua TIDAK ke Waka IV (misal ke Waka I/II/III/Bidang), LANGSUNG BISA buat Surat Tugas.
+        """
+        if self.is_completed:
+            return False
+        if self.st_count >= 2:
+            return False
+
+        # Skenario 1: Jika Disposisi Ketua ditujukan ke Waka IV
+        if self.chk_waka4:
+            # Menunggu Disposisi Waka IV (Tahap 2) dibuat/diisi
+            return self.has_waka_disposition
+
+        # Skenario 2: Jika Disposisi Ketua TIDAK ditujukan ke Waka IV (langsung ke Waka I/II/III/Bidang)
+        if self.status in ['didisposisi_ketua', 'proses'] and self.forwarded_to.exists():
+            return True
+
+        # Skenario 3: Sudah ada disposisi Waka IV atau status 'proses'
+        if self.has_waka_disposition or self.status == 'proses':
+            return True
+
+        return False
+
+    @property
     def display_sender_name(self):
         """
         Nama pimpinan pengirim utama (Ketua BAZNAS) yang ditampilkan di tabel list dan cetakan.

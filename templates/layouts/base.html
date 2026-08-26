@@ -302,7 +302,7 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/id.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script src="{% static 'js/enterprise-core.js' %}"></script>
+  <script src="{% static 'js/enterprise-core.js' %}?v=2.6"></script>
 
   <script>
       $(document).ready(function () {
@@ -310,6 +310,32 @@
               e.preventDefault();
               if (window.toggleThemeGlobal) window.toggleThemeGlobal();
           });
+
+          // Global Real-time Unread Chat & Notification Polling Engine
+          var lastGlobalTotalCount = null;
+          function pollGlobalUnreadCounts() {
+              fetch("{% url 'notifications:presence_status' %}")
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                  if (data.success) {
+                      var totalChat = data.total_unread_chat || 0;
+                      var totalNotif = data.global_notif_count || 0;
+                      var currentTotal = totalChat + totalNotif;
+
+                      if (lastGlobalTotalCount !== null && currentTotal > lastGlobalTotalCount) {
+                          // Play chime sound when new message or notification arrives
+                          if (window.playChatChimeSound) {
+                              window.playChatChimeSound('receive');
+                          }
+                      }
+                      lastGlobalTotalCount = currentTotal;
+                  }
+              })
+              .catch(function(e) {});
+          }
+
+          setTimeout(pollGlobalUnreadCounts, 2000);
+          setInterval(pollGlobalUnreadCounts, 8000);
       });
   </script>
   {% block extra_modals %}{% endblock %}

@@ -33,6 +33,14 @@
             </div>
 
             <div class="flex items-center gap-3 shrink-0">
+                <button type="button"
+                        onclick="if (window.playChatChimeSound) playChatChimeSound('receive');"
+                        class="p-3.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 flex items-center gap-2.5 transition-all cursor-pointer shadow-md text-xs font-bold"
+                        title="Klik untuk uji coba suara notifikasi chime">
+                    <i class="bi bi-volume-up-fill text-lg text-amber-400"></i>
+                    <span class="hidden sm:inline">Tes Suara Chime</span>
+                </button>
+
                 <div class="p-3.5 rounded-2xl bg-white/10 dark:bg-slate-900/60 border border-white/20 backdrop-blur-md flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg">
                         <i class="bi bi-people-fill"></i>
@@ -326,6 +334,9 @@
 
 {% block extra_js %}
 <script>
+    var activeRecipientId = "{% if active_recipient %}{{ active_recipient.pk }}{% endif %}";
+    var lastMessageId = {% if messages_list %}{{ messages_list.last.pk }}{% else %}0{% endif %};
+
     function scrollToBottom() {
         var thread = document.getElementById('chatMessagesThread');
         if (thread) {
@@ -338,7 +349,6 @@
         .then(r => r.json())
         .then(data => {
             if (data.success && data.presence) {
-                var activeRecipientId = "{% if active_recipient %}{{ active_recipient.pk }}{% endif %}";
                 for (var uid in data.presence) {
                     var p = data.presence[uid];
                     var dot = document.getElementById('online-dot-' + uid);
@@ -366,10 +376,72 @@
         }).catch(e => {});
     }
 
+    function pollNewMessages() {
+        if (!activeRecipientId) return;
+        
+        var pollUrl = "{% if active_recipient %}{% url 'notifications:poll_chat_messages' active_recipient.pk %}{% endif %}?last_id=" + lastMessageId;
+        
+        fetch(pollUrl)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.new_messages && data.new_messages.length > 0) {
+                var thread = document.getElementById('chatMessagesThread');
+                var hasIncoming = false;
+
+                data.new_messages.forEach(function(msg) {
+                    if (msg.id > lastMessageId) {
+                        lastMessageId = msg.id;
+                    }
+                    if (msg.is_self) {
+                        var msgHtml = `
+                            <div class="flex flex-col items-end group mb-3" id="msg-item-${msg.id}">
+                                <div class="flex items-center gap-2 max-w-[85%] md:max-w-[70%]">
+                                    <div class="p-3.5 rounded-3xl rounded-br-sm bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md text-xs md:text-sm leading-relaxed">
+                                        <p class="mb-0 text-white whitespace-pre-wrap">${escapeHtml(msg.body)}</p>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-mono mt-1 px-1 flex items-center gap-1">
+                                    <span>${msg.created_at}</span> <i class="bi bi-check2 text-slate-400" title="Terkirim"></i>
+                                </span>
+                            </div>
+                        `;
+                        thread.insertAdjacentHTML('beforeend', msgHtml);
+                    } else {
+                        hasIncoming = true;
+                        var msgHtml = `
+                            <div class="flex items-start gap-2.5 group mb-3" id="msg-item-${msg.id}">
+                                <img src="${msg.sender_avatar}" class="w-8 h-8 rounded-xl object-cover shrink-0 mt-1 shadow-2xs">
+                                <div class="flex flex-col items-start max-w-[85%] md:max-w-[70%]">
+                                    <div class="flex items-center gap-2">
+                                        <div class="p-3.5 rounded-3xl rounded-bl-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm border border-slate-200 dark:border-slate-700/70 text-xs md:text-sm leading-relaxed">
+                                            <p class="mb-0 whitespace-pre-wrap">${escapeHtml(msg.body)}</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 font-mono mt-1 px-1">${msg.created_at}</span>
+                                </div>
+                            </div>
+                        `;
+                        thread.insertAdjacentHTML('beforeend', msgHtml);
+                    }
+                });
+
+                scrollToBottom();
+
+                if (hasIncoming && window.playChatChimeSound) {
+                    window.playChatChimeSound('receive');
+                }
+            }
+        })
+        .catch(e => {});
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         scrollToBottom();
         pollPresenceStatus();
         setInterval(pollPresenceStatus, 5000);
+        if (activeRecipientId) {
+            setInterval(pollNewMessages, 3000);
+        }
     });
 
     function submitChatMessage(e) {
@@ -393,7 +465,7 @@
             if (data.success) {
                 var thread = document.getElementById('chatMessagesThread');
                 var msgHtml = `
-                    <div class="flex flex-col items-end group mb-3">
+                    <div class="flex flex-col items-end group mb-3" id="msg-item-${data.message_id}">
                         <div class="flex items-center gap-2 max-w-[85%] md:max-w-[70%]">
                             <div class="p-3.5 rounded-3xl rounded-br-sm bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md text-xs md:text-sm leading-relaxed">
                                 <p class="mb-0 text-white whitespace-pre-wrap">${escapeHtml(data.body)}</p>
@@ -406,7 +478,15 @@
                 `;
                 thread.insertAdjacentHTML('beforeend', msgHtml);
                 input.value = '';
+                if (data.message_id > lastMessageId) {
+                    lastMessageId = data.message_id;
+                }
                 scrollToBottom();
+
+                // Play outgoing message chime sound
+                if (window.playChatChimeSound) {
+                    window.playChatChimeSound('send');
+                }
             }
         })
         .catch(err => {

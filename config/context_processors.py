@@ -64,4 +64,28 @@ def notification_context(request):
             'pending_waka4_dispo_count': pending_waka4_dispo_count,
             'pending_st_sppd_count': pending_st_sppd_count,
         })
+
+    # Tentukan public_base_url untuk QR Code scan
+    from django.conf import settings as django_settings
+    public_host = getattr(django_settings, 'PUBLIC_HOST_URL', '')
+    if not public_host:
+        host = request.get_host()
+        if host and not host.startswith('127.0.0.1') and not host.startswith('localhost'):
+            public_host = f"{request.scheme}://{host}"
+        elif request.META.get('HTTP_X_FORWARDED_HOST'):
+            fhost = request.META.get('HTTP_X_FORWARDED_HOST')
+            scheme = request.META.get('HTTP_X_FORWARDED_PROTO', request.scheme)
+            public_host = f"{scheme}://{fhost}"
+        else:
+            from users.models import SystemSetting
+            saved_domain = SystemSetting.get_value('public_domain', '')
+            if saved_domain:
+                if not saved_domain.startswith('http'):
+                    saved_domain = f"https://{saved_domain}"
+                public_host = saved_domain
+            else:
+                public_host = f"{request.scheme}://{host}"
+
+    context['public_base_url'] = public_host
     return context
+

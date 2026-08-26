@@ -18,6 +18,7 @@ urlpatterns = [
     path('<int:pk>/create-surat-tugas/', views.create_surat_tugas_view, name='create_surat_tugas'),
     path('<int:pk>/create-sppd/', views.create_sppd_view, name='create_sppd'),
     path('<int:pk>/upload-report/', views.upload_report_view, name='upload_report'),
+    path('track/<int:pk>/', views.archive_public_track, name='public_track'),
     path('scan-document-ocr/', views.scan_document_ocr, name='scan_document_ocr'),
     path('reset-all-documents/', views.reset_all_documents, name='reset_all_documents'),
     path('backup-gdrive-email/', views.trigger_backup_gdrive_email, name='backup_gdrive_email'),

@@ -18,7 +18,9 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-simap-key-2026')
 DEBUG = env('DEBUG', default=True)
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com', 'http://127.0.0.1:8000', 'http://localhost:8000']
+PUBLIC_HOST_URL = env('PUBLIC_HOST_URL', default='')
 
 INSTALLED_APPS = [
     'django.contrib.admin',

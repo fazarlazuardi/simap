@@ -5,120 +5,121 @@
 
 {% block content %}
 {% with dispo=disposition %}
-<div class="w-full space-y-6">
+<div class="w-full space-y-5">
 
-    <!-- BREADCRUMB NAV -->
-    <div class="p-4 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-sm flex items-center justify-between flex-wrap gap-2 print:hidden">
+    <!-- BREADCRUMB NAV (CLEAN & COMPACT - NO DUPLICATE BUTTONS) -->
+    <div class="p-3.5 px-5 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-xs flex items-center justify-between flex-wrap gap-2 print:hidden">
         <div class="flex items-center gap-2 text-xs font-bold">
-            <a href="{% url 'dispositions:list' %}" class="text-emerald-600 dark:text-emerald-400 no-underline hover:underline">Disposisi Digital</a>
+            <a href="{% url 'dispositions:list' %}" class="text-emerald-600 dark:text-emerald-400 no-underline hover:underline flex items-center gap-1.5">
+                <i class="bi bi-diagram-3-fill"></i> Pusat Disposisi Digital
+            </a>
             <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
-            <span class="text-slate-600 dark:text-slate-300">Detail Lembar Disposisi</span>
+            <span class="text-slate-600 dark:text-slate-300">Rincian Lembar Disposisi</span>
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
-            <a href="{% url 'dispositions:print' %}?ids={{ dispo.pk }}" target="_blank" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center gap-1.5 transition-all">
-                <i class="bi bi-printer-fill"></i> Cetak Lembar Disposisi
+        <div class="flex items-center gap-2">
+            <a href="{% url 'dispositions:list' %}" class="px-3.5 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold no-underline transition-all inline-flex items-center gap-1.5">
+                <i class="bi bi-arrow-left"></i> Kembali ke Daftar
             </a>
-            {% if dispo.archive %}
-            <a href="{% url 'archives:detail' dispo.archive.pk %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs no-underline inline-flex items-center gap-1.5 transition-all">
-                <i class="bi bi-folder2-open"></i> Lihat Dokumen Arsip
-            </a>
-            {% endif %}
         </div>
     </div>
 
-    <!-- TAILWIND ENTERPRISE HEADER BANNER -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-xl border border-slate-700/50 print:hidden">
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <!-- ENTERPRISE COMPACT HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-5 shadow-lg border border-slate-700/50 print:hidden">
+        <div class="absolute -right-8 -top-8 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-                <div class="flex items-center gap-2 mb-2 flex-wrap">
-                    <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono inline-flex items-center gap-1.5">
+                <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <span class="px-2.5 py-0.5 text-[11px] font-extrabold uppercase rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono inline-flex items-center gap-1">
                         <i class="bi bi-file-earmark-text-fill text-amber-400"></i> LEMBAR DISPOSISI PIMPINAN
                     </span>
-                    <span class="px-3 py-1 text-xs font-extrabold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                    <span class="px-2.5 py-0.5 text-[11px] font-mono font-extrabold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                         {{ dispo.disposition_number|default:dispo.id }}
                     </span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Rincian Lembar Disposisi Resmi</h1>
-                <p class="text-slate-300 text-sm mb-0">
-                    Pengirim: <strong>{{ dispo.sender_label|default:dispo.display_sender_name }}</strong> | Tanggal: <strong>{{ dispo.created_at|date:"d F Y, H:i" }} WIB</strong>
+                <h1 class="text-xl md:text-2xl font-black text-white tracking-tight mb-0.5">Rincian Lembar Disposisi Resmi</h1>
+                <p class="text-slate-300 text-xs mb-0">
+                    Pengirim: <strong class="text-white">{{ dispo.sender_label|default:dispo.display_sender_name }}</strong> | Tanggal: <strong class="text-slate-200 font-mono">{{ dispo.created_at|date:"d F Y, H:i" }} WIB</strong>
                 </p>
             </div>
         </div>
     </div>
 
-    <!-- MAIN DISPOSISI CARD CONTAINER (WARNA SEMULA WHITE/SLATE-900 + EFEK BACKGROUND TEMBUS/BACKDROP-BLUR) -->
-    <div class="p-6 sm:p-8 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-xl space-y-6">
-        <!-- HEADER SHEET LOGO & METADATA -->
-        <div class="p-5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-4">
-            <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700 flex-wrap gap-3">
+    <!-- MAIN DISPOSISI CARD CONTAINER (COMPACT HIGH-DENSITY ENTERPRISE) -->
+    <div class="p-5 sm:p-6 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-md space-y-5">
+        
+        <!-- HEADER KOP SHEET & METADATA ARSIP -->
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-3">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-700 flex-wrap gap-2">
                 <div class="flex items-center gap-3">
-                    <img src="{% static 'images/logo-baznas.png' %}" alt="BAZNAS" class="h-10 w-auto" onerror="this.style.display='none';">
+                    <img src="{% static 'img/logo_baznas.png' %}" alt="BAZNAS" class="h-9 w-auto">
                     <div>
-                        <h2 class="font-black text-sm text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-0">BADAN AMIL ZAKAT NASIONAL (BAZNAS)</h2>
-                        <span class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">KABUPATEN TANGERANG</span>
+                        <h2 class="font-black text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-0">BADAN AMIL ZAKAT NASIONAL (BAZNAS)</h2>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">KABUPATEN TANGERANG</span>
                     </div>
                 </div>
-                <span class="px-3.5 py-1.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-mono font-black text-xs">
+                <span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-mono font-black text-xs">
                     NO: {{ dispo.disposition_number|default:dispo.id }}
                 </span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 text-xs">
                 <div class="md:col-span-4">
-                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1">No. Agenda / Arsip</span>
-                    <strong class="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm block">{{ dispo.archive.archive_number|default:'(DRAFT)' }}</strong>
+                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-0.5">No. Agenda / Barcode Arsip</span>
+                    <strong class="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm block">{{ dispo.archive.archive_number|default:'(DRAFT)' }}</strong>
                 </div>
 
                 <div class="md:col-span-4">
-                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1">Pengirim Disposisi (Ketua)</span>
+                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-0.5">Pengirim Disposisi (Ketua)</span>
                     <strong class="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
-                        <i class="bi bi-person-badge text-emerald-500"></i> {{ dispo.sender_label|default:dispo.display_sender_name }}
+                        <i class="bi bi-person-badge text-emerald-500 me-0.5"></i> {{ dispo.sender_label|default:dispo.display_sender_name }}
                     </strong>
                 </div>
 
                 <div class="md:col-span-4 md:text-end">
-                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1">Status Disposisi</span>
+                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-0.5">Status Disposisi</span>
                     <div>
-                        {% if dispo.status == 'selesai' %}
-                            <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono inline-flex items-center gap-1"><i class="bi bi-check-circle-fill"></i> SELESAI</span>
+                        {% if dispo.is_completed or dispo.status == 'selesai' %}
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono inline-flex items-center gap-1"><i class="bi bi-check-circle-fill"></i> SELESAI</span>
                         {% elif dispo.status == 'proses' %}
-                            <span class="px-3 py-1 rounded-full text-xs font-black bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 font-mono inline-flex items-center gap-1"><i class="bi bi-hourglass-split"></i> DIPROSES</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30 font-mono inline-flex items-center gap-1"><i class="bi bi-hourglass-split"></i> DIPROSES</span>
                         {% else %}
-                            <span class="px-3 py-1 rounded-full text-xs font-black bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30 font-mono">{{ dispo.get_status_display|upper }}</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30 font-mono">{{ dispo.get_status_display|upper }}</span>
                         {% endif %}
                     </div>
                 </div>
 
-                <div class="md:col-span-12 pt-3 border-t border-slate-200 dark:border-slate-700">
-                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1">Perihal Dokumen / Surat</span>
-                    <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0">{{ dispo.archive.title }}</h3>
+                <div class="md:col-span-12 pt-2.5 border-t border-slate-200 dark:border-slate-700">
+                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-0.5">Perihal Dokumen / Surat</span>
+                    <h3 class="font-black text-xs sm:text-sm text-slate-900 dark:text-white mb-0 leading-snug">{{ dispo.archive.title }}</h3>
                 </div>
 
                 {% if dispo.archive.address %}
                 <div class="md:col-span-12">
-                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-rose-500 mb-1"><i class="bi bi-geo-alt-fill me-1"></i> Alamat Lengkap Pemohon / Mustahik</span>
+                    <span class="block text-[10px] font-mono font-bold uppercase tracking-wider text-rose-500 mb-0.5"><i class="bi bi-geo-alt-fill me-1"></i> Alamat Lengkap Pemohon / Mustahik</span>
                     <p class="font-bold text-slate-800 dark:text-slate-200 text-xs mb-0">{{ dispo.archive.address }}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- DETAIL ARAHAN TAHAP 1 & TAHAP 2 GRID -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- GRID COMPACT ARAHAN TAHAP 1 & TAHAP 2 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
             <!-- TAHAP 1: DISPOSISI KETUA BAZNAS -->
-            <div class="p-5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-4">
-                <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700">
-                    <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 mb-0 flex items-center gap-2">
-                        <i class="bi bi-1-circle-fill text-indigo-500 text-base"></i> Tahap 1: Disposisi Ketua BAZNAS
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-3">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700 flex-wrap gap-2">
+                    <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 mb-0 flex items-center gap-1.5">
+                        <i class="bi bi-1-circle-fill text-indigo-500 text-sm"></i> Tahap 1: Disposisi Ketua BAZNAS
                     </h3>
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-mono border border-indigo-500/30">Ketua</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-mono border border-indigo-500/30">Ketua</span>
                 </div>
 
                 <div class="space-y-1 text-xs">
-                    <span class="block font-bold text-slate-400 uppercase tracking-wider text-[10px]">Diteruskan Kepada:</span>
-                    <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="block font-bold text-slate-400 uppercase tracking-wider text-[10px]">Diteruskan Kepada (Penerima):</span>
+                    <div class="flex flex-wrap gap-1.5 pt-0.5">
                         {% for emp in dispo.forwarded_to.all %}
-                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1 shadow-2xs">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1">
                                 <i class="bi bi-person-fill text-emerald-500"></i> {{ emp.full_name }}
                             </span>
                         {% empty %}
@@ -129,26 +130,26 @@
 
                 <div class="space-y-1 text-xs">
                     <span class="block font-bold text-slate-400 uppercase tracking-wider text-[10px]">Catatan Arahan Ketua:</span>
-                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-mono text-xs text-slate-800 dark:text-slate-200 italic shadow-2xs">
+                    <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-mono text-xs text-slate-800 dark:text-slate-200 italic">
                         "{{ dispo.note|default:'— Tidak ada catatan khusus —' }}"
                     </div>
                 </div>
             </div>
 
             <!-- TAHAP 2: DISPOSISI WAKA IV (PELAKSANA) -->
-            <div class="p-5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-4">
-                <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700">
-                    <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 mb-0 flex items-center gap-2">
-                        <i class="bi bi-2-circle-fill text-sky-500 text-base"></i> Tahap 2: Disposisi Waka IV (Pelaksana)
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-3">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700 flex-wrap gap-2">
+                    <h3 class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 mb-0 flex items-center gap-1.5">
+                        <i class="bi bi-2-circle-fill text-sky-500 text-sm"></i> Tahap 2: Disposisi Waka IV (Pelaksana)
                     </h3>
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 font-mono border border-sky-500/30">Waka IV</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 font-mono border border-sky-500/30">Waka IV</span>
                 </div>
 
                 <div class="space-y-1 text-xs">
                     <span class="block font-bold text-slate-400 uppercase tracking-wider text-[10px]">Pelaksana Ditugaskan:</span>
-                    <div class="flex flex-wrap gap-1.5 pt-1">
+                    <div class="flex flex-wrap gap-1.5 pt-0.5">
                         {% for emp in dispo.waka_forwarded_to.all %}
-                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1 shadow-2xs">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1">
                                 <i class="bi bi-person-fill text-sky-500"></i> {{ emp.full_name }}
                             </span>
                         {% empty %}
@@ -159,43 +160,85 @@
 
                 <div class="space-y-1 text-xs">
                     <span class="block font-bold text-slate-400 uppercase tracking-wider text-[10px]">Catatan Arahan Waka IV:</span>
-                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-mono text-xs text-slate-800 dark:text-slate-200 italic shadow-2xs">
+                    <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-mono text-xs text-slate-800 dark:text-slate-200 italic">
                         "{{ dispo.waka_note|default:'— Belum ada arahan Waka IV —' }}"
                     </div>
                 </div>
             </div>
+
         </div>
 
-        <!-- ACTION BAR FOOTER -->
-        <div class="flex justify-between items-center flex-wrap gap-3 pt-4 border-t border-slate-200 dark:border-slate-800 print:hidden">
+        <!-- UNIFIED SINGLE ACTION BAR FOOTER (NO DUPLICATES) -->
+        <div class="flex justify-between items-center flex-wrap gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-800 print:hidden">
             <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 no-underline transition-all inline-flex items-center gap-1.5">
                 <i class="bi bi-arrow-left"></i> Kembali ke Daftar
             </a>
+
             <div class="flex items-center gap-2 flex-wrap">
+                <!-- NOTIFIKASI WA PEGAWAI -->
                 {% for assignee in dispo.waka_forwarded_to.all %}
                     {% if assignee.phone_number %}
-                    <a href="https://api.whatsapp.com/send?phone=62{{ assignee.phone_number }}&text=Assalamu%27alaikum%20Bpk%2FIbu%20{{ assignee.full_name|urlencode }}%2C%20berikut%20informasi%20Disposisi%20Pimpinan%20Nomor%3A%20{{ dispo.disposition_number|urlencode }}%20mengenai%20Perihal%3A%20{{ dispo.archive.title|urlencode }}." target="_blank" class="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all" title="Kirim Pesan WA ke {{ assignee.full_name }}">
+                    <a href="https://api.whatsapp.com/send?phone=62{{ assignee.phone_number }}&text=Assalamu%27alaikum%20Bpk%2FIbu%20{{ assignee.full_name|urlencode }}%2C%20berikut%20informasi%20Disposisi%20Pimpinan%20Nomor%3A%20{{ dispo.disposition_number|urlencode }}%20mengenai%20Perihal%3A%20{{ dispo.archive.title|urlencode }}." target="_blank" class="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-xs no-underline inline-flex items-center gap-1.5 transition-all" title="Kirim Pesan WA ke {{ assignee.full_name }}">
                         <i class="bi bi-whatsapp"></i> WA: {{ assignee.full_name }}
                     </a>
                     {% endif %}
                 {% endfor %}
 
-                {% if dispo.status == 'baru' %}
-                    {% if request.session.active_pov == 'ketua' or request.session.active_pov == 'waka_4' or request.session.active_pov == 'kabid_4' or user.is_superadmin and not request.session.active_pov or user.is_ketua and not request.session.active_pov or user.is_waka_4 and not request.session.active_pov or user.is_kabid_4 and not request.session.active_pov %}
-                    <a href="{% url 'dispositions:edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md no-underline inline-flex items-center gap-1.5 transition-all">
-                        <i class="bi bi-pencil-square"></i> Edit Disposisi Ketua
-                    </a>
+                <!-- SMART CONDITIONAL ACTION BUTTONS -->
+                {% if not dispo.is_completed %}
+                    {% if request.session.active_pov in 'ketua waka_4 kabid_4 sdm fo' or user.is_pimpinan or user.is_superadmin or user.is_kabid_4 or user.is_sdm or user.is_fo %}
+                        <!-- EDIT DISPOSISI KETUA -->
+                        <a href="{% url 'dispositions:edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
+                            <i class="bi bi-pencil-square"></i> Edit Disposisi Ketua
+                        </a>
+
+                        <!-- EDIT / BUAT DISPOSISI WAKA IV -->
+                        {% if dispo.has_waka_disposition %}
+                        <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
+                            <i class="bi bi-pencil-square"></i> Edit Disposisi Waka IV
+                        </a>
+                        {% elif dispo.can_create_waka_disposition %}
+                        <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
+                            <i class="bi bi-plus-circle-fill"></i> Buat Disposisi Waka IV
+                        </a>
+                        {% endif %}
+                    {% endif %}
+
+                    <!-- BUAT SURAT TUGAS -->
+                    {% if dispo.can_create_surat_tugas %}
+                        {% if user.is_kabid or user.is_superadmin or request.session.active_pov %}
+                        <a href="{% url 'surat_tugas:create_from_disposition' dispo.pk %}" 
+                           class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all transform hover:-translate-y-0.5"
+                           title="Terbitkan Surat Tugas Amil (Ke-{{ dispo.st_count|add:1 }})">
+                            <i class="bi bi-file-earmark-text-fill"></i> Buat Surat Tugas ({% if dispo.st_count > 0 %}{{ dispo.st_count|add:1 }}{% else %}1{% endif %})
+                        </a>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
-                {% if dispo.status == 'didisposisi_ketua' %}
-                    {% if request.session.active_pov == 'waka_4' or request.session.active_pov == 'kabid_4' or user.is_superadmin and not request.session.active_pov or user.is_waka_4 and not request.session.active_pov or user.is_kabid_4 and not request.session.active_pov %}
-                    <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center gap-1.5 transition-all">
-                        <i class="bi bi-2-circle-fill"></i> Isi Disposisi Waka IV
-                    </a>
-                    {% endif %}
+
+                <!-- CETAK & ARSIP -->
+                <a href="{% url 'dispositions:print' %}?ids={{ dispo.pk }}" target="_blank" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
+                    <i class="bi bi-printer-fill"></i> Cetak Disposisi
+                </a>
+
+                {% if dispo.archive %}
+                <a href="{% url 'archives:detail' dispo.archive.pk %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs no-underline inline-flex items-center gap-1.5 transition-all">
+                    <i class="bi bi-folder2-open"></i> Lihat Dokumen Arsip
+                </a>
+                {% endif %}
+
+                <!-- HAPUS -->
+                {% if request.session.active_pov in 'ketua waka_4 kabid_4 sdm fo' or user.is_pimpinan or user.is_superadmin or user.is_kabid_4 or user.is_sdm or user.is_fo %}
+                <form action="{% url 'dispositions:delete' dispo.pk %}" method="post" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus lembar disposisi ini?')">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 rounded-full bg-rose-500/15 hover:bg-rose-600 text-rose-500 hover:text-white font-extrabold text-xs transition-all border border-rose-500/30 inline-flex items-center gap-1.5 cursor-pointer">
+                        <i class="bi bi-trash-fill"></i> Hapus
+                    </button>
+                </form>
                 {% endif %}
             </div>
         </div>
+
     </div>
 </div>
 {% endwith %}

@@ -1,0 +1,186 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Status Dokumen BAZNAS - SIMAP</title>
+    
+    <!-- Tailwind CSS Engine -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        baznas: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            950: '#022c22'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Alpine.js Framework -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Vector Icon Pack -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            background-color: #030712;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glow-card {
+            box-shadow: 0 0 40px -10px rgba(16, 185, 129, 0.15);
+        }
+        .glow-active {
+            box-shadow: 0 0 20px 2px rgba(245, 158, 11, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-full bg-slate-950 text-slate-100 p-3 sm:p-6 flex flex-col justify-between selection:bg-emerald-500 selection:text-slate-950" 
+      x-data="{ copied: false, lastUpdated: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) }">
+
+    <div class="max-w-2xl mx-auto w-full space-y-6 my-auto">
+        
+        <!-- HEADER KOP BAZNAS (TAILWIND + ALPINE GLASSMORPHISM) -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/30 p-6 sm:p-8 shadow-2xl text-center glow-card">
+            <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-12 -top-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative z-10 flex flex-col items-center">
+                <div class="flex items-center justify-center gap-3.5 mb-4">
+                    <img src="{% static 'img/logo_baznas.png' %}" alt="Logo BAZNAS" class="h-12 sm:h-14 w-auto drop-shadow-md">
+                    <div class="text-left">
+                        <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest font-mono block">BADAN AMIL ZAKAT NASIONAL</span>
+                        <h1 class="text-lg sm:text-xl font-black text-white tracking-tight leading-tight">SIMAP BAZNAS Kab. Tangerang</h1>
+                    </div>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-bold font-mono shadow-inner">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>Layanan Pelacakan Status Dokumen Publik</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD METADATA DOKUMEN (TANPA NAMA AMIL / RAHASIA) -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-4 flex-wrap gap-2">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">No. Agenda / Barcode Resi</span>
+                    <span class="text-base sm:text-lg font-black text-emerald-400 font-mono tracking-wide">{{ archive.archive_number|default:"(DRAFT)" }}</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono mb-1">Kategori Layanan</span>
+                    <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider font-mono {% if is_bantuan %}bg-amber-500/20 text-amber-300 border border-amber-500/40{% else %}bg-sky-500/20 text-sky-300 border border-sky-500/40{% endif %}">
+                        {{ archive.get_archive_type_display }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                    <span class="text-slate-400 block font-semibold mb-1 uppercase tracking-wider text-[10px]">Perihal / Judul Dokumen:</span>
+                    <strong class="text-white text-sm sm:text-base font-extrabold block leading-snug">{{ archive.title }}</strong>
+                </div>
+                <div>
+                    <span class="text-slate-400 block font-semibold mb-1 uppercase tracking-wider text-[10px]">Tanggal Registrasi Masuk:</span>
+                    <strong class="text-slate-200 block font-mono text-xs">{{ archive.created_at|date:"d F Y, H:i" }} WIB</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- TIMELINE LOG ALUR PROCESS BPMN (TAILWIND + ALPINE TIMELINE) -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4 flex-wrap gap-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold shadow-inner">
+                        <i class="bi bi-diagram-3-fill"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-white mb-0 flex items-center gap-2">
+                            Log Alur Proses BPMN
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-0">Tahapan penanganan berkas resmi & transparan</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button @click="navigator.clipboard.writeText(window.location.href); copied = true; setTimeout(() => copied = false, 2500)" 
+                            class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all inline-flex items-center gap-1.5 cursor-pointer">
+                        <template x-if="!copied">
+                            <span class="inline-flex items-center gap-1.5"><i class="bi bi-link-45deg"></i> Salin Link</span>
+                        </template>
+                        <template x-if="copied">
+                            <span class="inline-flex items-center gap-1.5 text-emerald-400 font-extrabold"><i class="bi bi-check2-all"></i> Tersalin!</span>
+                        </template>
+                    </button>
+                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase font-mono tracking-wider {% if is_bantuan %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/40{% else %}bg-sky-500/20 text-sky-300 border border-sky-500/40{% endif %}">
+                        {% if is_bantuan %}Bantuan (6 Tahap){% else %}Umum (5 Tahap){% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- STEP TIMELINE NODE CONTAINER -->
+            <div class="relative pl-8 space-y-6 before:absolute before:left-3.5 before:top-4 before:bottom-4 before:w-1 before:bg-slate-800/80 before:rounded-full">
+                {% for stage in stages %}
+                <div class="relative flex items-center justify-between gap-4 group">
+                    <!-- Step Circle Node -->
+                    <div class="absolute -left-8 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all shrink-0 {{ stage.circle_class }} {% if stage.state == 'active' %}glow-active animate-pulse{% endif %}">
+                        {% if stage.state == 'completed' %}
+                            <i class="bi bi-check-lg text-sm"></i>
+                        {% else %}
+                            <span>{{ stage.num }}</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Step Title Label -->
+                    <div class="pl-3 flex-1">
+                        <h4 class="text-xs sm:text-sm font-extrabold mb-0 {{ stage.text_class }}">
+                            {{ stage.title }}
+                        </h4>
+                    </div>
+
+                    <!-- Status Badge -->
+                    <div class="shrink-0">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase font-mono shadow-xs {{ stage.badge_class }}">
+                            {{ stage.state_label }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- FOOTER KOP BAZNAS (WARNA METADATA & GRADIENT SAMA DENGAN HEADER) -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/30 p-5 shadow-2xl text-center glow-card space-y-2">
+            <div class="relative z-10">
+                <p class="text-xs text-slate-300 font-semibold mb-1 flex items-center justify-center gap-1.5">
+                    <i class="bi bi-shield-lock-fill text-emerald-400"></i> Informasi status diperbarui otomatis oleh Sistem Informasi Manajemen Arsip & Proses (SIMAP).
+                </p>
+                <p class="text-[11px] text-slate-400 font-mono mb-0">
+                    BAZNAS Kabupaten Tangerang © 2026 | Terenkripsi Kriptografi QR Resmi
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

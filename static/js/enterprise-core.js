@@ -156,67 +156,182 @@ document.addEventListener('DOMContentLoaded', () => {
 let _sharedAudioContext = null;
 
 function getSharedAudioContext() {
-    if (!_sharedAudioContext) {
-        const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioCtxClass) {
-            _sharedAudioContext = new AudioCtxClass();
+    try {
+        if (!_sharedAudioContext) {
+            const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtxClass) {
+                _sharedAudioContext = new AudioCtxClass();
+            }
         }
-    }
-    if (_sharedAudioContext && _sharedAudioContext.state === 'suspended') {
-        _sharedAudioContext.resume().catch(function() {});
-    }
+        if (_sharedAudioContext && _sharedAudioContext.state === 'suspended') {
+            _sharedAudioContext.resume().catch(function() {});
+        }
+    } catch (e) {}
     return _sharedAudioContext;
 }
 
-// Automatically unlock AudioContext on any user gesture (click, touch, keydown)
+// Continuously unlock AudioContext on any user gesture (click, touch, keydown)
 if (typeof window !== 'undefined') {
-    ['click', 'touchstart', 'keydown'].forEach(function(evtType) {
-        document.addEventListener(evtType, function unlockAudioOnGesture() {
-            getSharedAudioContext();
-            document.removeEventListener(evtType, unlockAudioOnGesture);
-        }, { once: true });
+    const unlockAudio = function() {
+        const ctx = getSharedAudioContext();
+        if (ctx && ctx.state === 'running') {
+            ['click', 'touchstart', 'keydown'].forEach(function(evt) {
+                document.removeEventListener(evt, unlockAudio);
+            });
+        }
+    };
+    ['click', 'touchstart', 'keydown'].forEach(function(evt) {
+        document.addEventListener(evt, unlockAudio, { passive: true });
     });
 }
 
-window.playSystemNotifSound = function() {
+function playFallbackSynthAudio(type) {
     try {
-        const ctx = getSharedAudioContext();
-        if (!ctx) return;
+        const sampleRate = 22050;
+        const duration = 0.5;
+        const numSamples = Math.floor(sampleRate * duration);
+        const buffer = new Uint8Array(44 + numSamples * 2);
 
-        // Ensure AudioContext is active
-        if (ctx.state === 'suspended') {
-            ctx.resume();
+        const writeString = (offset, str) => {
+            for (let i = 0; i < str.length; i++) buffer[offset + i] = str.charCodeAt(i);
+        };
+        const writeUint32 = (offset, val) => {
+            buffer[offset] = val & 0xff;
+            buffer[offset + 1] = (val >> 8) & 0xff;
+            buffer[offset + 2] = (val >> 16) & 0xff;
+            buffer[offset + 3] = (val >> 24) & 0xff;
+        };
+        const writeUint16 = (offset, val) => {
+            buffer[offset] = val & 0xff;
+            buffer[offset + 1] = (val >> 8) & 0xff;
+        };
+
+        writeString(0, 'RIFF');
+        writeUint32(4, 36 + numSamples * 2);
+        writeString(8, 'WAVE');
+        writeString(12, 'fmt ');
+        writeUint32(16, 16);
+        writeUint16(20, 1);
+        writeUint16(22, 1);
+        writeUint32(24, sampleRate);
+        writeUint32(28, sampleRate * 2);
+        writeUint16(32, 2);
+        writeUint16(34, 16);
+        writeString(36, 'data');
+        writeUint32(40, numSamples * 2);
+
+        let dataOffset = 44;
+        const freq1 = type === 'send' ? 783.99 : 523.25;
+        const freq2 = type === 'send' ? 1046.50 : 783.99;
+
+        for (let i = 0; i < numSamples; i++) {
+            const t = i / sampleRate;
+            let sampleVal = 0;
+            if (t < 0.25) {
+                sampleVal += Math.sin(2 * Math.PI * freq1 * t) * Math.exp(-t * 10);
+            }
+            if (t >= 0.08) {
+                sampleVal += Math.sin(2 * Math.PI * freq2 * t) * Math.exp(-(t - 0.08) * 8);
+            }
+            const s = Math.max(-1, Math.min(1, sampleVal * 0.7));
+            const pcm = Math.floor(s * 32767);
+            buffer[dataOffset++] = pcm & 0xff;
+            buffer[dataOffset++] = (pcm >> 8) & 0xff;
         }
 
-        const now = ctx.currentTime;
+        const blob = new Blob([buffer], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.volume = 1.0;
+        audio.play().catch(() => {});
+    } catch (e) {}
+}
 
-        // Tone 1: C5 (523.25 Hz)
-        const osc1 = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(523.25, now);
-        gain1.gain.setValueAtTime(0.35, now);
-        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+window.playChatChimeSound = function(type = 'receive') {
+    let playedWebAudio = false;
+    try {
+        const ctx = getSharedAudioContext();
+        if (ctx && ctx.state !== 'closed') {
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+            const now = ctx.currentTime;
 
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.start(now);
-        osc1.stop(now + 0.4);
+            if (type === 'send') {
+                // Outgoing send confirmation sound: Crisp Dual-Tone Pop (783.99 Hz -> 1046.50 Hz)
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(783.99, now);
+                gain1.gain.setValueAtTime(0.6, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
-        // Tone 2: G5 (783.99 Hz) - Starts 90ms later
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(783.99, now + 0.09);
-        gain2.gain.setValueAtTime(0.4, now + 0.09);
-        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.15);
 
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.start(now + 0.09);
-        osc2.stop(now + 0.65);
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1046.50, now + 0.06);
+                gain2.gain.setValueAtTime(0.7, now + 0.06);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.30);
+
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.06);
+                osc2.stop(now + 0.30);
+                playedWebAudio = true;
+            } else {
+                // Incoming message sound: Loud, Crystal Clear 3-Tone Enterprise Chime (C5 523.25 Hz -> E5 659.25 Hz -> G5 783.99 Hz)
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(523.25, now);
+                gain1.gain.setValueAtTime(0.75, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.30);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.30);
+
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(659.25, now + 0.07);
+                gain2.gain.setValueAtTime(0.8, now + 0.07);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.07);
+                osc2.stop(now + 0.45);
+
+                const osc3 = ctx.createOscillator();
+                const gain3 = ctx.createGain();
+                osc3.type = 'sine';
+                osc3.frequency.setValueAtTime(783.99, now + 0.14);
+                gain3.gain.setValueAtTime(0.85, now + 0.14);
+                gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+                osc3.connect(gain3);
+                gain3.connect(ctx.destination);
+                osc3.start(now + 0.14);
+                osc3.stop(now + 0.65);
+                playedWebAudio = true;
+            }
+        }
     } catch (e) {
-        console.warn('Notification audio chime playback error:', e);
+        console.warn('AudioContext playback failed, attempting fallback audio...', e);
+    }
+
+    if (!playedWebAudio) {
+        playFallbackSynthAudio(type);
+    }
+};
+
+window.playSystemNotifSound = function() {
+    if (window.playChatChimeSound) {
+        window.playChatChimeSound('receive');
     }
 };
 
