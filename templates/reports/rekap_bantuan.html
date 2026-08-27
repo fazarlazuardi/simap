@@ -1524,8 +1524,8 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
             plotOptions: {
                 bar: {
                     horizontal: true,
-                    barHeight: '56%',
-                    borderRadius: 6,
+                    barHeight: '52%',
+                    borderRadius: 5,
                     borderRadiusApplication: 'end',
                     distributed: true,
                     dataLabels: { position: 'top' }
@@ -1534,22 +1534,22 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
             dataLabels: {
                 enabled: true,
                 textAnchor: 'start',
-                offsetX: 8,
+                offsetX: 6,
                 style: {
-                    fontSize: isMobile ? '10px' : '11px',
-                    fontWeight: 900,
+                    fontSize: isMobile ? '9px' : '10px',
+                    fontWeight: 800,
                     fontFamily: 'Plus Jakarta Sans, sans-serif',
                     colors: [isDarkInit ? '#E2E8F0' : '#1E293B']
                 },
                 formatter: function (val) {
-                    return val > 0 ? (isMobile ? val + " Berkas" : val + " Dokumen") : "0";
+                    return val > 0 ? (isMobile ? val + " Dok." : val + " Dokumen") : "0";
                 }
             },
             xaxis: {
                 categories: bLabels,
                 labels: {
                     style: {
-                        fontSize: isMobile ? '10px' : '11px',
+                        fontSize: isMobile ? '9px' : '10px',
                         fontWeight: 700,
                         colors: isDarkInit ? '#94A3B8' : '#64748B'
                     },
@@ -1566,11 +1566,11 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
             yaxis: {
                 labels: {
                     style: {
-                        fontSize: isMobile ? '10px' : '11px',
+                        fontSize: isMobile ? '9px' : '10px',
                         fontWeight: 700,
                         colors: isDarkInit ? '#CBD5E1' : '#334155'
                     },
-                    maxWidth: isMobile ? 120 : 220
+                    maxWidth: isMobile ? 105 : 160
                 }
             },
             grid: {
@@ -1578,7 +1578,7 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
                 strokeDashArray: 4,
                 xaxis: { lines: { show: true } },
                 yaxis: { lines: { show: false } },
-                padding: { right: 50, left: 5 }
+                padding: { right: 45, left: 5 }
             },
             tooltip: {
                 theme: isDarkInit ? 'dark' : 'light',
@@ -1644,8 +1644,8 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
                 plotOptions: {
                     bar: {
                         horizontal: true,
-                        barHeight: '56%',
-                        borderRadius: 6,
+                        barHeight: '52%',
+                        borderRadius: 5,
                         borderRadiusApplication: 'end',
                         distributed: true,
                         dataLabels: { position: 'top' }
@@ -1654,22 +1654,22 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
                 dataLabels: {
                     enabled: true,
                     textAnchor: 'start',
-                    offsetX: 8,
+                    offsetX: 6,
                     style: {
-                        fontSize: isMobile ? '10px' : '11px',
-                        fontWeight: 900,
+                        fontSize: isMobile ? '9px' : '10px',
+                        fontWeight: 800,
                         fontFamily: 'Plus Jakarta Sans, sans-serif',
                         colors: [isDarkInit ? '#E2E8F0' : '#1E293B']
                     },
                     formatter: function (val) {
-                        return val > 0 ? (isMobile ? val + " Berkas" : val + " Dokumen") : "0";
+                        return val > 0 ? (isMobile ? val + " Dok." : val + " Dokumen") : "0";
                     }
                 },
                 xaxis: {
                     categories: uLabels,
                     labels: {
                         style: {
-                            fontSize: isMobile ? '10px' : '11px',
+                            fontSize: isMobile ? '9px' : '10px',
                             fontWeight: 700,
                             colors: isDarkInit ? '#94A3B8' : '#64748B'
                         },
@@ -1686,11 +1686,11 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
                 yaxis: {
                     labels: {
                         style: {
-                            fontSize: isMobile ? '10px' : '11px',
+                            fontSize: isMobile ? '9px' : '10px',
                             fontWeight: 700,
                             colors: isDarkInit ? '#CBD5E1' : '#334155'
                         },
-                        maxWidth: isMobile ? 120 : 220
+                        maxWidth: isMobile ? 105 : 160
                     }
                 },
                 grid: {
@@ -1698,8 +1698,9 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
                     strokeDashArray: 4,
                     xaxis: { lines: { show: true } },
                     yaxis: { lines: { show: false } },
-                    padding: { right: 50, left: 5 }
+                    padding: { right: 45, left: 5 }
                 },
+
 
                 tooltip: {
                     theme: isDarkInit ? 'dark' : 'light',
