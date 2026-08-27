@@ -164,7 +164,7 @@
                 <div class="row">
                     <div class="col-md-6 mb-4">
                         <label for="username" class="form-label fw-bold">Username Login <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input" id="username" name="username" value="{{ user_account.username }}" required>
+                        <input type="text" class="form-control custom-input" id="username" name="username" autocomplete="username" value="{{ user_account.username }}" required>
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="role" class="form-label fw-bold">Role Akses Sistem <span class="text-danger">*</span></label>
@@ -178,17 +178,17 @@
                 <div class="row">
                     <div class="col-md-6 mb-4">
                         <label for="first_name" class="form-label fw-bold">Nama Depan</label>
-                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" value="{{ user_account.first_name }}">
+                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" autocomplete="given-name" value="{{ user_account.first_name }}">
                     </div>
                     <div class="col-md-6 mb-4">
                         <label for="last_name" class="form-label fw-bold">Nama Belakang</label>
-                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" value="{{ user_account.last_name }}">
+                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" autocomplete="family-name" value="{{ user_account.last_name }}">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-4">
                         <label for="password" class="form-label fw-bold">Password Baru (Opsional)</label>
-                        <input type="password" class="form-control custom-input" id="password" name="password" placeholder="Biarkan kosong jika tidak diubah">
+                        <input type="password" class="form-control custom-input" id="password" name="password" autocomplete="new-password" placeholder="Biarkan kosong jika tidak diubah">
                     </div>
                     <div class="col-md-6 mb-4 d-flex align-items-center pt-4">
                         <div class="form-check form-switch">

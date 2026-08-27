@@ -96,11 +96,11 @@
                 <span class="input-group-text custom-input border-end-0 bg-transparent text-secondary">
                     <i class="bi bi-search"></i>
                 </span>
-                <input type="text" name="q" value="{{ query }}" class="form-control custom-input border-start-0 ps-0" placeholder="Cari Username, Email, atau Nama Pegawai...">
+                <input type="text" id="users_search_q" name="q" value="{{ query }}" class="form-control custom-input border-start-0 ps-0" placeholder="Cari Username, Email, atau Nama Pegawai...">
             </div>
         </div>
         <div class="col-lg-3">
-            <select name="role" class="form-select custom-input" onchange="this.form.submit()">
+            <select id="users_filter_role" name="role" class="form-select custom-input" onchange="this.form.submit()">
                 <option value="">Semua Role Akses</option>
                 {% for code, label in roles %}
                 <option value="{{ code }}" {% if role_filter == code %}selected{% endif %}>{{ label }}</option>
@@ -108,7 +108,7 @@
             </select>
         </div>
         <div class="col-lg-2">
-            <select name="status" class="form-select custom-input" onchange="this.form.submit()">
+            <select id="users_filter_status" name="status" class="form-select custom-input" onchange="this.form.submit()">
                 <option value="">Semua Status</option>
                 <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Aktif</option>
                 <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Non-Aktif</option>

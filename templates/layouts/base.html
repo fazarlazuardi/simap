@@ -5,6 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>{% block title %}BAZNAS - Sistem Arsip SDM{% endblock %}</title>
+  <!-- ⚡ OFFICIAL BAZNAS LOGO FAVICON ⚡ -->
+  <link rel="icon" type="image/png" href="{% static 'img/logo_baznas.png' %}">
+  <link rel="shortcut icon" type="image/png" href="{% static 'img/logo_baznas.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/logo_baznas.png' %}">
   
   <!-- ⚡ EARLY ANTI-FLASH DARK MODE & SIDEBAR INITIALIZER ⚡ -->
   <script>
@@ -26,13 +30,7 @@
     })();
   </script>
 
-  <!-- ⚡ TAILWIND CSS & ALPINE.JS ENGINE CDN ⚡ -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class'
-    }
-  </script>
+  <!-- ⚡ ALPINE.JS ENGINE CDN ⚡ -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <!-- ⚡ HTMX ENGINE CDN ⚡ -->
@@ -61,9 +59,11 @@
 
     /* Zero-Flash Anti-Flicker Desktop Sidebar Engine */
     @media (min-width: 1024px) {
+      html:not(.sidebar-collapsed) aside.desktop-sidebar {
+        width: 16rem !important;
+      }
       html.sidebar-collapsed aside.desktop-sidebar {
         width: 5rem !important;
-        min-width: 5rem !important;
       }
       html.sidebar-collapsed aside.desktop-sidebar .sidebar-text,
       html.sidebar-collapsed aside.desktop-sidebar .menu-category-title,
@@ -78,7 +78,7 @@
       }
     }
 
-    /* Silky Smooth Page Entrance Animation */
+    /* Smooth Page & Chart Entrance Animation */
     @keyframes pageFadeIn {
       from {
         opacity: 0;
@@ -196,8 +196,8 @@
     </aside>
 
     <!-- 1B. DESKTOP COLLAPSIBLE SIDEBAR (lg:) -->
-    <aside class="desktop-sidebar hidden lg:flex flex-col h-full shrink-0 bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 z-30 transition-all duration-300 relative overflow-hidden" 
-           :class="{ 'w-64 min-w-[16rem]': desktopSidebarOpen, 'w-20 min-w-[5rem]': !desktopSidebarOpen }">
+    <aside class="desktop-sidebar w-64 hidden lg:flex flex-col h-full shrink-0 bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 z-30 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[width] relative overflow-hidden" 
+           :class="desktopSidebarOpen ? 'w-64' : 'w-20'">
       {% include 'layouts/sidebar.html' %}
     </aside>
 
@@ -279,14 +279,14 @@
         </div>
       </main>
 
-      <!-- FOOTER -->
-      <footer class="h-10 shrink-0 bg-gradient-to-r from-[#041a14] via-[#06241b] to-[#041a14] border-t border-emerald-500/40 px-4 sm:px-6 flex items-center justify-between text-xs text-emerald-200 select-none relative z-10 shadow-lg">
-        <div class="flex items-center gap-2">
-          <span class="font-bold text-emerald-400 font-mono">SIMAP BAZNAS</span>
+      <!-- STICKY PINNED ENTERPRISE FOOTER (MOBILE & DESKTOP) -->
+      <footer class="shrink-0 min-h-[36px] py-2 bg-gradient-to-r from-[#041a14] via-[#06241b] to-[#041a14] border-t border-emerald-500/40 px-3 sm:px-6 flex items-center justify-between text-[11px] sm:text-xs text-emerald-200 select-none relative z-20 shadow-lg">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <span class="font-bold text-emerald-400 font-mono text-xs">SIMAP BAZNAS</span>
           <span class="hidden sm:inline text-slate-300">| Sistem Informasi Manajemen Arsip & Monitoring Proses</span>
         </div>
         <div>
-          <span class="font-mono text-emerald-400 font-semibold text-[11px] sm:text-xs">v2.5 Enterprise © 2026</span>
+          <span class="font-mono text-emerald-400 font-semibold text-[10px] sm:text-xs">v2.5 Enterprise © 2026</span>
         </div>
       </footer>
 

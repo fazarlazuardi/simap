@@ -119,20 +119,20 @@
                 </div>
                 <div class="modal-body py-3">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small text-secondary">NIP / Nama Pegawai</label>
-                        <input type="text" id="modalEmpInfoMaster" class="form-control bg-light" value="" readonly>
+                        <label for="modalEmpInfoMaster" class="form-label fw-semibold small text-secondary">NIP / Nama Pegawai</label>
+                        <input type="text" id="modalEmpInfoMaster" name="modal_emp_info" class="form-control bg-light" value="" readonly>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small text-dark">Username Akses SIMAP <span class="text-danger">*</span></label>
-                        <input type="text" name="username" id="modalUsernameMaster" class="form-control" required placeholder="Contoh: waka2 / amil_sdm">
+                        <label for="modalUsernameMaster" class="form-label fw-semibold small text-dark">Username Akses SIMAP <span class="text-danger">*</span></label>
+                        <input type="text" name="username" id="modalUsernameMaster" autocomplete="username" class="form-control" required placeholder="Contoh: waka2 / amil_sdm">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small text-dark">Password <span class="text-danger">*</span></label>
-                        <input type="password" name="password" class="form-control" required placeholder="Password unik">
+                        <label for="modalPasswordMaster" class="form-label fw-semibold small text-dark">Password <span class="text-danger">*</span></label>
+                        <input type="password" id="modalPasswordMaster" name="password" autocomplete="new-password" class="form-control" required placeholder="Password unik">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small text-dark">Role Akses SIMAP <span class="text-danger">*</span></label>
-                        <select name="role" class="form-select" required style="height: 48px; border-radius: 10px;">
+                        <label for="modalRoleMaster" class="form-label fw-semibold small text-dark">Role Akses SIMAP <span class="text-danger">*</span></label>
+                        <select id="modalRoleMaster" name="role" class="form-select" required style="height: 48px; border-radius: 10px;">
                             <option value="" selected disabled>Pilih Peran Akun...</option>
                             {% for code, name in roles %}
                             <option value="{{ code }}">{{ name }}</option>

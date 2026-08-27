@@ -46,22 +46,22 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label for="username" class="form-label fw-bold small text-uppercase">Username Log In <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control custom-input" id="username" name="username" value="{{ user_obj.username }}" required>
+                        <input type="text" class="form-control custom-input" id="username" name="username" autocomplete="username" value="{{ user_obj.username }}" required>
                     </div>
                     <div class="col-md-6">
                         <label for="email" class="form-label fw-bold small text-uppercase">Alamat Email Official <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control custom-input" id="email" name="email" value="{{ user_obj.email }}" required>
+                        <input type="email" class="form-control custom-input" id="email" name="email" autocomplete="email" value="{{ user_obj.email }}" required>
                     </div>
                 </div>
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label for="first_name" class="form-label fw-bold small text-uppercase">Nama Depan</label>
-                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" value="{{ user_obj.first_name }}">
+                        <input type="text" class="form-control custom-input" id="first_name" name="first_name" autocomplete="given-name" value="{{ user_obj.first_name }}">
                     </div>
                     <div class="col-md-6">
                         <label for="last_name" class="form-label fw-bold small text-uppercase">Nama Belakang</label>
-                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" value="{{ user_obj.last_name }}">
+                        <input type="text" class="form-control custom-input" id="last_name" name="last_name" autocomplete="family-name" value="{{ user_obj.last_name }}">
                     </div>
                 </div>
 
@@ -76,7 +76,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="password" class="form-label fw-bold small text-uppercase">Password Baru (Opsional)</label>
-                        <input type="password" class="form-control custom-input" id="password" name="password" placeholder="Kosongkan jika tidak ingin mengubah password">
+                        <input type="password" class="form-control custom-input" id="password" name="password" autocomplete="new-password" placeholder="Kosongkan jika tidak ingin mengubah password">
                     </div>
                 </div>
 
