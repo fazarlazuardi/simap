@@ -1,39 +1,56 @@
-<!-- ⚡ ENTERPRISE MOBILE & TABLET BOTTOM APPLICATION DOCK (< lg) WITH SMART AUTO-SLIDE & HIDE ⚡ -->
+<!-- ⚡ ENTERPRISE MOBILE & TABLET BOTTOM APPLICATION DOCK (< lg) WITH PURE GESTURE AUTO-SLIDE ⚡ -->
 <div x-data="{ 
         visible: true, 
         lastScrollY: 0,
+        touchStartY: 0,
         init() {
             var scrollContainer = document.querySelector('main') || window;
             var self = this;
+
             var handleScroll = function() {
                 var currentY = scrollContainer.scrollTop || window.scrollY || 0;
-                if (currentY > self.lastScrollY && currentY > 50) {
+                if (currentY > self.lastScrollY && currentY > 40) {
                     self.visible = false;
-                } else if (currentY < self.lastScrollY || currentY <= 20) {
+                } else if (currentY < self.lastScrollY || currentY <= 15) {
                     self.visible = true;
                 }
                 self.lastScrollY = currentY;
             };
+
             scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
             window.addEventListener('scroll', handleScroll, { passive: true });
+
+            // Touch Swipe Gesture Listener on Mobile
+            window.addEventListener('touchstart', function(e) {
+                if (e.touches && e.touches.length > 0) {
+                    self.touchStartY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', function(e) {
+                if (!e.touches || e.touches.length === 0) return;
+                var touchCurrentY = e.touches[0].clientY;
+                var diffY = touchCurrentY - self.touchStartY;
+                if (diffY < -30) {
+                    // Swiped UP -> User scrolling down to read content -> Hide Dock
+                    self.visible = false;
+                } else if (diffY > 30) {
+                    // Swiped DOWN -> User scrolling up -> Reveal Dock
+                    self.visible = true;
+                }
+            }, { passive: true });
         }
      }"
-     class="fixed bottom-0 left-0 right-0 z-40 lg:hidden pointer-events-none">
+     class="fixed bottom-0 left-0 right-0 z-40 lg:hidden">
 
-    <!-- MINIMIZED RESTORATION PILL / PULL HANDLE (Klik/Ketuk untuk Sembunyikan / Tampilkan) -->
-    <div class="flex justify-center mb-1 pointer-events-auto">
-        <button type="button" 
-                @click="visible = !visible" 
-                class="px-3 py-0.5 rounded-full bg-slate-900/90 dark:bg-[#04131a]/90 text-emerald-400 border border-emerald-500/40 shadow-lg backdrop-blur-md text-[10px] font-extrabold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer">
-            <i class="bi" :class="visible ? 'bi-chevron-down' : 'bi-chevron-up text-amber-400 animate-bounce'"></i>
-            <span x-text="visible ? 'Slide Sembunyikan' : 'Tampilkan 5 Menu Navigasi'"></span>
-        </button>
-    </div>
+    <!-- 5 MENU DOCK CONTAINER WITH PURE GESTURE SLIDE DOWN ANIMATION -->
+    <nav class="bg-slate-900/95 dark:bg-[#04131a]/95 backdrop-blur-xl border-t border-emerald-500/30 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] select-none transition-transform duration-300 ease-in-out"
+         :class="visible ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-full opacity-0 pointer-events-none'">
+      
+      <!-- iOS Native Style Drag Indicator Bar -->
+      <div class="w-10 h-1 rounded-full bg-emerald-500/40 dark:bg-emerald-400/30 mx-auto mt-1.5 mb-0.5"></div>
 
-    <!-- 5 MENU DOCK CONTAINER WITH SLIDE DOWN ANIMATION -->
-    <nav class="bg-slate-900/95 dark:bg-[#04131a]/95 backdrop-blur-xl border-t border-emerald-500/30 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] select-none transition-all duration-300 ease-in-out pointer-events-auto"
-         :class="visible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'">
-      <div class="max-w-md mx-auto px-2 py-1.5 flex items-center justify-around">
+      <div class="max-w-md mx-auto px-2 pb-2 pt-0.5 flex items-center justify-around">
         
         <!-- 1. BERANDA / DASHBOARD -->
         <a href="{% url 'archives:list' %}" 

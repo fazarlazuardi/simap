@@ -1485,8 +1485,8 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
         var numCategoriesB = bLabels.length || 1;
         var numCategoriesU = uLabels.length || 1;
 
-        var calculatedBHeight = isMobile ? Math.min(280, Math.max(220, numCategoriesB * 30)) : Math.min(340, Math.max(250, numCategoriesB * 34));
-        var calculatedUHeight = isMobile ? Math.min(280, Math.max(220, numCategoriesU * 30)) : Math.min(340, Math.max(250, numCategoriesU * 34));
+        var calculatedBHeight = isMobile ? Math.min(260, Math.max(180, numCategoriesB * 34)) : Math.min(300, Math.max(210, numCategoriesB * 38));
+        var calculatedUHeight = isMobile ? Math.min(260, Math.max(180, numCategoriesU * 34)) : Math.min(300, Math.max(210, numCategoriesU * 38));
 
         var maxBVal = bSeries.length > 0 ? Math.max.apply(Math, bSeries) : 1;
         var maxUVal = uSeries.length > 0 ? Math.max.apply(Math, uSeries) : 1;
@@ -1524,7 +1524,7 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
             plotOptions: {
                 bar: {
                     horizontal: true,
-                    barHeight: '48%',
+                    barHeight: '56%',
                     borderRadius: 6,
                     borderRadiusApplication: 'end',
                     distributed: true,
@@ -1578,7 +1578,7 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
                 strokeDashArray: 4,
                 xaxis: { lines: { show: true } },
                 yaxis: { lines: { show: false } },
-                padding: { right: 35, left: 5 }
+                padding: { right: 50, left: 5 }
             },
             tooltip: {
                 theme: isDarkInit ? 'dark' : 'light',
@@ -1644,7 +1644,7 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
                 plotOptions: {
                     bar: {
                         horizontal: true,
-                        barHeight: '48%',
+                        barHeight: '56%',
                         borderRadius: 6,
                         borderRadiusApplication: 'end',
                         distributed: true,
@@ -1698,8 +1698,9 @@ function bukaModalBidang2(dispoPk, dispoNum, archiveNum, applicant, title, categ
                     strokeDashArray: 4,
                     xaxis: { lines: { show: true } },
                     yaxis: { lines: { show: false } },
-                    padding: { right: 35, left: 5 }
+                    padding: { right: 50, left: 5 }
                 },
+
                 tooltip: {
                     theme: isDarkInit ? 'dark' : 'light',
                     custom: function(opts) {
