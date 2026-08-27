@@ -247,27 +247,26 @@
                     <span class="text-slate-700 dark:text-slate-300"><span class="sm:hidden">Jum</span><span class="hidden sm:inline">Jumat</span></span>
                     <span class="text-slate-700 dark:text-slate-300"><span class="sm:hidden">Sab</span><span class="hidden sm:inline">Sabtu</span></span>
                 </div>
-
-                <!-- Full Month Cells Grid -->
-                <div class="grid grid-cols-7 gap-1 sm:gap-2">
+                            <!-- Full Month Cells Grid (On Mobile: Compact 1-Box View like Year View) -->
+                <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs">
                     <template x-for="dayItem in getMonthDays(currentYear, currentMonth)" :key="dayItem.dateStr">
                         <div @click="selectedDateStr = dayItem.dateStr"
-                             class="min-h-[56px] sm:min-h-[105px] p-1 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col justify-between cursor-pointer select-none active:scale-95"
+                             class="h-11 sm:h-auto sm:min-h-[105px] py-1 px-0.5 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col items-center justify-center sm:justify-between cursor-pointer select-none active:scale-95 relative group"
                              :class="{
-                                 'bg-slate-50/40 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800/40 opacity-40': !dayItem.isCurrentMonth,
-                                 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800': dayItem.isCurrentMonth,
-                                 'ring-2 ring-emerald-500/80 bg-emerald-50/30 dark:bg-emerald-950/20': dayItem.isToday,
-                                 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/60 dark:border-rose-900/40': dayItem.holiday,
-                                 'ring-2 ring-amber-400 font-extrabold': selectedDateStr === dayItem.dateStr && !dayItem.isToday
+                                 'opacity-30': !dayItem.isCurrentMonth,
+                                 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800': dayItem.isCurrentMonth,
+                                 'bg-emerald-500 text-white font-black shadow-md border-emerald-600': dayItem.isToday,
+                                 'bg-rose-500/10 dark:bg-rose-950/20 border-rose-200/80 dark:border-rose-900/40': dayItem.holiday && !dayItem.isToday,
+                                 'ring-2 ring-emerald-500 dark:ring-emerald-400 font-extrabold shadow-sm scale-[1.02]': selectedDateStr === dayItem.dateStr && !dayItem.isToday
                              }">
                             
-                            <!-- Date Header inside cell -->
-                            <div class="flex items-center justify-between">
-                                <span class="font-extrabold text-[11px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full"
+                            <!-- Date Number Header inside cell -->
+                            <div class="flex items-center justify-center sm:justify-between w-full">
+                                <span class="font-extrabold text-xs px-1 sm:px-2 py-0.5 rounded-full"
                                       :class="{
-                                          'bg-emerald-600 text-white shadow-xs': dayItem.isToday,
-                                          'text-rose-600 dark:text-rose-400': dayItem.isSunday || dayItem.holiday,
-                                          'text-slate-800 dark:text-slate-200': !dayItem.isSunday && !dayItem.holiday && !dayItem.isToday
+                                          'text-white': dayItem.isToday,
+                                          'text-rose-600 dark:text-rose-400': !dayItem.isToday && (dayItem.isSunday || dayItem.holiday),
+                                          'text-slate-800 dark:text-slate-200': !dayItem.isToday && !dayItem.isSunday && !dayItem.holiday
                                       }"
                                       x-text="dayItem.day"></span>
 
@@ -275,26 +274,26 @@
                             </div>
 
                             <!-- Mobile Event Indicators Dots (< sm) -->
-                            <div class="flex sm:hidden items-center justify-center gap-1 mt-1 flex-wrap">
+                            <div class="flex sm:hidden items-center justify-center gap-1 mt-0.5">
                                 <template x-if="dayItem.holiday">
                                     <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-xs" title="Hari Libur"></span>
                                 </template>
                                 <template x-for="ev in dayItem.events.slice(0, 3)" :key="ev.id">
                                     <span class="w-1.5 h-1.5 rounded-full"
                                           :class="{
-                                              'bg-emerald-500': ev.source_type === 'agenda',
-                                              'bg-sky-500': ev.source_type === 'sppd',
-                                              'bg-purple-500': ev.source_type === 'meeting'
+                                              'bg-white': dayItem.isToday,
+                                              'bg-emerald-500': !dayItem.isToday && ev.source_type === 'agenda',
+                                              'bg-sky-500': !dayItem.isToday && ev.source_type === 'sppd',
+                                              'bg-purple-500': !dayItem.isToday && ev.source_type === 'meeting'
                                           }"></span>
                                 </template>
-                                <span x-show="dayItem.events.length > 3" class="text-[8px] font-bold text-slate-400">+<span x-text="dayItem.events.length - 3"></span></span>
                             </div>
 
                             <!-- Desktop Event Badges List (>= sm) -->
-                            <div class="hidden sm:block space-y-1 overflow-y-auto max-h-[80px] custom-scrollbar flex-1 mt-1">
+                            <div class="hidden sm:block space-y-1 overflow-y-auto max-h-[80px] custom-scrollbar flex-1 w-full mt-1">
                                 <template x-if="dayItem.holiday">
                                     <div @click.stop="openHolidayModal(dayItem.dateStr, dayItem.holiday)"
-                                         class="mb-1 px-2 py-1 rounded-lg bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-[10px] font-bold line-clamp-1 cursor-pointer hover:bg-rose-500/25 transition-all">
+                                         class="mb-1 px-2 py-1 rounded-lg bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-[10px] font-bold line-clamp-1 cursor-pointer hover:bg-rose-500/25 transition-all text-left">
                                         <i class="bi bi-flag-fill text-rose-500 text-[9px] mr-0.5"></i>
                                         <span x-text="dayItem.holiday"></span>
                                     </div>
@@ -302,7 +301,7 @@
 
                                 <template x-for="ev in dayItem.events" :key="ev.id">
                                     <div @click.stop="openEventModal(ev)"
-                                         class="px-2 py-0.5 rounded-lg text-[10px] font-bold truncate cursor-pointer transition-all border flex items-center gap-1 shadow-2xs"
+                                         class="px-2 py-0.5 rounded-lg text-[10px] font-bold truncate cursor-pointer transition-all border flex items-center gap-1 shadow-2xs text-left"
                                          :class="{
                                              'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25': ev.source_type === 'agenda',
                                              'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30 hover:bg-sky-500/25': ev.source_type === 'sppd',
@@ -313,6 +312,17 @@
                                               :class="{
                                                   'bg-emerald-500': ev.source_type === 'agenda',
                                                   'bg-sky-500': ev.source_type === 'sppd',
+                                                  'bg-purple-500': ev.source_type === 'meeting'
+                                              }"></span>
+                                        <span class="truncate" x-text="ev.title"></span>
+                                    </div>
+                                </template>
+                            </div>
+
+                        </div>
+                    </template>
+                </div>
+source_type === 'sppd',
                                                   'bg-purple-500': ev.source_type === 'meeting'
                                               }"></span>
                                         <span class="truncate" x-text="ev.title"></span>
