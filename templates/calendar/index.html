@@ -3,16 +3,6 @@
 {% block title %}Kalender Kerja BAZNAS (100% Tailwind CSS + Alpine.js){% endblock %}
 
 {% block content %}
-<style>
-@media (max-width: 639px) {
-    .simap-mobile-cell {
-        height: 38px !important;
-        min-height: 38px !important;
-        max-height: 38px !important;
-        padding: 2px 1px !important;
-    }
-}
-</style>
 <div class="w-full space-y-6" x-data="simapCalendar()">
     <!-- ⚡ HEADER BANNER ENTERPRISE ⚡ -->
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/30 p-6 md:p-8 shadow-2xl text-white">
@@ -56,7 +46,7 @@
     <!-- ⚡ MAIN 2-COLUMN LAYOUT ⚡ -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- ─── SIDEBAR FILTER & CONTROLS (COL 3) ─── -->
-        <div class="lg:col-span-3 space-y-5">
+        <div class="lg:col-span-3 space-y-5 order-2 lg:order-1">
             <!-- Filter Lapisan Card -->
             <div class="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -141,7 +131,7 @@
         </div>
 
         <!-- ─── CALENDAR CANVAS VIEW (COL 9) ─── -->
-        <div class="lg:col-span-9 space-y-4">
+        <div class="lg:col-span-9 space-y-4 order-1 lg:order-2">
             <!-- Top Toolbar Navigation Controls -->
             <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
                 <!-- Nav Buttons & Title -->
