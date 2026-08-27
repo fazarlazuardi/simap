@@ -1,50 +1,84 @@
-<!-- ⚡ ENTERPRISE MOBILE & TABLET BOTTOM APPLICATION DOCK (< lg) ⚡ -->
-<nav class="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-slate-900/95 dark:bg-[#04131a]/95 backdrop-blur-xl border-t border-emerald-500/30 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] select-none transition-all duration-200">
-  <div class="max-w-md mx-auto px-2 py-1.5 flex items-center justify-around">
-    
-    <!-- 1. BERANDA / DASHBOARD -->
-    <a href="{% url 'archives:list' %}" 
-       class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer no-underline active:scale-90 {% if request.resolver_match.url_name == 'list' and request.resolver_match.namespace == 'archives' %}text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20{% else %}text-slate-400 hover:text-slate-200{% endif %}"
-       title="Beranda Dashboard">
-      <i class="bi {% if request.resolver_match.url_name == 'list' and request.resolver_match.namespace == 'archives' %}bi-house-door-fill text-emerald-400{% else %}bi-house-door text-slate-300{% endif %} text-lg mb-0.5"></i>
-      <span class="text-[10px] tracking-tight leading-none font-bold">Beranda</span>
-    </a>
+<!-- ⚡ ENTERPRISE MOBILE & TABLET BOTTOM APPLICATION DOCK (< lg) WITH SMART AUTO-SLIDE & HIDE ⚡ -->
+<div x-data="{ 
+        visible: true, 
+        lastScrollY: 0,
+        init() {
+            var scrollContainer = document.querySelector('main') || window;
+            var self = this;
+            var handleScroll = function() {
+                var currentY = scrollContainer.scrollTop || window.scrollY || 0;
+                if (currentY > self.lastScrollY && currentY > 50) {
+                    self.visible = false;
+                } else if (currentY < self.lastScrollY || currentY <= 20) {
+                    self.visible = true;
+                }
+                self.lastScrollY = currentY;
+            };
+            scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+            window.addEventListener('scroll', handleScroll, { passive: true });
+        }
+     }"
+     class="fixed bottom-0 left-0 right-0 z-40 lg:hidden pointer-events-none">
 
-    <!-- 2. REKAP ANALITIK -->
-    <a href="{% url 'reports:rekap_bantuan' %}" 
-       class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer no-underline active:scale-90 {% if 'rekap' in request.resolver_match.url_name %}text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20{% else %}text-slate-400 hover:text-slate-200{% endif %}"
-       title="Rekap & Analitik">
-      <i class="bi {% if 'rekap' in request.resolver_match.url_name %}bi-bar-chart-fill text-emerald-400{% else %}bi-bar-chart text-slate-300{% endif %} text-lg mb-0.5"></i>
-      <span class="text-[10px] tracking-tight leading-none font-bold">Analitik</span>
-    </a>
+    <!-- MINIMIZED RESTORATION PILL / PULL HANDLE (Klik/Ketuk untuk Sembunyikan / Tampilkan) -->
+    <div class="flex justify-center mb-1 pointer-events-auto">
+        <button type="button" 
+                @click="visible = !visible" 
+                class="px-3 py-0.5 rounded-full bg-slate-900/90 dark:bg-[#04131a]/90 text-emerald-400 border border-emerald-500/40 shadow-lg backdrop-blur-md text-[10px] font-extrabold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer">
+            <i class="bi" :class="visible ? 'bi-chevron-down' : 'bi-chevron-up text-amber-400 animate-bounce'"></i>
+            <span x-text="visible ? 'Slide Sembunyikan' : 'Tampilkan 5 Menu Navigasi'"></span>
+        </button>
+    </div>
 
-    <!-- 3. DISPOSISI & ST -->
-    <a href="{% url 'dispositions:list' %}" 
-       class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer no-underline active:scale-90 relative {% if request.resolver_match.namespace == 'dispositions' %}text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20{% else %}text-slate-400 hover:text-slate-200{% endif %}"
-       title="Disposisi & SPPD">
-      <i class="bi {% if request.resolver_match.namespace == 'dispositions' %}bi-file-earmark-check-fill text-emerald-400{% else %}bi-file-earmark-check text-slate-300{% endif %} text-lg mb-0.5"></i>
-      <span class="text-[10px] tracking-tight leading-none font-bold">Disposisi</span>
-      {% if is_kabid_4_active and unverified_count > 0 %}
-      <span class="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-      {% endif %}
-    </a>
+    <!-- 5 MENU DOCK CONTAINER WITH SLIDE DOWN ANIMATION -->
+    <nav class="bg-slate-900/95 dark:bg-[#04131a]/95 backdrop-blur-xl border-t border-emerald-500/30 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] select-none transition-all duration-300 ease-in-out pointer-events-auto"
+         :class="visible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'">
+      <div class="max-w-md mx-auto px-2 py-1.5 flex items-center justify-around">
+        
+        <!-- 1. BERANDA / DASHBOARD -->
+        <a href="{% url 'archives:list' %}" 
+           class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer no-underline active:scale-90 {% if request.resolver_match.url_name == 'list' and request.resolver_match.namespace == 'archives' %}text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20{% else %}text-slate-400 hover:text-slate-200{% endif %}"
+           title="Beranda Dashboard">
+          <i class="bi {% if request.resolver_match.url_name == 'list' and request.resolver_match.namespace == 'archives' %}bi-house-door-fill text-emerald-400{% else %}bi-house-door text-slate-300{% endif %} text-lg mb-0.5"></i>
+          <span class="text-[10px] tracking-tight leading-none font-bold">Beranda</span>
+        </a>
 
-    <!-- 4. AGENDA KATALOG -->
-    <a href="{% url 'agendas:list' %}" 
-       class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer no-underline active:scale-90 {% if request.resolver_match.namespace == 'agendas' %}text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20{% else %}text-slate-400 hover:text-slate-200{% endif %}"
-       title="Agenda Kegiatan">
-      <i class="bi {% if request.resolver_match.namespace == 'agendas' %}bi-calendar-event-fill text-emerald-400{% else %}bi-calendar-event text-slate-300{% endif %} text-lg mb-0.5"></i>
-      <span class="text-[10px] tracking-tight leading-none font-bold">Agenda</span>
-    </a>
+        <!-- 2. REKAP ANALITIK -->
+        <a href="{% url 'reports:rekap_bantuan' %}" 
+           class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer no-underline active:scale-90 {% if 'rekap' in request.resolver_match.url_name %}text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20{% else %}text-slate-400 hover:text-slate-200{% endif %}"
+           title="Rekap & Analitik">
+          <i class="bi {% if 'rekap' in request.resolver_match.url_name %}bi-bar-chart-fill text-emerald-400{% else %}bi-bar-chart text-slate-300{% endif %} text-lg mb-0.5"></i>
+          <span class="text-[10px] tracking-tight leading-none font-bold">Analitik</span>
+        </a>
 
-    <!-- 5. MENU DRAWER SWITCHER -->
-    <button type="button" 
-            @click="sidebarOpen = !sidebarOpen" 
-            class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer border-0 bg-transparent text-slate-400 hover:text-slate-200 active:scale-90"
-            title="Buka Menu Aplikasi">
-      <i class="bi bi-grid-fill text-emerald-400 text-lg mb-0.5"></i>
-      <span class="text-[10px] tracking-tight leading-none font-bold text-slate-300">Menu</span>
-    </button>
+        <!-- 3. DISPOSISI & ST -->
+        <a href="{% url 'dispositions:list' %}" 
+           class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer no-underline active:scale-90 relative {% if request.resolver_match.namespace == 'dispositions' %}text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20{% else %}text-slate-400 hover:text-slate-200{% endif %}"
+           title="Disposisi & SPPD">
+          <i class="bi {% if request.resolver_match.namespace == 'dispositions' %}bi-file-earmark-check-fill text-emerald-400{% else %}bi-file-earmark-check text-slate-300{% endif %} text-lg mb-0.5"></i>
+          <span class="text-[10px] tracking-tight leading-none font-bold">Disposisi</span>
+          {% if is_kabid_4_active and unverified_count > 0 %}
+          <span class="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+          {% endif %}
+        </a>
 
-  </div>
-</nav>
+        <!-- 4. AGENDA KATALOG -->
+        <a href="{% url 'agendas:list' %}" 
+           class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer no-underline active:scale-90 {% if request.resolver_match.namespace == 'agendas' %}text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20{% else %}text-slate-400 hover:text-slate-200{% endif %}"
+           title="Agenda Kegiatan">
+          <i class="bi {% if request.resolver_match.namespace == 'agendas' %}bi-calendar-event-fill text-emerald-400{% else %}bi-calendar-event text-slate-300{% endif %} text-lg mb-0.5"></i>
+          <span class="text-[10px] tracking-tight leading-none font-bold">Agenda</span>
+        </a>
+
+        <!-- 5. MENU DRAWER SWITCHER -->
+        <button type="button" 
+                @click="sidebarOpen = !sidebarOpen" 
+                class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer border-0 bg-transparent text-slate-400 hover:text-slate-200 active:scale-90"
+                title="Buka Menu Aplikasi">
+          <i class="bi bi-grid-fill text-emerald-400 text-lg mb-0.5"></i>
+          <span class="text-[10px] tracking-tight leading-none font-bold text-slate-300">Menu</span>
+        </button>
+
+      </div>
+    </nav>
+</div>
