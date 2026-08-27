@@ -546,33 +546,35 @@
             </div>
 
             <!-- Modal Body -->
-            <div class="p-6 space-y-4 text-xs" x-if="activeEventModal">
-                <div class="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 space-y-1.5">
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-600 text-white uppercase inline-block" x-text="activeEventModal.source_type || 'AGENDA'"></span>
-                    <h4 class="text-sm font-extrabold text-slate-900 dark:text-white" x-text="activeEventModal.title"></h4>
-                    <span class="text-slate-500 dark:text-slate-400 font-mono font-bold flex items-center gap-1">
-                        <i class="bi bi-calendar-check text-emerald-500"></i> <span x-text="activeEventModal.start + (activeEventModal.time ? ' • ' + activeEventModal.time : '')"></span>
-                    </span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700 dark:text-slate-300">
-                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                        <span class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Lokasi / Instansi</span>
-                        <div class="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
-                            <i class="bi bi-geo-alt-fill text-rose-500"></i>
-                            <span x-text="activeEventModal.location || 'Kantor BAZNAS'"></span>
-                        </div>
+            <template x-if="activeEventModal">
+                <div class="p-6 space-y-4 text-xs">
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 space-y-1.5">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-600 text-white uppercase inline-block" x-text="activeEventModal.source_type || 'AGENDA'"></span>
+                        <h4 class="text-sm font-extrabold text-slate-900 dark:text-white" x-text="activeEventModal.title"></h4>
+                        <span class="text-slate-500 dark:text-slate-400 font-mono font-bold flex items-center gap-1">
+                            <i class="bi bi-calendar-check text-emerald-500"></i> <span x-text="activeEventModal.start + (activeEventModal.time ? ' • ' + activeEventModal.time : '')"></span>
+                        </span>
                     </div>
 
-                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                        <span class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Penanggung Jawab / Amil</span>
-                        <div class="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
-                            <i class="bi bi-people-fill text-emerald-500"></i>
-                            <span x-text="activeEventModal.assigned_to || 'Internal BAZNAS'"></span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700 dark:text-slate-300">
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Lokasi / Instansi</span>
+                            <div class="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                                <i class="bi bi-geo-alt-fill text-rose-500"></i>
+                                <span x-text="activeEventModal.location || 'Kantor BAZNAS'"></span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Penanggung Jawab / Amil</span>
+                            <div class="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                                <i class="bi bi-people-fill text-emerald-500"></i>
+                                <span x-text="activeEventModal.assigned_to || 'Internal BAZNAS'"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </template>
 
             <!-- Modal Footer -->
             <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-end gap-2">

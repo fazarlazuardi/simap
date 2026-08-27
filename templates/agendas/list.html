@@ -579,14 +579,8 @@
                                         
                                         <span class="text-[11px]" x-text="dayItem.day"></span>
 
-                                        <div class="flex items-center justify-center gap-0.5 mt-0.5" x-show="dayItem.events.length > 0">
-                                            <span class="w-1.5 h-1.5 rounded-full"
-                                                  :class="{
-                                                      'bg-white': dayItem.isToday,
-                                                      'bg-emerald-500': !dayItem.isToday && dayItem.events[0].source_type === 'agenda',
-                                                      'bg-sky-500': !dayItem.isToday && dayItem.events[0].source_type === 'sppd',
-                                                      'bg-purple-500': !dayItem.isToday && dayItem.events[0].source_type === 'meeting'
-                                                  }"></span>
+                                        <div class="flex items-center justify-center gap-0.5 mt-0.5" x-show="dayItem.events && dayItem.events.length > 0">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="getEventDotClass(dayItem)"></span>
                                         </div>
                                     </div>
                                 </template>
@@ -1735,6 +1729,17 @@ function simapCalendar() {
                 location: 'Nasional (Seluruh Indonesia)',
                 assigned_to: 'SKB 3 Menteri',
             };
+        },
+
+        getEventDotClass(dayItem) {
+            if (!dayItem || !dayItem.events || dayItem.events.length === 0) return 'bg-transparent';
+            if (dayItem.isToday) return 'bg-white';
+            let firstEv = dayItem.events[0];
+            if (!firstEv || !firstEv.source_type) return 'bg-emerald-500';
+            if (firstEv.source_type === 'agenda') return 'bg-emerald-500';
+            if (firstEv.source_type === 'sppd') return 'bg-sky-500';
+            if (firstEv.source_type === 'meeting') return 'bg-purple-500';
+            return 'bg-emerald-500';
         },
 
         closeEventModal() {
