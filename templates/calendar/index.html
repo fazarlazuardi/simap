@@ -3,6 +3,16 @@
 {% block title %}Kalender Kerja BAZNAS (100% Tailwind CSS + Alpine.js){% endblock %}
 
 {% block content %}
+<style>
+@media (max-width: 639px) {
+    .simap-mobile-cell {
+        height: 38px !important;
+        min-height: 38px !important;
+        max-height: 38px !important;
+        padding: 2px 1px !important;
+    }
+}
+</style>
 <div class="w-full space-y-6" x-data="simapCalendar()">
     <!-- ⚡ HEADER BANNER ENTERPRISE ⚡ -->
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/30 p-6 md:p-8 shadow-2xl text-white">
@@ -252,7 +262,7 @@
                 <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs">
                     <template x-for="dayItem in getMonthDays(currentYear, currentMonth)" :key="dayItem.dateStr">
                         <div @click="selectedDateStr = dayItem.dateStr"
-                             class="h-10 sm:h-auto sm:min-h-[105px] py-1 px-0.5 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col items-center justify-center sm:justify-between cursor-pointer select-none active:scale-95 relative group"
+                             class="simap-mobile-cell sm:min-h-[105px] py-1 px-0.5 sm:p-2 rounded-xl sm:rounded-2xl border transition-all flex flex-col items-center justify-center sm:justify-between cursor-pointer select-none active:scale-95 relative group"
                              :class="{
                                  'opacity-30': !dayItem.isCurrentMonth,
                                  'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800': dayItem.isCurrentMonth,
