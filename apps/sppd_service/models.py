@@ -166,14 +166,16 @@ class SPPD(models.Model):
 
                 if old_status != sppd_stat and sppd_stat == 'disetujui':
                     try:
-                        from notifications.tasks import send_wa_message
-                        from sppd_service.models import SPPD as SPPDModel
-                        s_obj = SPPDModel.objects.filter(pk=sppd_pk).first()
-                        if s_obj:
-                            phones = [emp.phone for emp in s_obj.assigned_employees.all() if hasattr(emp, 'phone') and emp.phone]
-                            message = f"SPPD {sppd_num} sudah diterbitkan untuk {(purpose_str or '')[:80]}. Tanggal: {dep_date} - {ret_date}."
-                            for p in phones:
-                                send_wa_message.delay(p, message, metadata={'sppd_id': sppd_pk})
+                        from notifications.models import WANotificationSetting
+                        if not WANotificationSetting.is_disabled_for_category('sppd'):
+                            from notifications.tasks import send_wa_message
+                            from sppd_service.models import SPPD as SPPDModel
+                            s_obj = SPPDModel.objects.filter(pk=sppd_pk).first()
+                            if s_obj:
+                                phones = [emp.phone for emp in s_obj.assigned_employees.all() if hasattr(emp, 'phone') and emp.phone]
+                                message = f"SPPD {sppd_num} sudah diterbitkan untuk {(purpose_str or '')[:80]}. Tanggal: {dep_date} - {ret_date}."
+                                for p in phones:
+                                    send_wa_message.delay(p, message, metadata={'sppd_id': sppd_pk, 'category': 'sppd'})
                     except Exception as e:
                         print('Failed to trigger WA send for SPPD:', e)
             except Exception as ex:

@@ -93,12 +93,22 @@ def wa_outbox_list(request):
         )
 
     # Handle update matriks mode dari form
-    if request.method == 'POST' and request.POST.get('action') == 'update_wa_matrix':
-        for cat_code, _, _ in categories:
-            mode_val = request.POST.get(f'mode_{cat_code}', 'auto')
-            WANotificationSetting.objects.filter(category=cat_code).update(dispatch_mode=mode_val)
-        messages.success(request, "Matriks Mode Pengiriman WA (Otomatis vs Manual) berhasil diperbarui.")
-        return redirect('notifications:wa_outbox')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'disable_all_wa':
+            WANotificationSetting.objects.all().update(dispatch_mode='disabled')
+            messages.success(request, "🚫 SELURUH Notifikasi WA Gateway telah DINONAKTIFKAN TOTAL. Sistem 100% bypass pengiriman WA.")
+            return redirect('notifications:wa_outbox')
+        elif action == 'enable_all_wa':
+            WANotificationSetting.objects.all().update(dispatch_mode='auto')
+            messages.success(request, "🤖 SELURUH Notifikasi WA Gateway telah DIAKTIFKAN OTOMATIS.")
+            return redirect('notifications:wa_outbox')
+        elif action == 'update_wa_matrix':
+            for cat_code, _, _ in categories:
+                mode_val = request.POST.get(f'mode_{cat_code}', 'auto')
+                WANotificationSetting.objects.filter(category=cat_code).update(dispatch_mode=mode_val)
+            messages.success(request, "✅ Matriks Mode Pengiriman WA berhasil diperbarui.")
+            return redirect('notifications:wa_outbox')
 
     # Query Outbox WA
     wa_logs = Notification.objects.filter(notification_type='whatsapp').order_by('-created_at')

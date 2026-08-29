@@ -47,8 +47,14 @@ class WhatsAppService:
         """
         Sentralisasi Pengiriman Notifikasi WhatsApp.
         Memeriksa Mode Matriks Pengaturan (Otomatis vs Manual vs Nonaktif).
-        Pengiriman Otomatis dilakukan secara ASYNCHRONOUS (Non-Blocking) agar web respon super cepat.
+        Jika Nonaktif, langsung bypass secara instan (0ms) tanpa eksekusi jaringan atau log DB.
         """
+        # Cek Mode Pengiriman Matriks Pertama Kali (Fast-Path Bypass)
+        mode = force_mode or WANotificationSetting.get_mode_for_category(category)
+        if mode == 'disabled' or WANotificationSetting.is_disabled_for_category(category):
+            logger.info(f"[WA DISABLED] Pengiriman notifikasi WA untuk kategori '{category}' dinonaktifkan.")
+            return {'status': 'disabled', 'message': 'Kategori notifikasi ini dinonaktifkan di pengaturan'}
+
         import threading
 
         # Tentukan Pegawai/Penerima
@@ -59,19 +65,12 @@ class WhatsAppService:
         # Tentukan Nomor WA
         phone = phone_number
         if not phone and target_emp:
-            phone = target_emp.phone_number
+            phone = getattr(target_emp, 'phone_number', None) or getattr(target_emp, 'phone', None)
 
         phone = WhatsAppService.format_phone_number(phone)
         if not phone:
             logger.warning(f"Nomor WhatsApp tidak tersedia untuk penerima: User={user}, Employee={target_emp}")
             return {'status': 'failed', 'message': 'Nomor HP tidak valid'}
-
-        # Cek Mode Pengiriman Matriks (Auto vs Manual vs Disabled)
-        mode = force_mode or WANotificationSetting.get_mode_for_category(category)
-        
-        if mode == 'disabled':
-            logger.info(f"[WA DISABLED] Pengiriman notifikasi WA untuk kategori '{category}' dinonaktifkan.")
-            return {'status': 'disabled', 'message': 'Kategori notifikasi ini dinonaktifkan di pengaturan'}
 
         notif_title = title or "Notifikasi WhatsApp"
 

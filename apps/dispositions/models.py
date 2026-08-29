@@ -313,6 +313,10 @@ class Disposition(models.Model):
 
             def _notify_dispo_save():
                 try:
+                    from notifications.models import WANotificationSetting
+                    if WANotificationSetting.is_disabled_for_category('disposition'):
+                        return
+
                     from dispositions.models import Disposition
                     from services.integrations.gateway_service import WhatsAppService
 

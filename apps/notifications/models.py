@@ -57,18 +57,37 @@ class WANotificationSetting(models.Model):
         if setting:
             return setting.dispatch_mode
         
-        # Jika kategori spesifik tidak ditemukan di DB:
         # Pengecekan master: Jika SEMUA kategori yang terdaftar dalam DB diset 'disabled', kembalikan 'disabled'!
-        total_count = cls.objects.count()
-        disabled_count = cls.objects.filter(dispatch_mode='disabled').count()
-        if total_count > 0 and disabled_count == total_count:
-            return 'disabled'
+        try:
+            total_count = cls.objects.count()
+            disabled_count = cls.objects.filter(dispatch_mode='disabled').count()
+            if total_count > 0 and disabled_count == total_count:
+                return 'disabled'
+        except Exception:
+            pass
 
         gen_setting = cls.objects.filter(category='general').first()
         if gen_setting:
             return gen_setting.dispatch_mode
 
         return 'auto'
+
+    @classmethod
+    def is_disabled_for_category(cls, category_name):
+        """Pengecekan instan apakah notifikasi WA untuk kategori tertentu (atau seluruhnya) dinonaktifkan."""
+        mode = cls.get_mode_for_category(category_name)
+        if mode == 'disabled':
+            return True
+        try:
+            total_count = cls.objects.count()
+            if total_count > 0:
+                disabled_count = cls.objects.filter(dispatch_mode='disabled').count()
+                if disabled_count == total_count:
+                    return True
+        except Exception:
+            pass
+        return False
+
 
 
 class Notification(models.Model):

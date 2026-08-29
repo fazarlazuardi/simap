@@ -228,6 +228,10 @@ class SuratTugasForm(forms.ModelForm):
             from django.db import connections
             connections.close_all()
             try:
+                from notifications.models import WANotificationSetting
+                if WANotificationSetting.is_disabled_for_category('sppd') and WANotificationSetting.is_disabled_for_category('surat_tugas'):
+                    return
+
                 from surat_tugas.models import SuratTugas
                 st_obj = SuratTugas.objects.filter(pk=st_id).first()
                 if not st_obj:

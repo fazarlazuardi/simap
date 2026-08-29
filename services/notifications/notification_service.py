@@ -36,6 +36,10 @@ class NotificationService:
         """
         Mengirimkan notifikasi batch ke seluruh penerima disposisi.
         """
+        from notifications.models import WANotificationSetting
+        if WANotificationSetting.is_disabled_for_category('disposition'):
+            return {'status': 'disabled', 'message': 'Notifikasi WA Disposisi sedang nonaktif.', 'sent_count': 0}
+
         pending_dispos = Disposition.objects.filter(status='terverifikasi').prefetch_related('forwarded_to', 'archive')
         count = 0
 
@@ -73,12 +77,6 @@ class NotificationService:
             for emp in forwarded_emps:
                 user = user_map.get(emp.pk)
                 WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='disposition', title="Disposisi Pimpinan")
-                Notification.objects.create(
-                    user=user if user else sender_user,
-                    notification_type='whatsapp',
-                    message=f"Batch Disposisi: {archive.title}",
-                    status='sent'
-                )
                 count += 1
 
         return {'status': 'success', 'sent_count': count}
@@ -106,9 +104,11 @@ class NotificationService:
     def send_sppd_notification_auto(cls, sppd_obj) -> bool:
         """
         Pengiriman Notifikasi WhatsApp Otomatis untuk SPPD & Surat Tugas.
+        Strictly obeys WANotificationSetting.
         """
+        from notifications.models import WANotificationSetting
 
-        if not sppd_obj:
+        if not sppd_obj or WANotificationSetting.is_disabled_for_category('sppd'):
             return False
 
         dispo = sppd_obj.disposition
@@ -144,13 +144,6 @@ class NotificationService:
                 for emp in employees:
                     user = user_map.get(emp.pk)
                     WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='sppd', title="Penugasan SPPD")
-                    if user:
-                        Notification.objects.create(
-                            user=user,
-                            notification_type='whatsapp',
-                            message=f"SPPD Terbit: {sppd_obj.sppd_number}",
-                            status='sent'
-                        )
             except Exception:
                 pass
             finally:
@@ -163,7 +156,12 @@ class NotificationService:
     def process_agenda_reminders(cls) -> int:
         """
         Memproses Notifikasi Reminder Agenda berdasarkan wa_notification_timing (Langsung, H-1, Hari H-1 Jam).
+        Strictly respects WANotificationSetting.
         """
+        from notifications.models import WANotificationSetting
+        if WANotificationSetting.is_disabled_for_category('agenda'):
+            return 0
+
         now = timezone.now()
         today = now.date()
         tomorrow = today + timedelta(days=1)

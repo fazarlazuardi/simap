@@ -273,12 +273,14 @@ class Agenda(models.Model):
                             print("Error creating agenda calendar event:", e_ev)
 
                     if phones:
-                        msg_text = f"Agenda: {agenda_title} - {sched_fmt}. Lokasi: {loc}"
-                        for p in phones:
-                            try:
-                                send_wa_message.delay(p, msg_text, metadata={'agenda_id': agenda_pk})
-                            except Exception as e_wa:
-                                print("Error sending agenda WA:", e_wa)
+                        from notifications.models import WANotificationSetting
+                        if not WANotificationSetting.is_disabled_for_category('agenda'):
+                            msg_text = f"Agenda: {agenda_title} - {sched_fmt}. Lokasi: {loc}"
+                            for p in phones:
+                                try:
+                                    send_wa_message.delay(p, msg_text, metadata={'agenda_id': agenda_pk, 'category': 'agenda'})
+                                except Exception as e_wa:
+                                    print("Error sending agenda WA:", e_wa)
                 except Exception as err_bg:
                     print("Error in background agenda post-save:", err_bg)
 

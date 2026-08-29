@@ -83,8 +83,13 @@ def send_meeting_wa_notifications(meeting, is_notulensi=False, custom_message=No
     """
     Kirim Notifikasi WA Gateway islami & humanis tanpa garis ke Pimpinan & Peserta Rapat.
     Dijalankan secara non-blocking via Background Thread agar HTTP response instan.
+    Strictly respects WANotificationSetting.
     """
     try:
+        from notifications.models import WANotificationSetting
+        if WANotificationSetting.is_disabled_for_category('internal_meeting'):
+            return
+
         if custom_phones is not None:
             phones = list(set([p for p in custom_phones if p]))
         else:

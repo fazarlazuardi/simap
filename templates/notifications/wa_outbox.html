@@ -113,9 +113,22 @@
                 </h3>
                 <p class="text-slate-500 dark:text-slate-400 text-xs mb-0">Tentukan apakah notifikasi untuk setiap jenis kejadian dikirim secara Otomatis oleh server, Manual (Draft Direct WA Link), atau Nonaktif.</p>
             </div>
-            <span class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wider font-mono self-start sm:self-auto">
-                Mode Matrix Config
-            </span>
+            <div class="flex flex-wrap items-center gap-2">
+                <form method="post" action="{% url 'notifications:wa_outbox' %}" class="inline-block mb-0" onsubmit="return confirm('Nonaktifkan SELURUH notifikasi WA Gateway di sistem?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="disable_all_wa">
+                    <button type="submit" class="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-black transition-all cursor-pointer">
+                        <i class="bi bi-slash-circle-fill me-1"></i> 🚫 Nonaktifkan Seluruh WA (1-Click)
+                    </button>
+                </form>
+                <form method="post" action="{% url 'notifications:wa_outbox' %}" class="inline-block mb-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="enable_all_wa">
+                    <button type="submit" class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-black transition-all cursor-pointer">
+                        <i class="bi bi-check-circle-fill me-1"></i> 🤖 Aktifkan Otomatis Semua
+                    </button>
+                </form>
+            </div>
         </div>
 
         <form method="post" action="{% url 'notifications:wa_outbox' %}" class="space-y-5 mb-0">

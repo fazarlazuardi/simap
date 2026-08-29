@@ -5,37 +5,38 @@ from django.utils import timezone
 from django.apps import apps
 
 
-@app.task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 3})
+@app.task(bind=True)
 def send_wa_message(self, to_number, message, metadata=None):
-    """Send a WhatsApp message via configured WA_GATEWAY_URL.
+    """Send a WhatsApp message via configured WA_GATEWAY_URL, strictly respecting notification matrix settings."""
+    try:
+        from notifications.models import WANotificationSetting
+        cat = (metadata or {}).get('category', 'general')
+        if WANotificationSetting.is_disabled_for_category(cat):
+            print(f"WA notification disabled for category '{cat}'; skipping task.")
+            return {'status': 'disabled'}
+    except Exception as ex:
+        print(f"Error checking WA matrix setting: {ex}")
 
-    The task is idempotent on caller side (caller should ensure uniqueness if needed).
-    """
     url = getattr(settings, 'WA_GATEWAY_URL', '')
     if not url:
-        # No gateway configured; log and exit
         print('WA_GATEWAY_URL not configured; skipping WA send')
         return {'status': 'no_gateway'}
 
     payload = {
         'to': to_number,
+        'number': to_number,
         'message': message,
         'metadata': metadata or {},
     }
 
     try:
-        resp = requests.post(url, json=payload, timeout=10)
-        resp.raise_for_status()
-        # Try to return json only if response has json content
-        try:
-            resp_json = resp.json()
-        except Exception:
-            resp_json = None
-        return {'status': 'sent', 'response': resp_json}
+        resp = requests.post(url.rstrip('/') + '/send-message', json=payload, timeout=1.5)
+        if resp.status_code == 200:
+            return {'status': 'sent'}
+        return {'status': 'failed', 'code': resp.status_code}
     except Exception as e:
-        # Let task be retried by Celery retry policy
-        print(f'Error sending WA message: {e}')
-        raise
+        print(f'WA Gateway unreachable/offline ({e}); skipping retry.')
+        return {'status': 'offline', 'error': str(e)}
 
 
 @app.task(bind=True)
