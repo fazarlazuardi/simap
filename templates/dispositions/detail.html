@@ -185,23 +185,24 @@
                 {% endfor %}
 
                 <!-- SMART CONDITIONAL ACTION BUTTONS -->
+                {% with item_perms=dispo.item_perms %}
                 {% if not dispo.is_completed %}
-                    {% if request.session.active_pov in 'ketua waka_4 kabid_4 sdm fo' or user.is_pimpinan or user.is_superadmin or user.is_kabid_4 or user.is_sdm or user.is_fo %}
-                        <!-- EDIT DISPOSISI KETUA -->
-                        <a href="{% url 'dispositions:edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
-                            <i class="bi bi-pencil-square"></i> Edit Disposisi Ketua
-                        </a>
+                    <!-- EDIT DISPOSISI KETUA -->
+                    {% if item_perms.can_edit_dispo %}
+                    <a href="{% url 'dispositions:edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
+                        <i class="bi bi-pencil-square"></i> Edit Disposisi Ketua
+                    </a>
+                    {% endif %}
 
-                        <!-- EDIT / BUAT DISPOSISI WAKA IV -->
-                        {% if dispo.has_waka_disposition %}
-                        <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
-                            <i class="bi bi-pencil-square"></i> Edit Disposisi Waka IV
-                        </a>
-                        {% elif dispo.can_create_waka_disposition %}
-                        <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
-                            <i class="bi bi-plus-circle-fill"></i> Buat Disposisi Waka IV
-                        </a>
-                        {% endif %}
+                    <!-- EDIT / BUAT DISPOSISI WAKA / BIDANG -->
+                    {% if dispo.has_waka_disposition and item_perms.can_edit_waka_dispo %}
+                    <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
+                        <i class="bi bi-pencil-square"></i> Edit Disposisi Waka & Bidang
+                    </a>
+                    {% elif item_perms.can_edit_waka_dispo %}
+                    <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-4 py-2 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-sm no-underline inline-flex items-center gap-1.5 transition-all">
+                        <i class="bi bi-plus-circle-fill"></i> Buat Arahan / Teruskan Disposisi Bidang
+                    </a>
                     {% endif %}
 
                     <!-- BUAT SURAT TUGAS -->
@@ -228,7 +229,7 @@
                 {% endif %}
 
                 <!-- HAPUS -->
-                {% if request.session.active_pov in 'ketua waka_4 kabid_4 sdm fo' or user.is_pimpinan or user.is_superadmin or user.is_kabid_4 or user.is_sdm or user.is_fo %}
+                {% if item_perms.can_delete_dispo %}
                 <form action="{% url 'dispositions:delete' dispo.pk %}" method="post" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus lembar disposisi ini?')">
                     {% csrf_token %}
                     <button type="submit" class="px-4 py-2 rounded-full bg-rose-500/15 hover:bg-rose-600 text-rose-500 hover:text-white font-extrabold text-xs transition-all border border-rose-500/30 inline-flex items-center gap-1.5 cursor-pointer">
@@ -236,6 +237,7 @@
                     </button>
                 </form>
                 {% endif %}
+                {% endwith %}
             </div>
         </div>
 

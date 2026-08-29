@@ -1,7 +1,9 @@
 import os
 import json
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.http import require_POST
+from users.views import superuser_only
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -702,10 +704,13 @@ def scan_document_ocr(request):
 
     return JsonResponse({'status': 'error', 'message': 'Tidak ada berkas yang diunggah.'}, status=400)
 
+@require_POST
 @login_required
+@user_passes_test(superuser_only)
 def reset_all_documents(request):
     """
     Endpoint pembersihan data dokumen (Proposal, Surat, Disposisi, SPPD, Surat Tugas, Laporan).
+    HANYA Superadmin IT yang dapat mengeksekusi via HTTP POST.
     """
     from reports.models import Report
     from dispositions.models import Disposition
@@ -720,6 +725,7 @@ def reset_all_documents(request):
     n_arc, _ = Archive.objects.all().delete()
     n_notif, _ = Notification.objects.all().delete()
 
+    AuditService.log_action(request.user, f"RESET MASSAL DOKUMEN: {n_arc} Proposal/Surat, {n_dispo} Disposisi dihapus oleh Superadmin", request)
     messages.success(request, f"Pembersihan sukses: {n_arc} Proposal/Surat, {n_dispo} Disposisi, {n_sppd} SPPD, {n_st} Surat Tugas berhasil dihapus! Data pegawai 100% tetap aman.")
     return redirect('archives:list')
 

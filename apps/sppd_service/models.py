@@ -141,65 +141,53 @@ class SPPD(models.Model):
         except Exception as e:
             print('Failed to sync SPPD -> Archive status:', e)
 
-        try:
-            if self.status in ['disetujui', 'berlangsung'] or self.departure_date:
-                from notifications.tasks import create_calendar_event
-              
-                title = f"SPPD {self.sppd_number} - {self.purpose[:80]}"
-                start_dt = None
-                end_dt = None
-               
-                try:
-                    from datetime import datetime, time
-                    start_dt = datetime.combine(self.departure_date, time(hour=8))
-                    if self.return_date:
-                        end_dt = datetime.combine(self.return_date, time(hour=17))
-                except Exception:
-                    start_dt = None
+        sppd_pk = self.pk
+        sppd_num = self.sppd_number
+        purpose_str = self.purpose
+        dep_date = self.departure_date
+        ret_date = self.return_date
+        dest_str = self.destination
+        sppd_stat = self.status
 
-                if start_dt:
-                    create_calendar_event.delay('sppd', self.pk, title, start_dt.isoformat(), end_dt.isoformat() if end_dt else None, self.destination)
-
-            if (old_status != self.status) and self.status == 'disetujui':
-                try:
-                    from notifications.tasks import send_wa_message
-                    phones = []
-                    for emp in self.assigned_employees.all():
-                        if hasattr(emp, 'phone') and emp.phone:
-                            phones.append(emp.phone)
-                    message = f"SPPD {self.sppd_number} sudah diterbitkan untuk {self.purpose[:80]}. Tanggal: {self.departure_date} - {self.return_date}."
-                    for p in phones:
-                        send_wa_message.delay(p, message, metadata={'sppd_id': self.pk})
-                except Exception as e:
-                    print('Failed to trigger WA send for SPPD:', e)
+        def _trigger_sppd_bg_tasks():
             try:
-                if self.surat_tugas and getattr(self.surat_tugas, 'disposition', None):
-                    arch = getattr(self.surat_tugas.disposition, 'archive', None)
-                    if arch:
-                        if self.status in ['disetujui', 'berlangsung'] and arch.status != 'sudah_ditugaskan':
-                            arch.status = 'sudah_ditugaskan'
-                            arch.current_user = self.created_by
-                            arch.activity_name = 'SPPD Diterbitkan'
-                            arch.status_note = f'SPPD {self.sppd_number} diterbitkan.'
-                            arch.save()
-                        elif self.status == 'selesai' and arch.status != 'selesai':
-                            is_survei = self.sppd_type == 'survei' or any(k in (self.purpose or '').lower() for k in ['survei', 'peninjauan', 'verifikasi', 'lapangan'])
-                            if is_survei:
-                                arch.status = 'proses'
-                                arch.current_user = self.created_by
-                                arch.activity_name = 'Survei Selesai (Menunggu Penyaluran)'
-                                arch.status_note = f'SPPD Survei {self.sppd_number} selesai dan LHP terunggah.'
-                                arch.save()
-                            else:
-                                arch.status = 'selesai'
-                                arch.current_user = self.created_by
-                                arch.activity_name = 'SPPD Selesai'
-                                arch.status_note = f'SPPD {self.sppd_number} selesai dan laporan terunggah.'
-                                arch.save()
-            except Exception as e:
-                print('Failed to sync SPPD -> Archive status:', e)
-        except Exception as e:
-            print('Error in SPPD post-save integration:', e)
+                if sppd_stat in ['disetujui', 'berlangsung'] or dep_date:
+                    from notifications.tasks import create_calendar_event
+                    title = f"SPPD {sppd_num} - {(purpose_str or '')[:80]}"
+                    start_dt = None
+                    end_dt = None
+                    try:
+                        from datetime import datetime, time
+                        if dep_date:
+                            start_dt = datetime.combine(dep_date, time(hour=8))
+                        if ret_date:
+                            end_dt = datetime.combine(ret_date, time(hour=17))
+                    except Exception:
+                        start_dt = None
+
+                    if start_dt:
+                        create_calendar_event.delay('sppd', sppd_pk, title, start_dt.isoformat(), end_dt.isoformat() if end_dt else None, dest_str)
+
+                if old_status != sppd_stat and sppd_stat == 'disetujui':
+                    try:
+                        from notifications.tasks import send_wa_message
+                        from sppd_service.models import SPPD as SPPDModel
+                        s_obj = SPPDModel.objects.filter(pk=sppd_pk).first()
+                        if s_obj:
+                            phones = [emp.phone for emp in s_obj.assigned_employees.all() if hasattr(emp, 'phone') and emp.phone]
+                            message = f"SPPD {sppd_num} sudah diterbitkan untuk {(purpose_str or '')[:80]}. Tanggal: {dep_date} - {ret_date}."
+                            for p in phones:
+                                send_wa_message.delay(p, message, metadata={'sppd_id': sppd_pk})
+                    except Exception as e:
+                        print('Failed to trigger WA send for SPPD:', e)
+            except Exception as ex:
+                print('Error in SPPD background task trigger:', ex)
+
+        try:
+            from django.db import transaction
+            transaction.on_commit(_trigger_sppd_bg_tasks)
+        except Exception:
+            _trigger_sppd_bg_tasks()
 
 
 class SPPDAttachment(models.Model):

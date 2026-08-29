@@ -33,12 +33,15 @@ def employee_master(request):
     departments = sorted(Department.objects.all(), key=lambda d: d.rank_order)
     roles = User.ROLE_CHOICES
 
+    employee_list_ctx = [(emp, users.get(emp.pk)) for emp in page_obj]
+
     return render(request, 'users/employee_master.html', {
         'page_obj': page_obj,
-        'employee_list': employee_list,
+        'employee_list': employee_list_ctx,
         'departments': departments,
         'roles': roles,
     })
+
 
 
 @login_required

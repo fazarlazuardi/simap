@@ -57,7 +57,7 @@ class Archive(models.Model):
         blank=True,
         verbose_name='Nomor Surat/Arsip',
     )
-    title = models.CharField(max_length=255, verbose_name='Perihal / Judul Dokumen')
+    title = models.CharField(max_length=255, db_index=True, verbose_name='Perihal / Judul Dokumen')
     archive_type = models.CharField(
         max_length=50,
         choices=TYPE_CHOICES,
@@ -105,7 +105,7 @@ class Archive(models.Model):
     )
 
     verified_by_kabid = models.BooleanField(
-        default=False, verbose_name='Telah Diverifikasi Kabid 4'
+        default=False, db_index=True, verbose_name='Telah Diverifikasi Kabid 4'
     )
     kabid_notes = models.TextField(
         blank=True, null=True, verbose_name='Catatan / Checklist Verifikasi Kabid 4'
@@ -167,10 +167,6 @@ class Archive(models.Model):
         if assignees:
             return ", ".join([emp.full_name for emp in assignees])
         return "-"
-
-    @property
-    def latest_dispo(self):
-        return self.dispositions.order_by('created_at').last()
 
     @property
     def latest_st(self):

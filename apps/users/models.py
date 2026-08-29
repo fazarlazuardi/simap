@@ -284,9 +284,12 @@ class User(AbstractUser):
         """Mengecek apakah akun user aktif di sistem dalam 60 detik (1 menit) terakhir."""
         from django.core.cache import cache
         from django.utils import timezone
-        last_seen_cache = cache.get(f'user_last_seen_{self.pk}')
-        if last_seen_cache:
-            return True
+        try:
+            last_seen_cache = cache.get(f'user_last_seen_{self.pk}')
+            if last_seen_cache:
+                return True
+        except Exception:
+            pass
         if self.last_seen:
             now = timezone.now()
             return (now - self.last_seen).total_seconds() < 60
@@ -372,6 +375,152 @@ class User(AbstractUser):
             dept_name = (emp.dept_relation.name or "").lower()
             return any(k in dept_name for k in ['sekretariat', 'sdm', 'administrasi', 'front office', 'bidang iv', 'bidang 4'])
         return False
+
+    @property
+    def is_fo(self):
+        emp = getattr(self, 'employee', None)
+        if not emp:
+            return False
+        pos_lower = (emp.position or "").lower()
+        dept_name = (emp.dept_relation.name if emp.dept_relation else "").lower()
+        return any(k in pos_lower or k in dept_name for k in ['front office', 'resepsionis', 'fo'])
+
+    @property
+    def is_kabid_1(self):
+        if not (self.is_kabid and self.employee and self.employee.dept_relation):
+            return False
+        dept_name = (self.employee.dept_relation.name or "").lower()
+        return any(k in dept_name for k in ['pengumpulan', 'bidang i', 'bidang 1'])
+
+    @property
+    def is_kabid_3(self):
+        if not (self.is_kabid and self.employee and self.employee.dept_relation):
+            return False
+        dept_name = (self.employee.dept_relation.name or "").lower()
+        return any(k in dept_name for k in ['perencanaan', 'keuangan', 'bidang iii', 'bidang 3'])
+
+    def is_dispo_targeted_to_bidang(self, dispo, active_pov=None):
+        """
+        Mengecek secara KETAT & PRESISI (menggunakan regex word-boundary) apakah
+        suatu objek Disposisi telah secara eksplisit diteruskan ke Bidang user.
+        """
+        if not dispo:
+            return False
+
+        emp = getattr(self, 'employee', None)
+        lead_type = getattr(emp, 'leadership_type', '') if emp else ''
+        pov = str(active_pov or '').lower().strip()
+
+        # Tentukan nomor bidang user (1, 2, 3, atau 4)
+        user_bidang = None
+        if pov in ['waka_1', 'kabid_1'] or lead_type == 'waka_1' or self.is_kabid_1:
+            user_bidang = '1'
+        elif pov in ['waka_2', 'kabid_2'] or lead_type == 'waka_2' or self.is_waka_2 or self.is_kabid_2:
+            user_bidang = '2'
+        elif pov in ['waka_3', 'kabid_3'] or lead_type == 'waka_3' or self.is_kabid_3:
+            user_bidang = '3'
+        elif pov in ['waka_4', 'kabid_4', 'sdm', 'fo'] or lead_type == 'waka_4' or self.is_waka_4 or self.is_kabid_4 or self.is_sdm or self.is_fo:
+            user_bidang = '4'
+
+        if not user_bidang:
+            return False
+
+        # Gabungkan daftar penerima dari Ketua (forwarded_to) dan Waka IV (waka_forwarded_to)
+        target_emps = list(dispo.forwarded_to.all()) + list(dispo.waka_forwarded_to.all())
+        if not target_emps:
+            return False
+
+        # Cek apakah user sendiri ada di daftar penerima
+        if emp and (emp in target_emps):
+            return True
+
+        # Pola Regex Presisi dengan Word Boundary (\b) untuk mencegah 'bidang ii' mencocokkan 'bidang iii'
+        patterns = {
+            '1': r'\bwaka_1\b|\bkabid_1\b|\bbidang\s*(1|i)\b|\bpengumpulan\b',
+            '2': r'\bwaka_2\b|\bkabid_2\b|\bbidang\s*(2|ii)\b|\bpendistribusian\b|\bpendayagunaan\b',
+            '3': r'\bwaka_3\b|\bkabid_3\b|\bbidang\s*(3|iii)\b|\bperencanaan\b|\bkeuangan\b',
+            '4': r'\bwaka_4\b|\bkabid_4\b|\bbidang\s*(4|iv)\b|\badministrasi\b|\bsdm\b|\bumum\b|\bsekretariat\b'
+        }
+
+        pattern = patterns.get(user_bidang)
+        if not pattern:
+            return False
+
+        import re
+        for target_emp in target_emps:
+            dept_name = (target_emp.dept_relation.name if target_emp.dept_relation else '').lower()
+            pos_dept = f"{target_emp.position or ''} {dept_name} {target_emp.leadership_type or ''}".lower()
+
+            if re.search(pattern, pos_dept):
+                return True
+
+        return False
+
+    def get_disposition_permissions(self, active_pov=None, dispo=None):
+        """
+        Menghitung hak akses Disposisi (Buat, Edit, Hapus) secara presisi & kontekstual.
+        - Jika active_pov diset ke 'waka_2', 'waka_1', dll., sistem mensimulasikan persis peran tersebut.
+        - Superadmin (tanpa active_pov khusus): Full Access di semua tahap.
+        - Ketua BAZNAS: Full Access Tahap 1.
+        - Waka IV / Kabid IV / SDM / FO: Full Access Tahap 2 / Pengelolaan Disposisi.
+        - Waka I, II, III & Kabid I, II, III:
+          * BISA EDIT / TERUSKAN DISPOSISI ke Tim/Kabid HANYA JIKA disposisi DITINJAU/DIDISPOSISIKAN ke Bidang mereka.
+          * READ ONLY jika disposisi BUKAN untuk Bidang mereka.
+        - Staf / Amil Pelaksana biasa: READ ONLY.
+        """
+        if not self.is_authenticated:
+            return {
+                'can_create_dispo': False,
+                'can_edit_dispo': False,
+                'can_edit_waka_dispo': False,
+                'can_delete_dispo': False,
+                'is_read_only': True
+            }
+
+        pov = str(active_pov or '').lower().strip()
+
+        # 1. Superadmin IT (jika active_pov admin/superadmin atau tanpa active_pov)
+        if pov in ['admin', 'superadmin'] or (not pov and self.is_superadmin):
+            return {'can_create_dispo': True, 'can_edit_dispo': True, 'can_edit_waka_dispo': True, 'can_delete_dispo': True, 'is_read_only': False}
+
+        # 2. Ketua BAZNAS
+        if pov == 'ketua' or (not pov and (self.is_ketua or (getattr(self, 'employee', None) and self.employee.leadership_type == 'ketua'))):
+            return {'can_create_dispo': True, 'can_edit_dispo': True, 'can_edit_waka_dispo': False, 'can_delete_dispo': True, 'is_read_only': False}
+
+        # 3. Waka IV / Kabid IV / SDM / FO
+        if pov in ['waka_4', 'kabid_4', 'sdm', 'fo'] or (not pov and (self.is_waka_4 or self.is_kabid_4 or self.is_sdm or self.is_fo)):
+            return {'can_create_dispo': True, 'can_edit_dispo': True, 'can_edit_waka_dispo': True, 'can_delete_dispo': True, 'is_read_only': False}
+
+        # 4. Waka I, II, III dan Kabid I, II, III (Pengecekan Kontekstual Berdasarkan Target Bidang Disposisi)
+        emp = getattr(self, 'employee', None)
+        lead_type = getattr(emp, 'leadership_type', '') if emp else ''
+        is_waka_or_kabid_123 = (
+            pov in ['waka_1', 'waka_2', 'waka_3', 'kabid_1', 'kabid_2', 'kabid_3'] or
+            (not pov and (lead_type in ['waka_1', 'waka_2', 'waka_3'] or self.is_waka_2 or self.is_kabid_1 or self.is_kabid_2 or self.is_kabid_3 or self.is_kabid))
+        )
+
+        if is_waka_or_kabid_123:
+            if dispo:
+                is_targeted = self.is_dispo_targeted_to_bidang(dispo, active_pov=active_pov)
+                if is_targeted:
+                    return {
+                        'can_create_dispo': False,
+                        'can_edit_dispo': True,
+                        'can_edit_waka_dispo': True,
+                        'can_delete_dispo': False,
+                        'is_read_only': False
+                    }
+
+            return {
+                'can_create_dispo': False,
+                'can_edit_dispo': False,
+                'can_edit_waka_dispo': False,
+                'can_delete_dispo': False,
+                'is_read_only': True
+            }
+
+        # Default Staf / Amil
+        return {'can_create_dispo': False, 'can_edit_dispo': False, 'can_edit_waka_dispo': False, 'can_delete_dispo': False, 'is_read_only': True}
 
     @property
     def role_display_badge(self):

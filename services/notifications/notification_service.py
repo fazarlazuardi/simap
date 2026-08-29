@@ -287,3 +287,103 @@ class NotificationService:
                 connections.close_all()
 
         threading.Thread(target=_bg_notify, daemon=True).start()
+
+    @classmethod
+    def send_disposition_system_notifications(cls, dispo, stage='ketua', actor=None):
+        """
+        Mengirim notifikasi sistem (lonceng / web dashboard) ke Waka dan Kabid dari Bidang yang menerima disposisi.
+        Misal: Ketua / Waka IV mendisposisikan ke Bidang II, maka notifikasi lonceng muncul di akun Waka II & Kabid II.
+        Sama halnya untuk Bidang I, III, IV.
+        HANYA notifikasi sistem (dashboard lonceng), BUKAN WhatsApp Gateway.
+        """
+        if not dispo or not dispo.pk:
+            return
+
+        dispo_id = dispo.pk
+
+        import threading
+
+        def _bg_notify():
+            from django.db import connections
+            connections.close_all()
+            try:
+                from dispositions.models import Disposition
+                from users.models import User
+                from notifications.models import Notification
+                from django.db.models import Q
+
+                d = Disposition.objects.filter(pk=dispo_id).select_related('archive', 'sender').first()
+                if not d or not d.archive:
+                    return
+
+                if stage == 'waka_iv' or d.is_stage_waka:
+                    target_emps = list(d.waka_forwarded_to.all())
+                    sender_title = d.sender_label or "Wakil Ketua IV"
+                    if not target_emps:
+                        target_emps = list(d.forwarded_to.all())
+                else:
+                    target_emps = list(d.forwarded_to.all())
+                    sender_title = d.sender_label or "Ketua BAZNAS"
+
+                if not target_emps:
+                    return
+
+                target_bidangs = set()
+                recipient_user_ids = set()
+
+                for emp in target_emps:
+                    if hasattr(emp, 'user_account') and emp.user_account:
+                        recipient_user_ids.add(emp.user_account.pk)
+
+                    pos_dept = f"{emp.position or ''} {emp.dept_relation.name if emp.dept_relation else ''} {emp.leadership_type or ''}".lower()
+
+                    if any(k in pos_dept for k in ['1', 'i', 'pengumpulan']):
+                        target_bidangs.add('1')
+                    if any(k in pos_dept for k in ['2', 'ii', 'pendistribusian', 'pendayagunaan', 'bantuan']):
+                        target_bidangs.add('2')
+                    if any(k in pos_dept for k in ['3', 'iii', 'perencanaan', 'keuangan']):
+                        target_bidangs.add('3')
+                    if any(k in pos_dept for k in ['4', 'iv', 'administrasi', 'sdm', 'umum']):
+                        target_bidangs.add('4')
+
+                for b_num in target_bidangs:
+                    if b_num == '1':
+                        q_bidang = Q(username__icontains='waka1') | Q(username__icontains='kabid1') | Q(employee__leadership_type='waka_1') | Q(employee__dept_relation__name__icontains='pengumpulan') | Q(employee__dept_relation__name__icontains='bidang 1') | Q(employee__dept_relation__name__icontains='bidang i')
+                    elif b_num == '2':
+                        q_bidang = Q(username__icontains='waka2') | Q(username__icontains='kabid2') | Q(role='waka_2') | Q(role='kabid_2') | Q(employee__leadership_type='waka_2') | Q(employee__dept_relation__name__icontains='pendistribusian') | Q(employee__dept_relation__name__icontains='bidang 2') | Q(employee__dept_relation__name__icontains='bidang ii')
+                    elif b_num == '3':
+                        q_bidang = Q(username__icontains='waka3') | Q(username__icontains='kabid3') | Q(employee__leadership_type='waka_3') | Q(employee__dept_relation__name__icontains='perencanaan') | Q(employee__dept_relation__name__icontains='keuangan') | Q(employee__dept_relation__name__icontains='bidang 3') | Q(employee__dept_relation__name__icontains='bidang iii')
+                    elif b_num == '4':
+                        q_bidang = Q(username__icontains='waka4') | Q(username__icontains='kabid4') | Q(role='waka_4') | Q(role='kabid_4') | Q(employee__leadership_type='waka_4') | Q(employee__dept_relation__name__icontains='administrasi') | Q(employee__dept_relation__name__icontains='sdm') | Q(employee__dept_relation__name__icontains='bidang 4') | Q(employee__dept_relation__name__icontains='bidang iv')
+                    else:
+                        continue
+
+                    users_in_bidang = User.objects.filter(q_bidang).filter(is_active_account=True)
+                    for u in users_in_bidang:
+                        recipient_user_ids.add(u.pk)
+
+                actor_id = actor.pk if actor else None
+                link_target = f"/dispositions/{d.pk}/"
+
+                for uid in recipient_user_ids:
+                    if actor_id and uid == actor_id:
+                        continue
+                    u_obj = User.objects.filter(pk=uid).first()
+                    if not u_obj:
+                        continue
+
+                    if not Notification.objects.filter(user=u_obj, link_url=link_target, status='unread').exists():
+                        Notification.create_system_notif(
+                            user=u_obj,
+                            title=f"📋 Disposisi Baru dari {sender_title}",
+                            message=f"Dokumen '{d.archive.title}' didisposisikan ke Bidang Anda. Arahan: {(d.note or d.waka_note or 'Mohon ditindaklanjuti.')[:150]}",
+                            link_url=link_target,
+                            category="disposition"
+                        )
+            except Exception as ex:
+                import logging
+                logging.getLogger(__name__).warning(f"Error in dispo system notification: {ex}")
+            finally:
+                connections.close_all()
+
+        threading.Thread(target=_bg_notify, daemon=True).start()

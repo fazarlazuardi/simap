@@ -245,7 +245,6 @@ class Agenda(models.Model):
         super().save(*args, **kwargs)
 
         try:
-            import threading
             agenda_pk = self.pk
             agenda_title = self.title
             sched_iso = self.scheduled_at.isoformat() if self.scheduled_at else None
@@ -264,30 +263,30 @@ class Agenda(models.Model):
                         if emp.phone not in phones:
                             phones.append(emp.phone)
 
-            def _bg_agenda_notifications(pk_val, title_val, dt_iso, loc_val, fmt_val, phone_list):
+            def _agenda_notifications():
                 try:
                     from notifications.tasks import create_calendar_event, send_wa_message
-                    if dt_iso:
+                    if sched_iso:
                         try:
-                            create_calendar_event.delay('agenda', pk_val, title_val, dt_iso, None, loc_val)
+                            create_calendar_event.delay('agenda', agenda_pk, agenda_title, sched_iso, None, loc)
                         except Exception as e_ev:
                             print("Error creating agenda calendar event:", e_ev)
 
-                    if phone_list:
-                        msg_text = f"Agenda: {title_val} - {fmt_val}. Lokasi: {loc_val}"
-                        for p in phone_list:
+                    if phones:
+                        msg_text = f"Agenda: {agenda_title} - {sched_fmt}. Lokasi: {loc}"
+                        for p in phones:
                             try:
-                                send_wa_message.delay(p, msg_text, metadata={'agenda_id': pk_val})
+                                send_wa_message.delay(p, msg_text, metadata={'agenda_id': agenda_pk})
                             except Exception as e_wa:
                                 print("Error sending agenda WA:", e_wa)
                 except Exception as err_bg:
                     print("Error in background agenda post-save:", err_bg)
 
-            threading.Thread(
-                target=_bg_agenda_notifications,
-                args=(agenda_pk, agenda_title, sched_iso, loc, sched_fmt, phones),
-                daemon=True
-            ).start()
+            try:
+                from django.db import transaction
+                transaction.on_commit(_agenda_notifications)
+            except Exception:
+                _agenda_notifications()
         except Exception as e:
             print('Error in Agenda post-save integration:', e)
 

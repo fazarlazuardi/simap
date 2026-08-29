@@ -103,9 +103,11 @@
                     <h4 class="font-extrabold truncate block text-xs text-slate-900 dark:text-white mb-0" title="{{ arc.title }}">{{ arc.title }}</h4>
                     <span class="text-slate-500 dark:text-slate-400 font-mono text-[10px] block">{{ arc.get_archive_type_display }} • {{ arc.updated_at|date:"d M Y" }}</span>
                 </div>
+                {% if dispo_perms.can_create_dispo %}
                 <a href="{% url 'dispositions:create' arc.pk %}" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow-md transition-all no-underline shrink-0 inline-flex items-center gap-1.5 border-0">
                     <i class="bi bi-plus-circle-fill"></i> Buat Disposisi
                 </a>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -190,28 +192,37 @@
                         <!-- Aksi Penanganan -->
                         <td class="py-3 px-3 text-end">
                             <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                                {% with item_perms=dispo.item_perms %}
                                 {% if not dispo.is_completed %}
-                                    {% if request.session.active_pov in 'ketua waka_4 kabid_4 sdm fo' or user.is_pimpinan or user.is_superadmin or user.is_kabid_4 or user.is_sdm or user.is_fo %}
-                                        {% if dispo.status == 'baru' %}
+                                    <!-- TAHAP 1: DISPOSISI KETUA -->
+                                    {% if dispo.status == 'baru' %}
+                                        {% if dispo_perms.can_create_dispo %}
                                         <a href="{% url 'dispositions:edit' dispo.pk %}" class="px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-extrabold shadow-2xs transition-all no-underline inline-flex items-center gap-1" title="Isi Disposisi Ketua BAZNAS (Tahap 1)">
                                             <i class="bi bi-pencil-square"></i> Disposisi (Ketua)
                                         </a>
-                                        {% else %}
+                                        {% endif %}
+                                    {% else %}
+                                        {% if item_perms.can_edit_dispo %}
                                         <a href="{% url 'dispositions:edit' dispo.pk %}" class="w-8 h-8 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 flex items-center justify-center transition-all no-underline" title="Edit Disposisi Ketua (Tahap 1)">
                                             <i class="bi bi-pencil-square text-xs"></i>
                                         </a>
-
-                                        {% if dispo.can_create_waka_disposition %}
-                                        <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-3 py-1 rounded-full bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-extrabold shadow-2xs transition-all no-underline inline-flex items-center gap-1" title="Buat Disposisi Waka IV (Tahap 2)">
-                                            <i class="bi bi-plus-circle-fill"></i> Disposisi (Waka IV)
-                                        </a>
-                                        {% elif dispo.has_waka_disposition %}
-                                        <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="w-8 h-8 rounded-full bg-sky-500/15 hover:bg-sky-500/25 text-sky-600 dark:text-sky-400 flex items-center justify-center transition-all no-underline" title="Edit Disposisi Waka IV (Tahap 2)">
-                                            <i class="bi bi-pencil-fill text-xs"></i>
-                                        </a>
-                                        {% endif %}
                                         {% endif %}
                                     {% endif %}
+
+                                    <!-- TAHAP 2: DISPOSISI WAKA / BIDANG -->
+                                    {% if item_perms.can_edit_waka_dispo %}
+                                        {% if dispo.has_waka_disposition %}
+                                        <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="w-8 h-8 rounded-full bg-sky-500/15 hover:bg-sky-500/25 text-sky-600 dark:text-sky-400 flex items-center justify-center transition-all no-underline" title="Edit / Teruskan Disposisi Waka & Bidang">
+                                            <i class="bi bi-pencil-fill text-xs"></i>
+                                        </a>
+                                        {% else %}
+                                        <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-3 py-1 rounded-full bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-extrabold shadow-2xs transition-all no-underline inline-flex items-center gap-1" title="Buat Arahan / Teruskan Disposisi">
+                                            <i class="bi bi-plus-circle-fill"></i> Disposisi Bidang
+                                        </a>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                                {% endwith %}
 
                                     {% if dispo.can_create_surat_tugas %}
                                         {% if user.is_kabid or user.is_superadmin or request.session.active_pov %}
@@ -220,7 +231,6 @@
                                         </a>
                                         {% endif %}
                                     {% endif %}
-                                {% endif %}
 
                                 <!-- ICON 1: MATA (DETAIL) -->
                                 <a href="{% url 'dispositions:detail' dispo.pk %}" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all no-underline" title="Lihat Detail Disposisi">

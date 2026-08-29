@@ -37,7 +37,7 @@
         </p>
 
         <div class="flex items-center gap-2 pt-1 flex-wrap">
-            {% if user.is_pimpinan or can_manage %}
+            {% if dispo_perms.can_create_dispo %}
             <a href="{% url 'dispositions:create' archive.pk %}" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center justify-center gap-2 transition-all border-0">
                 <i class="bi bi-send-plus-fill text-base text-amber-300"></i> Buat Disposisi Baru
             </a>

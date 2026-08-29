@@ -107,9 +107,15 @@
                             <i class="bi bi-send"></i> Disposisi Pimpinan
                         </button>
                     {% else %}
+                        {% if dispo_perms.can_create_dispo %}
                         <a href="{% url 'dispositions:create' archive.pk %}" class="w-full px-4 py-2.5 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md no-underline inline-flex items-center justify-center gap-1.5 transition-all">
                             <i class="bi bi-send-plus"></i> Disposisi Ketua BAZNAS
                         </a>
+                        {% else %}
+                        <button type="button" class="w-full px-4 py-2.5 rounded-full border border-slate-300 text-slate-400 font-bold text-xs cursor-not-allowed inline-flex items-center justify-center gap-1.5" disabled title="Peran Anda hanya memiliki hak membaca (Read Only)">
+                            <i class="bi bi-lock-fill"></i> Disposisi (Read Only)
+                        </button>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
             </div>
@@ -235,7 +241,7 @@
                         <i class="bi bi-file-earmark-pdf-fill text-rose-500 text-lg"></i> Pratinjau Berkas Digital
                     </h3>
                     {% if can_manage %}
-                    <button type="button" @click="openUploadModal = true" class="px-3 py-1 rounded-full border border-emerald-600 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs cursor-pointer hover:bg-emerald-600 hover:text-white transition-all border-0">
+                    <button type="button" @click="openUploadModal = true" class="px-4 py-2 min-h-[44px] inline-flex items-center justify-center rounded-full border border-emerald-600 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs cursor-pointer hover:bg-emerald-600 hover:text-white active:scale-95 transition-all border-0">
                         <i class="bi bi-cloud-upload me-1"></i> {% if archive.file_path %}Ganti Berkas{% else %}Upload{% endif %}
                     </button>
                     {% endif %}
@@ -277,7 +283,7 @@
                             </p>
                         </div>
                         {% if can_manage %}
-                        <button type="button" @click="openUploadModal = true" class="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-2 transition-all">
+                        <button type="button" @click="openUploadModal = true" class="px-5 py-2.5 min-h-[44px] rounded-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center justify-center gap-2 transition-all">
                             <i class="bi bi-cloud-upload-fill"></i> Unggah Berkas Sekarang
                         </button>
                         {% endif %}
@@ -780,27 +786,27 @@
 </div>
 
 <!-- MODAL UPLOAD BERKAS DIGITAL -->
-<div x-show="openUploadModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70">
-    <div class="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4" @click.away="openUploadModal = false">
+<div x-show="openUploadModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 flex items-center justify-center p-4">
+    <div class="w-full max-w-md max-h-[90vh] overflow-y-auto p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4" @click.away="openUploadModal = false">
         <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
             <h3 class="font-black text-sm text-slate-900 dark:text-white mb-0 flex items-center gap-2">
                 <i class="bi bi-cloud-upload-fill text-emerald-500 text-lg"></i> Upload Berkas Digital
             </h3>
-            <button type="button" @click="openUploadModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-0 bg-transparent cursor-pointer">
-                <i class="bi bi-x-lg"></i>
+            <button type="button" @click="openUploadModal = false" class="w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-0 bg-transparent cursor-pointer">
+                <i class="bi bi-x-lg text-sm"></i>
             </button>
         </div>
         <form method="post" action="{% url 'archives:detail' archive.pk %}" enctype="multipart/form-data" class="space-y-4">
             {% csrf_token %}
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Pilih File Berkas (PDF / Gambar Scan):</label>
-                <input type="file" name="file_path" accept=".pdf,image/*" required class="w-full p-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none">
+                <input type="file" name="file_path" accept=".pdf,image/*" required class="w-full p-3 min-h-[44px] rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none cursor-pointer">
             </div>
             <div class="flex items-center justify-end gap-2 pt-2">
-                <button type="button" @click="openUploadModal = false" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 border-0 cursor-pointer">
+                <button type="button" @click="openUploadModal = false" class="px-4 py-2.5 min-h-[44px] inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 border-0 cursor-pointer">
                     Batal
                 </button>
-                <button type="submit" class="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-1.5">
+                <button type="submit" class="px-5 py-2.5 min-h-[44px] rounded-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center justify-center gap-1.5">
                     <i class="bi bi-upload"></i> Unggah Berkas
                 </button>
             </div>

@@ -136,6 +136,7 @@ class Notification(models.Model):
         max_length=30, 
         choices=CATEGORY_CHOICES, 
         default='general', 
+        db_index=True,
         verbose_name="Kategori"
     )
     title = models.CharField(
@@ -169,6 +170,7 @@ class Notification(models.Model):
         max_length=20, 
         choices=STATUS_CHOICES, 
         default='unread', 
+        db_index=True,
         verbose_name="Status Pengiriman/Baca"
     )
     
@@ -186,7 +188,7 @@ class Notification(models.Model):
         null=True, 
         verbose_name="Waktu Terkirim"
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         verbose_name = "Notifikasi"

@@ -5,13 +5,18 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Prefetch
 from django.db import models
 from django.utils import timezone
+from django.core.cache import cache
 
-from .models import SPPD
+from .models import SPPD, SPPDAttachment
 from archives.models import Archive
 from dispositions.models import Disposition
 from agendas.models import Agenda
 from users.models import User, Employee
+from surat_tugas.models import SuratTugas
 from services.archives.numbering_service import NumberingService
+from services.workflows.workflow_engine import WorkflowEngine
+from services.analytics.reporting_service import ReportingService
+from services.notifications.notification_service import NotificationService
 from users.decorators import pimpinan_required, staff_or_kabid_or_pimpinan_required
 
 
@@ -23,7 +28,6 @@ def sppd_list(request):
     status = request.GET.get('status')
     archive_type = request.GET.get('type')
 
-  
     active_pov = request.session.get('active_pov')
     is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
     current_emp = getattr(request.user, 'employee', None)
@@ -67,10 +71,7 @@ def sppd_list(request):
     sppds = sppds.order_by('-created_at')
 
     # Khusus Waka II & Kabid II / POV Waka II: filter daftar SPPD & kandidat disposisi SPPD (Hanya Bantuan Terverifikasi Kabid IV)
-    active_pov = request.session.get('active_pov')
-    is_waka_or_kabid_2 = active_pov in ['waka_2', 'kabid_2'] or getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)
     if is_waka_or_kabid_2:
-        from services.workflows.workflow_engine import WorkflowEngine
         valid_sppd_ids = [
             sp.id for sp in sppds 
             if sp.disposition and sp.disposition.archive and 
@@ -79,36 +80,39 @@ def sppd_list(request):
         ]
         sppds = sppds.filter(id__in=valid_sppd_ids)
 
-    # Disposisi yang bisa dibuat SPPD
-    from surat_tugas.models import SuratTugas
+    # Disposisi yang bisa dibuat SPPD (Optimasi Prefetching & In-Memory Check)
     st_dispo_ids = SuratTugas.objects.filter(disposition__isnull=False).values_list('disposition_id', flat=True)
 
     raw_dispositions = Disposition.objects.filter(
         id__in=st_dispo_ids
     ).exclude(
         archive__status='ditolak'
-    ).select_related('archive', 'sender').prefetch_related('forwarded_to', 'sppd_list')
+    ).select_related('archive', 'archive__category', 'sender').prefetch_related('forwarded_to', 'sppd_list', 'surat_tugas')
 
     if is_waka_or_kabid_2:
         raw_dispositions = raw_dispositions.filter(
             Q(archive__verified_by_kabid=True) | ~Q(archive__status='baru')
         )
 
-    # Syarat SPPD Multi-tahap: Dokumen Bantuan dengan 1 SPPD (Survei) tetap boleh diterbitkan SPPD Tahap 2 (Penyaluran) jika ada Surat Tugas Penyaluran!
     valid_dispo_ids = []
     for d in raw_dispositions:
         arch = d.archive
         sppds_item_list = list(d.sppd_list.all())
         cnt = len(sppds_item_list)
         
-        st_list = list(d.surat_tugas.all()) if hasattr(d, 'surat_tugas') else list(SuratTugas.objects.filter(disposition=d))
-        used_st_ids = [sp.surat_tugas_id for sp in sppds_item_list if sp.surat_tugas_id]
+        st_list = list(d.surat_tugas.all())
+        used_st_ids = {sp.surat_tugas_id for sp in sppds_item_list if sp.surat_tugas_id}
         has_unused_st = any(st.id not in used_st_ids for st in st_list)
 
         is_bantuan = False
         if arch:
-            from services.workflows.workflow_engine import WorkflowEngine
-            is_bantuan = WorkflowEngine.is_bantuan(arch)
+            arch_cat = (arch.category.name if arch.category else '').lower()
+            arch_title = (arch.title or '').lower()
+            is_bantuan = (
+                arch.archive_type == 'proposal' or
+                'bantuan' in arch_cat or
+                any(k in arch_title for k in ['bantuan', 'mustahik', 'proposal', 'rutilahu', 'bedah rumah', 'santunan'])
+            )
 
         if is_waka_or_kabid_2 and not is_bantuan:
             continue
@@ -144,8 +148,8 @@ def sppd_list(request):
     page_obj_sppd = paginator_sppd.get_page(page_number)
     page_obj_dispo = paginator_dispo.get_page(page_number)
 
-    from services.analytics.reporting_service import ReportingService
-    sppd_recap = ReportingService.get_sppd_recap()
+    # Fast Cached Reporting Recap
+    sppd_recap = cache.get_or_set('sppd_recap_data', lambda: ReportingService.get_sppd_recap(), timeout=60)
     top_employees = [(item['employee'], item['total_sppd']) for item in sppd_recap[:10]]
     sppd_chart_labels = [item['employee'].full_name for item in sppd_recap[:10]]
     sppd_chart_series = [item['total_sppd'] for item in sppd_recap[:10]]
@@ -377,31 +381,28 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
             archive.status = 'proses'
             archive.activity_name = activity_text
             archive.status_note = f'SPPD ({sppd_number}) diterbitkan untuk {purpose}.'
-            archive.save()
+            archive.save(update_fields=['status', 'activity_name', 'status_note', 'updated_at'])
 
         if dispo and dispo.status in ['terisi', 'terverifikasi']:
             dispo.status = 'proses'
-            dispo.save()
+            dispo.save(update_fields=['status', 'updated_at'])
 
         try:
             from datetime import datetime, time, date
             sch_date = departure_date if isinstance(departure_date, date) else datetime.strptime(str(departure_date), '%Y-%m-%d').date()
             ret_date = return_date if isinstance(return_date, date) else datetime.strptime(str(return_date), '%Y-%m-%d').date()
             raw_dt = datetime.combine(sch_date, time(8, 0))
-            try:
-                sch_datetime = timezone.make_aware(raw_dt)
-            except Exception:
-                sch_datetime = raw_dt
+            sch_datetime = timezone.make_aware(raw_dt) if timezone.is_naive(raw_dt) else raw_dt
             
             tgl_str = sch_date.strftime('%d/%m/%Y') if sch_date == ret_date else f"{sch_date.strftime('%d/%m/%Y')} s/d {ret_date.strftime('%d/%m/%Y')}"
 
             agenda_title = f"SPPD: {purpose}" if len(purpose) <= 70 else f"SPPD: {purpose[:67]}..."
             agenda_desc = f"Perjalanan Dinas SPPD {sppd_number} ke {destination} ({tgl_str}). Maksud Keberangkatan SPPD: {purpose}"
 
-            agenda = Agenda.objects.filter(description__icontains=sppd_number).first()
-
+            agenda = Agenda.objects.filter(sppd_ref=sppd).first()
             if not agenda:
                 agenda = Agenda.objects.create(
+                    sppd_ref=sppd,
                     title=agenda_title,
                     location=destination,
                     description=agenda_desc,
@@ -416,13 +417,12 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
                 agenda.description = agenda_desc
                 agenda.scheduled_at = sch_datetime
                 agenda.status = 'terjadwal'
-                agenda.save()
+                agenda.save(update_fields=['title', 'location', 'description', 'scheduled_at', 'status', 'updated_at'])
 
-            agenda.sppd_ref = sppd
-            if sppd.assigned_employees.exists():
-                agenda.assigned_employees.set(sppd.assigned_employees.all())
-                from users.models import User
-                user_ids = list(User.objects.filter(employee__in=sppd.assigned_employees.all()).values_list('id', flat=True))
+            assigned_emps = list(sppd.assigned_employees.all())
+            if assigned_emps:
+                agenda.assigned_employees.set(assigned_emps)
+                user_ids = list(User.objects.filter(employee__in=assigned_emps).values_list('id', flat=True))
                 if user_ids:
                     agenda.assigned_to.set(user_ids)
         except Exception as ae:
@@ -430,9 +430,9 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
             logging.getLogger(__name__).exception("Auto agenda registration notice: %s", ae)
 
         import threading
-        from services.notifications.notification_service import NotificationService
         threading.Thread(target=NotificationService.send_sppd_notification_auto_by_id, args=(sppd.id,), daemon=True).start()
 
+        cache.delete('sppd_recap_data')
         messages.success(request, f"SPPD {sppd_number} berhasil dibuat & Notifikasi WA terkirim.")
         return redirect('sppd_service:list')
 
@@ -504,7 +504,6 @@ def sppd_complete(request, pk):
         # Proses Unggah Berkas / Foto Lampiran Tambahan
         additional_files = request.FILES.getlist('additional_files') or request.FILES.getlist('report_files')
         if additional_files:
-            from .models import SPPDAttachment
             for f in additional_files:
                 if f:
                     SPPDAttachment.objects.create(
@@ -513,17 +512,31 @@ def sppd_complete(request, pk):
                         title=f.name
                     )
 
-        
-        if hasattr(sppd, 'agenda_set'):
-            sppd.agenda_set.filter(status='terjadwal').update(status='selesai', is_completed=True)
-
-        is_survei_sppd = sppd.sppd_type == 'survei' or 'survei' in (sppd.purpose or '').lower() or 'verifikasi' in (sppd.purpose or '').lower()
-        
         archive_obj = None
         if hasattr(sppd, 'disposition') and sppd.disposition and hasattr(sppd.disposition, 'archive'):
             archive_obj = sppd.disposition.archive
         elif hasattr(sppd, 'surat_tugas') and sppd.surat_tugas and hasattr(sppd.surat_tugas, 'disposition') and sppd.surat_tugas.disposition:
             archive_obj = sppd.surat_tugas.disposition.archive
+
+        # Synchronize linked Agenda records -> Selesai
+        linked_agendas = []
+        if archive_obj:
+            linked_agendas.extend(list(Agenda.objects.filter(archive=archive_obj)))
+        if sppd.sppd_number:
+            for ag in Agenda.objects.filter(description__icontains=sppd.sppd_number):
+                if ag not in linked_agendas:
+                    linked_agendas.append(ag)
+
+        for ag in linked_agendas:
+            ag.is_completed = True
+            ag.status = 'selesai'
+            if notes and not ag.completed_notes:
+                ag.completed_notes = notes
+            if report_file and not ag.completed_file:
+                ag.completed_file = report_file
+            ag.save()
+
+        is_survei_sppd = sppd.sppd_type == 'survei' or 'survei' in (sppd.purpose or '').lower() or 'verifikasi' in (sppd.purpose or '').lower()
 
         if is_survei_sppd:
             if archive_obj and archive_obj.status == 'dalam_survei':

@@ -327,14 +327,6 @@ def surat_create_from_disposition(request, disposition_id):
     return render(request, 'surat_tugas/create.html', context)
 
 
-    return render(request, 'surat_tugas/create.html', {
-        'form': form,
-        'disposition': disposition,
-        'archive': archive,
-        'surat_terakhir': surat_terakhir,
-        'dispositions_pending_st': dispositions_pending_st,
-    })
-
 
 
 @login_required

@@ -24,7 +24,7 @@ class SuratTugas(models.Model):
     jabatan_penandatangan = models.CharField(max_length=150, default="Ketua BAZNAS")
     
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='surat_tugas_created')
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

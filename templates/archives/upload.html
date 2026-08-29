@@ -41,7 +41,7 @@
 
         <!-- FORM INPUT ARSIP (WARNA SEMULA WHITE/SLATE-900 + EFEK BACKGROUND TEMBUS/BACKDROP-BLUR) -->
         <div class="p-6 sm:p-8 rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-xl space-y-6">
-            <form method="post" enctype="multipart/form-data" class="space-y-6">
+            <form method="post" enctype="multipart/form-data" id="archiveUploadForm" class="space-y-6">
                 {% csrf_token %}
 
                 <!-- BARIS 1: TIPE DOKUMEN, NOMOR ARSIP, TANGGAL SURAT -->
@@ -162,13 +162,15 @@
                     </div>
 
                     <div class="md:col-span-6">
-                        <label for="file_path" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                        <label for="file_path" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1 cursor-pointer">
                             Berkas Digital (PDF/Gambar) <span class="text-rose-500">*</span>
                         </label>
-                        <div class="relative w-full h-[46px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center gap-2 px-3 overflow-hidden cursor-pointer hover:border-emerald-500 transition-all dropzone-box" id="dropzone_box">
-                            <i class="bi bi-cloud-arrow-up text-emerald-600 dark:text-emerald-400 text-lg dropzone-icon"></i>
-                            <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold dropzone-text truncate">Pilih atau Tarik File Berkas ke sini</span>
-                            <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" id="file_path" name="file_path" required onchange="updateDropzoneFile(this)">
+                        <div class="relative w-full min-h-[52px] sm:h-[48px] rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 bg-slate-50 dark:bg-slate-800 flex items-center justify-center gap-2 px-3 overflow-hidden cursor-pointer transition-all dropzone-box select-none active:scale-[0.99]" id="dropzone_box">
+                            <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 block" id="file_path" name="file_path" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onchange="updateDropzoneFile(this)" aria-label="Upload Berkas Digital">
+                            <div class="flex items-center justify-center gap-2 pointer-events-none select-none z-10">
+                                <i class="bi bi-cloud-arrow-up text-emerald-600 dark:text-emerald-400 text-lg dropzone-icon"></i>
+                                <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold dropzone-text truncate">Pilih atau Tarik File Berkas ke sini</span>
+                            </div>
                         </div>
                         <div id="file_name_preview" class="hidden text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1"></div>
                     </div>
@@ -192,13 +194,14 @@
                     </span>
                 </div>
 
-                <!-- TOMBOL AKSI -->
-                <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
-                    <a href="{% url 'archives:list' %}" class="px-5 py-2.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 no-underline transition-all">
-                        <i class="bi bi-arrow-left me-1"></i> Batal
+                <!-- TOMBOL AKSI (RESPONSIF MOBILE HP + DESKTOP) -->
+                <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 pb-2 border-t border-slate-200 dark:border-slate-800">
+                    <a href="{% url 'archives:list' %}" class="w-full sm:w-auto px-5 py-3 min-h-[48px] inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 no-underline transition-all">
+                        <i class="bi bi-arrow-left me-1.5"></i> Batal
                     </a>
-                    <button type="submit" class="px-6 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer inline-flex items-center gap-2 transition-all">
-                        <i class="bi bi-cloud-upload-fill"></i> Unggah & Daftarkan Arsip
+                    <button type="submit" id="btnSubmitArchive" class="w-full sm:w-auto px-7 py-3.5 min-h-[48px] rounded-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-600/30 border-0 cursor-pointer inline-flex items-center justify-center gap-2 transition-all">
+                        <i class="bi bi-cloud-upload-fill text-base" id="btnSubmitIcon"></i>
+                        <span id="btnSubmitText">Unggah & Daftarkan Arsip</span>
                     </button>
                 </div>
             </form>
@@ -309,6 +312,99 @@
             senderInput.addEventListener('input', autoSelectCategoryByTitle);
             if (senderInput.value) autoSelectCategoryByTitle();
         }
+
+        // Form Submit Validation & Feedback for Mobile & Desktop
+        const uploadForm = document.getElementById('archiveUploadForm');
+        const submitBtn = document.getElementById('btnSubmitArchive');
+        const submitText = document.getElementById('btnSubmitText');
+        const submitIcon = document.getElementById('btnSubmitIcon');
+
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', function (e) {
+                const senderEl = document.getElementById('sender_receiver');
+                const titleEl = document.getElementById('title');
+                const categoryEl = document.getElementById('category');
+                const fileEl = document.getElementById('file_path');
+
+                let missingFields = [];
+
+                if (!senderEl || !senderEl.value.trim()) {
+                    missingFields.push('Pengirim / Instansi');
+                    if (senderEl) {
+                        senderEl.classList.add('ring-2', 'ring-rose-500', 'border-rose-500');
+                    }
+                } else if (senderEl) {
+                    senderEl.classList.remove('ring-2', 'ring-rose-500', 'border-rose-500');
+                }
+
+                if (!titleEl || !titleEl.value.trim()) {
+                    missingFields.push('Perihal / Judul Dokumen');
+                    if (titleEl) {
+                        titleEl.classList.add('ring-2', 'ring-rose-500', 'border-rose-500');
+                    }
+                } else if (titleEl) {
+                    titleEl.classList.remove('ring-2', 'ring-rose-500', 'border-rose-500');
+                }
+
+                if (!categoryEl || !categoryEl.value) {
+                    missingFields.push('Kategori Bidang');
+                    if (categoryEl) {
+                        categoryEl.classList.add('ring-2', 'ring-rose-500', 'border-rose-500');
+                    }
+                } else if (categoryEl) {
+                    categoryEl.classList.remove('ring-2', 'ring-rose-500', 'border-rose-500');
+                }
+
+                if (!fileEl || !fileEl.files || fileEl.files.length === 0) {
+                    missingFields.push('Berkas Digital (PDF/Gambar)');
+                    const box = document.getElementById('dropzone_box');
+                    if (box) {
+                        box.classList.add('ring-2', 'ring-rose-500', 'border-rose-500');
+                    }
+                } else {
+                    const box = document.getElementById('dropzone_box');
+                    if (box) {
+                        box.classList.remove('ring-2', 'ring-rose-500', 'border-rose-500');
+                    }
+                }
+
+                if (missingFields.length > 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Scroll to first invalid field
+                    const firstMissing = (senderEl && !senderEl.value.trim()) ? senderEl :
+                                         ((titleEl && !titleEl.value.trim()) ? titleEl :
+                                         ((categoryEl && !categoryEl.value) ? categoryEl : document.getElementById('dropzone_box')));
+                    if (firstMissing) {
+                        firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        if (firstMissing.focus && typeof firstMissing.focus === 'function') firstMissing.focus();
+                    }
+
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Formulir Belum Lengkap',
+                            html: '<p class="text-xs text-slate-600 dark:text-slate-300">Mohon lengkapi bagian wajib berikut sebelum mengunggah arsip:</p><ul class="text-left text-xs font-bold text-rose-600 dark:text-rose-400 mt-2.5 list-disc list-inside space-y-1">' + 
+                                  missingFields.map(m => `<li>${m}</li>`).join('') + '</ul>',
+                            confirmButtonColor: '#059669',
+                            confirmButtonText: '<i class="bi bi-pencil-square me-1"></i> Lengkapi Sekarang'
+                        });
+                    } else {
+                        alert('Mohon lengkapi data wajib berikut:\n- ' + missingFields.join('\n- '));
+                    }
+                    return false;
+                }
+
+                // If valid, show loading state
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-80', 'cursor-not-allowed', 'pointer-events-none');
+                    if (submitIcon) submitIcon.className = 'bi bi-arrow-repeat animate-spin text-base';
+                    if (submitText) submitText.textContent = 'Sedang Mengunggah & Mendaftarkan...';
+                }
+            });
+        }
     });
 
     function updateDropzoneFile(input) {
@@ -316,6 +412,10 @@
         const icon = box ? box.querySelector('.dropzone-icon') : null;
         const text = box ? box.querySelector('.dropzone-text') : null;
         const preview = document.getElementById('file_name_preview');
+
+        if (box) {
+            box.classList.remove('ring-2', 'ring-rose-500', 'border-rose-500');
+        }
 
         if (input.files && input.files[0]) {
             const file = input.files[0];

@@ -103,14 +103,13 @@ class GoogleCalendarService:
                 bg_color = "#E11D48" if not is_cuti else "#D97706"
                 border_color = "#991B1B" if not is_cuti else "#B45309"
                 
-                from datetime import datetime, timedelta
-                start_dt = datetime.strptime(h['start'], '%Y-%m-%d')
-                end_str = (start_dt + timedelta(days=1)).strftime('%Y-%m-%d')
+                start_str = h['start']
+                end_str = h.get('end', start_str)
 
                 events.append({
                     'id': f"holiday-{h['start']}",
                     'title': h['title'],
-                    'start': h['start'],
+                    'start': start_str,
                     'end': end_str,
                     'display': 'block',
                     'backgroundColor': bg_color,

@@ -218,72 +218,83 @@ def dashboard_index(request):
         Archive.objects.exclude(archive_type__in=['surat_masuk', 'proposal', 'laporan']).count()
     ]
 
-    # Chart 2: Status Seluruh Dokumen Permohonan Bantuan (Proposal + Surat Masuk Permohonan Bantuan)
-    all_archives_list = list(Archive.objects.select_related('category').prefetch_related('dispositions__surat_tugas', 'dispositions__sppd_list', 'dispositions__report').all())
-    
-    bantuan_cat_keywords = [
-        'bantuan', 'rutilahu', 'kesehatan', 'gharimin', 'pendidikan',
-        'peribadatan', 'meubelair', 'meubellair', 'mebeulair', 'sarpras', 'sarana', 'prasarana',
-        'sekolah', 'pesantren', 'pembangunan',
-        'umkm', 'musafir', 'muallaf', 'santunan', 'sembako', 'lpj',
-        'pendistribusian', 'penyaluran', 'rtlh', 'bencana', 'tanggap', 'penanggulangan', 'kebakaran', 'banjir', 'longsor', 'gempa'
-    ]
+    # Chart 2: Status Seluruh Dokumen Permohonan Bantuan (Cached for 60 seconds)
+    def _compute_chart_proposal_status():
+        all_archives_list = list(
+            Archive.objects.exclude(archive_type='dokumen_internal')
+            .select_related('category')
+            .prefetch_related('dispositions__surat_tugas', 'dispositions__sppd_list', 'dispositions__report')
+            .all()
+        )
+        
+        bantuan_cat_keywords = [
+            'bantuan', 'rutilahu', 'kesehatan', 'gharimin', 'pendidikan',
+            'peribadatan', 'meubelair', 'meubellair', 'mebeulair', 'sarpras', 'sarana', 'prasarana',
+            'sekolah', 'pesantren', 'pembangunan',
+            'umkm', 'musafir', 'muallaf', 'santunan', 'sembako', 'lpj',
+            'pendistribusian', 'penyaluran', 'rtlh', 'bencana', 'tanggap', 'penanggulangan', 'kebakaran', 'banjir', 'longsor', 'gempa'
+        ]
 
-    def is_bantuan_doc_check(arc):
-        cat_obj = getattr(arc, 'category', None)
-        c_name = cat_obj.name if cat_obj else ''
-        c_lower = c_name.lower()
-        if any(kw in c_lower for kw in ['kerjasama', 'kerja sama', 'undangan', 'audiensi', 'surat dinas', 'nota dinas', 'dokumen internal', 'upz', 'vendor']):
-            return False
-        elif any(kw in c_lower for kw in bantuan_cat_keywords):
-            return True
-        return WorkflowEngine.is_bantuan(arc)
+        def is_bantuan_doc_check(arc):
+            cat_obj = getattr(arc, 'category', None)
+            c_name = cat_obj.name if cat_obj else ''
+            c_lower = c_name.lower()
+            if any(kw in c_lower for kw in ['kerjasama', 'kerja sama', 'undangan', 'audiensi', 'surat dinas', 'nota dinas', 'dokumen internal', 'upz', 'vendor']):
+                return False
+            elif any(kw in c_lower for kw in bantuan_cat_keywords):
+                return True
+            return WorkflowEngine.is_bantuan(arc)
 
-    all_bantuan_docs = [arc for arc in all_archives_list if is_bantuan_doc_check(arc)]
+        all_bantuan_docs = [arc for arc in all_archives_list if is_bantuan_doc_check(arc)]
 
-    diproses_bantuan_count = 0
-    survei_bantuan_count = 0
-    penyaluran_bantuan_count = 0
-    laporan_bantuan_count = 0
-    selesai_bantuan_count = 0
+        diproses_bantuan_count = 0
+        survei_bantuan_count = 0
+        penyaluran_bantuan_count = 0
+        laporan_bantuan_count = 0
+        selesai_bantuan_count = 0
 
-    for arc in all_bantuan_docs:
-        s = arc.status
-        sppd = arc.latest_sppd
-        st = arc.latest_st
-        rep = arc.latest_report
-        has_completed_lhp = bool(rep and rep.report_number)
+        for arc in all_bantuan_docs:
+            s = arc.status
+            sppd = arc.latest_sppd
+            st = arc.latest_st
+            rep = arc.latest_report
+            has_completed_lhp = bool(rep and rep.report_number)
 
-        has_penyaluran_sppd = False
-        if sppd:
-            purp_str = ((sppd.purpose or '') + ' ' + (sppd.sppd_type or '')).lower()
-            if sppd.sppd_type == 'penyaluran' or any(k in purp_str for k in ['penyaluran', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin', 'bedah rumah', 'kursi roda']):
-                has_penyaluran_sppd = True
+            has_penyaluran_sppd = False
+            if sppd:
+                purp_str = ((sppd.purpose or '') + ' ' + (sppd.sppd_type or '')).lower()
+                if sppd.sppd_type == 'penyaluran' or any(k in purp_str for k in ['penyaluran', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin', 'bedah rumah', 'kursi roda']):
+                    has_penyaluran_sppd = True
 
-        has_penyaluran_st = False
-        if st:
-            st_str = (st.tentang or '').lower()
-            if any(k in st_str for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
-                has_penyaluran_st = True
+            has_penyaluran_st = False
+            if st:
+                st_str = (st.tentang or '').lower()
+                if any(k in st_str for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
+                    has_penyaluran_st = True
 
-        if s == 'selesai':
-            selesai_bantuan_count += 1
-        elif s in ['laporan', 'telah_dilaporkan'] or (has_completed_lhp and s == 'telah_disalurkan'):
-            laporan_bantuan_count += 1
-        elif s == 'telah_disalurkan' or has_penyaluran_sppd or has_penyaluran_st:
-            penyaluran_bantuan_count += 1
-        elif s in ['dalam_survei', 'telah_disurvei'] or (sppd and ('survei' in (sppd.purpose or '').lower() or 'verifikasi' in (sppd.purpose or '').lower())) or (st and 'survei' in (st.tentang or '').lower()):
-            survei_bantuan_count += 1
-        else:
-            diproses_bantuan_count += 1
+            if s == 'selesai':
+                selesai_bantuan_count += 1
+            elif s in ['laporan', 'telah_dilaporkan'] or (has_completed_lhp and s == 'telah_disalurkan'):
+                laporan_bantuan_count += 1
+            elif s == 'telah_disalurkan' or has_penyaluran_sppd or has_penyaluran_st:
+                penyaluran_bantuan_count += 1
+            elif s in ['dalam_survei', 'telah_disurvei'] or (sppd and ('survei' in (sppd.purpose or '').lower() or 'verifikasi' in (sppd.purpose or '').lower())) or (st and 'survei' in (st.tentang or '').lower()):
+                survei_bantuan_count += 1
+            else:
+                diproses_bantuan_count += 1
 
-    chart_proposal_status = [
-        diproses_bantuan_count,
-        survei_bantuan_count,
-        penyaluran_bantuan_count,
-        laporan_bantuan_count,
-        selesai_bantuan_count
-    ]
+        return [
+            diproses_bantuan_count,
+            survei_bantuan_count,
+            penyaluran_bantuan_count,
+            laporan_bantuan_count,
+            selesai_bantuan_count
+        ]
+
+    try:
+        chart_proposal_status = cache.get_or_set('dashboard_chart_proposal_status', _compute_chart_proposal_status, 60)
+    except Exception:
+        chart_proposal_status = _compute_chart_proposal_status()
 
     # Fetch up to 10 agendas (today first, then all latest agendas in DB)
     agendas_list = list(today_agendas_qs[:10])
@@ -299,10 +310,17 @@ def dashboard_index(request):
 
     dispo_sla_analytics = ReportingService.get_disposition_sla_analytics()
 
-    wa_health = cache.get('wa_health')
+    try:
+        wa_health = cache.get('wa_health')
+    except Exception:
+        wa_health = None
+
     if wa_health is None:
         wa_health = WhatsAppService.check_health()
-        cache.set('wa_health', wa_health, 60)
+        try:
+            cache.set('wa_health', wa_health, 60)
+        except Exception:
+            pass
 
     pov_names = {
         'admin': 'Superadmin IT (Default)',

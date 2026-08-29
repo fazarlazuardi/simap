@@ -503,10 +503,10 @@
         <!-- UTAMA CALENDAR CANVAS VIEW -->
         <div class="lg:col-span-9 space-y-4">
             <!-- Top Toolbar Navigation Controls -->
-            <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                 <!-- Nav Buttons & Title -->
-                <div class="flex items-center gap-3">
-                    <div class="inline-flex items-center rounded-2xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center justify-between sm:justify-start gap-3">
+                    <div class="inline-flex items-center rounded-2xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 shrink-0">
                         <button @click="prev()" type="button" class="p-2 rounded-xl hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all" title="Sebelumnya">
                             <i class="bi bi-chevron-left text-xs font-bold"></i>
                         </button>
@@ -518,24 +518,24 @@
                         </button>
                     </div>
 
-                    <h2 class="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight mb-0" x-text="getHeaderTitle()"></h2>
+                    <h2 class="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight mb-0 truncate" x-text="getHeaderTitle()"></h2>
                 </div>
 
                 <!-- View Switcher Tabs -->
-                <div class="inline-flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold">
-                    <button @click="activeView = 'year'" :class="activeView === 'year' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                <div class="inline-flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold max-w-full overflow-x-auto custom-scrollbar flex-nowrap shrink-0">
+                    <button @click="activeView = 'year'" :class="activeView === 'year' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all shrink-0">
                         Tahun
                     </button>
-                    <button @click="activeView = 'month'" :class="activeView === 'month' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                    <button @click="activeView = 'month'" :class="activeView === 'month' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all shrink-0">
                         Bulan
                     </button>
-                    <button @click="activeView = 'week'" :class="activeView === 'week' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                    <button @click="activeView = 'week'" :class="activeView === 'week' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all shrink-0">
                         Minggu
                     </button>
-                    <button @click="activeView = 'day'" :class="activeView === 'day' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                    <button @click="activeView = 'day'" :class="activeView === 'day' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all shrink-0">
                         Hari
                     </button>
-                    <button @click="activeView = 'list'" :class="activeView === 'list' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all">
+                    <button @click="activeView = 'list'" :class="activeView === 'list' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3 py-1.5 rounded-xl transition-all shrink-0">
                         Daftar
                     </button>
                 </div>
@@ -590,71 +590,196 @@
                 </template>
             </div>
 
-            <!-- VIEW 2: BULAN (MONTH VIEW - GRID LENGKAP) -->
-            <div x-show="activeView === 'month'" x-transition class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-                <div class="grid grid-cols-7 gap-2 text-center text-xs font-black uppercase tracking-wider py-2 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-800">
-                    <span class="text-rose-500">Minggu</span>
-                    <span class="text-slate-700 dark:text-slate-300">Senin</span>
-                    <span class="text-slate-700 dark:text-slate-300">Selasa</span>
-                    <span class="text-slate-700 dark:text-slate-300">Rabu</span>
-                    <span class="text-slate-700 dark:text-slate-300">Kamis</span>
-                    <span class="text-slate-700 dark:text-slate-300">Jumat</span>
-                    <span class="text-slate-700 dark:text-slate-300">Sabtu</span>
+            <!-- VIEW 2: BULAN (MONTH VIEW - DESKTOP FULL GRID & MOBILE MINI CALENDAR ALA TAHUNAN) -->
+            <div x-show="activeView === 'month'" x-transition class="space-y-4">
+                
+                <!-- 2A. DESKTOP / TABLET VIEW (md:block hidden) - GRID LENGKAP DETAIL -->
+                <div class="hidden md:block p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                    <div class="grid grid-cols-7 gap-2 text-center text-xs font-black uppercase tracking-wider py-2 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-800">
+                        <span class="text-rose-500">Minggu</span>
+                        <span class="text-slate-700 dark:text-slate-300">Senin</span>
+                        <span class="text-slate-700 dark:text-slate-300">Selasa</span>
+                        <span class="text-slate-700 dark:text-slate-300">Rabu</span>
+                        <span class="text-slate-700 dark:text-slate-300">Kamis</span>
+                        <span class="text-slate-700 dark:text-slate-300">Jumat</span>
+                        <span class="text-slate-700 dark:text-slate-300">Sabtu</span>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-2">
+                        <template x-for="dayItem in getMonthDays(currentYear, currentMonth)" :key="dayItem.dateStr">
+                            <div class="min-h-[110px] p-2 rounded-2xl border transition-all flex flex-col justify-between"
+                                 :class="{
+                                     'bg-slate-50/40 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800/40 opacity-40': !dayItem.isCurrentMonth,
+                                     'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800': dayItem.isCurrentMonth,
+                                     'ring-2 ring-emerald-500/80 bg-emerald-50/30 dark:bg-emerald-950/20': dayItem.isToday,
+                                     'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/60 dark:border-rose-900/40': dayItem.holiday
+                                 }">
+                                
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="font-extrabold text-xs px-2 py-0.5 rounded-full"
+                                          :class="{
+                                              'bg-emerald-600 text-white shadow-xs': dayItem.isToday,
+                                              'text-rose-600 dark:text-rose-400': dayItem.isSunday || dayItem.holiday,
+                                              'text-slate-800 dark:text-slate-200': !dayItem.isSunday && !dayItem.holiday && !dayItem.isToday
+                                          }"
+                                          x-text="dayItem.day"></span>
+
+                                    <span x-show="dayItem.events.length > 0" class="text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500" x-text="dayItem.events.length + ' item'"></span>
+                                </div>
+
+                                <template x-if="dayItem.holiday">
+                                    <div @click="openHolidayModal(dayItem.dateStr, dayItem.holiday)"
+                                         class="mb-1.5 px-2 py-1 rounded-lg bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-[10px] font-bold line-clamp-2 cursor-pointer hover:bg-rose-500/25 transition-all">
+                                        <i class="bi bi-flag-fill text-rose-500 text-[9px] mr-0.5"></i>
+                                        <span x-text="dayItem.holiday"></span>
+                                    </div>
+                                </template>
+
+                                <div class="space-y-1 overflow-y-auto max-h-[80px] custom-scrollbar flex-1">
+                                    <template x-for="ev in dayItem.events" :key="ev.id">
+                                        <div @click="openEventModal(ev)"
+                                             class="px-2 py-0.5 rounded-lg text-[10px] font-bold truncate cursor-pointer transition-all border flex items-center gap-1 shadow-2xs"
+                                             :class="{
+                                                 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25': ev.source_type === 'agenda',
+                                                 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30 hover:bg-sky-500/25': ev.source_type === 'sppd',
+                                                 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30 hover:bg-purple-500/25': ev.source_type === 'meeting'
+                                             }"
+                                             :title="ev.title">
+                                            <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                                                  :class="{
+                                                      'bg-emerald-500': ev.source_type === 'agenda',
+                                                      'bg-sky-500': ev.source_type === 'sppd',
+                                                      'bg-purple-500': ev.source_type === 'meeting'
+                                                  }"></span>
+                                            <span class="truncate" x-text="ev.title"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-7 gap-2">
-                    <template x-for="dayItem in getMonthDays(currentYear, currentMonth)" :key="dayItem.dateStr">
-                        <div class="min-h-[110px] p-2 rounded-2xl border transition-all flex flex-col justify-between"
-                             :class="{
-                                 'bg-slate-50/40 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800/40 opacity-40': !dayItem.isCurrentMonth,
-                                 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800': dayItem.isCurrentMonth,
-                                 'ring-2 ring-emerald-500/80 bg-emerald-50/30 dark:bg-emerald-950/20': dayItem.isToday,
-                                 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/60 dark:border-rose-900/40': dayItem.holiday
-                             }">
-                            
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="font-extrabold text-xs px-2 py-0.5 rounded-full"
-                                      :class="{
-                                          'bg-emerald-600 text-white shadow-xs': dayItem.isToday,
-                                          'text-rose-600 dark:text-rose-400': dayItem.isSunday || dayItem.holiday,
-                                          'text-slate-800 dark:text-slate-200': !dayItem.isSunday && !dayItem.holiday && !dayItem.isToday
-                                      }"
-                                      x-text="dayItem.day"></span>
+                <!-- 2B. MOBILE HP VIEW (block md:hidden) - KALENDER MINI SATU BULAN ALA TAHUNAN + DAFTAR AGENDA -->
+                <div class="block md:hidden space-y-4">
+                    <!-- MINI MONTH CALENDAR CARD -->
+                    <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                            <span class="font-black text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                                <i class="bi bi-calendar3"></i>
+                                <span x-text="monthNames[currentMonth]"></span>
+                            </span>
+                            <span class="text-xs font-mono font-extrabold text-slate-500 dark:text-slate-400" x-text="currentYear"></span>
+                        </div>
 
-                                <span x-show="dayItem.events.length > 0" class="text-[10px] font-bold font-mono text-slate-400 dark:text-slate-500" x-text="dayItem.events.length + ' item'"></span>
+                        <!-- 7 HEADER HARI MINI -->
+                        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mb-1">
+                            <span class="text-rose-500 font-extrabold">Min</span>
+                            <span>Sen</span>
+                            <span>Sel</span>
+                            <span>Rab</span>
+                            <span>Kam</span>
+                            <span>Jum</span>
+                            <span>Sab</span>
+                        </div>
+
+                        <!-- GRID TANGGAL MINI ALA KALENDER TAHUNAN -->
+                        <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                            <template x-for="dayItem in getMonthDays(currentYear, currentMonth)" :key="dayItem.dateStr">
+                                <button type="button"
+                                     @click="selectedDateStr = dayItem.dateStr; selectedDate = new Date(dayItem.dateStr + 'T00:00:00')"
+                                     :class="{
+                                         'opacity-25 pointer-events-none': !dayItem.isCurrentMonth,
+                                         'bg-emerald-600 text-white font-black shadow-md': dayItem.isToday && selectedDateStr !== dayItem.dateStr,
+                                         'bg-emerald-700 text-white ring-2 ring-emerald-400 ring-offset-1 dark:ring-offset-slate-900 font-black shadow-md': selectedDateStr === dayItem.dateStr,
+                                         'text-rose-500 dark:text-rose-400 font-extrabold': (dayItem.isSunday || dayItem.holiday) && selectedDateStr !== dayItem.dateStr && !dayItem.isToday,
+                                         'text-slate-800 dark:text-slate-200 font-semibold': !dayItem.isSunday && !dayItem.holiday && !dayItem.isToday && selectedDateStr !== dayItem.dateStr,
+                                         'hover:bg-slate-100 dark:hover:bg-slate-800': selectedDateStr !== dayItem.dateStr && dayItem.isCurrentMonth
+                                     }"
+                                     class="py-1.5 px-0.5 relative rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer border-0 bg-transparent min-h-[38px] active:scale-95">
+                                    
+                                    <span class="text-xs leading-none" x-text="dayItem.day"></span>
+
+                                    <!-- DOT INDIKATOR KEGIATAN / HARI LIBUR -->
+                                    <div class="flex items-center justify-center gap-0.5 mt-1 h-1.5">
+                                        <template x-if="dayItem.events && dayItem.events.length > 0">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="selectedDateStr === dayItem.dateStr ? 'bg-white' : getEventDotClass(dayItem)"></span>
+                                        </template>
+                                        <template x-if="dayItem.holiday && (!dayItem.events || dayItem.events.length === 0)">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="selectedDateStr === dayItem.dateStr ? 'bg-white' : 'bg-rose-500'"></span>
+                                        </template>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- DAFTAR AGENDA PADA TANGGAL TERPILIH (DI BAWAH MINI KALENDER) -->
+                    <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">
+                                    <i class="bi bi-calendar-event-fill"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Agenda Tanggal</span>
+                                    <span class="text-xs font-black text-slate-900 dark:text-white" x-text="formatSelectedDateHeader(selectedDateStr)"></span>
+                                </div>
                             </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono"
+                                  x-text="getDayEvents(selectedDateStr).length + ' Item'"></span>
+                        </div>
 
-                            <template x-if="dayItem.holiday">
-                                <div @click="openHolidayModal(dayItem.dateStr, dayItem.holiday)"
-                                     class="mb-1.5 px-2 py-1 rounded-lg bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-[10px] font-bold line-clamp-2 cursor-pointer hover:bg-rose-500/25 transition-all">
-                                    <i class="bi bi-flag-fill text-rose-500 text-[9px] mr-0.5"></i>
-                                    <span x-text="dayItem.holiday"></span>
+                        <!-- Info Hari Libur jika ada pada tanggal terpilih -->
+                        <template x-if="getHoliday(selectedDateStr)">
+                            <div @click="openHolidayModal(selectedDateStr, getHoliday(selectedDateStr))"
+                                 class="p-3 rounded-2xl bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-xs font-bold flex items-center justify-between cursor-pointer hover:bg-rose-500/25 transition-all">
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-flag-fill text-rose-500 text-sm"></i>
+                                    <span x-text="getHoliday(selectedDateStr)"></span>
+                                </div>
+                                <i class="bi bi-info-circle-fill text-rose-400 text-xs"></i>
+                            </div>
+                        </template>
+
+                        <!-- List Items pada tanggal terpilih -->
+                        <div class="space-y-2">
+                            <template x-for="ev in getDayEvents(selectedDateStr)" :key="ev.id">
+                                <div @click="openEventModal(ev)"
+                                     class="p-3 rounded-2xl border text-xs font-semibold cursor-pointer active:scale-[0.98] transition-all space-y-1.5 shadow-2xs"
+                                     :class="{
+                                         'bg-emerald-50/70 dark:bg-emerald-950/30 text-slate-900 dark:text-emerald-100 border-emerald-300/60 dark:border-emerald-800/60': ev.source_type === 'agenda',
+                                         'bg-sky-50/70 dark:bg-sky-950/30 text-slate-900 dark:text-sky-100 border-sky-300/60 dark:border-sky-800/60': ev.source_type === 'sppd',
+                                         'bg-purple-50/70 dark:bg-purple-950/30 text-slate-900 dark:text-purple-100 border-purple-300/60 dark:border-purple-800/60': ev.source_type === 'meeting'
+                                     }">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wide font-mono"
+                                              :class="{
+                                                  'bg-emerald-600 text-white': ev.source_type === 'agenda',
+                                                  'bg-sky-600 text-white': ev.source_type === 'sppd',
+                                                  'bg-purple-600 text-white': ev.source_type === 'meeting'
+                                              }"
+                                              x-text="ev.source_type"></span>
+                                        <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                            <i class="bi bi-clock text-[10px]"></i> <span x-text="ev.time || 'Sepanjang Hari'"></span>
+                                        </span>
+                                    </div>
+                                    <div class="font-extrabold text-xs text-slate-900 dark:text-white" x-text="ev.title"></div>
+                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between gap-2 pt-0.5">
+                                        <span class="truncate flex items-center gap-1"><i class="bi bi-geo-alt text-rose-500 text-xs"></i> <span x-text="ev.location || 'Kantor BAZNAS'"></span></span>
+                                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0">Lihat Detail <i class="bi bi-chevron-right"></i></span>
+                                    </div>
                                 </div>
                             </template>
 
-                            <div class="space-y-1 overflow-y-auto max-h-[80px] custom-scrollbar flex-1">
-                                <template x-for="ev in dayItem.events" :key="ev.id">
-                                    <div @click="openEventModal(ev)"
-                                         class="px-2 py-0.5 rounded-lg text-[10px] font-bold truncate cursor-pointer transition-all border flex items-center gap-1 shadow-2xs"
-                                         :class="{
-                                             'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25': ev.source_type === 'agenda',
-                                             'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30 hover:bg-sky-500/25': ev.source_type === 'sppd',
-                                             'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30 hover:bg-purple-500/25': ev.source_type === 'meeting'
-                                         }"
-                                         :title="ev.title">
-                                        <span class="w-1.5 h-1.5 rounded-full shrink-0"
-                                              :class="{
-                                                  'bg-emerald-500': ev.source_type === 'agenda',
-                                                  'bg-sky-500': ev.source_type === 'sppd',
-                                                  'bg-purple-500': ev.source_type === 'meeting'
-                                              }"></span>
-                                        <span class="truncate" x-text="ev.title"></span>
-                                    </div>
-                                </template>
+                            <div x-show="getDayEvents(selectedDateStr).length === 0 && !getHoliday(selectedDateStr)" class="py-6 text-center text-slate-400 dark:text-slate-500 text-xs italic">
+                                <i class="bi bi-calendar2-check text-2xl block mb-1 opacity-40"></i>
+                                Tidak ada kegiatan terjadwal pada tanggal ini.
                             </div>
                         </div>
-                    </template>
+                    </div>
                 </div>
+
             </div>
 
             <!-- VIEW 3: MINGGU (WEEK VIEW) -->
@@ -1036,7 +1161,11 @@
                             <script type="application/json" id="agenda-notulensi-json-{{ agenda.pk }}">{{ agenda.notulensi_json|safe }}</script>
                             <div class="inline-flex items-center justify-end gap-1.5 flex-wrap">
                             {% if agenda.status == 'terjadwal' or agenda.status == 'diundur' %}
-                                {% if agenda.is_sppd_generated or agenda.sppd_ref %}
+                                {% if agenda.sppd_ref and agenda.sppd_ref.status == 'selesai' %}
+                                    <span class="px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-extrabold text-[11px] inline-flex items-center gap-1.5" title="SPPD Telah Diselesaikan">
+                                        <i class="bi bi-check-circle-fill"></i> SPPD Selesai
+                                    </span>
+                                {% elif agenda.is_sppd_generated or agenda.sppd_ref %}
                                     <button type="button" 
                                             class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] shadow-xs transition-all border-0 cursor-pointer inline-flex items-center gap-1.5" 
                                             onclick="bukaModalSelesaiSPPD('{{ agenda.pk }}', '{{ agenda.sppd_ref.id|default:'' }}', '{{ agenda.sppd_ref.sppd_number|default:agenda.title|escapejs }}', '{{ agenda.title|escapejs }}')"
@@ -1568,6 +1697,12 @@ function simapCalendar() {
             } else {
                 return this.monthNames[this.currentMonth] + ' ' + this.currentYear;
             }
+        },
+
+        formatSelectedDateHeader(dateStr) {
+            if (!dateStr) return '';
+            let d = new Date(dateStr + 'T00:00:00');
+            return `${this.dayNamesFull[d.getDay()]}, ${d.getDate()} ${this.monthNames[d.getMonth()]} ${d.getFullYear()}`;
         },
 
         getMonthDays(year, month) {

@@ -39,7 +39,7 @@ class Disposition(models.Model):
 
     # Tahap disposisi saat ini: ketua (tahap 1) atau waka_iv (tahap 2)
     disposition_stage = models.CharField(
-        max_length=20, choices=STAGE_CHOICES, default='ketua',
+        max_length=20, choices=STAGE_CHOICES, default='ketua', db_index=True,
         verbose_name='Tahap Disposisi'
     )
 
@@ -78,25 +78,20 @@ class Disposition(models.Model):
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='biasa')
     note = models.TextField(blank=True, verbose_name="Catatan/Instruksi Tambahan Pimpinan")
     implementation_date = models.DateField(null=True, blank=True, verbose_name="Tanggal Pelaksanaan / Audiensi")
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='baru')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='baru', db_index=True)
 
     # ─── BUKTI / LAPORAN HASIL TINDAK LANJUT STAF ───
     result_note = models.TextField(blank=True, null=True, verbose_name="Catatan Hasil Tindak Lanjut")
     result_file = models.FileField(upload_to='uploads/dispositions/results/', null=True, blank=True, verbose_name="Dokumen Bukti Tindak Lanjut")
     completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Waktu Diselesaikan")
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']
         verbose_name = "Disposisi"
         verbose_name_plural = "Daftar Disposisi"
-
-    def __str__(self):
-        number = self.disposition_number if self.disposition_number else f"DRAFT-{self.id}"
-        archive_title = self.archive.title if self.archive else "Tanpa Arsip"
-        return f"Disposisi {number}: {archive_title}"
 
     @property
     def is_stage_ketua(self):
@@ -125,17 +120,13 @@ class Disposition(models.Model):
     @property
     def can_create_waka_disposition(self):
         """
-        Menentukan apakah tombol 'Buat Disposisi Waka IV' boleh tampil:
+        Menentukan apakah tombol 'Buat Disposisi Waka IV' (Tahap 2) boleh tampil:
         - Dokumen BELUM selesai
         - Disposisi Waka IV BELUM pernah diisi
-        - Disposisi Ketua ditujukan ke Waka IV (atau status baru/didisposisi_ketua dengan target Waka IV)
         """
         if self.is_completed:
             return False
         if self.has_waka_disposition:
-            return False
-        # Jika Ketua mendisposisikan khusus ke selain Waka IV (misal ke Waka I/II/III), jangan tampilkan 'Buat Waka IV'
-        if self.status == 'didisposisi_ketua' and not self.chk_waka4 and self.forwarded_to.exists():
             return False
         return True
 
@@ -244,6 +235,12 @@ class Disposition(models.Model):
         
         return ", ".join(positions) if positions else "Semua Bidang"
 
+    def user_permissions(self, user, active_pov=None):
+        """Mendapatkan permission kustom per pengguna untuk objek Disposisi ini."""
+        if not user or not user.is_authenticated:
+            return {'can_create_dispo': False, 'can_edit_dispo': False, 'can_edit_waka_dispo': False, 'can_delete_dispo': False, 'is_read_only': True}
+        return user.get_disposition_permissions(active_pov=active_pov, dispo=self)
+
     @property
     def has_result(self):
         return bool(self.result_note or self.result_file or hasattr(self, 'report'))
@@ -307,16 +304,14 @@ class Disposition(models.Model):
                     self.archive.save(update_fields=['status', 'updated_at'])
 
         # Trigger notifikasi WhatsApp (Sentralisasi via WhatsAppService untuk mematuhi Matriks Pengaturan WA)
+        # Trigger notifikasi WhatsApp via Celery task engine / transaction.on_commit
         if self.pk:
             dispo_pk = self.pk
             note_val = (self.note or '')[:120]
             num_val = self.disposition_number or ''
             arc_title_val = self.archive.title if self.archive else ''
 
-            import threading
-            def _bg_notify_dispo_save():
-                from django.db import connections
-                connections.close_all()
+            def _notify_dispo_save():
                 try:
                     from dispositions.models import Disposition
                     from services.integrations.gateway_service import WhatsAppService
@@ -335,15 +330,14 @@ class Disposition(models.Model):
                                 title="Disposisi Pimpinan"
                             )
                 except Exception as ex:
-                    logger.warning(f"Failed to trigger dispo WA notification: {ex}")
-                finally:
-                    connections.close_all()
+                    import logging
+                    logging.getLogger(__name__).warning(f"Failed to trigger dispo WA notification: {ex}")
 
             try:
                 from django.db import transaction
-                transaction.on_commit(lambda: threading.Thread(target=_bg_notify_dispo_save, daemon=True).start())
+                transaction.on_commit(_notify_dispo_save)
             except Exception:
-                threading.Thread(target=_bg_notify_dispo_save, daemon=True).start()
+                _notify_dispo_save()
 
     def __str__(self):
         num = self.disposition_number or f"DISP-{self.pk:03d}"

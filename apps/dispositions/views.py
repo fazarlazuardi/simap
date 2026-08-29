@@ -118,6 +118,9 @@ def disposition_list(request):
     if dispo_success_id:
         dispo_success_obj = Disposition.objects.filter(pk=dispo_success_id).select_related('archive').first()
 
+    for d in page_obj:
+        d.item_perms = request.user.get_disposition_permissions(active_pov, dispo=d)
+
     return render(request, 'dispositions/list.html', {
         'page_obj': page_obj,
         'dispositions': page_obj,
@@ -139,6 +142,8 @@ def disposition_list(request):
 @login_required
 def disposition_detail(request, pk):
     dispo = get_object_or_404(Disposition, pk=pk)
+    active_pov = request.session.get('active_pov')
+    dispo.item_perms = request.user.get_disposition_permissions(active_pov, dispo=dispo)
     return render(request, 'dispositions/detail.html', {'dispo': dispo, 'disposition': dispo})
 
 
@@ -147,15 +152,9 @@ def disposition_edit(request, pk):
     """Edit disposisi tahap 1 (Ketua) — mengisi forwarded_to, note, instruksi."""
     dispo = get_object_or_404(Disposition.objects.select_related('archive'), pk=pk)
     active_pov = request.session.get('active_pov')
-    if active_pov in ['waka_1', 'waka_2', 'waka_3', 'kabid_1', 'kabid_2', 'kabid_3', 'staf']:
-        messages.error(request, "Akses ditolak. Waka I, II, III dan Bidang I, II, III hanya memiliki hak membaca (Read Only).")
-        return redirect('dispositions:list')
-
-    is_kabid_or_fo = active_pov in ['kabid_4', 'sdm', 'fo'] or getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_kabid', False) or getattr(request.user, 'is_sdm', False) or getattr(request.user, 'is_fo', False)
-    if not request.user.is_pimpinan and not request.user.is_superadmin and not is_kabid_or_fo:
-        messages.error(request, "Akses ditolak. Pengisian disposisi memerlukan kewenangan Pimpinan, Kabid IV, atau FO.")
-        if hasattr(dispo, 'archive') and dispo.archive:
-            return redirect('archives:detail', pk=dispo.archive.pk)
+    perms = request.user.get_disposition_permissions(active_pov, dispo=dispo)
+    if not perms['can_edit_dispo']:
+        messages.error(request, "Akses ditolak. Disposisi ini tidak ditujukan ke Bidang Anda, sehingga Anda hanya memiliki hak membaca (Read Only).")
         return redirect('dispositions:list')
 
     # Catatan: Pengguna (Pimpinan, Kabid IV, FO, Superadmin) dapat melakukan edit/perbaikan kapan saja jika ada kesalahan disposisi
@@ -227,9 +226,10 @@ def disposition_edit(request, pk):
                 link_url=f"/dispositions/{archive.pk}/create/"
             ).update(status='read')
 
-        # Kirim notifikasi ke Waka 2 & Kabid 2 untuk dokumen bantuan / disposisi Bidang II
+        # Kirim notifikasi sistem lonceng & bantuan ke Waka & Kabid bidang terkait
         from services.notifications.notification_service import NotificationService
         NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
+        NotificationService.send_disposition_system_notifications(dispo, stage='ketua', actor=request.user)
 
         AuditService.log_action(request.user, f"Edit Disposisi Ketua: {dispo.disposition_number}", request)
         messages.success(request, f"Disposisi Ketua ({dispo.disposition_number}) berhasil diperbarui.")
@@ -254,19 +254,15 @@ def disposition_edit(request, pk):
 @login_required
 def disposition_waka_edit(request, pk):
     """
-    Edit disposisi tahap 2 (Waka IV) — update record yang SAMA, nomor disposisi tetap.
+    Edit disposisi tahap 2 (Waka IV / Waka Bidang) — update record yang SAMA, nomor disposisi tetap.
     Superadmin mengambil peran Waka IV jika Waka IV belum aksi.
     """
     dispo = get_object_or_404(Disposition.objects.select_related('archive'), pk=pk)
 
     active_pov = request.session.get('active_pov')
-    if active_pov in ['waka_1', 'waka_2', 'waka_3', 'kabid_1', 'kabid_2', 'kabid_3', 'staf']:
-        messages.error(request, "Akses ditolak. Waka I, II, III dan Bidang I, II, III hanya memiliki hak membaca (Read Only).")
-        return redirect('dispositions:list')
-
-    is_kabid_4 = active_pov in ['kabid_4', 'sdm'] or getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_kabid', False)
-    if not request.user.is_pimpinan and not request.user.is_superadmin and not is_kabid_4:
-        messages.error(request, "Hanya Pimpinan, Kabid IV, atau Superadmin yang bisa melakukan disposisi Waka IV.")
+    perms = request.user.get_disposition_permissions(active_pov, dispo=dispo)
+    if not perms['can_edit_waka_dispo']:
+        messages.error(request, "Akses ditolak. Disposisi Tahap 2 hanya dapat dilakukan oleh Waka IV, Kabid IV, Superadmin, atau Waka/Kabid dari Bidang yang menerima disposisi ini.")
         return redirect('dispositions:list')
 
     if dispo.status == 'baru':
@@ -300,9 +296,10 @@ def disposition_waka_edit(request, pk):
 
         dispo.save()
 
-        # Kirim notifikasi ke Waka 2 & Kabid 2 untuk dokumen bantuan / disposisi Bidang II
+        # Kirim notifikasi sistem lonceng & bantuan ke Waka & Kabid bidang terkait
         from services.notifications.notification_service import NotificationService
         NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
+        NotificationService.send_disposition_system_notifications(dispo, stage='waka_iv', actor=request.user)
 
         # Notif WA ke penerima Waka
         try:
@@ -436,9 +433,9 @@ def disposition_create(request, archive_pk):
     Notification.objects.filter(user=request.user, link_url=f"/dispositions/{archive.pk}/create/").update(status='read')
 
     active_pov = request.session.get('active_pov')
-    is_kabid_or_fo = active_pov in ['kabid_4', 'sdm', 'fo'] or getattr(request.user, 'is_kabid_4', False) or getattr(request.user, 'is_kabid', False) or getattr(request.user, 'is_sdm', False) or getattr(request.user, 'is_fo', False)
-    if not request.user.is_pimpinan and not request.user.is_superadmin and not is_kabid_or_fo:
-        messages.error(request, "Akses ditolak. Pengisian disposisi digital memerlukan kewenangan Pimpinan, Kabid IV, atau FO.")
+    perms = request.user.get_disposition_permissions(active_pov)
+    if not perms['can_create_dispo']:
+        messages.error(request, "Akses ditolak. Peran Anda (Waka I/II/III, Kabid I/II/III, Staf) hanya memiliki hak membaca (Read Only).")
         return redirect('archives:detail', pk=archive_pk)
 
     existing = Disposition.objects.filter(archive=archive).order_by('-created_at').first()
@@ -488,6 +485,10 @@ def disposition_create(request, archive_pk):
         archive.status = 'didisposisikan'
         archive.save(update_fields=['status', 'updated_at'])
 
+        # Kirim notifikasi lonceng ke Waka & Kabid bidang terkait
+        from services.notifications.notification_service import NotificationService
+        NotificationService.send_disposition_system_notifications(dispo, stage='ketua', actor=request.user)
+
         AuditService.log_action(request.user, f"Buat Disposisi Ketua: {dispo.disposition_number}", request)
         messages.success(request, f"Disposisi Ketua ({dispo.disposition_number}) berhasil disimpan.")
         return redirect(f"/dispositions/?dispo_success_id={dispo.pk}")
@@ -512,15 +513,8 @@ def disposition_create(request, archive_pk):
 def disposition_delete(request, pk):
     dispo = get_object_or_404(Disposition, pk=pk)
     active_pov = request.session.get('active_pov')
-    is_authorized = (
-        active_pov in ['ketua', 'waka_4', 'kabid_4', 'sdm', 'fo'] or
-        request.user.is_pimpinan or
-        request.user.is_superadmin or
-        getattr(request.user, 'is_kabid_4', False) or
-        getattr(request.user, 'is_sdm', False) or
-        getattr(request.user, 'is_fo', False)
-    )
-    if not is_authorized:
+    perms = request.user.get_disposition_permissions(active_pov)
+    if not perms['can_delete_dispo']:
         messages.error(request, "Akses ditolak. Anda tidak memiliki wewenang untuk menghapus disposisi ini.")
         return redirect('dispositions:list')
 

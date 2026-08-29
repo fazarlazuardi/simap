@@ -147,16 +147,16 @@
                 
                 <!-- Foto Profil Upload Section -->
                 <div class="text-center">
-                    <div class="relative inline-block mb-2 cursor-pointer" onclick="document.getElementById('profile_picture').click()">
+                    <label for="profile_picture" class="relative inline-block mb-2 cursor-pointer group active:scale-95 transition-all">
                         <img id="avatarPreview" src="{{ user_obj.avatar_url }}" class="w-24 h-24 rounded-3xl object-cover shadow border-4 border-emerald-500 mx-auto">
-                        <span class="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-xl p-1.5 shadow flex items-center justify-center min-h-[28px] min-w-[28px]">
-                            <i class="bi bi-pencil-fill text-xs"></i>
+                        <span class="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-xl p-1.5 shadow flex items-center justify-center min-h-[32px] min-w-[32px] group-hover:bg-emerald-500">
+                            <i class="bi bi-pencil-fill text-xs pointer-events-none"></i>
                         </span>
-                    </div>
-                    <div>
-                        <button type="button" class="btn-slate-secondary text-xs rounded-full py-1.5 px-4 min-h-[36px]" onclick="document.getElementById('profile_picture').click()">
-                            <i class="bi bi-image"></i> Pilih Foto Baru
-                        </button>
+                    </label>
+                    <div class="mt-1">
+                        <label for="profile_picture" class="px-5 py-2.5 min-h-[44px] rounded-full border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-extrabold text-xs shadow-sm transition-all cursor-pointer inline-flex items-center justify-center gap-1.5 active:scale-95 select-none">
+                            <i class="bi bi-image text-emerald-500 pointer-events-none"></i> Pilih Foto Baru
+                        </label>
                         <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="hidden" onchange="previewAvatar(this)">
                         <span class="block text-[11px] text-slate-400 mt-1 font-mono">Format: JPG, PNG (Maks 5MB)</span>
                     </div>

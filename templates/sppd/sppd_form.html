@@ -42,7 +42,7 @@
             </div>
             {% endif %}
 
-            <form method="post">
+            <form method="post" id="sppd-form" onsubmit="return handleSppdSubmit(this);">
                 {% csrf_token %}
                 
                 <div class="row g-3 mb-4">
@@ -178,6 +178,16 @@
 
 {% block extra_js %}
 <script>
+function handleSppdSubmit(form) {
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn && !btn.disabled) {
+        btn.disabled = true;
+        btn.style.opacity = '0.75';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Menerbitkan SPPD...';
+    }
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     function updateCheckedEmployeeBadges() {
         var container = document.getElementById('checked-employee-badges');

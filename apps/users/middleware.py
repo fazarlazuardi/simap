@@ -14,7 +14,10 @@ class ActiveUserMiddleware:
             now = timezone.now()
             cache_key = f'user_last_seen_{request.user.pk}'
             # Cache status aktif presisi 60 detik (1 menit)
-            cache.set(cache_key, now, 60)
+            try:
+                cache.set(cache_key, now, 60)
+            except Exception:
+                pass
 
             # Simpan ke Database setiap 30 detik sekali agar akurat
             last_seen_db = getattr(request.user, 'last_seen', None)

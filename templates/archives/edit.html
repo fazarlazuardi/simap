@@ -165,12 +165,12 @@
                 <textarea id="description" name="description" rows="3" placeholder="Tambahkan catatan ringkas perihal dokumen jika ada..." class="w-full p-3.5 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">{{ archive.description|default:'' }}</textarea>
             </div>
 
-            <!-- TOMBOL AKSI FOOTER -->
-            <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
-                <a href="{% url 'archives:detail' archive.pk %}" class="px-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs no-underline transition-all inline-flex items-center gap-1.5">
-                    <i class="bi bi-x-circle"></i> Batal
+            <!-- TOMBOL AKSI FOOTER (RESPONSIF MOBILE HP + DESKTOP) -->
+            <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 pb-2 border-t border-slate-200 dark:border-slate-800">
+                <a href="{% url 'archives:detail' archive.pk %}" class="w-full sm:w-auto px-5 py-3 min-h-[48px] inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs no-underline transition-all gap-1.5">
+                    <i class="bi bi-x-circle me-1"></i> Batal
                 </a>
-                <button type="submit" :disabled="submitting" class="px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md border-0 cursor-pointer transition-all inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="submit" :disabled="submitting" class="w-full sm:w-auto px-7 py-3.5 min-h-[48px] rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-600/30 border-0 cursor-pointer transition-all inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95">
                     <template x-if="!submitting">
                         <span class="inline-flex items-center gap-2"><i class="bi bi-save-fill text-sm"></i> Simpan Perubahan Metadata</span>
                     </template>

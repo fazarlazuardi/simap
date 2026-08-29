@@ -228,6 +228,14 @@ def agenda_list(request):
         agendas = agendas.filter(
             Q(title__icontains=query) | Q(description__icontains=query)
         )
+
+    # Auto-synchronize Agenda status if linked SPPD is already completed
+    for ag in list(agendas):
+        sp = ag.sppd_ref
+        if sp and sp.status == 'selesai' and ag.status != 'selesai':
+            ag.is_completed = True
+            ag.status = 'selesai'
+            ag.save(update_fields=['is_completed', 'status'])
     
     if status in ['completed', 'selesai']:
         agendas = agendas.filter(status='selesai')

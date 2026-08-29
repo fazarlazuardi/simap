@@ -18,7 +18,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-simap-key-2026')
 DEBUG = env('DEBUG', default=True)
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['.trycloudflare.com', '127.0.0.1', 'localhost'])
 CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com', 'http://127.0.0.1:8000', 'http://localhost:8000']
 PUBLIC_HOST_URL = env('PUBLIC_HOST_URL', default='')
 
@@ -135,6 +135,29 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_ALWAYS_EAGER', default=False)
+
+def _is_redis_available(host='127.0.0.1', port=6379):
+    import socket
+    try:
+        s = socket.create_connection((host, port), timeout=0.3)
+        s.close()
+        return True
+    except Exception:
+        return False
+
+if 'test' not in sys.argv and _is_redis_available():
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': env('REDIS_CACHE_URL', default='redis://127.0.0.1:6379/1'),
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
 
 WA_GATEWAY_URL = env('WA_GATEWAY_URL', default='')
 GOOGLE_DRIVE_FOLDER_ID = env('GOOGLE_DRIVE_FOLDER_ID', default='10vXmaQ7IkJBUZuwEKt1ZRZabatspjEmm')
