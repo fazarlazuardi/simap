@@ -106,11 +106,6 @@ class SPPD(models.Model):
         """
         is_new = self.pk is None
         old_status = None
-        if not is_new:
-            try:
-                old_status = SPPD.objects.get(pk=self.pk).status
-            except SPPD.DoesNotExist:
-                old_status = None
 
         if not self.sppd_number:
             try:
@@ -123,10 +118,11 @@ class SPPD(models.Model):
 
         try:
             arch = None
-            if self.disposition and self.disposition.archive:
-                arch = self.disposition.archive
-            elif self.surat_tugas and self.surat_tugas.disposition and self.surat_tugas.disposition.archive:
-                arch = self.surat_tugas.disposition.archive
+            if self.disposition_id and hasattr(self, 'disposition') and self.disposition:
+                arch = getattr(self.disposition, 'archive', None)
+            elif self.surat_tugas_id and hasattr(self, 'surat_tugas') and self.surat_tugas:
+                dispo = getattr(self.surat_tugas, 'disposition', None)
+                arch = getattr(dispo, 'archive', None) if dispo else None
 
             if arch and arch.status != 'selesai':
                 purp = ((self.purpose or '') + ' ' + (self.sppd_type or '')).lower()

@@ -317,6 +317,8 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
         last_sppd.save(update_fields=['status'])
 
     if request.method == 'POST':
+        from django.db import transaction
+
         sppd_number = request.POST.get('sppd_number')
         if not sppd_number or SPPD.objects.filter(sppd_number=sppd_number).exists():
             sppd_number = NumberingService.generate_number('sppd')
@@ -339,8 +341,9 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
             return_date = departure_date
 
         transportation = request.POST.get('transportation')
-        assigned_ids = request.POST.getlist('assigned_employees')
-        
+        assigned_ids = [aid for aid in request.POST.getlist('assigned_employees') if aid]
+        follower_ids = [fid for fid in request.POST.getlist('followers') if fid]
+
         sppd_type = request.POST.get('sppd_type', 'umum')
         if sppd_type == 'umum' and purpose:
             pl = purpose.lower()
@@ -356,84 +359,87 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
         else:
             activity_text = smart_act
 
-        sppd = SPPD.objects.create(
-            surat_tugas=st,
-            disposition=dispo,
-            sppd_number=sppd_number,
-            purpose=purpose,
-            destination=destination,
-            departure_date=departure_date,
-            return_date=return_date,
-            transportation=transportation,
-            sppd_type=sppd_type,
-            tahap=next_tahap,
-            status='disetujui',
-            created_by=request.user
-        )
-        sppd.assigned_employees.set(Employee.objects.filter(id__in=assigned_ids))
-        
-        follower_ids = request.POST.getlist('followers')
-        sppd.followers.set(Employee.objects.filter(id__in=follower_ids))
-        
-       
-        archive = dispo.archive if dispo else None
-        if archive:
-            archive.status = 'proses'
-            archive.activity_name = activity_text
-            archive.status_note = f'SPPD ({sppd_number}) diterbitkan untuk {purpose}.'
-            archive.save(update_fields=['status', 'activity_name', 'status_note', 'updated_at'])
-
-        if dispo and dispo.status in ['terisi', 'terverifikasi']:
-            dispo.status = 'proses'
-            dispo.save(update_fields=['status', 'updated_at'])
-
-        try:
-            from datetime import datetime, time, date
-            sch_date = departure_date if isinstance(departure_date, date) else datetime.strptime(str(departure_date), '%Y-%m-%d').date()
-            ret_date = return_date if isinstance(return_date, date) else datetime.strptime(str(return_date), '%Y-%m-%d').date()
-            raw_dt = datetime.combine(sch_date, time(8, 0))
-            sch_datetime = timezone.make_aware(raw_dt) if timezone.is_naive(raw_dt) else raw_dt
+        with transaction.atomic():
+            sppd = SPPD.objects.create(
+                surat_tugas=st,
+                disposition=dispo,
+                sppd_number=sppd_number,
+                purpose=purpose,
+                destination=destination,
+                departure_date=departure_date,
+                return_date=return_date,
+                transportation=transportation,
+                sppd_type=sppd_type,
+                tahap=next_tahap,
+                status='disetujui',
+                created_by=request.user
+            )
             
-            tgl_str = sch_date.strftime('%d/%m/%Y') if sch_date == ret_date else f"{sch_date.strftime('%d/%m/%Y')} s/d {ret_date.strftime('%d/%m/%Y')}"
+            assigned_emps_qs = Employee.objects.filter(id__in=assigned_ids) if assigned_ids else []
+            if assigned_ids:
+                sppd.assigned_employees.set(assigned_emps_qs)
+            
+            if follower_ids:
+                sppd.followers.set(Employee.objects.filter(id__in=follower_ids))
+            
+            archive = dispo.archive if dispo else None
+            if archive:
+                target_status = 'dalam_survei' if sppd_type == 'survei' else ('telah_disalurkan' if sppd_type == 'penyaluran' else 'proses')
+                archive.status = target_status
+                archive.activity_name = activity_text
+                archive.status_note = f'SPPD ({sppd_number}) diterbitkan untuk {purpose}.'
+                archive.save(update_fields=['status', 'activity_name', 'status_note', 'updated_at'])
 
-            agenda_title = f"SPPD: {purpose}" if len(purpose) <= 70 else f"SPPD: {purpose[:67]}..."
-            agenda_desc = f"Perjalanan Dinas SPPD {sppd_number} ke {destination} ({tgl_str}). Maksud Keberangkatan SPPD: {purpose}"
+            if dispo and dispo.status in ['terisi', 'terverifikasi']:
+                dispo.status = 'proses'
+                dispo.save(update_fields=['status', 'updated_at'])
 
-            agenda = Agenda.objects.filter(sppd_ref=sppd).first()
-            if not agenda:
-                agenda = Agenda.objects.create(
-                    sppd_ref=sppd,
-                    title=agenda_title,
-                    location=destination,
-                    description=agenda_desc,
-                    archive=archive,
-                    scheduled_at=sch_datetime,
-                    created_by=request.user,
-                    status='terjadwal',
-                )
-            else:
-                agenda.title = agenda_title
-                agenda.location = destination
-                agenda.description = agenda_desc
-                agenda.scheduled_at = sch_datetime
-                agenda.status = 'terjadwal'
-                agenda.save(update_fields=['title', 'location', 'description', 'scheduled_at', 'status', 'updated_at'])
+            try:
+                from datetime import datetime, time, date
+                sch_date = departure_date if isinstance(departure_date, date) else datetime.strptime(str(departure_date), '%Y-%m-%d').date()
+                ret_date = return_date if isinstance(return_date, date) else datetime.strptime(str(return_date), '%Y-%m-%d').date()
+                raw_dt = datetime.combine(sch_date, time(8, 0))
+                sch_datetime = timezone.make_aware(raw_dt) if timezone.is_naive(raw_dt) else raw_dt
+                
+                tgl_str = sch_date.strftime('%d/%m/%Y') if sch_date == ret_date else f"{sch_date.strftime('%d/%m/%Y')} s/d {ret_date.strftime('%d/%m/%Y')}"
 
-            assigned_emps = list(sppd.assigned_employees.all())
-            if assigned_emps:
-                agenda.assigned_employees.set(assigned_emps)
-                user_ids = list(User.objects.filter(employee__in=assigned_emps).values_list('id', flat=True))
-                if user_ids:
-                    agenda.assigned_to.set(user_ids)
-        except Exception as ae:
-            import logging
-            logging.getLogger(__name__).exception("Auto agenda registration notice: %s", ae)
+                agenda_title = f"SPPD: {purpose}" if len(purpose) <= 70 else f"SPPD: {purpose[:67]}..."
+                agenda_desc = f"Perjalanan Dinas SPPD {sppd_number} ke {destination} ({tgl_str}). Maksud Keberangkatan SPPD: {purpose}"
+
+                agenda = Agenda.objects.filter(sppd_ref=sppd).first()
+                if not agenda:
+                    agenda = Agenda.objects.create(
+                        sppd_ref=sppd,
+                        title=agenda_title,
+                        location=destination,
+                        description=agenda_desc,
+                        archive=archive,
+                        scheduled_at=sch_datetime,
+                        created_by=request.user,
+                        status='terjadwal',
+                    )
+                else:
+                    agenda.title = agenda_title
+                    agenda.location = destination
+                    agenda.description = agenda_desc
+                    agenda.scheduled_at = sch_datetime
+                    agenda.status = 'terjadwal'
+                    agenda.save(update_fields=['title', 'location', 'description', 'scheduled_at', 'status', 'updated_at'])
+
+                if assigned_ids:
+                    agenda.assigned_employees.set(assigned_emps_qs)
+                    user_ids = list(User.objects.filter(employee_id__in=assigned_ids).values_list('id', flat=True))
+                    if user_ids:
+                        agenda.assigned_to.set(user_ids)
+            except Exception as ae:
+                import logging
+                logging.getLogger(__name__).exception("Auto agenda registration notice: %s", ae)
 
         import threading
         threading.Thread(target=NotificationService.send_sppd_notification_auto_by_id, args=(sppd.id,), daemon=True).start()
 
         cache.delete('sppd_recap_data')
-        messages.success(request, f"SPPD {sppd_number} berhasil dibuat & Notifikasi WA terkirim.")
+        messages.success(request, f"SPPD {sppd_number} berhasil diterbitkan secara kilat & Notifikasi WA dikirim.")
         return redirect('sppd_service:list')
 
     agenda = Agenda.objects.filter(archive=dispo.archive, status='terjadwal').last()
