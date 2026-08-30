@@ -37,7 +37,7 @@
         <div class="sidebar-header py-3.5 px-3 border-b border-slate-800/80 text-center relative overflow-hidden flex items-center justify-between lg:justify-center shrink-0">
             
             <!-- EXPANDED BRAND HEADER -->
-            <div x-show="desktopSidebarOpen || window.innerWidth < 1024" class="flex-1 flex flex-col items-center justify-center">
+            <div x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="flex-1 flex flex-col items-center justify-center">
                 {% if app_config.app_logo %}
                 <div class="flex items-center justify-center my-0.5 relative">
                     <div class="absolute inset-0 rounded-full bg-emerald-500/20 blur-md pointer-events-none"></div>
@@ -70,7 +70,7 @@
             </div>
 
             <!-- COLLAPSED COMPACT LOGO ICON -->
-            <div x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="w-full flex items-center justify-center py-1">
+            <div x-cloak x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="w-full flex items-center justify-center py-1">
                 <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 text-white flex items-center justify-center text-xl font-black shadow-lg shadow-emerald-500/30 border border-white/20 cursor-pointer" title="SIMAP BAZNAS Kabupaten Tangerang">
                     <i class="bi bi-shield-check"></i>
                 </div>
@@ -86,11 +86,11 @@
         <div class="sidebar-menu p-2.5 space-y-1 overflow-y-auto flex-1 min-h-0 custom-scrollbar-sidebar">
             
             <!-- CATEGORY 1: NAVIGASI UTAMA -->
-            <div x-show="desktopSidebarOpen || window.innerWidth < 1024" class="menu-category-title px-2.5 pt-2 pb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5">
+            <div x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="menu-category-title px-2.5 pt-2 pb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5">
                 <i class="bi bi-compass-fill text-xs text-emerald-400"></i>
                 <span>Utama & Operasional</span>
             </div>
-            <div x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="my-2 border-t border-slate-800/80"></div>
+            <div x-cloak x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="my-2 border-t border-slate-800/80"></div>
 
             <!-- 1. Dashboard -->
             <a href="{% url 'users:dashboard' %}" 
@@ -99,9 +99,9 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300{% endif %}">
                     <i class="bi bi-grid-1x2-fill"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Dashboard</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Dashboard</span>
                 {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
                 {% endif %}
             </a>
 
@@ -112,9 +112,9 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'dispositions' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-amber-400 group-hover:bg-amber-500/20 group-hover:border-amber-400/40 group-hover:text-amber-300{% endif %}">
                     <i class="bi bi-send-fill"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Disposisi Digital</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Disposisi Digital</span>
                 {% if request.resolver_match.app_name == 'dispositions' %}
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
                 {% endif %}
             </a>
 
@@ -125,9 +125,9 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'surat_tugas' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-sky-400 group-hover:bg-sky-500/20 group-hover:border-sky-400/40 group-hover:text-sky-300{% endif %}">
                     <i class="bi bi-file-earmark-text-fill"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Surat Tugas</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Surat Tugas</span>
                 {% if request.resolver_match.app_name == 'surat_tugas' %}
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
                 {% endif %}
             </a>
 
@@ -138,9 +138,9 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'sppd_service' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300{% endif %}">
                     <i class="bi bi-car-front-fill"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">SPPD & Log</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">SPPD & Log</span>
                 {% if request.resolver_match.app_name == 'sppd_service' %}
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
                 {% endif %}
             </a>
 
@@ -151,7 +151,7 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'reports' and request.resolver_match.url_name == 'index' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-purple-400 group-hover:bg-purple-500/20 group-hover:border-purple-400/40 group-hover:text-purple-300{% endif %}">
                     <i class="bi bi-diagram-3-fill"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Laporan (Trace)</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Laporan (Trace)</span>
             </a>
 
             <!-- 6. Rekap Penanganan -->
@@ -161,15 +161,15 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.url_name == 'rekap_bantuan' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-indigo-400 group-hover:bg-indigo-500/20 group-hover:border-indigo-400/40 group-hover:text-indigo-300{% endif %}">
                     <i class="bi bi-pie-chart-fill"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Rekap Penanganan</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Rekap Penanganan</span>
             </a>
 
             <!-- CATEGORY 2: AGENDA & DOKUMEN -->
-            <div x-show="desktopSidebarOpen || window.innerWidth < 1024" class="menu-category-title px-2.5 pt-3.5 pb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5 border-t border-slate-800/60 mt-2.5">
+            <div x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="menu-category-title px-2.5 pt-3.5 pb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5 border-t border-slate-800/60 mt-2.5">
                 <i class="bi bi-journal-bookmark-fill text-xs text-emerald-400"></i>
                 <span>Agenda & Dokumen</span>
             </div>
-            <div x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="my-2 border-t border-slate-800/80"></div>
+            <div x-cloak x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="my-2 border-t border-slate-800/80"></div>
 
             <!-- Arsip Dokumen -->
             <a href="{% url 'archives:list' %}" 
@@ -178,7 +178,7 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'archives' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-amber-400 group-hover:bg-amber-500/20 group-hover:border-amber-400/40 group-hover:text-amber-300{% endif %}">
                     <i class="bi bi-folder2-open"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Manajemen Arsip</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Manajemen Arsip</span>
             </a>
 
             <!-- Agenda & Kalender -->
@@ -188,7 +188,7 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'agendas' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-sky-400 group-hover:bg-sky-500/20 group-hover:border-sky-400/40 group-hover:text-sky-300{% endif %}">
                     <i class="bi bi-calendar3"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Agenda & Kalender</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Agenda & Kalender</span>
             </a>
 
             <!-- Rapat Internal -->
@@ -198,7 +198,7 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'internal_meetings' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300{% endif %}">
                     <i class="bi bi-journal-bookmark-fill"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Rapat Internal</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Rapat Internal</span>
             </a>
 
             <!-- Pesan Amil -->
@@ -208,7 +208,7 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.url_name == 'chat_inbox' or request.resolver_match.url_name == 'chat_inbox_user' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-amber-400 group-hover:bg-amber-500/20 group-hover:border-amber-400/40 group-hover:text-amber-300{% endif %}">
                     <i class="bi bi-chat-dots-fill"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Pesan Amil</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Pesan Amil</span>
             </a>
 
             <!-- DIREKTORI & DATA PEGAWAI -->
@@ -218,16 +218,16 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'list' or request.resolver_match.url_name == 'employee_detail' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-sky-400 group-hover:bg-sky-500/20 group-hover:border-sky-400/40 group-hover:text-sky-300{% endif %}">
                     <i class="bi bi-people-fill"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Direktori Pegawai</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Direktori Pegawai</span>
             </a>
 
             <!-- CATEGORY 3: SISTEM & AKSES SUPERADMIN -->
             {% if user.is_superadmin and not request.session.active_pov %}
-            <div x-show="desktopSidebarOpen || window.innerWidth < 1024" class="menu-category-title px-2.5 pt-3.5 pb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5 border-t border-slate-800/60 mt-2.5">
+            <div x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="menu-category-title px-2.5 pt-3.5 pb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5 border-t border-slate-800/60 mt-2.5">
                 <i class="bi bi-gear-fill text-xs text-emerald-400"></i>
                 <span>Administrasi Sistem</span>
             </div>
-            <div x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="my-2 border-t border-slate-800/80"></div>
+            <div x-cloak x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="my-2 border-t border-slate-800/80"></div>
 
             <a href="{% url 'notifications:wa_outbox' %}" 
                title="Outbox WA & Broadcast Matriks"
@@ -235,7 +235,7 @@
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.url_name == 'wa_outbox' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300{% endif %}">
                     <i class="bi bi-whatsapp"></i>
                 </div>
-                <span x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Outbox WA & Matriks</span>
+                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Outbox WA & Matriks</span>
             </a>
             {% endif %}
 
@@ -244,7 +244,7 @@
         <!-- INTEGRATED AMIL PROFILE MINI CARD & LOGOUT -->
         <div class="p-2.5 border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-md shrink-0 mt-auto">
             <!-- EXPANDED PROFILE CARD -->
-            <div x-show="desktopSidebarOpen || window.innerWidth < 1024" class="flex items-center justify-between gap-2 p-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/40 transition-colors duration-150">
+            <div x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="flex items-center justify-between gap-2 p-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/40 transition-colors duration-150">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-md border border-white/20">
                         {{ user.username|slice:":2"|upper }}
@@ -260,7 +260,7 @@
             </div>
 
             <!-- COLLAPSED PROFILE CARD -->
-            <div x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="flex flex-col items-center justify-center gap-2 py-1">
+            <div x-cloak x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="flex flex-col items-center justify-center gap-2 py-1">
                 <a href="{% url 'users:profile' %}" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 text-white font-black text-xs flex items-center justify-center shadow-md border border-white/20" title="Profil Saya: {{ user.username }}">
                     {{ user.username|slice:":2"|upper }}
                 </a>
