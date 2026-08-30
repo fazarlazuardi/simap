@@ -178,7 +178,29 @@
   </style>
   {% block extra_css %}{% endblock %}
 </head>
-<body class="h-full overflow-hidden text-slate-800 dark:text-slate-100 font-sans antialiased bg-slate-100 dark:bg-[#02090d] transition-colors duration-200">
+<body class="h-full overflow-hidden text-slate-800 dark:text-slate-100 font-sans antialiased bg-slate-900 dark:bg-[#01090d] transition-colors duration-200">
+
+  <!-- ⚡ VIBRANT ULTRA-FUTURISTIC HIGH-TECH CYBER BACKGROUND CANVAS ENGINE ⚡ -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
+    <!-- 1. Deep Futuristic Dual-Mode Ambient Mesh Gradient -->
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-100 via-emerald-100/70 to-teal-100/90 dark:from-[#01090d] dark:via-[#041d27] dark:to-[#01080c]"></div>
+
+    <!-- 2. High-Contrast Geometric Cyber Grid Blueprint (Visible 40px Tech Grid Lines) -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(16,185,129,0.22)_1.5px,transparent_1.5px),linear-gradient(to_bottom,rgba(16,185,129,0.22)_1.5px,transparent_1.5px)] dark:bg-[linear-gradient(to_right,rgba(16,185,129,0.32)_1.5px,transparent_1.5px),linear-gradient(to_bottom,rgba(16,185,129,0.32)_1.5px,transparent_1.5px)] [background-size:40px_40px]"></div>
+
+    <!-- 3. Cyber Matrix Dot Grid Overlay (Crisp 2.5px Matrix Dots) -->
+    <div class="absolute inset-0 bg-[radial-gradient(#059669_2.5px,transparent_2.5px)] dark:bg-[radial-gradient(#10b981_2.5px,transparent_2.5px)] [background-size:24px_24px] opacity-50 dark:opacity-70"></div>
+
+    <!-- 4. Ambient Vivid Glowing Cyber Mesh Laser Orbs (Pulse Animated) -->
+    <div class="absolute -top-40 left-1/3 w-[850px] h-[850px] bg-gradient-to-br from-emerald-500/45 via-teal-400/35 to-transparent dark:from-emerald-500/60 dark:via-emerald-400/40 rounded-full blur-[100px] animate-pulse"></div>
+    <div class="absolute -bottom-20 right-10 w-[900px] h-[900px] bg-gradient-to-tl from-cyan-500/45 via-sky-400/35 to-transparent dark:from-cyan-500/55 dark:via-sky-400/35 rounded-full blur-[110px]"></div>
+    <div class="absolute top-1/2 left-1/4 w-[750px] h-[750px] bg-gradient-to-tr from-teal-400/40 via-emerald-300/30 to-transparent dark:from-teal-500/45 dark:via-emerald-600/35 rounded-full blur-[90px]"></div>
+
+    <!-- 5. Futuristic Cyber HUD Watermark Corner Lines -->
+    <div class="absolute top-20 left-80 w-28 h-28 border-t-2 border-l-2 border-emerald-500/40 dark:border-emerald-400/50 rounded-tl-3xl hidden lg:block"></div>
+    <div class="absolute bottom-16 right-12 w-28 h-28 border-b-2 border-r-2 border-emerald-500/40 dark:border-emerald-400/50 rounded-br-3xl hidden lg:block"></div>
+    <div class="absolute top-1/2 right-16 w-20 h-20 border-t-2 border-r-2 border-cyan-500/35 dark:border-cyan-400/45 rounded-tr-2xl hidden lg:block"></div>
+  </div>
 
   <!-- Top HTMX Progress Loading Indicator Bar -->
   <div id="htmx-progress-bar"></div>
@@ -188,7 +210,7 @@
   {% include 'includes/slide_over_drawer.html' %}
 
   <!-- ⚡ 100% PURE TAILWIND CSS MASTER LAYOUT (DESKTOP + MOBILE OFF-CANVAS) ⚡ -->
-  <div class="flex h-screen w-full overflow-hidden" 
+  <div class="flex h-screen w-full overflow-hidden relative z-10" 
        x-data="{ 
          sidebarOpen: false, 
          desktopSidebarOpen: localStorage.getItem('desktopSidebarOpen') === null ? true : (localStorage.getItem('desktopSidebarOpen') === 'true')
@@ -254,30 +276,9 @@
       {% endif %}
 
       <!-- DYNAMIC CONTENT (TEMPAT KONTEN DASHBOARD DI-RENDER) -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 sm:pb-20 lg:pb-6 bg-gradient-to-br from-slate-100 via-emerald-100/50 to-teal-100/80 dark:from-[#01090d] dark:via-[#041a23] dark:to-[#01080b] text-slate-800 dark:text-slate-100 w-full relative transition-colors duration-200">
-        <!-- ⚡ ULTRA-FUTURISTIC HIGH-TECH CYBER BACKGROUND CANVAS ENGINE ⚡ -->
-        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-100 transition-opacity duration-300">
-          
-          <!-- 1. Linear Tech Grid Lines (Geometric Cyber Grid Blueprint) -->
-          <div class="absolute inset-0 bg-[linear-gradient(to_right,#05966918_1px,transparent_1px),linear-gradient(to_bottom,#05966918_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#10b98125_1px,transparent_1px),linear-gradient(to_bottom,#10b98125_1px,transparent_1px)] [background-size:56px_56px]"></div>
-
-          <!-- 2. Cyber Matrix Tech Dot Matrix Overlay -->
-          <div class="absolute inset-0 bg-[radial-gradient(#059669_2px,transparent_2px)] dark:bg-[radial-gradient(#10b981_2px,transparent_2px)] [background-size:28px_28px] opacity-35 dark:opacity-55"></div>
-
-          <!-- 3. Ambient Vivid Glowing Cyber Mesh Orbs (Dual Mode High-Tech Glow) -->
-          <div class="absolute -top-32 left-1/4 w-[750px] h-[750px] bg-gradient-to-br from-emerald-400/40 via-teal-300/30 to-transparent dark:from-[radial-gradient(circle_at_center,_rgba(16,185,129,0.55),_transparent_70%)] rounded-full blur-[100px] animate-pulse"></div>
-          <div class="absolute bottom-10 right-10 w-[800px] h-[800px] bg-gradient-to-tl from-cyan-400/35 via-sky-300/25 to-transparent dark:from-[radial-gradient(circle_at_center,_rgba(6,182,212,0.45),_transparent_70%)] rounded-full blur-[110px]"></div>
-          <div class="absolute top-1/3 left-1/3 w-[650px] h-[650px] bg-gradient-to-tr from-teal-400/30 via-emerald-300/20 to-transparent dark:from-[radial-gradient(circle_at_center,_rgba(20,184,166,0.4),_transparent_70%)] rounded-full blur-[90px]"></div>
-
-          <!-- 4. HUD Cyber Tech Corner Lines & Accent Frame -->
-          <div class="absolute top-20 left-72 w-20 h-20 border-t-2 border-l-2 border-emerald-500/30 dark:border-emerald-400/40 rounded-tl-2xl hidden lg:block"></div>
-          <div class="absolute bottom-16 right-8 w-20 h-20 border-b-2 border-r-2 border-emerald-500/30 dark:border-emerald-400/40 rounded-br-2xl hidden lg:block"></div>
-        </div>
-
-
-
-
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 sm:pb-20 lg:pb-6 text-slate-800 dark:text-slate-100 w-full relative z-10 transition-colors duration-200">
         <div class="w-full space-y-6 relative z-10">
+
           {% if is_kabid_4_active and unverified_count > 0 %}
           <div class="p-4 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-100 flex items-center justify-between flex-wrap gap-4 shadow-lg backdrop-blur-md relative z-10">
             <div class="flex items-center gap-3.5">
