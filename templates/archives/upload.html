@@ -142,40 +142,56 @@
                 </div>
 
                 <!-- BARIS 4: KEAMANAN, URGENSI, & UPLOAD FILE -->
+                <!-- BARIS 4: SIFAT KEAMANAN & URGENSI -->
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div class="md:col-span-3">
-                        <label for="security_level" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Sifat Keamanan</label>
+                    <div class="md:col-span-6">
+                        <label for="security_level" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Sifat Keamanan Dokumen</label>
                         <select class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" id="security_level" name="security_level">
-                            <option value="biasa" selected>Biasa</option>
-                            <option value="penting">Penting</option>
-                            <option value="rahasia">Rahasia</option>
-                            <option value="sangat_rahasia">Sangat Rahasia</option>
-                        </select>
-                    </div>
-
-                    <div class="md:col-span-3">
-                        <label for="urgency_level" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Sifat Urgensi</label>
-                        <select class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" id="urgency_level" name="urgency_level">
-                            <option value="biasa" selected>Biasa</option>
-                            <option value="segera">Segera</option>
-                            <option value="amat_segera">Amat Segera / Kilat</option>
+                            <option value="biasa" selected>Biasa (Dapat Diperoleh Publik/Amil)</option>
+                            <option value="penting">Penting (Internal Pimpinan/Amil)</option>
+                            <option value="rahasia">Rahasia (Terbatas Pimpinan BAZNAS)</option>
+                            <option value="sangat_rahasia">Sangat Rahasia (Khusus Ketua BAZNAS)</option>
                         </select>
                     </div>
 
                     <div class="md:col-span-6">
-                        <label for="file_path" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1 cursor-pointer">
-                            Berkas Digital (PDF/Gambar) <span class="text-rose-500">*</span>
-                        </label>
-                        <div class="relative w-full min-h-[52px] sm:h-[48px] rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 bg-slate-50 dark:bg-slate-800 flex items-center justify-center gap-2 px-3 overflow-hidden cursor-pointer transition-all dropzone-box select-none active:scale-[0.99]" id="dropzone_box">
-                            <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 block" id="file_path" name="file_path" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onchange="updateDropzoneFile(this)" aria-label="Upload Berkas Digital">
-                            <div class="flex items-center justify-center gap-2 pointer-events-none select-none z-10">
-                                <i class="bi bi-cloud-arrow-up text-emerald-600 dark:text-emerald-400 text-lg dropzone-icon"></i>
-                                <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold dropzone-text truncate">Pilih atau Tarik File Berkas ke sini</span>
-                            </div>
-                        </div>
-                        <div id="file_name_preview" class="hidden text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1"></div>
+                        <label for="urgency_level" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Sifat Urgensi Penanganan</label>
+                        <select class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none" id="urgency_level" name="urgency_level">
+                            <option value="biasa" selected>Biasa (Respon Normal)</option>
+                            <option value="segera">Segera (Respon Maks 2 Hari)</option>
+                            <option value="amat_segera">Amat Segera / Kilat (Respon 1x24 Jam)</option>
+                        </select>
                     </div>
                 </div>
+
+                <!-- BARIS 5: DROPZONE UPLOAD BERKAS DIGITAL (FUTURISTIC & ULTRA-CLEAN) -->
+                <div>
+                    <label for="file_path" class="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 cursor-pointer flex items-center justify-between flex-wrap gap-1">
+                        <span class="flex items-center gap-1.5"><i class="bi bi-file-earmark-arrow-up-fill text-emerald-600 dark:text-emerald-400 text-sm"></i> Berkas Digital Lampiran (PDF / Gambar / Dokumen) <span class="text-rose-500">*</span></span>
+                        <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-normal">Format: PDF, JPG, PNG, DOCX, XLSX (Maks. 25MB)</span>
+                    </label>
+                    
+                    <div class="relative w-full p-6 sm:p-7 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700/80 hover:border-emerald-500 dark:hover:border-emerald-400 bg-slate-50/80 dark:bg-slate-800/50 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 dropzone-box select-none group shadow-xs hover:shadow-lg" id="dropzone_box">
+                        <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 block" id="file_path" name="file_path" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onchange="updateDropzoneFile(this)" aria-label="Upload Berkas Digital">
+                        
+                        <div class="flex flex-col items-center justify-center gap-2.5 pointer-events-none select-none z-10">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-xs border border-emerald-500/20 dropzone-icon-wrapper">
+                                <i class="bi bi-cloud-arrow-up-fill dropzone-icon"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <span class="block text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-100 dropzone-text group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                    Klik untuk memilih file atau seret & lepas berkas ke sini
+                                </span>
+                                <span class="block text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                    File akan tersimpan secara terenkripsi di repositori digital BAZNAS
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="file_name_preview" class="hidden mt-3 p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-200 font-extrabold flex items-center gap-2.5 shadow-sm"></div>
+                </div>
+
 
                 <!-- BARIS 5: KETERANGAN / SINOPSIS -->
                 <div>
@@ -410,6 +426,7 @@
 
     function updateDropzoneFile(input) {
         const box = input.closest('.dropzone-box') || document.getElementById('dropzone_box');
+        const iconWrapper = box ? box.querySelector('.dropzone-icon-wrapper') : null;
         const icon = box ? box.querySelector('.dropzone-icon') : null;
         const text = box ? box.querySelector('.dropzone-text') : null;
         const preview = document.getElementById('file_name_preview');
@@ -422,29 +439,42 @@
             const file = input.files[0];
             const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
             
+            if (box) {
+                box.classList.add('border-emerald-500', 'bg-emerald-500/10', 'ring-2', 'ring-emerald-500/20');
+            }
+            if (iconWrapper) {
+                iconWrapper.className = 'w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shadow-md transition-all scale-105 dropzone-icon-wrapper';
+            }
             if (icon) {
-                icon.className = 'bi bi-check-circle-fill text-emerald-500 text-lg me-1 dropzone-icon';
+                icon.className = 'bi bi-check-circle-fill dropzone-icon';
             }
             if (text) {
-                text.className = 'text-xs font-bold text-emerald-600 dark:text-emerald-400 dropzone-text truncate';
-                text.innerHTML = `<i class="bi bi-file-earmark-pdf-fill me-1"></i> Terpilih: <strong>${file.name}</strong> (${sizeMb} MB)`;
+                text.className = 'block text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 dropzone-text';
+                text.innerHTML = `<i class="bi bi-file-earmark-check-fill me-1"></i> File Terpilih: <strong>${file.name}</strong>`;
             }
             if (preview) {
-                preview.innerHTML = `<i class="bi bi-patch-check-fill text-emerald-500 me-1"></i> Berkas <strong>${file.name}</strong> siap diunggah ke sistem.`;
+                preview.innerHTML = `<i class="bi bi-patch-check-fill text-emerald-500 text-lg me-1"></i> <span>Berkas <strong class="underline">${file.name}</strong> (${sizeMb} MB) berhasil dipilih & siap diunggah ke repositori.</span>`;
                 preview.classList.remove('hidden');
             }
         } else {
+            if (box) {
+                box.classList.remove('border-emerald-500', 'bg-emerald-500/10', 'ring-2', 'ring-emerald-500/20');
+            }
+            if (iconWrapper) {
+                iconWrapper.className = 'w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-xs border border-emerald-500/20 dropzone-icon-wrapper';
+            }
             if (icon) {
-                icon.className = 'bi bi-cloud-arrow-up text-emerald-600 dark:text-emerald-400 text-lg dropzone-icon';
+                icon.className = 'bi bi-cloud-arrow-up-fill dropzone-icon';
             }
             if (text) {
-                text.className = 'text-xs text-slate-600 dark:text-slate-300 font-semibold dropzone-text';
-                text.textContent = 'Pilih atau Tarik File Berkas ke sini';
+                text.className = 'block text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-100 dropzone-text group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors';
+                text.textContent = 'Klik untuk memilih file atau seret & lepas berkas ke sini';
             }
             if (preview) {
                 preview.classList.add('hidden');
             }
         }
     }
+
 </script>
 {% endblock %}
