@@ -170,18 +170,6 @@
         font-size: 0 !important;
     }
 
-    /* ⚡ GLASSMORPHIC CONTAINER TRANSLUCENCY ENGINE FOR VIBRANT BACKGROUND SHINE-THROUGH ⚡ */
-    .bg-white, .card-enterprise {
-        background-color: rgba(255, 255, 255, 0.88) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-    }
-    .dark .bg-slate-900, .dark .card-enterprise {
-        background-color: rgba(15, 23, 42, 0.85) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-    }
-
     /* Button Text Sharpness */
     button, a.btn, .btn, [role="button"] {
         opacity: 1 !important;
@@ -266,17 +254,18 @@
       {% endif %}
 
       <!-- DYNAMIC CONTENT (TEMPAT KONTEN DASHBOARD DI-RENDER) -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 sm:pb-20 lg:pb-6 bg-gradient-to-br from-slate-100 via-emerald-100/70 to-teal-100/90 dark:from-[#010a0e] dark:via-[#041d27] dark:to-[#01090d] text-slate-800 dark:text-slate-100 w-full relative transition-colors duration-200">
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 sm:pb-20 lg:pb-6 bg-gradient-to-br from-slate-100 via-emerald-50/60 to-slate-200/90 dark:from-[#02090d] dark:via-[#041a23] dark:to-[#020b10] text-slate-800 dark:text-slate-100 w-full relative transition-colors duration-200">
         <!-- FUTURISTIC BAZNAS SIMAP CYBER WATERMARK ICON ENGINE -->
-        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-100 transition-opacity duration-300">
+        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-95 transition-opacity duration-300">
           <!-- Cyber Matrix Tech Grid Overlay -->
-          <div class="absolute inset-0 bg-[radial-gradient(#059669_1.8px,transparent_1.8px)] dark:bg-[radial-gradient(#10b981_1.8px,transparent_1.8px)] [background-size:28px_28px] opacity-35 dark:opacity-55"></div>
+          <div class="absolute inset-0 bg-[radial-gradient(#059669_1.5px,transparent_1.5px)] dark:bg-[radial-gradient(#10b981_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-25 dark:opacity-40"></div>
 
-          <!-- Ambient Glowing Cyber Mesh Orbs (Dual Mode Optimized - High Visibility) -->
-          <div class="absolute -top-28 left-1/4 w-[750px] h-[750px] bg-gradient-to-br from-emerald-400/40 via-teal-300/30 to-transparent dark:from-[radial-gradient(circle_at_center,_rgba(16,185,129,0.55),_transparent_70%)] rounded-full blur-[100px] animate-pulse"></div>
-          <div class="absolute bottom-10 right-10 w-[800px] h-[800px] bg-gradient-to-tl from-cyan-400/35 via-sky-300/25 to-transparent dark:from-[radial-gradient(circle_at_center,_rgba(6,182,212,0.45),_transparent_70%)] rounded-full blur-[110px]"></div>
-          <div class="absolute top-1/3 left-1/3 w-[650px] h-[650px] bg-gradient-to-tr from-teal-400/30 via-emerald-300/20 to-transparent dark:from-[radial-gradient(circle_at_center,_rgba(20,184,166,0.4),_transparent_70%)] rounded-full blur-[90px]"></div>
+          <!-- Ambient Glowing Cyber Mesh Orbs (Dual Mode Optimized) -->
+          <div class="absolute -top-36 left-1/4 w-[700px] h-[700px] bg-emerald-400/25 dark:bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.4),_transparent_70%)] rounded-full blur-[140px] animate-pulse"></div>
+          <div class="absolute bottom-10 right-10 w-[750px] h-[750px] bg-cyan-400/25 dark:bg-[radial-gradient(circle_at_center,_rgba(6,182,212,0.35),_transparent_70%)] rounded-full blur-[150px]"></div>
+          <div class="absolute top-1/2 left-1/3 w-[600px] h-[600px] bg-teal-400/20 dark:bg-[radial-gradient(circle_at_center,_rgba(20,184,166,0.3),_transparent_70%)] rounded-full blur-[130px]"></div>
         </div>
+
 
 
         <div class="w-full space-y-6 relative z-10">
