@@ -6,10 +6,9 @@
 Django==4.2.30
 asgiref==3.11.1
 sqlparse==0.5.5
-tzdata==2026.2
+tzdata==2026.1
 django-environ==0.13.0
 mysqlclient==2.2.8
-PyMySQL==1.2.0
 waitress==3.0.2
 
 # Form Handling & Styling
@@ -18,9 +17,7 @@ crispy-bootstrap5==2026.3
 
 # Django REST Framework & Authentication
 djangorestframework==3.17.1
-djangorestframework_simplejwt==5.5.1
 django-cors-headers==4.9.0
-PyJWT==2.13.0
 
 # Asynchronous Task Queue & Caching Engine (Celery + Redis)
 celery==5.6.3
@@ -33,17 +30,16 @@ vine==5.1.0
 # Document & Media Processing (PDF, Excel, Images, QR Code)
 openpyxl==3.1.5
 et_xmlfile==2.0.0
-reportlab==5.0.1
 pillow==12.2.0
-qrcode==8.2
 
-# Google API & Cloud Workspace Integration (GCal, OAuth2)
+# Google API, AI Assistant & Cloud Workspace Integration
 google-api-python-client==2.197.0
 google-api-core==2.30.3
 google-auth==2.53.0
 google-auth-httplib2==0.4.0
 google-auth-oauthlib==1.4.0
 googleapis-common-protos==1.75.0
+google-genai==1.0.0
 httplib2==0.31.2
 oauthlib==3.3.1
 uritemplate==4.2.0
@@ -51,28 +47,27 @@ proto-plus==1.28.0
 protobuf==7.35.0
 
 # HTTP Networking & Security Utilities
-requests==2.34.2
+requests==2.32.5
 requests-oauthlib==2.0.0
-urllib3==2.7.0
+urllib3==2.6.3
 certifi==2026.5.20
 charset-normalizer==3.4.7
 idna==3.17
-cryptography==48.0.0
-pycryptodome==3.23.0
-cffi==2.0.0
+cryptography==49.0.0
+cffi==2.1.0
 pycparser==3.0
 rsa==4.9
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
 
 # Command Line & Utilities
-click==8.4.1
+click==8.4.2
 click-didyoumean==0.3.1
 click-plugins==1.1.1.2
 click-repl==0.3.0
 colorama==0.4.6
 python-dateutil==2.9.0.post0
-python-dotenv==1.2.3
+python-dotenv==1.2.2
 packaging==26.2
 pydantic==2.12.5
 pydantic_core==2.41.5
