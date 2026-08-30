@@ -1885,30 +1885,35 @@ function simapCalendar() {
     };
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+function initAgendasPage() {
     // 1. DataTables Init
-    if ($('#agendaTable tbody tr').length > 0 && !$('#agendaTable tbody tr td').hasClass('text-center')) {
-        $('#agendaTable').DataTable({
-            pagingType: "full_numbers",
-            language: {
-                search: "🔍 Cari Data:",
-                lengthMenu: "Tampilkan _MENU_ baris",
-                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                infoEmpty: "Menampilkan 0 data",
-                infoFiltered: "(difilter dari _MAX_ total data)",
-                paginate: {
-                    first: "« Pertama",
-                    previous: "‹ Prev",
-                    next: "Next ›",
-                    last: "Terakhir »"
+    if (window.jQuery && $('#agendaTable').length) {
+        if ($.fn.DataTable.isDataTable('#agendaTable')) {
+            $('#agendaTable').DataTable().destroy();
+        }
+        if ($('#agendaTable tbody tr').length > 0 && !$('#agendaTable tbody tr td').hasClass('text-center')) {
+            $('#agendaTable').DataTable({
+                pagingType: "full_numbers",
+                language: {
+                    search: "🔍 Cari Data:",
+                    lengthMenu: "Tampilkan _MENU_ baris",
+                    info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                    infoEmpty: "Menampilkan 0 data",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: {
+                        first: "« Pertama",
+                        previous: "‹ Prev",
+                        next: "Next ›",
+                        last: "Terakhir »"
+                    },
+                    emptyTable: "Belum ada data yang tersedia."
                 },
-                emptyTable: "Belum ada data yang tersedia."
-            },
-            pageLength: 10,
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Semua']],
-            order: [[0, 'desc']],
-            columnDefs: [{ orderable: false, targets: [4, 5, 6] }]
-        });
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Semua']],
+                order: [[0, 'desc']],
+                columnDefs: [{ orderable: false, targets: [4, 5, 6] }]
+            });
+        }
     }
 
     // 2. Quill Editors Init
@@ -1926,7 +1931,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (quillDecision) document.getElementById('hidden_notulensi_decision').value = quillDecision.root.innerHTML;
         });
     }
-});
+}
+
+window.initAgendasPage = initAgendasPage;
+document.addEventListener('DOMContentLoaded', initAgendasPage);
+initAgendasPage();
+
 
 function bukaModalNotulensiAgenda(agendaId) {
     const rawJson = document.getElementById('agenda-notulensi-json-' + agendaId);

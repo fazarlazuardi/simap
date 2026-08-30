@@ -301,6 +301,9 @@
 
           <div id="module-page-container" class="relative z-10 w-full space-y-6">
             {% block content %}{% endblock %}
+            <div id="page-scripts-container">
+              {% block extra_js %}{% endblock %}
+            </div>
           </div>
         </div>
       </main>
@@ -336,7 +339,21 @@
   <script src="{% static 'js/enterprise-core.js' %}?v=2.6"></script>
 
   <script>
+      // ⚡ HTMX SPA SWAP ENGINE: RE-INITIALIZE ALPINE JS & PAGE COMPONENT SCRIPTS ON AFTER-SETTLE ⚡
+      document.addEventListener('htmx:afterSettle', function(evt) {
+          if (window.Alpine && evt.detail && evt.detail.target) {
+              window.Alpine.initTree(evt.detail.target);
+          }
+          if (window.initAgendasPage) {
+              window.initAgendasPage();
+          }
+          if (window.initDashboardCharts) {
+              window.initDashboardCharts();
+          }
+      });
+
       $(document).ready(function () {
+
           $(document).on('click', '#themeToggleGlobal', function (e) {
               e.preventDefault();
               if (window.toggleThemeGlobal) window.toggleThemeGlobal();
