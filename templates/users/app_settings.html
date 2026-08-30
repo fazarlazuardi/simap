@@ -288,10 +288,49 @@
                             </div>
 
                             <!-- WHATSAPP GATEWAY CARD -->
-                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
-                                <h3 class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2 mb-0">
-                                    <i class="bi bi-whatsapp text-emerald-500 text-base"></i> WhatsApp Gateway Service (Baileys / Fonnte)
-                                </h3>
+                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3"
+                                 x-data="{
+                                     waStatus: '{{ wa_health.status|default:'offline' }}',
+                                     waMessage: '{{ wa_health.message|default:'Standby' }}',
+                                     isPolling: false,
+                                     async checkHealth() {
+                                         this.isPolling = true;
+                                         try {
+                                             const res = await fetch('{% url 'users:wa_health' %}');
+                                             if (res.ok) {
+                                                 const d = await res.json();
+                                                 this.waStatus = d.status || 'offline';
+                                                 this.waMessage = d.message || 'Offline';
+                                             }
+                                         } catch(e) {
+                                             this.waStatus = 'offline';
+                                             this.waMessage = 'Gateway Offline';
+                                         } finally {
+                                             this.isPolling = false;
+                                         }
+                                     },
+                                     init() {
+                                         setInterval(() => this.checkHealth(), 8000);
+                                     }
+                                 }">
+                                <div class="flex items-center justify-between gap-2">
+                                    <h3 class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-2 mb-0">
+                                        <i class="bi bi-whatsapp text-emerald-500 text-base"></i> WhatsApp Gateway Service (Baileys / Fonnte)
+                                    </h3>
+                                    <!-- Dynamic Live Status Pill -->
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black border transition-all cursor-pointer"
+                                          @click="checkHealth()" title="Klik untuk cek ulang koneksi"
+                                          :class="waStatus === 'connected' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'">
+                                        <span class="relative flex h-2 w-2">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                                                  :class="waStatus === 'connected' ? 'bg-emerald-400' : 'bg-rose-500'"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2"
+                                                  :class="waStatus === 'connected' ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+                                        </span>
+                                        <span x-text="waStatus === 'connected' ? 'GATEWAY ONLINE' : 'GATEWAY OFFLINE'"></span>
+                                        <i class="bi bi-arrow-repeat text-[9px]" :class="{'animate-spin': isPolling}"></i>
+                                    </span>
+                                </div>
                                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-0">Gateway pesan otomatis untuk mengirim notifikasi disposisi baru dan penugasan survei ke WA amil.</p>
 
                                 <div>

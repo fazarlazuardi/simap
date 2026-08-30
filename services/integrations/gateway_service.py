@@ -125,25 +125,40 @@ class WhatsAppService:
                 resp = requests.post(
                     f"{gateway_url.rstrip('/')}/send-message",
                     json=payload,
-                    timeout=1.5
+                    timeout=2.0
                 )
                 n = Notification.objects.filter(pk=notif_id_val).first()
                 if n:
-                    if resp.status_code == 200 and (resp.headers.get('content-type', '').startswith('application/json') and resp.json().get('success', True)):
+                    data = {}
+                    try:
+                        data = resp.json()
+                    except Exception:
+                        pass
+
+                    is_success = (resp.status_code == 200) and (
+                        data.get('status') is True or data.get('success') is True or (not data and resp.status_code == 200)
+                    )
+
+                    if is_success:
                         n.status = 'sent'
                         n.sent_at = timezone.now()
-                    elif resp.status_code == 200:
-                        n.status = 'sent'
-                        n.sent_at = timezone.now()
+                        n.error_log = None
                     else:
                         n.status = 'failed'
-                        n.error_log = f"HTTP {resp.status_code}"
+                        err_msg = data.get('message') if isinstance(data, dict) and data.get('message') else f"HTTP {resp.status_code}"
+                        n.error_log = err_msg
                     n.save(update_fields=['status', 'sent_at', 'error_log'])
+            except requests.exceptions.ConnectionError:
+                n = Notification.objects.filter(pk=notif_id_val).first()
+                if n:
+                    n.status = 'failed'
+                    n.error_log = "Gateway offline (koneksi ditolak / server belum jalan)"
+                    n.save(update_fields=['status', 'error_log'])
             except Exception as ex:
                 n = Notification.objects.filter(pk=notif_id_val).first()
                 if n:
                     n.status = 'failed'
-                    n.error_log = f"Gateway offline: {str(ex)}"
+                    n.error_log = f"Gateway error: {str(ex)}"
                     n.save(update_fields=['status', 'error_log'])
             finally:
                 connections.close_all()
@@ -172,9 +187,19 @@ class WhatsAppService:
             resp = requests.post(
                 f"{gateway_url.rstrip('/')}/send-message",
                 json=payload,
-                timeout=1.5
+                timeout=2.0
             )
-            if resp.status_code == 200:
+            data = {}
+            try:
+                data = resp.json()
+            except Exception:
+                pass
+
+            is_success = (resp.status_code == 200) and (
+                data.get('status') is True or data.get('success') is True or (not data and resp.status_code == 200)
+            )
+
+            if is_success:
                 notif.status = 'sent'
                 notif.sent_at = timezone.now()
                 notif.error_log = None
@@ -182,9 +207,12 @@ class WhatsAppService:
                 return True, "Pesan WA berhasil dikirim ulang!"
             else:
                 notif.status = 'failed'
-                notif.error_log = f"Retry HTTP {resp.status_code}"
+                err_msg = data.get('message') if isinstance(data, dict) and data.get('message') else f"HTTP {resp.status_code}"
+                notif.error_log = err_msg
                 notif.save()
-                return False, f"Gagal kirim ulang (HTTP {resp.status_code})"
+                return False, f"Gagal kirim ulang ({err_msg})"
+        except requests.exceptions.ConnectionError:
+            return False, "Gagal kirim ulang: Server WA Gateway offline"
         except Exception as e:
             return False, str(e)
 
