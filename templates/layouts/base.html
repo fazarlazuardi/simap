@@ -175,9 +175,55 @@
         opacity: 1 !important;
         font-weight: 700 !important;
     }
+
+    /* ⚡ CROSS-PLATFORM & CROSS-DEVICE RESPONSIVE OPTIMIZATION ENGINE ⚡ */
+    /* 1. Mobile Safe Area Insets (iPhone Notch, Dynamic Island & Android Gesture Bar) */
+    @supports (padding: max(0px)) {
+        header {
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+            padding-top: max(0px, env(safe-area-inset-top));
+        }
+        main {
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+            padding-bottom: max(5rem, env(safe-area-inset-bottom));
+        }
+    }
+
+    /* 2. Prevent Horizontal Overflow / Page Shaking on Touch & Mobile Devices */
+    html, body {
+        overflow-x: hidden !important;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* 3. Table Container Responsive Touch Wrapper Guarantee */
+    .table-responsive, .dataTables_wrapper, div.dataTables_wrapper {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 4. Touch Target Ergonomics for Mobile & Tablet Buttons (Apple HIG & Material 44px Standard) */
+    @media (max-width: 768px) {
+        button, a.btn, .btn, [role="button"] {
+            min-height: 44px;
+        }
+    }
+
+    /* 5. Ultra-Wide Screen (4K, 2K Smart TV & Large Desktop Monitors >= 1920px) Max-Width Boundary */
+    @media (min-width: 1920px) {
+        #module-page-container {
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
   </style>
   {% block extra_css %}{% endblock %}
 </head>
+
 <body class="h-full overflow-hidden text-slate-800 dark:text-slate-100 font-sans antialiased bg-[#030e0b] dark:bg-[#030e0b] transition-colors duration-200">
 
   <!-- ⚡ VIBRANT ULTRA-FUTURISTIC HIGH-TECH CYBER BACKGROUND CANVAS ENGINE ⚡ -->
