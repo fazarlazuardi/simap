@@ -57,6 +57,25 @@
         padding: 0 !important;
     }
 
+    /* Ultra-Slim HTMX Top Progress Bar */
+    .htmx-request#htmx-progress-bar,
+    body.htmx-request #htmx-progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(to right, #10b981, #14b8a6, #06b6d4);
+      z-index: 9999;
+      width: 100%;
+      animation: htmxProgress 1s ease-in-out infinite;
+      box-shadow: 0 0 12px #10b981;
+    }
+    @keyframes htmxProgress {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+
     /* Zero-Flash Initial Paint Engine (Applies ONLY before Alpine JS initializes) */
     @media (min-width: 1024px) {
       html.sidebar-collapsed aside.desktop-sidebar:not([x-data]) {

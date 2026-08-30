@@ -82,8 +82,13 @@
             </button>
         </div>
         
-        <!-- SIDEBAR MENU SCROLLABLE CONTAINER -->
-        <div class="sidebar-menu p-2.5 space-y-1 overflow-y-auto flex-1 min-h-0 custom-scrollbar-sidebar">
+        <!-- SIDEBAR MENU SCROLLABLE CONTAINER (HTMX BOOSTED ZERO-RELOAD SPA ENGINE) -->
+        <div class="sidebar-menu p-2.5 space-y-1 overflow-y-auto flex-1 min-h-0 custom-scrollbar-sidebar"
+             hx-boost="true"
+             hx-target="#module-page-container"
+             hx-select="#module-page-container"
+             hx-swap="innerHTML transition:true">
+
             
             <!-- CATEGORY 1: NAVIGASI UTAMA -->
             <div x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="menu-category-title px-2.5 pt-2 pb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5">
