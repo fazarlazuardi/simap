@@ -167,15 +167,19 @@
                         <label for="file_path" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1 cursor-pointer">
                             Berkas Digital (PDF/Gambar) <span class="text-rose-500">*</span>
                         </label>
-                        <div class="relative w-full h-[42px] rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 bg-slate-50 dark:bg-slate-800 flex items-center justify-center gap-2 px-3 overflow-hidden cursor-pointer transition-all dropzone-box select-none active:scale-[0.99]" id="dropzone_box">
-                            <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 block" id="file_path" name="file_path" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onchange="updateDropzoneFile(this)" aria-label="Upload Berkas Digital">
-                            <div class="flex items-center justify-center gap-2 pointer-events-none select-none z-10 w-full">
-                                <i class="bi bi-cloud-arrow-up text-emerald-600 dark:text-emerald-400 text-base shrink-0 dropzone-icon"></i>
-                                <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold dropzone-text truncate text-center">Pilih atau Tarik File Berkas ke sini</span>
+                        <div class="relative w-full h-[42px] rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 bg-slate-50 dark:bg-slate-800 flex items-center justify-between px-3 overflow-hidden cursor-pointer transition-all dropzone-box select-none active:scale-[0.99]" id="dropzone_box">
+                            <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 block text-[0px]" id="file_path" name="file_path" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onchange="updateDropzoneFile(this)" aria-label="Upload Berkas Digital">
+                            <div class="flex items-center gap-2.5 pointer-events-none select-none z-10 w-full min-w-0">
+                                <span class="px-3 py-1 rounded-lg bg-emerald-600 dark:bg-emerald-500 text-white font-extrabold text-xs shadow-xs inline-flex items-center gap-1.5 shrink-0 dropzone-btn">
+                                    <i class="bi bi-folder2-open dropzone-icon"></i>
+                                    <span>Pilih Berkas</span>
+                                </span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold dropzone-text truncate">Belum ada file terpilih...</span>
                             </div>
                         </div>
                         <div id="file_name_preview" class="hidden text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1"></div>
                     </div>
+
                 </div>
 
 
@@ -415,6 +419,7 @@
         const box = input.closest('.dropzone-box') || document.getElementById('dropzone_box');
         const icon = box ? box.querySelector('.dropzone-icon') : null;
         const text = box ? box.querySelector('.dropzone-text') : null;
+        const btn = box ? box.querySelector('.dropzone-btn') : null;
         const preview = document.getElementById('file_name_preview');
 
         if (box) {
@@ -428,11 +433,14 @@
             if (box) {
                 box.classList.add('border-emerald-500', 'bg-emerald-500/10');
             }
+            if (btn) {
+                btn.className = 'px-3 py-1 rounded-lg bg-emerald-600 text-white font-extrabold text-xs shadow-xs inline-flex items-center gap-1.5 shrink-0 dropzone-btn';
+            }
             if (icon) {
-                icon.className = 'bi bi-check-circle-fill text-emerald-500 text-base shrink-0 dropzone-icon';
+                icon.className = 'bi bi-check-circle-fill dropzone-icon';
             }
             if (text) {
-                text.className = 'text-xs font-bold text-emerald-600 dark:text-emerald-400 dropzone-text truncate text-center';
+                text.className = 'text-xs font-bold text-emerald-600 dark:text-emerald-400 dropzone-text truncate';
                 text.innerHTML = `<i class="bi bi-file-earmark-pdf-fill me-1"></i> Terpilih: <strong>${file.name}</strong> (${sizeMb} MB)`;
             }
             if (preview) {
@@ -443,18 +451,22 @@
             if (box) {
                 box.classList.remove('border-emerald-500', 'bg-emerald-500/10');
             }
+            if (btn) {
+                btn.className = 'px-3 py-1 rounded-lg bg-emerald-600 dark:bg-emerald-500 text-white font-extrabold text-xs shadow-xs inline-flex items-center gap-1.5 shrink-0 dropzone-btn';
+            }
             if (icon) {
-                icon.className = 'bi bi-cloud-arrow-up text-emerald-600 dark:text-emerald-400 text-base shrink-0 dropzone-icon';
+                icon.className = 'bi bi-folder2-open dropzone-icon';
             }
             if (text) {
-                text.className = 'text-xs text-slate-600 dark:text-slate-300 font-semibold dropzone-text truncate text-center';
-                text.textContent = 'Pilih atau Tarik File Berkas ke sini';
+                text.className = 'text-xs text-slate-500 dark:text-slate-400 font-semibold dropzone-text truncate';
+                text.textContent = 'Belum ada file terpilih...';
             }
             if (preview) {
                 preview.classList.add('hidden');
             }
         }
     }
+
 
 
 </script>

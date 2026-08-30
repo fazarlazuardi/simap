@@ -149,19 +149,27 @@
     }
 
     /* High Contrast & Crisp Text inside Form Inputs */
-    input[type="text"], input[type="date"], input[type="number"], input[type="email"], input[type="file"], input[type="password"], select, textarea {
+    input[type="text"], input[type="date"], input[type="number"], input[type="email"], input[type="password"], select, textarea {
         background-color: #ffffff !important;
         color: #0f172a !important;
         font-weight: 600 !important;
         opacity: 1 !important;
     }
 
-    .dark input[type="text"], .dark input[type="date"], .dark input[type="number"], .dark input[type="email"], .dark input[type="file"], .dark input[type="password"], .dark select, .dark textarea {
+    .dark input[type="text"], .dark input[type="date"], .dark input[type="number"], .dark input[type="email"], .dark input[type="password"], .dark select, .dark textarea {
         background-color: #1e293b !important;
         color: #f8fafc !important;
         font-weight: 600 !important;
         opacity: 1 !important;
     }
+
+    /* Custom Dropzone File Input Opacity Fix */
+    .dropzone-box input[type="file"], input[type="file"].opacity-0 {
+        opacity: 0 !important;
+        background-color: transparent !important;
+        font-size: 0 !important;
+    }
+
 
     /* Button Text Sharpness */
     button, a.btn, .btn, [role="button"] {
