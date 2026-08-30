@@ -149,7 +149,7 @@
   </style>
   {% block extra_css %}{% endblock %}
 </head>
-<body class="h-full overflow-hidden text-slate-800 dark:text-slate-100 font-sans antialiased bg-slate-100 dark:bg-[#061118] transition-colors duration-200">
+<body class="h-full overflow-hidden text-slate-800 dark:text-slate-100 font-sans antialiased bg-slate-100 dark:bg-[#02090d] transition-colors duration-200">
 
   <!-- Top HTMX Progress Loading Indicator Bar -->
   <div id="htmx-progress-bar"></div>
@@ -199,7 +199,7 @@
     </aside>
 
     <!-- 1B. DESKTOP COLLAPSIBLE SIDEBAR (lg:) -->
-    <aside class="desktop-sidebar w-64 hidden lg:flex flex-col h-full shrink-0 bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 z-30 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[width] relative overflow-hidden" 
+    <aside class="desktop-sidebar w-64 hidden lg:flex flex-col h-full shrink-0 bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 z-30 transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width] relative overflow-hidden" 
            :class="desktopSidebarOpen ? 'w-64' : 'w-20'">
       {% include 'layouts/sidebar.html' %}
     </aside>
@@ -226,16 +226,16 @@
       {% endif %}
 
       <!-- DYNAMIC CONTENT (TEMPAT KONTEN DASHBOARD DI-RENDER) -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 sm:pb-20 lg:pb-6 bg-gradient-to-br from-slate-100 via-emerald-50/40 to-slate-100 dark:from-slate-950 dark:via-[#04161a] dark:to-slate-950 text-slate-800 dark:text-slate-100 w-full relative transition-colors duration-200">
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 sm:pb-20 lg:pb-6 bg-gradient-to-br from-slate-100 via-emerald-50/60 to-slate-200/90 dark:from-[#02090d] dark:via-[#041a23] dark:to-[#020b10] text-slate-800 dark:text-slate-100 w-full relative transition-colors duration-200">
         <!-- FUTURISTIC BAZNAS SIMAP CYBER WATERMARK ICON ENGINE -->
-        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-90 dark:opacity-95 transition-opacity duration-300">
+        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-95 transition-opacity duration-300">
           <!-- Cyber Matrix Tech Grid Overlay -->
-          <div class="absolute inset-0 bg-[radial-gradient(#059669_1.5px,transparent_1.5px)] dark:bg-[radial-gradient(#10b981_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-20 dark:opacity-35"></div>
+          <div class="absolute inset-0 bg-[radial-gradient(#059669_1.5px,transparent_1.5px)] dark:bg-[radial-gradient(#10b981_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-25 dark:opacity-40"></div>
 
-          <!-- Ambient Glowing Cyber Orbs -->
-          <div class="absolute -top-32 left-1/4 w-[650px] h-[650px] bg-emerald-500/25 dark:bg-emerald-500/40 rounded-full blur-[140px]"></div>
-          <div class="absolute bottom-10 right-10 w-[700px] h-[700px] bg-cyan-500/25 dark:bg-cyan-400/35 rounded-full blur-[150px]"></div>
-          <div class="absolute top-1/2 left-1/3 w-[550px] h-[550px] bg-teal-500/20 dark:bg-teal-500/30 rounded-full blur-[130px]"></div>
+          <!-- Ambient Glowing Cyber Mesh Orbs (Dual Mode Optimized) -->
+          <div class="absolute -top-36 left-1/4 w-[700px] h-[700px] bg-emerald-400/25 dark:bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.4),_transparent_70%)] rounded-full blur-[140px] animate-pulse"></div>
+          <div class="absolute bottom-10 right-10 w-[750px] h-[750px] bg-cyan-400/25 dark:bg-[radial-gradient(circle_at_center,_rgba(6,182,212,0.35),_transparent_70%)] rounded-full blur-[150px]"></div>
+          <div class="absolute top-1/2 left-1/3 w-[600px] h-[600px] bg-teal-400/20 dark:bg-[radial-gradient(circle_at_center,_rgba(20,184,166,0.3),_transparent_70%)] rounded-full blur-[130px]"></div>
         </div>
 
 
