@@ -190,6 +190,7 @@
 
             <!-- Agenda & Kalender -->
             <a href="{% url 'agendas:list' %}" 
+               hx-boost="false"
                data-accent="text-sky-400"
                title="Agenda & Kalender Kerja"
                onclick="setTimeout(updateSidebarActiveState, 10)"
@@ -199,6 +200,7 @@
                 </div>
                 <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Agenda & Kalender</span>
             </a>
+
 
             <!-- Rapat Internal -->
             <a href="{% url 'internal_meetings:list' %}" 

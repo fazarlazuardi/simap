@@ -81,11 +81,13 @@
 
         <!-- 4. AGENDA KATALOG -->
         <a href="{% url 'agendas:list' %}" 
+           hx-boost="false"
            class="flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer no-underline active:scale-90 {% if request.resolver_match.namespace == 'agendas' %}text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20{% else %}text-slate-400 hover:text-slate-200{% endif %}"
            title="Agenda Kegiatan">
-          <i class="bi {% if request.resolver_match.namespace == 'agendas' %}bi-calendar-event-fill text-emerald-400{% else %}bi-calendar-event text-slate-300{% endif %} text-lg mb-0.5"></i>
-          <span class="text-[10px] tracking-tight leading-none font-bold">Agenda</span>
+            <i class="bi {% if request.resolver_match.namespace == 'agendas' %}bi-calendar-event-fill text-emerald-400{% else %}bi-calendar-event text-slate-300{% endif %} text-lg mb-0.5"></i>
+            <span class="text-[10px] tracking-tight leading-none font-bold">Agenda</span>
         </a>
+
 
         <!-- 5. MENU DRAWER SWITCHER -->
         <button type="button" 
