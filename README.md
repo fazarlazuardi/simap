@@ -133,14 +133,17 @@ simap/
 │   ├── stop_gateway_pm2.bat       # Shortcut Penghenti Gateway via PM2
 │   └── view_gateway_logs.bat      # Shortcut Terminal CMD Log Viewer PM2
 ├── activate_env.bat               # Script Aktivasi Environment Python
+├── backup_db.bat                  # Script Automasi Backup Database MySQL (30-day purge)
 ├── manage.py                      # CLI Admin Django
 ├── requirements.txt               # Daftar Dependensi Python Enterprise
 ├── run_server.py                  # Runner Server Production Waitress
+├── setup_pm2_maintenance.bat      # Script Konfigurasi Rotasi Log PM2 (pm2-logrotate)
 ├── start_all.bat                  # Script Starter Server Utama SIMAP
 ├── start_celery.bat               # Runner Worker Celery Solo Pool Windows Server
 ├── start_gateway_pm2.bat          # Shortcut PM2 Gateway dari Root Folder
 ├── stop_gateway_pm2.bat           # Shortcut Penghenti PM2 Gateway dari Root Folder
 └── view_gateway_logs.bat          # Launcher Live Log CMD Windows
+
 ```
 
 ---

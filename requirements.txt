@@ -13,7 +13,8 @@ waitress==3.0.2
 
 # Form Handling & Styling
 django-crispy-forms==2.5
-crispy-bootstrap5==2026.3
+crispy-tailwind==1.0.3
+
 
 # Django REST Framework & Authentication
 djangorestframework==3.17.1

@@ -32,7 +32,8 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'crispy_forms',
-    'crispy_bootstrap5',
+    'crispy_tailwind',
+
 
     'authentication',
     'users',
@@ -188,4 +189,11 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='simap@baznas-kabtangerang.or.id')
 BACKUP_EMAIL_RECIPIENT = env('BACKUP_EMAIL_RECIPIENT', default='kabupatenbaznastangerang@gmail.com')
+
+# ------------------------------------------------------------------
+# CRISPY FORMS CONFIGURATION (TAILWIND CSS)
+# ------------------------------------------------------------------
+CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
+CRISPY_TEMPLATE_PACK = "tailwind"
+
 

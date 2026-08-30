@@ -75,49 +75,62 @@
                 <p class="text-xs md:text-sm text-emerald-100/90 leading-relaxed mb-0 max-w-2xl font-medium" x-text="waMessage"></p>
             </div>
 
-            <!-- Right 1-Click Action Controller Panel -->
-            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                <!-- Refresh Button -->
-                <button type="button" @click="checkStatus()" :disabled="isPolling"
-                        class="px-3.5 py-2.5 rounded-2xl bg-emerald-950/80 hover:bg-emerald-900/90 text-emerald-200 border border-emerald-500/40 text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-md">
-                    <i class="bi bi-arrow-repeat text-emerald-400" :class="{'animate-spin': isPolling}"></i>
-                    <span>Refresh</span>
-                </button>
+            <!-- ⚡ FUTURISTIC ACTION CONTROLLER DOCK TOOLBAR ⚡ -->
+            <div class="p-2 rounded-2xl bg-slate-950/80 border border-emerald-500/30 backdrop-blur-xl shadow-2xl flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
+                <!-- Group 1: Monitoring & Diagnostics -->
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <!-- 1. Refresh Status -->
+                    <button type="button" @click="checkStatus()" :disabled="isPolling"
+                            class="px-3 py-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/90 text-emerald-200 border border-emerald-500/30 text-xs font-bold transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                        <i class="bi bi-arrow-repeat text-emerald-400" :class="{'animate-spin': isPolling}"></i>
+                        <span>Refresh</span>
+                    </button>
 
-                <!-- Live Log Terminal Button -->
-                <button type="button" @click="openLogModal()"
-                        class="px-3.5 py-2.5 rounded-2xl bg-cyan-950/80 hover:bg-cyan-900/90 text-cyan-200 border border-cyan-500/40 text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer shadow-md"
-                        title="Buka Command Prompt Live Log Terminal">
-                    <i class="bi bi-terminal-fill text-cyan-400"></i>
-                    <span>Live Log CMD</span>
-                </button>
+                    <!-- 2. Live Log CMD -->
+                    <button type="button" @click="openLogModal()"
+                            class="px-3 py-2 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/90 text-cyan-200 border border-cyan-500/30 text-xs font-bold transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 cursor-pointer hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                            title="Buka Command Prompt Live Log Console">
+                        <i class="bi bi-terminal-fill text-cyan-400"></i>
+                        <span>Live Log CMD</span>
+                    </button>
+                </div>
 
-                <!-- Scan / Pairing Button -->
-                <button type="button" @click="openModal()"
-                        class="px-4 py-2.5 rounded-2xl font-black text-xs transition-all border-0 shadow-lg flex items-center gap-2 cursor-pointer"
-                        :class="waStatus === 'SCAN_QR' ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-amber-500/30 hover:brightness-110' : 'bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:brightness-110'">
-                    <i class="bi bi-qr-code-scan"></i>
-                    <span x-text="waStatus === 'SCAN_QR' ? 'Pindai QR Code' : 'Status Pairing'"></span>
-                </button>
+                <!-- Group 2: Hero Primary Pairing Action -->
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <!-- 3. Status Pairing / Pindai QR (Hero Button) -->
+                    <button type="button" @click="openModal()"
+                            class="px-4 py-2 rounded-xl font-black text-xs transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 border-0 flex items-center gap-2 cursor-pointer"
+                            :class="waStatus === 'SCAN_QR' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-400 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.5)] hover:brightness-110' : 'bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.5)] hover:brightness-110'">
+                        <i class="bi bi-qr-code-scan text-sm"></i>
+                        <span x-text="waStatus === 'SCAN_QR' ? 'Pindai QR Code' : 'Status Pairing'"></span>
+                    </button>
+                </div>
 
                 {% if user.is_superadmin or user.is_superuser %}
-                <!-- Restart Engine Button -->
-                <button type="button" @click="restartSocket()" :disabled="isLoadingAction"
-                        class="px-3.5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-md"
-                        title="Restart Engine Gateway">
-                    <i class="bi bi-arrow-clockwise text-emerald-300" :class="{'animate-spin': isLoadingAction}"></i>
-                    <span>Restart Engine</span>
-                </button>
+                <!-- Subtle Vertical Divider -->
+                <div class="hidden sm:block h-6 w-px bg-emerald-500/30"></div>
 
-                <!-- Putus Sesi Button -->
-                <button type="button" @click="disconnectSession()" :disabled="isLoadingAction"
-                        class="px-3.5 py-2.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 border border-rose-500/40 text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-md"
-                        title="Putus Sesi & Clear Auth Info">
-                    <i class="bi bi-power text-rose-400"></i>
-                    <span>Putus Sesi</span>
-                </button>
+                <!-- Group 3: Admin Maintenance Controls -->
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <!-- 4. Restart Engine -->
+                    <button type="button" @click="restartSocket()" :disabled="isLoadingAction"
+                            class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-100 border border-white/15 text-xs font-bold transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 hover:border-emerald-400 hover:text-emerald-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                            title="Restart Engine Socket Gateway">
+                        <i class="bi bi-arrow-clockwise text-amber-400" :class="{'animate-spin': isLoadingAction}"></i>
+                        <span>Restart Engine</span>
+                    </button>
+
+                    <!-- 5. Putus Sesi -->
+                    <button type="button" @click="disconnectSession()" :disabled="isLoadingAction"
+                            class="px-3 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/90 text-rose-200 border border-rose-500/40 text-xs font-bold transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 hover:border-rose-400 hover:shadow-[0_0_15px_rgba(244,63,94,0.3)]"
+                            title="Putus Sesi & Clear Auth Info">
+                        <i class="bi bi-power text-rose-400"></i>
+                        <span>Putus Sesi</span>
+                    </button>
+                </div>
                 {% endif %}
             </div>
+
         </div>
     </div>
 
