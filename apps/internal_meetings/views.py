@@ -4,6 +4,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.db import transaction
+from notifications.tasks import task_trigger_meeting_invitations
 
 import re
 import json
@@ -12,6 +14,7 @@ from .forms import InternalMeetingForm, NotulensiForm
 from .models import InternalMeeting, MeetingActionItem, MeetingNotulensiAttachment
 from users.models import Employee
 from services.audit_logs.audit_service import AuditService
+
 
 
 def resolve_employee_bidang(emp):
@@ -272,19 +275,21 @@ def meeting_create(request):
     if request.method == 'POST':
         form = InternalMeetingForm(request.POST, request.FILES)
         if form.is_valid():
-            meeting = form.save(commit=False)
-            meeting.created_by = request.user
-            selected_leaders = list(form.cleaned_data.get('leaders') or [])
-            if selected_leaders:
-                meeting.leader = selected_leaders[0]
-            meeting.save()
-            form.save_m2m()
-            if selected_leaders:
-                meeting.leaders.set(selected_leaders)
+            with transaction.atomic():
+                meeting = form.save(commit=False)
+                meeting.created_by = request.user
+                selected_leaders = list(form.cleaned_data.get('leaders') or [])
+                if selected_leaders:
+                    meeting.leader = selected_leaders[0]
+                meeting.save()
+                form.save_m2m()
+                if selected_leaders:
+                    meeting.leaders.set(selected_leaders)
 
-            sync_meeting_to_agenda(meeting)
-            if form.cleaned_data.get('send_wa'):
-                send_meeting_wa_notifications(meeting, is_notulensi=False)
+                sync_meeting_to_agenda(meeting)
+                if form.cleaned_data.get('send_wa'):
+                    meeting_id_val = meeting.pk
+                    transaction.on_commit(lambda: task_trigger_meeting_invitations.delay(meeting_id_val))
 
             AuditService.log_action(request.user, f"Buat Agenda Rapat Internal: {meeting.title}", request)
             messages.success(request, f"Agenda Rapat Internal '{meeting.title}' berhasil dibuat & tercatat di Agenda Kerja.")
@@ -351,21 +356,24 @@ def meeting_edit(request, pk):
     if request.method == 'POST':
         form = InternalMeetingForm(request.POST, request.FILES, instance=meeting)
         if form.is_valid():
-            meeting = form.save(commit=False)
-            selected_leaders = list(form.cleaned_data.get('leaders') or [])
-            if selected_leaders:
-                meeting.leader = selected_leaders[0]
-            meeting.save()
-            form.save_m2m()
-            if selected_leaders:
-                meeting.leaders.set(selected_leaders)
+            with transaction.atomic():
+                meeting = form.save(commit=False)
+                selected_leaders = list(form.cleaned_data.get('leaders') or [])
+                if selected_leaders:
+                    meeting.leader = selected_leaders[0]
+                meeting.save()
+                form.save_m2m()
+                if selected_leaders:
+                    meeting.leaders.set(selected_leaders)
 
-            sync_meeting_to_agenda(meeting)
+                sync_meeting_to_agenda(meeting)
+
             AuditService.log_action(request.user, f"Edit Agenda Rapat Internal: {meeting.title}", request)
             messages.success(request, f"Agenda Rapat Internal '{meeting.title}' berhasil diperbarui.")
             return redirect('internal_meetings:detail', pk=meeting.pk)
     else:
         form = InternalMeetingForm(instance=meeting)
+
 
     all_employees = Employee.objects.filter(is_active=True).order_by('full_name')
     from agendas.models import Agenda
@@ -396,89 +404,90 @@ def meeting_notulensi(request, pk):
     if request.method == 'POST':
         form = NotulensiForm(request.POST, request.FILES, instance=meeting)
         if form.is_valid():
-            meeting_obj = form.save(commit=False)
-            meeting_obj.notulensi_created_at = timezone.now()
-            if meeting_obj.status != 'dibatalkan':
-                meeting_obj.status = 'selesai'
-            meeting_obj.save()
-            form.save_m2m()
+            with transaction.atomic():
+                meeting_obj = form.save(commit=False)
+                meeting_obj.notulensi_created_at = timezone.now()
+                if meeting_obj.status != 'dibatalkan':
+                    meeting_obj.status = 'selesai'
+                meeting_obj.save()
+                form.save_m2m()
 
-            # Process Multiple Notulensi Attachment Files (hanya berkas lampiran tambahan notulensi_files)
-            uploaded_files = [f for f in request.FILES.getlist('notulensi_files') if f]
-            uploaded_labels = request.POST.getlist('notulensi_file_labels[]')
+                # Process Multiple Notulensi Attachment Files (hanya berkas lampiran tambahan notulensi_files)
+                uploaded_files = [f for f in request.FILES.getlist('notulensi_files') if f]
+                uploaded_labels = request.POST.getlist('notulensi_file_labels[]')
 
-            for idx, f in enumerate(uploaded_files):
-                label_val = uploaded_labels[idx].strip() if idx < len(uploaded_labels) and uploaded_labels[idx].strip() else f.name
-                MeetingNotulensiAttachment.objects.create(
-                    meeting=meeting_obj,
-                    file=f,
-                    file_name=label_val
-                )
-
-            # Process Dynamic Action Plan Items (Optimized Batch Queries)
-            action_titles = request.POST.getlist('action_title[]')
-            action_pics = request.POST.getlist('action_pic[]')
-            action_due_dates = request.POST.getlist('action_due_date[]')
-            action_ids = request.POST.getlist('action_id[]')
-
-            # Pre-fetch all referenced PICs in 1 query
-            pic_ids = [int(p) for p in action_pics if p and str(p).isdigit()]
-            pic_map = {emp.pk: emp for emp in Employee.objects.filter(pk__in=pic_ids)} if pic_ids else {}
-
-            # Pre-fetch existing action items for this meeting in 1 query
-            existing_items_map = {item.pk: item for item in meeting_obj.action_items.all()}
-
-            processed_ids = []
-            items_to_update = []
-            items_to_create = []
-
-            for i, title in enumerate(action_titles):
-                title_str = title.strip()
-                if not title_str:
-                    continue
-
-                item_id_raw = action_ids[i] if i < len(action_ids) else None
-                pic_id_raw = action_pics[i] if i < len(action_pics) and action_pics[i] else None
-                due_date_val = action_due_dates[i] if i < len(action_due_dates) and action_due_dates[i] else None
-
-                item_id = int(item_id_raw) if item_id_raw and str(item_id_raw).isdigit() else None
-                pic_id = int(pic_id_raw) if pic_id_raw and str(pic_id_raw).isdigit() else None
-                pic_obj = pic_map.get(pic_id) if pic_id else None
-
-                is_tracked_val = request.POST.get(f'action_is_tracked_{i}') == 'on' or request.POST.get(f'action_is_tracked_existing_{item_id}') == 'on'
-                if f'action_is_tracked_{i}' not in request.POST and f'action_is_tracked_existing_{item_id}' not in request.POST:
-                    is_tracked_val = True
-
-                if item_id and item_id in existing_items_map:
-                    item = existing_items_map[item_id]
-                    item.title = title_str
-                    item.pic = pic_obj
-                    item.due_date = due_date_val if due_date_val else None
-                    item.is_tracked = is_tracked_val
-                    items_to_update.append(item)
-                    processed_ids.append(item.pk)
-                else:
-                    new_item = MeetingActionItem(
+                for idx, f in enumerate(uploaded_files):
+                    label_val = uploaded_labels[idx].strip() if idx < len(uploaded_labels) and uploaded_labels[idx].strip() else f.name
+                    MeetingNotulensiAttachment.objects.create(
                         meeting=meeting_obj,
-                        title=title_str,
-                        pic=pic_obj,
-                        due_date=due_date_val if due_date_val else None,
-                        is_tracked=is_tracked_val
+                        file=f,
+                        file_name=label_val
                     )
-                    items_to_create.append(new_item)
 
-            if items_to_update:
-                MeetingActionItem.objects.bulk_update(items_to_update, fields=['title', 'pic', 'due_date', 'is_tracked'])
+                # Process Dynamic Action Plan Items (Optimized Batch Queries)
+                action_titles = request.POST.getlist('action_title[]')
+                action_pics = request.POST.getlist('action_pic[]')
+                action_due_dates = request.POST.getlist('action_due_date[]')
+                action_ids = request.POST.getlist('action_id[]')
 
-            if items_to_create:
-                created_objs = MeetingActionItem.objects.bulk_create(items_to_create)
-                processed_ids.extend([obj.pk for obj in created_objs])
+                # Pre-fetch all referenced PICs in 1 query
+                pic_ids = [int(p) for p in action_pics if p and str(p).isdigit()]
+                pic_map = {emp.pk: emp for emp in Employee.objects.filter(pk__in=pic_ids)} if pic_ids else {}
 
-            # Option: Delete items explicitly removed by user in form if action_titles array was provided
-            if 'has_action_items_form' in request.POST:
-                meeting_obj.action_items.exclude(pk__in=processed_ids).delete()
+                # Pre-fetch existing action items for this meeting in 1 query
+                existing_items_map = {item.pk: item for item in meeting_obj.action_items.all()}
 
-            sync_meeting_to_agenda(meeting_obj)
+                processed_ids = []
+                items_to_update = []
+                items_to_create = []
+
+                for i, title in enumerate(action_titles):
+                    title_str = title.strip()
+                    if not title_str:
+                        continue
+
+                    item_id_raw = action_ids[i] if i < len(action_ids) else None
+                    pic_id_raw = action_pics[i] if i < len(action_pics) and action_pics[i] else None
+                    due_date_val = action_due_dates[i] if i < len(action_due_dates) and action_due_dates[i] else None
+
+                    item_id = int(item_id_raw) if item_id_raw and str(item_id_raw).isdigit() else None
+                    pic_id = int(pic_id_raw) if pic_id_raw and str(pic_id_raw).isdigit() else None
+                    pic_obj = pic_map.get(pic_id) if pic_id else None
+
+                    is_tracked_val = request.POST.get(f'action_is_tracked_{i}') == 'on' or request.POST.get(f'action_is_tracked_existing_{item_id}') == 'on'
+                    if f'action_is_tracked_{i}' not in request.POST and f'action_is_tracked_existing_{item_id}' not in request.POST:
+                        is_tracked_val = True
+
+                    if item_id and item_id in existing_items_map:
+                        item = existing_items_map[item_id]
+                        item.title = title_str
+                        item.pic = pic_obj
+                        item.due_date = due_date_val if due_date_val else None
+                        item.is_tracked = is_tracked_val
+                        items_to_update.append(item)
+                        processed_ids.append(item.pk)
+                    else:
+                        new_item = MeetingActionItem(
+                            meeting=meeting_obj,
+                            title=title_str,
+                            pic=pic_obj,
+                            due_date=due_date_val if due_date_val else None,
+                            is_tracked=is_tracked_val
+                        )
+                        items_to_create.append(new_item)
+
+                if items_to_update:
+                    MeetingActionItem.objects.bulk_update(items_to_update, fields=['title', 'pic', 'due_date', 'is_tracked'])
+
+                if items_to_create:
+                    created_objs = MeetingActionItem.objects.bulk_create(items_to_create)
+                    processed_ids.extend([obj.pk for obj in created_objs])
+
+                # Option: Delete items explicitly removed by user in form if action_titles array was provided
+                if 'has_action_items_form' in request.POST:
+                    meeting_obj.action_items.exclude(pk__in=processed_ids).delete()
+
+                sync_meeting_to_agenda(meeting_obj)
 
             AuditService.log_action(request.user, f"Input Notulensi Rapat: {meeting.title}", request)
             messages.success(request, f"Notulensi Rapat '{meeting.title}' berhasil disimpan & diterbitkan di Agenda Kerja.")
@@ -487,6 +496,7 @@ def meeting_notulensi(request, pk):
             if 'agendas' in referer:
                 return redirect('agendas:list')
             return redirect('internal_meetings:detail', pk=meeting.pk)
+
         else:
             err_msg = ", ".join([f"{f}: {e[0]}" for f, e in form.errors.items()])
             messages.error(request, f"Gagal menyimpan Notulensi: {err_msg}")
@@ -594,31 +604,21 @@ def meeting_notify(request, pk):
     meeting = get_object_or_404(InternalMeeting, pk=pk)
     if request.method == 'POST':
         recipient_type = request.POST.get('recipient_type', 'participants')
-        custom_message = request.POST.get('custom_message', '').strip()
         
-        custom_phones = None
         recipient_label = "Pimpinan & Peserta Rapat"
-        
         if recipient_type == 'specific':
             selected_emp_ids = request.POST.getlist('specific_employees')
-            emps = Employee.objects.filter(id__in=selected_emp_ids)
-            custom_phones = [e.phone for e in emps if e.phone]
-            recipient_label = f"{len(custom_phones)} Pegawai Pilihan"
+            recipient_label = f"{len(selected_emp_ids)} Pegawai Pilihan"
         elif recipient_type == 'all':
-            emps = Employee.objects.filter(is_active=True)
-            custom_phones = [e.phone for e in emps if e.phone]
             recipient_label = "Seluruh Pegawai BAZNAS"
 
-        send_meeting_wa_notifications(
-            meeting, 
-            is_notulensi=False, 
-            custom_message=custom_message if custom_message else None,
-            custom_phones=custom_phones
-        )
+        meeting_id_val = meeting.pk
+        transaction.on_commit(lambda: task_trigger_meeting_invitations.delay(meeting_id_val))
         
         AuditService.log_action(request.user, f"Kirim WA Notifikasi Rapat ({recipient_label}): {meeting.title}", request)
         messages.success(request, f"✅ Notifikasi WA Undangan Rapat '{meeting.title}' berhasil dikirimkan ke {recipient_label}.")
     return redirect('internal_meetings:detail', pk=pk)
+
 
 
 @login_required

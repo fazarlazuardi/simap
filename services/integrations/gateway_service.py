@@ -26,21 +26,83 @@ class WhatsAppService:
         if not gateway_url:
             return {'status': 'not_configured', 'ready': False, 'message': 'URL Gateway tidak dikonfigurasi'}
         try:
-            resp = requests.get(f"{gateway_url.rstrip('/')}/health", timeout=1.0)
+            resp = requests.get(f"{gateway_url.rstrip('/')}/status", timeout=2.0)
             if resp.status_code == 200:
                 data = resp.json()
+                st = data.get('status', 'DISCONNECTED')
+                msg = 'Terhubung' if st == 'CONNECTED' else ('Scan QR Code' if st == 'SCAN_QR' else 'Gateway tidak siap')
                 return {
-                    'status': 'connected' if data.get('status') == 'connected' else 'disconnected',
+                    'status': 'connected' if st == 'CONNECTED' else st.lower(),
+                    'connection_status': st,
                     'ready': data.get('ready', False),
-                    'message': 'Terhubung' if data.get('status') == 'connected' else 'Gateway tidak siap',
+                    'qr_image': data.get('qr_image'),
+                    'message': msg,
+                    'queue': data.get('queue', {}),
                 }
             return {'status': 'error', 'ready': False, 'message': f'HTTP {resp.status_code}'}
         except requests.exceptions.ConnectionError:
-            return {'status': 'offline', 'ready': False, 'message': 'Gateway tidak dapat dijangkau'}
+            return {'status': 'offline', 'connection_status': 'OFFLINE', 'ready': False, 'message': 'Gateway tidak dapat dijangkau'}
         except requests.exceptions.Timeout:
-            return {'status': 'timeout', 'ready': False, 'message': 'Gateway tidak merespon'}
+            return {'status': 'timeout', 'connection_status': 'TIMEOUT', 'ready': False, 'message': 'Gateway tidak merespon'}
         except Exception as e:
-            return {'status': 'error', 'ready': False, 'message': str(e)}
+            return {'status': 'error', 'connection_status': 'ERROR', 'ready': False, 'message': str(e)}
+
+    @staticmethod
+    def get_gateway_status():
+        """Proxy untuk mendapatkan data JSON status & QR dari port 3000."""
+        return WhatsAppService.check_health()
+
+    @staticmethod
+    def restart_gateway():
+        """Memicu restart koneksi socket WA Gateway via POST /restart."""
+        gateway_url = getattr(settings, 'WA_GATEWAY_URL', None)
+        if not gateway_url:
+            return False, "URL Gateway tidak dikonfigurasi"
+        try:
+            resp = requests.post(f"{gateway_url.rstrip('/')}/restart", timeout=3.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                return True, data.get('message', 'Gateway berhasil dimuat ulang')
+            return False, f"Gagal memuat ulang (HTTP {resp.status_code})"
+        except Exception as e:
+            return False, f"Gagal memuat ulang gateway: {str(e)}"
+
+    @staticmethod
+    def disconnect_gateway():
+        """Memicu reset sesi / logout WA Gateway via POST /logout."""
+        gateway_url = getattr(settings, 'WA_GATEWAY_URL', None)
+        if not gateway_url:
+            return False, "URL Gateway tidak dikonfigurasi"
+        try:
+            resp = requests.post(f"{gateway_url.rstrip('/')}/logout", timeout=5.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                return True, data.get('message', 'Sesi WhatsApp berhasil diputus.')
+            return False, f"Gagal memutus sesi (HTTP {resp.status_code})"
+        except Exception as e:
+            return False, f"Gagal memutus sesi gateway: {str(e)}"
+
+    @staticmethod
+    def get_gateway_logs():
+        """Proxy untuk mendapatkan data log real-time dari WA Gateway (Port 3000)."""
+        gateway_url = getattr(settings, 'WA_GATEWAY_URL', None)
+        if not gateway_url:
+            return {'status': False, 'logs': ["WA_GATEWAY_URL tidak dikonfigurasi"]}
+        try:
+            resp = requests.get(f"{gateway_url.rstrip('/')}/logs", timeout=2.5)
+            if resp.status_code == 200:
+                data = resp.json()
+                return {
+                    'status': True,
+                    'logs': data.get('logs', []),
+                    'line_count': data.get('line_count', 0),
+                    'timestamp': data.get('timestamp')
+                }
+            return {'status': False, 'logs': [f"Gagal mengambil log (HTTP {resp.status_code})"]}
+        except Exception as e:
+            return {'status': False, 'logs': [f"Gagal terhubung ke gateway log: {str(e)}"]}
+
+
 
     @staticmethod
     def send_notification(user=None, message='', phone_number=None, employee=None, category='general', title=None, force_mode=None):

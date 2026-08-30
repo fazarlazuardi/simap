@@ -417,4 +417,40 @@ def poll_chat_messages(request, recipient_id):
     })
 
 
+@login_required
+@user_passes_test(superuser_only)
+def wa_gateway_status(request):
+    """Proxy JSON status & QR image real-time dari WA Gateway Node.js (Port 3000)."""
+    status_data = WhatsAppService.get_gateway_status()
+    return JsonResponse(status_data)
+
+
+@login_required
+@user_passes_test(superuser_only)
+@require_POST
+def wa_gateway_restart(request):
+    """Proxy POST restart koneksi WA Gateway."""
+    success, msg = WhatsAppService.restart_gateway()
+    return JsonResponse({'success': success, 'message': msg})
+
+
+@login_required
+@user_passes_test(superuser_only)
+@require_POST
+def wa_gateway_disconnect(request):
+    """Proxy POST logout & reset sesi WA Gateway."""
+    success, msg = WhatsAppService.disconnect_gateway()
+    return JsonResponse({'success': success, 'message': msg})
+
+
+@login_required
+@user_passes_test(superuser_only)
+def wa_gateway_logs(request):
+    """Proxy JSON log real-time dari WA Gateway Node.js (Port 3000)."""
+    logs_data = WhatsAppService.get_gateway_logs()
+    return JsonResponse(logs_data)
+
+
+
+
 

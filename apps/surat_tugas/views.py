@@ -2,9 +2,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.db import transaction
 from django.db.models import Q
 from dispositions.models import Disposition
 from archives.models import Archive
+from notifications.tasks import task_trigger_surat_tugas_notifications
+
 
 from .forms import SuratTugasForm
 from .models import SuratTugas
@@ -114,29 +117,33 @@ def surat_create(request):
     if request.method == 'POST':
         form = SuratTugasForm(request.POST, request=request)
         if form.is_valid():
-            surat = form.save(commit=False)
-            
-            if disposition and not surat.disposition:
-                surat.disposition = disposition
-            elif archive and not surat.disposition and archive.dispositions.exists():
-                surat.disposition = archive.dispositions.order_by('-created_at').first()
+            with transaction.atomic():
+                surat = form.save(commit=False)
+                
+                if disposition and not surat.disposition:
+                    surat.disposition = disposition
+                elif archive and not surat.disposition and archive.dispositions.exists():
+                    surat.disposition = archive.dispositions.order_by('-created_at').first()
 
-            if archive:
-                if hasattr(surat, 'archive') and not surat.archive:
-                    surat.archive = archive
+                if archive:
+                    if hasattr(surat, 'archive') and not surat.archive:
+                        surat.archive = archive
 
-            if hasattr(surat, 'created_by') and not surat.created_by:
-                surat.created_by = request.user
-            
-            surat.save()
-            form.save_m2m()
+                if hasattr(surat, 'created_by') and not surat.created_by:
+                    surat.created_by = request.user
+                
+                surat.save()
+                form.save_m2m()
 
-            # Sinkronisasi status arsip terkait agar berubah menjadi sudah_ditugaskan
-            target_archive = getattr(surat, 'archive', None) or archive
-            if target_archive:
-                target_archive.status = 'sudah_ditugaskan'
-                target_archive.updated_at = timezone.now()
-                target_archive.save(update_fields=['status', 'updated_at'])
+                # Sinkronisasi status arsip terkait agar berubah menjadi sudah_ditugaskan
+                target_archive = getattr(surat, 'archive', None) or archive
+                if target_archive:
+                    target_archive.status = 'sudah_ditugaskan'
+                    target_archive.updated_at = timezone.now()
+                    target_archive.save(update_fields=['status', 'updated_at'])
+
+                st_pk_val = surat.pk
+                transaction.on_commit(lambda: task_trigger_surat_tugas_notifications.delay(st_pk_val))
 
             active_pov = request.session.get('active_pov')
             is_b2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
@@ -186,21 +193,25 @@ def surat_create_from_archive(request, pk):
     if request.method == 'POST':
         form = SuratTugasForm(request.POST, request=request)
         if form.is_valid():
-            surat = form.save(commit=False)
-            if disposition and not surat.disposition:
-                surat.disposition = disposition
-            if hasattr(surat, 'archive') and not surat.archive:
-                surat.archive = archive
+            with transaction.atomic():
+                surat = form.save(commit=False)
+                if disposition and not surat.disposition:
+                    surat.disposition = disposition
+                if hasattr(surat, 'archive') and not surat.archive:
+                    surat.archive = archive
 
-            if hasattr(surat, 'created_by') and not surat.created_by:
-                surat.created_by = request.user
-            
-            surat.save()
-            form.save_m2m()
+                if hasattr(surat, 'created_by') and not surat.created_by:
+                    surat.created_by = request.user
+                
+                surat.save()
+                form.save_m2m()
 
-            archive.status = 'sudah_ditugaskan'
-            archive.updated_at = timezone.now()
-            archive.save(update_fields=['status', 'updated_at'])
+                archive.status = 'sudah_ditugaskan'
+                archive.updated_at = timezone.now()
+                archive.save(update_fields=['status', 'updated_at'])
+
+                st_pk_val = surat.pk
+                transaction.on_commit(lambda: task_trigger_surat_tugas_notifications.delay(st_pk_val))
 
             active_pov = request.session.get('active_pov')
             is_b2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
@@ -268,25 +279,29 @@ def surat_create_from_disposition(request, disposition_id):
     if request.method == 'POST':
         form = SuratTugasForm(request.POST, request=request)
         if form.is_valid():
-            surat = form.save(commit=False)
-            surat.disposition = disposition
-            
-            # Hubungkan foreign key archive jika ada pada model SuratTugas
-            if archive and hasattr(surat, 'archive'):
-                surat.archive = archive
+            with transaction.atomic():
+                surat = form.save(commit=False)
+                surat.disposition = disposition
+                
+                # Hubungkan foreign key archive jika ada pada model SuratTugas
+                if archive and hasattr(surat, 'archive'):
+                    surat.archive = archive
 
-            if hasattr(surat, 'created_by') and not surat.created_by:
-                surat.created_by = request.user
-            
-            surat.save()
-            form.save_m2m()
+                if hasattr(surat, 'created_by') and not surat.created_by:
+                    surat.created_by = request.user
+                
+                surat.save()
+                form.save_m2m()
 
-            # Sinkronisasi status arsip terkait dari disposisi
-            target_archive = archive or getattr(disposition, 'archive', None)
-            if target_archive:
-                target_archive.status = 'sudah_ditugaskan'
-                target_archive.updated_at = timezone.now()
-                target_archive.save(update_fields=['status', 'updated_at'])
+                # Sinkronisasi status arsip terkait dari disposisi
+                target_archive = archive or getattr(disposition, 'archive', None)
+                if target_archive:
+                    target_archive.status = 'sudah_ditugaskan'
+                    target_archive.updated_at = timezone.now()
+                    target_archive.save(update_fields=['status', 'updated_at'])
+
+                st_pk_val = surat.pk
+                transaction.on_commit(lambda: task_trigger_surat_tugas_notifications.delay(st_pk_val))
 
             active_pov = request.session.get('active_pov')
             is_b2 = active_pov in ['waka_2', 'kabid_2'] or (not getattr(request.user, 'is_superadmin', False) and (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)))
@@ -327,8 +342,6 @@ def surat_create_from_disposition(request, disposition_id):
     return render(request, 'surat_tugas/create.html', context)
 
 
-
-
 @login_required
 def surat_update(request, pk):
     surat = get_object_or_404(SuratTugas, pk=pk)
@@ -343,13 +356,17 @@ def surat_update(request, pk):
     if request.method == 'POST':
         form = SuratTugasForm(request.POST, instance=surat)
         if form.is_valid():
-            form.save()
-            
-            # Pastikan status arsip tetap 'sudah_ditugaskan' ketika diperbarui
-            if target_archive:
-                target_archive.status = 'sudah_ditugaskan'
-                target_archive.updated_at = timezone.now()
-                target_archive.save(update_fields=['status', 'updated_at'])
+            with transaction.atomic():
+                form.save()
+                
+                # Pastikan status arsip tetap 'sudah_ditugaskan' ketika diperbarui
+                if target_archive:
+                    target_archive.status = 'sudah_ditugaskan'
+                    target_archive.updated_at = timezone.now()
+                    target_archive.save(update_fields=['status', 'updated_at'])
+
+                st_pk_val = surat.pk
+                transaction.on_commit(lambda: task_trigger_surat_tugas_notifications.delay(st_pk_val))
 
             messages.success(request, 'Surat Tugas berhasil diperbarui.')
             
@@ -358,6 +375,7 @@ def surat_update(request, pk):
             return redirect('surat_tugas:detail', pk=surat.pk)
     else:
         form = SuratTugasForm(instance=surat)
+
 
     return render(request, 'surat_tugas/create.html', {
         'form': form,

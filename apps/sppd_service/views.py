@@ -3,9 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Prefetch
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.core.cache import cache
+from notifications.tasks import task_trigger_sppd_notifications
+
 
 from .models import SPPD, SPPDAttachment
 from archives.models import Archive
@@ -429,10 +431,11 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
                 import logging
                 logging.getLogger(__name__).exception("Auto agenda registration notice: %s", ae)
 
-        import threading
-        threading.Thread(target=NotificationService.send_sppd_notification_auto_by_id, args=(sppd.id,), daemon=True).start()
+            sppd_id_val = sppd.id
+            transaction.on_commit(lambda: task_trigger_sppd_notifications.delay(sppd_id_val))
 
         messages.success(request, f"SPPD {sppd_number} berhasil diterbitkan & siap dicetak!")
+
         from django.urls import reverse
         return redirect(f"{reverse('sppd_service:print')}?id={sppd.id}")
 
@@ -568,70 +571,75 @@ def sppd_edit(request, pk):
     dispo = sppd.disposition
 
     if request.method == 'POST':
-        sppd.sppd_number = request.POST.get('sppd_number')
-        sppd.destination = request.POST.get('destination')
-        sppd.purpose = (request.POST.get('purpose') or sppd.purpose or '').strip()
-        sppd.departure_date = request.POST.get('departure_date')
-        sppd.return_date = request.POST.get('return_date')
-        sppd.transportation = request.POST.get('transportation')
-        assigned_ids = request.POST.getlist('assigned_employees')
-        sppd.save()
-        sppd.assigned_employees.set(Employee.objects.filter(id__in=assigned_ids))
+        with transaction.atomic():
+            sppd.sppd_number = request.POST.get('sppd_number')
+            sppd.destination = request.POST.get('destination')
+            sppd.purpose = (request.POST.get('purpose') or sppd.purpose or '').strip()
+            sppd.departure_date = request.POST.get('departure_date')
+            sppd.return_date = request.POST.get('return_date')
+            sppd.transportation = request.POST.get('transportation')
+            assigned_ids = request.POST.getlist('assigned_employees')
+            sppd.save()
+            sppd.assigned_employees.set(Employee.objects.filter(id__in=assigned_ids))
 
-        follower_ids = request.POST.getlist('followers')
-        sppd.followers.set(Employee.objects.filter(id__in=follower_ids))
+            follower_ids = request.POST.getlist('followers')
+            sppd.followers.set(Employee.objects.filter(id__in=follower_ids))
 
-        try:
-            from datetime import datetime, time, date
-            d_date = sppd.departure_date
-            r_date = sppd.return_date
-            sch_date = d_date if isinstance(d_date, date) else datetime.strptime(str(d_date), '%Y-%m-%d').date()
-            ret_date = r_date if isinstance(r_date, date) else datetime.strptime(str(r_date), '%Y-%m-%d').date()
-            raw_dt = datetime.combine(sch_date, time(8, 0))
             try:
-                sch_datetime = timezone.make_aware(raw_dt)
-            except Exception:
-                sch_datetime = raw_dt
+                from datetime import datetime, time, date
+                d_date = sppd.departure_date
+                r_date = sppd.return_date
+                sch_date = d_date if isinstance(d_date, date) else datetime.strptime(str(d_date), '%Y-%m-%d').date()
+                ret_date = r_date if isinstance(r_date, date) else datetime.strptime(str(r_date), '%Y-%m-%d').date()
+                raw_dt = datetime.combine(sch_date, time(8, 0))
+                try:
+                    sch_datetime = timezone.make_aware(raw_dt)
+                except Exception:
+                    sch_datetime = raw_dt
 
-            tgl_str = sch_date.strftime('%d/%m/%Y') if sch_date == ret_date else f"{sch_date.strftime('%d/%m/%Y')} s/d {ret_date.strftime('%d/%m/%Y')}"
+                tgl_str = sch_date.strftime('%d/%m/%Y') if sch_date == ret_date else f"{sch_date.strftime('%d/%m/%Y')} s/d {ret_date.strftime('%d/%m/%Y')}"
 
-            purpose = sppd.purpose or (dispo.archive.title if (dispo and dispo.archive) else sppd.destination)
-            agenda_title = f"SPPD: {purpose}" if len(purpose) <= 70 else f"SPPD: {purpose[:67]}..."
-            agenda_desc = f"Perjalanan Dinas SPPD {sppd.sppd_number} ke {sppd.destination} ({tgl_str}). Maksud Keberangkatan SPPD: {purpose}"
+                purpose = sppd.purpose or (dispo.archive.title if (dispo and dispo.archive) else sppd.destination)
+                agenda_title = f"SPPD: {purpose}" if len(purpose) <= 70 else f"SPPD: {purpose[:67]}..."
+                agenda_desc = f"Perjalanan Dinas SPPD {sppd.sppd_number} ke {sppd.destination} ({tgl_str}). Maksud Keberangkatan SPPD: {purpose}"
 
-            agenda = Agenda.objects.filter(description__icontains=sppd.sppd_number).first()
-            
-            if not agenda:
-                agenda = Agenda.objects.create(
-                    title=agenda_title,
-                    location=sppd.destination,
-                    description=agenda_desc,
-                    archive=dispo.archive if dispo else None,
-                    scheduled_at=sch_datetime,
-                    created_by=request.user,
-                    status='terjadwal',
-                )
-            else:
-                agenda.title = agenda_title
-                agenda.location = sppd.destination
-                agenda.description = agenda_desc
-                agenda.scheduled_at = sch_datetime
-                agenda.status = 'terjadwal'
-                agenda.save()
+                agenda = Agenda.objects.filter(description__icontains=sppd.sppd_number).first()
+                
+                if not agenda:
+                    agenda = Agenda.objects.create(
+                        title=agenda_title,
+                        location=sppd.destination,
+                        description=agenda_desc,
+                        archive=dispo.archive if dispo else None,
+                        scheduled_at=sch_datetime,
+                        created_by=request.user,
+                        status='terjadwal',
+                    )
+                else:
+                    agenda.title = agenda_title
+                    agenda.location = sppd.destination
+                    agenda.description = agenda_desc
+                    agenda.scheduled_at = sch_datetime
+                    agenda.status = 'terjadwal'
+                    agenda.save()
 
-            agenda.sppd_ref = sppd
-            if sppd.assigned_employees.exists():
-                agenda.assigned_employees.set(sppd.assigned_employees.all())
-                from users.models import User
-                user_ids = list(User.objects.filter(employee__in=sppd.assigned_employees.all()).values_list('id', flat=True))
-                if user_ids:
-                    agenda.assigned_to.set(user_ids)
-        except Exception as ae:
-            import logging
-            logging.getLogger(__name__).exception("Agenda update sync notice: %s", ae)
+                agenda.sppd_ref = sppd
+                if sppd.assigned_employees.exists():
+                    agenda.assigned_employees.set(sppd.assigned_employees.all())
+                    from users.models import User
+                    user_ids = list(User.objects.filter(employee__in=sppd.assigned_employees.all()).values_list('id', flat=True))
+                    if user_ids:
+                        agenda.assigned_to.set(user_ids)
+            except Exception as ae:
+                import logging
+                logging.getLogger(__name__).exception("Agenda update sync notice: %s", ae)
+
+            sppd_id_val = sppd.id
+            transaction.on_commit(lambda: task_trigger_sppd_notifications.delay(sppd_id_val))
 
         messages.success(request, f"SPPD {sppd.sppd_number} berhasil diperbarui.")
         return redirect('sppd_service:list')
+
 
     st = sppd.surat_tugas
     if not st and dispo:

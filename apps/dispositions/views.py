@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q
 from .models import Disposition
 from archives.models import Archive
@@ -14,6 +15,8 @@ from services.integrations.gateway_service import WhatsAppService
 from services.audit_logs.audit_service import AuditService
 from services.archives.numbering_service import NumberingService
 from users.decorators import pimpinan_required
+from notifications.tasks import task_trigger_disposisi_notifications
+
 
 
 def _resolve_sender_label(user, stage):
@@ -161,79 +164,84 @@ def disposition_edit(request, pk):
     archive = dispo.archive
 
     if request.method == 'POST':
-        dispo.disposition_number = request.POST.get('disposition_number') or dispo.disposition_number
-        dispo.priority = request.POST.get('priority')
-        dispo.note = request.POST.get('note', '')
-        imp_date = request.POST.get('implementation_date') or request.POST.get('target_date')
-        if imp_date:
-            dispo.implementation_date = imp_date
-        dispo.inst_selesaikan = 'inst_selesaikan' in request.POST
-        dispo.inst_untuk_diketahui = 'inst_untuk_diketahui' in request.POST
-        dispo.inst_laporkan_hasilnya = 'inst_laporkan_hasilnya' in request.POST
-        dispo.inst_koordinasikan = 'inst_koordinasikan' in request.POST
+        with transaction.atomic():
+            dispo.disposition_number = request.POST.get('disposition_number') or dispo.disposition_number
+            dispo.priority = request.POST.get('priority')
+            dispo.note = request.POST.get('note', '')
+            imp_date = request.POST.get('implementation_date') or request.POST.get('target_date')
+            if imp_date:
+                dispo.implementation_date = imp_date
+            dispo.inst_selesaikan = 'inst_selesaikan' in request.POST
+            dispo.inst_untuk_diketahui = 'inst_untuk_diketahui' in request.POST
+            dispo.inst_laporkan_hasilnya = 'inst_laporkan_hasilnya' in request.POST
+            dispo.inst_koordinasikan = 'inst_koordinasikan' in request.POST
 
-        forwarded_emp_ids = request.POST.getlist('forwarded_to')
-        forwarded_emps = Employee.objects.filter(id__in=forwarded_emp_ids)
-        dispo.forwarded_to.set(forwarded_emps)
+            forwarded_emp_ids = request.POST.getlist('forwarded_to')
+            forwarded_emps = Employee.objects.filter(id__in=forwarded_emp_ids)
+            dispo.forwarded_to.set(forwarded_emps)
 
-        # Cek apakah penerima disposisi Ketua mencakup Waka IV / Bidang IV
-        has_waka_4_target = False
-        for emp in forwarded_emps:
-            pos_lower = (emp.position or '').lower()
-            lead_type = getattr(emp, 'leadership_type', '')
-            if lead_type == 'waka_4' or any(kw in pos_lower for kw in ['waka iv', 'waka 4', 'wakil ketua iv', 'wakil ketua 4', 'bidang iv', 'bidang 4']):
-                has_waka_4_target = True
-                break
+            # Cek apakah penerima disposisi Ketua mencakup Waka IV / Bidang IV
+            has_waka_4_target = False
+            for emp in forwarded_emps:
+                pos_lower = (emp.position or '').lower()
+                lead_type = getattr(emp, 'leadership_type', '')
+                if lead_type == 'waka_4' or any(kw in pos_lower for kw in ['waka iv', 'waka 4', 'wakil ketua iv', 'wakil ketua 4', 'bidang iv', 'bidang 4']):
+                    has_waka_4_target = True
+                    break
 
-        # Tentukan sender_label Ketua
-        dispo.sender_label = _resolve_sender_label(request.user, 'ketua')
+            # Tentukan sender_label Ketua
+            dispo.sender_label = _resolve_sender_label(request.user, 'ketua')
 
-        # Logika Cerdas: Jika Disposisi Ketua di-edit dan sebelumnya sudah ada Disposisi Waka IV
-        had_waka_dispo = bool(dispo.waka_note or dispo.waka_forwarded_to.exists() or dispo.disposition_stage == 'waka_iv')
-        if had_waka_dispo:
-            if not has_waka_4_target:
-                # Ketua mendisposisikan langsung ke Waka/Bidang lain (misal Waka III / Waka II) tanpa melalui Waka IV -> Batalkan/Hapus disposisi Waka IV lama
-                dispo.waka_note = ''
-                dispo.waka_forwarded_to.clear()
-                dispo.waka_inst_selesaikan = False
-                dispo.waka_inst_untuk_diketahui = False
-                dispo.waka_inst_laporkan_hasilnya = False
-                dispo.waka_inst_koordinasikan = False
-                dispo.disposition_stage = 'ketua'
-                dispo.status = 'didisposisi_ketua'
-                messages.info(request, "Disposisi Ketua diperbarui ke unit lain. Disposisi Waka IV sebelumnya otomatis dibatalkan/dihapus.")
+            # Logika Cerdas: Jika Disposisi Ketua di-edit dan sebelumnya sudah ada Disposisi Waka IV
+            had_waka_dispo = bool(dispo.waka_note or dispo.waka_forwarded_to.exists() or dispo.disposition_stage == 'waka_iv')
+            if had_waka_dispo:
+                if not has_waka_4_target:
+                    # Ketua mendisposisikan langsung ke Waka/Bidang lain (misal Waka III / Waka II) tanpa melalui Waka IV -> Batalkan/Hapus disposisi Waka IV lama
+                    dispo.waka_note = ''
+                    dispo.waka_forwarded_to.clear()
+                    dispo.waka_inst_selesaikan = False
+                    dispo.waka_inst_untuk_diketahui = False
+                    dispo.waka_inst_laporkan_hasilnya = False
+                    dispo.waka_inst_koordinasikan = False
+                    dispo.disposition_stage = 'ketua'
+                    dispo.status = 'didisposisi_ketua'
+                    messages.info(request, "Disposisi Ketua diperbarui ke unit lain. Disposisi Waka IV sebelumnya otomatis dibatalkan/dihapus.")
+                else:
+                    # Waka IV masih menjadi tujuan, reset status ke 'didisposisi_ketua' agar Waka IV dapat memperbarui arahan
+                    dispo.disposition_stage = 'ketua'
+                    dispo.status = 'didisposisi_ketua'
+                    messages.info(request, "Disposisi Ketua diperbarui. Disposisi Waka IV dikembalikan ke status 'Menunggu Waka IV' untuk penyesuaian.")
             else:
-                # Waka IV masih menjadi tujuan, reset status ke 'didisposisi_ketua' agar Waka IV dapat memperbarui arahan
-                dispo.disposition_stage = 'ketua'
-                dispo.status = 'didisposisi_ketua'
-                messages.info(request, "Disposisi Ketua diperbarui. Disposisi Waka IV dikembalikan ke status 'Menunggu Waka IV' untuk penyesuaian.")
-        else:
-            if dispo.status == 'baru':
-                dispo.disposition_stage = 'ketua'
-                dispo.status = 'didisposisi_ketua'
+                if dispo.status == 'baru':
+                    dispo.disposition_stage = 'ketua'
+                    dispo.status = 'didisposisi_ketua'
 
-        if archive:
-            archive.status = 'didisposisikan'
-            archive.save(update_fields=['status', 'updated_at'])
+            if archive:
+                archive.status = 'didisposisikan'
+                archive.save(update_fields=['status', 'updated_at'])
 
-        dispo.save()
+            dispo.save()
 
-        # Otomatis tandai notifikasi pengisian disposisi ini sebagai sudah dibaca ('read')
-        from notifications.models import Notification
-        if archive:
-            Notification.objects.filter(
-                category='disposition',
-                link_url=f"/dispositions/{archive.pk}/create/"
-            ).update(status='read')
+            # Otomatis tandai notifikasi pengisian disposisi ini sebagai sudah dibaca ('read')
+            from notifications.models import Notification
+            if archive:
+                Notification.objects.filter(
+                    category='disposition',
+                    link_url=f"/dispositions/{archive.pk}/create/"
+                ).update(status='read')
 
-        # Kirim notifikasi sistem lonceng & bantuan ke Waka & Kabid bidang terkait
-        from services.notifications.notification_service import NotificationService
-        NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
-        NotificationService.send_disposition_system_notifications(dispo, stage='ketua', actor=request.user)
+            # Kirim notifikasi sistem lonceng & bantuan ke Waka & Kabid bidang terkait
+            from services.notifications.notification_service import NotificationService
+            NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
+            NotificationService.send_disposition_system_notifications(dispo, stage='ketua', actor=request.user)
+
+            dispo_pk_val = dispo.pk
+            transaction.on_commit(lambda: task_trigger_disposisi_notifications.delay(dispo_pk_val))
 
         AuditService.log_action(request.user, f"Edit Disposisi Ketua: {dispo.disposition_number}", request)
         messages.success(request, f"Disposisi Ketua ({dispo.disposition_number}) berhasil diperbarui.")
         return redirect(f"/dispositions/?dispo_success_id={dispo.pk}")
+
 
     employees = Employee.objects.select_related('user_account', 'dept_relation').order_by('full_name')
     generated_disp_no = dispo.disposition_number
@@ -273,72 +281,37 @@ def disposition_waka_edit(request, pk):
     waka_label = _resolve_sender_label(request.user, 'waka_iv')
 
     if request.method == 'POST':
-        dispo.waka_note = request.POST.get('waka_note', '')
-        imp_date = request.POST.get('implementation_date')
-        if imp_date:
-            dispo.implementation_date = imp_date
-        dispo.waka_inst_selesaikan = 'waka_inst_selesaikan' in request.POST
-        dispo.waka_inst_untuk_diketahui = 'waka_inst_untuk_diketahui' in request.POST
-        dispo.waka_inst_laporkan_hasilnya = 'waka_inst_laporkan_hasilnya' in request.POST
-        dispo.waka_inst_koordinasikan = 'waka_inst_koordinasikan' in request.POST
+        with transaction.atomic():
+            dispo.waka_note = request.POST.get('waka_note', '')
+            imp_date = request.POST.get('implementation_date')
+            if imp_date:
+                dispo.implementation_date = imp_date
+            dispo.waka_inst_selesaikan = 'waka_inst_selesaikan' in request.POST
+            dispo.waka_inst_untuk_diketahui = 'waka_inst_untuk_diketahui' in request.POST
+            dispo.waka_inst_laporkan_hasilnya = 'waka_inst_laporkan_hasilnya' in request.POST
+            dispo.waka_inst_koordinasikan = 'waka_inst_koordinasikan' in request.POST
 
-        waka_fwd_ids = request.POST.getlist('waka_forwarded_to')
-        dispo.waka_forwarded_to.set(Employee.objects.filter(id__in=waka_fwd_ids))
+            waka_fwd_ids = request.POST.getlist('waka_forwarded_to')
+            dispo.waka_forwarded_to.set(Employee.objects.filter(id__in=waka_fwd_ids))
 
-        # Update stage ke waka_iv, status ke proses jika sebelumnya baru didisposisi ketua
-        if dispo.status == 'didisposisi_ketua':
-            dispo.disposition_stage = 'waka_iv'
-            dispo.status = 'proses'
+            # Update stage ke waka_iv, status ke proses jika sebelumnya baru didisposisi ketua
+            if dispo.status == 'didisposisi_ketua':
+                dispo.disposition_stage = 'waka_iv'
+                dispo.status = 'proses'
 
-            if archive:
-                archive.status = 'proses'
-                archive.save(update_fields=['status', 'updated_at'])
+                if archive:
+                    archive.status = 'proses'
+                    archive.save(update_fields=['status', 'updated_at'])
 
-        dispo.save()
+            dispo.save()
 
-        # Kirim notifikasi sistem lonceng & bantuan ke Waka & Kabid bidang terkait
-        from services.notifications.notification_service import NotificationService
-        NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
-        NotificationService.send_disposition_system_notifications(dispo, stage='waka_iv', actor=request.user)
+            # Kirim notifikasi sistem lonceng & bantuan ke Waka & Kabid bidang terkait
+            from services.notifications.notification_service import NotificationService
+            NotificationService.notify_bidang2_for_bantuan_document(archive, dispo)
+            NotificationService.send_disposition_system_notifications(dispo, stage='waka_iv', actor=request.user)
 
-        # Notif WA ke penerima Waka
-        try:
-            dispo_id_val = dispo.pk
-            waka_label_val = waka_label
-            file_url_val = request.build_absolute_uri(archive.file_path.url) if archive and archive.file_path else "—"
-            archive_title_val = archive.title if archive else "—"
-
-            import threading
-            def _send_waka_notif():
-                from django.db import connections
-                connections.close_all()
-                try:
-                    from dispositions.models import Disposition
-                    d = Disposition.objects.filter(pk=dispo_id_val).first()
-                    if not d:
-                        return
-                    msg = (
-                        f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
-                        f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
-                        f"Pemberitahuan arahan disposisi dari Wakil Ketua IV:\n\n"
-                        f"• *No. Disposisi:* {d.disposition_number or '—'}\n"
-                        f"• *Perihal:* {archive_title_val}\n"
-                        f"• *Pengirim:* {waka_label_val}\n"
-                        f"• *Arahan Waka IV:* {(d.waka_note or '—')[:200]}\n"
-                        f"• *Berkas Digital:* {file_url_val}\n\n"
-                        f"Mohon untuk dapat segera ditindaklanjuti sesuai petunjuk.\n\n"
-                        f"Terima kasih.\n"
-                        f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
-                    )
-                    for emp in d.waka_forwarded_to.all():
-                        WhatsAppService.send_notification(user=getattr(emp, 'user_account', None), message=msg, employee=emp, category='disposition', title="Disposisi Waka IV")
-                except Exception:
-                    pass
-                finally:
-                    connections.close_all()
-            threading.Thread(target=_send_waka_notif, daemon=True).start()
-        except Exception:
-            pass
+            dispo_pk_val = dispo.pk
+            transaction.on_commit(lambda: task_trigger_disposisi_notifications.delay(dispo_pk_val))
 
         AuditService.log_action(request.user, f"Disposisi Waka IV: {dispo.disposition_number}", request)
         messages.success(request, f"Disposisi Waka IV berhasil dikirim atas nama: {waka_label}")
@@ -369,56 +342,14 @@ def disposition_verify(request, pk):
         messages.warning(request, "Status disposisi tidak memungkinkan verifikasi.")
         return redirect('dispositions:list')
 
-    archive = dispo.archive
-    archive.status = 'proses'
-    archive.save()
+    with transaction.atomic():
+        archive = dispo.archive
+        archive.status = 'proses'
+        archive.save()
 
-    dispo_id_val = dispo.pk
-    file_url_val = request.build_absolute_uri(archive.file_path.url) if archive.file_path else "Tidak ada berkas"
-    archive_num_val = archive.archive_number or '—'
-    archive_title_val = archive.title
+        dispo_pk_val = dispo.pk
+        transaction.on_commit(lambda: task_trigger_disposisi_notifications.delay(dispo_pk_val))
 
-    import threading
-    def async_post_verify():
-        from django.db import connections
-        connections.close_all()
-        try:
-            from dispositions.models import Disposition
-            d = Disposition.objects.filter(pk=dispo_id_val).first()
-            if not d:
-                return
-            inst_list = []
-            if d.inst_selesaikan: inst_list.append("✅ Selesaikan / Jawab")
-            if d.inst_untuk_diketahui: inst_list.append("📋 Untuk diketahui / simpan")
-            if d.inst_laporkan_hasilnya: inst_list.append("📊 Laporkan hasilnya")
-            if d.inst_koordinasikan: inst_list.append("🤝 Koordinasikan")
-            instruksi = "\n".join(inst_list) if inst_list else "—"
-            penerima = ', '.join(emp.full_name for emp in d.forwarded_to.all()) or "—"
-            msg = (
-                f"Assalamu'alaikum Warahmatullahi Wabarakatuh,\n\n"
-                f"Yth. Bapak/Ibu Amil BAZNAS Kabupaten Tangerang,\n\n"
-                f"Pemberitahuan disposisi baru dari Pimpinan BAZNAS:\n\n"
-                f"• *No. Arsip:* {archive_num_val}\n"
-                f"• *Perihal:* {archive_title_val}\n"
-                f"• *Pimpinan:* {d.sender_label or d.display_sender_name}\n"
-                f"• *Penerima:* {penerima}\n"
-                f"• *Instruksi:* {instruksi}\n"
-                f"• *Berkas Digital:* {file_url_val}\n\n"
-                f"Silakan login ke sistem SIMAP BAZNAS untuk mempelajari berkas dan menindaklanjuti arahan Pimpinan.\n\n"
-                f"Terima kasih.\n"
-                f"Wassalamu'alaikum Warahmatullahi Wabarakatuh."
-            )
-            forwarded_emps = list(d.forwarded_to.all())
-            user_map = {u.employee_id: u for u in User.objects.filter(employee__in=forwarded_emps)}
-            for emp in forwarded_emps:
-                user = user_map.get(emp.pk)
-                WhatsAppService.send_notification(user=user, message=msg, employee=emp, category='disposition', title="Disposisi Pimpinan")
-        except Exception:
-            pass
-        finally:
-            connections.close_all()
-
-    threading.Thread(target=async_post_verify, daemon=True).start()
     AuditService.log_action(request.user, f"Verifikasi Disposisi: {archive.archive_number}", request)
     messages.success(request, "Disposisi berhasil diverifikasi.")
     return redirect('dispositions:list')
@@ -451,47 +382,52 @@ def disposition_create(request, archive_pk):
 
     # PROSES FORM DISPOSISI KETUA SAAT USER MENEKAN SIMPAN (POST)
     if request.method == 'POST':
-        from services.archives.numbering_service import NumberingService
-        dispo_number = request.POST.get('disposition_number') or NumberingService.generate_number('disposition')
-        
-        if not existing:
-            dispo = Disposition.objects.create(
-                archive=archive,
-                sender=request.user,
-                disposition_number=dispo_number,
-                sender_label=_resolve_sender_label(request.user, 'ketua'),
-                disposition_stage='ketua',
-                status='didisposisi_ketua',
-            )
-        else:
-            dispo = existing
-            dispo.disposition_number = dispo_number or dispo.disposition_number
-            dispo.status = 'didisposisi_ketua'
+        with transaction.atomic():
+            from services.archives.numbering_service import NumberingService
+            dispo_number = request.POST.get('disposition_number') or NumberingService.generate_number('disposition')
+            
+            if not existing:
+                dispo = Disposition.objects.create(
+                    archive=archive,
+                    sender=request.user,
+                    disposition_number=dispo_number,
+                    sender_label=_resolve_sender_label(request.user, 'ketua'),
+                    disposition_stage='ketua',
+                    status='didisposisi_ketua',
+                )
+            else:
+                dispo = existing
+                dispo.disposition_number = dispo_number or dispo.disposition_number
+                dispo.status = 'didisposisi_ketua'
 
-        dispo.priority = request.POST.get('priority', 'biasa')
-        dispo.note = request.POST.get('note', '')
-        imp_date = request.POST.get('target_date') or request.POST.get('implementation_date')
-        if imp_date:
-            dispo.implementation_date = imp_date
-        dispo.inst_selesaikan = 'inst_selesaikan' in request.POST
-        dispo.inst_untuk_diketahui = 'inst_untuk_diketahui' in request.POST
-        dispo.inst_laporkan_hasilnya = 'inst_laporkan_hasilnya' in request.POST
-        dispo.inst_koordinasikan = 'inst_koordinasikan' in request.POST
+            dispo.priority = request.POST.get('priority', 'biasa')
+            dispo.note = request.POST.get('note', '')
+            imp_date = request.POST.get('target_date') or request.POST.get('implementation_date')
+            if imp_date:
+                dispo.implementation_date = imp_date
+            dispo.inst_selesaikan = 'inst_selesaikan' in request.POST
+            dispo.inst_untuk_diketahui = 'inst_untuk_diketahui' in request.POST
+            dispo.inst_laporkan_hasilnya = 'inst_laporkan_hasilnya' in request.POST
+            dispo.inst_koordinasikan = 'inst_koordinasikan' in request.POST
 
-        forwarded_emp_ids = request.POST.getlist('forwarded_to')
-        dispo.forwarded_to.set(Employee.objects.filter(id__in=forwarded_emp_ids))
-        dispo.save()
+            forwarded_emp_ids = request.POST.getlist('forwarded_to')
+            dispo.forwarded_to.set(Employee.objects.filter(id__in=forwarded_emp_ids))
+            dispo.save()
 
-        archive.status = 'didisposisikan'
-        archive.save(update_fields=['status', 'updated_at'])
+            archive.status = 'didisposisikan'
+            archive.save(update_fields=['status', 'updated_at'])
 
-        # Kirim notifikasi lonceng ke Waka & Kabid bidang terkait
-        from services.notifications.notification_service import NotificationService
-        NotificationService.send_disposition_system_notifications(dispo, stage='ketua', actor=request.user)
+            # Kirim notifikasi lonceng ke Waka & Kabid bidang terkait
+            from services.notifications.notification_service import NotificationService
+            NotificationService.send_disposition_system_notifications(dispo, stage='ketua', actor=request.user)
+
+            dispo_pk_val = dispo.pk
+            transaction.on_commit(lambda: task_trigger_disposisi_notifications.delay(dispo_pk_val))
 
         AuditService.log_action(request.user, f"Buat Disposisi Ketua: {dispo.disposition_number}", request)
         messages.success(request, f"Disposisi Ketua ({dispo.disposition_number}) berhasil disimpan.")
         return redirect(f"/dispositions/?dispo_success_id={dispo.pk}")
+
 
     # JIKA HANYA TAMPILKAN FORM (GET): TIDAK SIMPAN DISPOSISI DRAFT AGAR STATUS ARSIP TIDAK BERUBAH JIKA BATAL
     employees = Employee.objects.select_related('user_account', 'dept_relation').order_by('full_name')

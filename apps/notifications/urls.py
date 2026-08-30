@@ -14,6 +14,14 @@ urlpatterns = [
     path('wa-outbox/<int:pk>/resend/', views.resend_wa_notification, name='resend_wa'),
     path('wa-outbox/<int:pk>/delete/', views.delete_wa_notification, name='delete_wa'),
 
+    # WA Gateway Microservice Proxy API Endpoints (Real-time Status, QR, Logs & 1-Click Control)
+    path('wa-gateway/status/', views.wa_gateway_status, name='wa_gateway_status'),
+    path('wa-gateway/restart/', views.wa_gateway_restart, name='wa_gateway_restart'),
+    path('wa-gateway/disconnect/', views.wa_gateway_disconnect, name='wa_gateway_disconnect'),
+    path('wa-gateway/logs/', views.wa_gateway_logs, name='wa_gateway_logs'),
+
+
+
     # Interactive Amil Direct Messaging & Chat Room
     path('chat/', views.chat_inbox, name='chat_inbox'),
     path('chat/<int:recipient_id>/', views.chat_inbox, name='chat_inbox_user'),
