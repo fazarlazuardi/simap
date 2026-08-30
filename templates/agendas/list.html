@@ -1887,7 +1887,22 @@ function simapCalendar() {
     };
 }
 
+// ⚡ REGISTER GLOBALLY FOR HTMX SPA SWAPS & ALPINE JS ⚡
+window.simapCalendar = simapCalendar;
+if (window.Alpine) {
+    try { window.Alpine.data('simapCalendar', simapCalendar); } catch(e) {}
+}
+
 function initAgendasPage() {
+    // 0. Ensure Alpine recognizes simapCalendar component on HTMX SPA dynamic swaps
+    if (window.Alpine) {
+        try { window.Alpine.data('simapCalendar', simapCalendar); } catch(e) {}
+        const calendarEl = document.querySelector('[x-data="simapCalendar()"]');
+        if (calendarEl && window.Alpine.initTree) {
+            window.Alpine.initTree(calendarEl);
+        }
+    }
+
     // 1. DataTables Init
     if (window.jQuery && $('#agendaTable').length) {
         if ($.fn.DataTable.isDataTable('#agendaTable')) {
@@ -1937,6 +1952,9 @@ function initAgendasPage() {
 
 window.initAgendasPage = initAgendasPage;
 document.addEventListener('DOMContentLoaded', initAgendasPage);
+document.addEventListener('htmx:afterSettle', function() {
+    setTimeout(initAgendasPage, 50);
+});
 initAgendasPage();
 
 
