@@ -306,6 +306,7 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/id.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="{% static 'js/enterprise-core.js' %}?v=2.6"></script>
 
   <script>
@@ -314,6 +315,23 @@
               e.preventDefault();
               if (window.toggleThemeGlobal) window.toggleThemeGlobal();
           });
+
+          // Trigger Global Enterprise Notification Toast for Django Flash Messages
+          {% if messages %}
+          {% for message in messages %}
+              var iconType = 'info';
+              {% if message.tags == 'error' or message.tags == 'danger' %}
+                  iconType = 'error';
+              {% elif message.tags == 'success' %}
+                  iconType = 'success';
+              {% elif message.tags == 'warning' %}
+                  iconType = 'warning';
+              {% endif %}
+              if (window.showEnterpriseNotificationToast) {
+                  window.showEnterpriseNotificationToast('Notifikasi Sistem', '{{ message|escapejs }}', iconType);
+              }
+          {% endfor %}
+          {% endif %}
 
           // Global Real-time Unread Chat & Notification Polling Engine
           var lastGlobalTotalCount = null;

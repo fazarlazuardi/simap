@@ -1902,3 +1902,92 @@ html, body {
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2) !important;
 }
 
+/* ==========================================================================
+   5. FUTURISTIC GLASSMORPHISM ENTERPRISE TOAST POPUP SYSTEM
+   ========================================================================== */
+.swal2-container.swal2-bottom-end,
+.swal2-container.swal2-top-end {
+  padding: 1.25rem !important;
+  z-index: 999999 !important;
+}
+
+.simap-futuristic-toast {
+  background: rgba(15, 23, 42, 0.92) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6),
+              0 0 25px rgba(16, 185, 129, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  padding: 0.9rem 1.1rem !important;
+  color: #f8fafc !important;
+  font-family: var(--font-sans) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.85rem !important;
+  overflow: hidden !important;
+  position: relative !important;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  min-width: 320px !important;
+  max-width: 420px !important;
+}
+
+.simap-futuristic-toast:hover {
+  transform: translateY(-4px) scale(1.02) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7),
+              0 0 35px rgba(16, 185, 129, 0.4) !important;
+}
+
+.simap-futuristic-toast .swal2-close {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 1.25rem !important;
+  margin: 0 !important;
+  padding: 0.25rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.simap-futuristic-toast .swal2-close:hover {
+  color: #ffffff !important;
+}
+
+/* Status Variations */
+.simap-futuristic-toast.toast-success {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 25px rgba(16, 185, 129, 0.3) !important;
+}
+
+.simap-futuristic-toast.toast-error {
+  border-color: rgba(244, 63, 94, 0.5) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 25px rgba(244, 63, 94, 0.3) !important;
+}
+
+.simap-futuristic-toast.toast-warning {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 25px rgba(245, 158, 11, 0.3) !important;
+}
+
+.simap-futuristic-toast.toast-info {
+  border-color: rgba(14, 165, 233, 0.5) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 25px rgba(14, 165, 233, 0.3) !important;
+}
+
+/* Custom Progress Bar Glow */
+.simap-futuristic-toast .swal2-timer-progress-bar {
+  background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7) !important;
+  height: 3px !important;
+  border-radius: 9999px !important;
+}
+
+.simap-futuristic-toast.toast-error .swal2-timer-progress-bar {
+  background: linear-gradient(90deg, #f43f5e, #fb7185, #fda4af) !important;
+}
+
+.simap-futuristic-toast.toast-warning .swal2-timer-progress-bar {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24, #fde68a) !important;
+}
+
+.simap-futuristic-toast.toast-info .swal2-timer-progress-bar {
+  background: linear-gradient(90deg, #0ea5e9, #38bdf8, #7dd3fc) !important;
+}
+

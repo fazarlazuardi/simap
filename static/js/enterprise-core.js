@@ -345,22 +345,65 @@ window.showEnterpriseNotificationToast = function(title, body, icon = 'info', li
     }
     
     if (window.Swal) {
+        let themeClass = 'toast-info';
+        let headerBadge = 'NOTIFIKASI SISTEM';
+        let iconSvg = '<i class="bi bi-info-circle-fill text-sky-400 text-lg"></i>';
+        
+        if (icon === 'success') {
+            themeClass = 'toast-success';
+            headerBadge = 'BERHASIL';
+            iconSvg = '<i class="bi bi-check-circle-fill text-emerald-400 text-lg"></i>';
+        } else if (icon === 'error' || icon === 'danger') {
+            themeClass = 'toast-error';
+            headerBadge = 'PERINGATAN EROR';
+            iconSvg = '<i class="bi bi-x-circle-fill text-rose-400 text-lg"></i>';
+        } else if (icon === 'warning') {
+            themeClass = 'toast-warning';
+            headerBadge = 'PERHATIAN';
+            iconSvg = '<i class="bi bi-exclamation-triangle-fill text-amber-400 text-lg"></i>';
+        }
+
+        const displayTitle = title || 'Notifikasi Sistem';
+        const displayBody = body || '';
+
+        const htmlContent = `
+            <div class="flex items-start gap-3.5 w-full text-left">
+                <div class="shrink-0 w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner mt-0.5">
+                    ${iconSvg}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <span class="text-[9px] font-black tracking-widest uppercase font-mono px-2 py-0.5 rounded-md bg-white/10 text-white/90 border border-white/15">
+                            ${headerBadge}
+                        </span>
+                        <span class="text-[10px] text-white/50 font-mono font-bold tracking-tight">SIMAP BAZNAS</span>
+                    </div>
+                    <h5 class="text-xs font-black text-white m-0 truncate leading-snug tracking-wide">${displayTitle}</h5>
+                    ${displayBody ? `<p class="text-[11px] font-medium text-slate-300 m-0 line-clamp-2 leading-relaxed mt-0.5">${displayBody}</p>` : ''}
+                </div>
+            </div>
+        `;
+
         Swal.fire({
             toast: true,
             position: 'bottom-end',
-            icon: icon,
-            title: title,
-            text: body,
+            html: htmlContent,
             showConfirmButton: false,
-            timer: 6000,
+            showCloseButton: true,
+            timer: 5500,
             timerProgressBar: true,
+            customClass: {
+                popup: `simap-futuristic-toast ${themeClass}`
+            },
             didOpen: (toast) => {
                 toast.addEventListener('mouseenter', Swal.stopTimer);
                 toast.addEventListener('mouseleave', Swal.resumeTimer);
                 if (linkUrl) {
                     toast.style.cursor = 'pointer';
-                    toast.addEventListener('click', () => {
-                        window.location.href = linkUrl;
+                    toast.addEventListener('click', (e) => {
+                        if (!e.target.closest('.swal2-close')) {
+                            window.location.href = linkUrl;
+                        }
                     });
                 }
             }

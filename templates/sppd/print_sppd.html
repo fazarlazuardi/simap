@@ -447,8 +447,21 @@
       }
       pdf.save('SPPD_BAZNAS.pdf');
     }
+  <link rel="stylesheet" href="{% static 'css/enterprise-design-system.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{% static 'js/enterprise-core.js' %}?v=2.6"></script>
+  {% if messages %}
+  <script>
+      document.addEventListener('DOMContentLoaded', function () {
+          {% for message in messages %}
+              var iconType = '{% if message.tags == "error" or message.tags == "danger" %}error{% elif message.tags == "success" %}success{% elif message.tags == "warning" %}warning{% else %}info{% endif %}';
+              if (window.showEnterpriseNotificationToast) {
+                  window.showEnterpriseNotificationToast('Notifikasi Sistem', '{{ message|escapejs }}', iconType);
+              }
+          {% endfor %}
+      });
   </script>
-
+  {% endif %}
 </body>
 
 </html>
