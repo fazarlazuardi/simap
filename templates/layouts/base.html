@@ -170,6 +170,17 @@
         font-size: 0 !important;
     }
 
+    /* ⚡ GLASSMORPHIC CONTAINER TRANSLUCENCY ENGINE FOR VIBRANT BACKGROUND SHINE-THROUGH ⚡ */
+    .bg-white, .card-enterprise {
+        background-color: rgba(255, 255, 255, 0.88) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+    }
+    .dark .bg-slate-900, .dark .card-enterprise {
+        background-color: rgba(15, 23, 42, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+    }
 
     /* Button Text Sharpness */
     button, a.btn, .btn, [role="button"] {
@@ -228,44 +239,43 @@
       {% include 'layouts/sidebar.html' %}
     </aside>
 
-    <!-- 1B. DESKTOP COLLAPSIBLE SIDEBAR (lg:) -->
-    <aside class="desktop-sidebar w-64 hidden lg:flex flex-col h-full shrink-0 bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 z-30 transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width] relative overflow-hidden" 
-           :class="desktopSidebarOpen ? 'w-64' : 'w-20'">
+    <!-- 1B. DESKTOP FIXED SIDEBAR (lg+) -->
+    <aside class="hidden lg:flex flex-col h-full bg-slate-900 dark:bg-[#081b24] border-r border-slate-800 dark:border-emerald-900/30 shadow-xl shrink-0 transition-all duration-300 sidebar-transition"
+           :class="desktopSidebarOpen ? 'w-72' : 'w-20'">
       {% include 'layouts/sidebar.html' %}
     </aside>
 
-    <!-- 2. MAIN VIEWPORT WRAPPER -->
+    <!-- 2. MAIN CONTENT VIEWPORT CANVAS -->
     <div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
 
-      <!-- HEADER / TOPBAR -->
-      <header class="h-16 shrink-0 bg-gradient-to-r from-[#041a14] via-[#06241b] to-[#041a14] border-b border-emerald-500/40 px-4 sm:px-6 flex items-center justify-between z-20 w-full shadow-lg relative transition-colors duration-200">
+      <!-- TOP HEADER NAVBAR -->
+      <header class="h-16 px-4 sm:px-6 bg-slate-900/95 dark:bg-[#04161e]/95 backdrop-blur-md border-b border-emerald-900/40 text-slate-100 flex items-center shrink-0 shadow-md relative z-30 transition-colors duration-200">
         {% include 'layouts/navbar.html' %}
       </header>
 
-      {% if user.is_superadmin and request.session.active_pov %}
-      <!-- STICKY FLOATING POV BANNER FOR SUPERADMIN -->
-      <div class="shrink-0 bg-gradient-to-r from-amber-200 to-amber-300 border-b-2 border-amber-500 py-2 px-4 sm:px-6 text-slate-950 flex justify-between items-center flex-wrap gap-2 text-xs font-bold shadow-sm z-20 w-full">
+      {% if is_impersonating %}
+      <div class="bg-amber-500 text-slate-950 px-4 py-2 text-xs font-bold flex items-center justify-between shadow-md relative z-20 shrink-0">
         <div class="flex items-center gap-2">
-          <i class="bi bi-eye-fill text-amber-700 text-sm"></i>
-          <span>Mode Simulasi POV Tampilan Aktif: Anda sedang melihat sistem dari perspektif <strong>{{ active_pov_name|default:request.session.active_pov|upper }}</strong>.</span>
+          <i class="bi bi-eye-fill text-base animate-pulse"></i>
+          <span>Mode POV Pimpinan: Anda sedang melihat sistem sebagai <strong>{{ impersonated_user.employee.full_name|default:impersonated_user.username }}</strong> ({{ impersonated_user.get_role_display }})</span>
         </div>
-        <a href="{% url 'users:switch_pov' %}?role=admin" class="px-3 py-1 bg-slate-900 text-white rounded-full hover:bg-slate-800 text-[11px] font-bold no-underline transition-all shadow-sm">
-          <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Tampilan ke Superadmin
+        <a href="{% url 'users:stop_impersonating' %}" class="px-3 py-1 bg-slate-950 hover:bg-slate-900 text-amber-400 rounded-full font-extrabold text-[11px] no-underline transition-all shadow-sm">
+          Kembali ke Akun Asli
         </a>
       </div>
       {% endif %}
 
       <!-- DYNAMIC CONTENT (TEMPAT KONTEN DASHBOARD DI-RENDER) -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 sm:pb-20 lg:pb-6 bg-gradient-to-br from-slate-100 via-emerald-50/60 to-slate-200/90 dark:from-[#02090d] dark:via-[#041a23] dark:to-[#020b10] text-slate-800 dark:text-slate-100 w-full relative transition-colors duration-200">
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-24 sm:pb-20 lg:pb-6 bg-gradient-to-br from-slate-100 via-emerald-100/70 to-teal-100/90 dark:from-[#010a0e] dark:via-[#041d27] dark:to-[#01090d] text-slate-800 dark:text-slate-100 w-full relative transition-colors duration-200">
         <!-- FUTURISTIC BAZNAS SIMAP CYBER WATERMARK ICON ENGINE -->
-        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-95 transition-opacity duration-300">
+        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-100 transition-opacity duration-300">
           <!-- Cyber Matrix Tech Grid Overlay -->
-          <div class="absolute inset-0 bg-[radial-gradient(#059669_1.5px,transparent_1.5px)] dark:bg-[radial-gradient(#10b981_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-25 dark:opacity-40"></div>
+          <div class="absolute inset-0 bg-[radial-gradient(#059669_1.8px,transparent_1.8px)] dark:bg-[radial-gradient(#10b981_1.8px,transparent_1.8px)] [background-size:28px_28px] opacity-35 dark:opacity-55"></div>
 
-          <!-- Ambient Glowing Cyber Mesh Orbs (Dual Mode Optimized) -->
-          <div class="absolute -top-36 left-1/4 w-[700px] h-[700px] bg-emerald-400/25 dark:bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.4),_transparent_70%)] rounded-full blur-[140px] animate-pulse"></div>
-          <div class="absolute bottom-10 right-10 w-[750px] h-[750px] bg-cyan-400/25 dark:bg-[radial-gradient(circle_at_center,_rgba(6,182,212,0.35),_transparent_70%)] rounded-full blur-[150px]"></div>
-          <div class="absolute top-1/2 left-1/3 w-[600px] h-[600px] bg-teal-400/20 dark:bg-[radial-gradient(circle_at_center,_rgba(20,184,166,0.3),_transparent_70%)] rounded-full blur-[130px]"></div>
+          <!-- Ambient Glowing Cyber Mesh Orbs (Dual Mode Optimized - High Visibility) -->
+          <div class="absolute -top-28 left-1/4 w-[750px] h-[750px] bg-gradient-to-br from-emerald-400/40 via-teal-300/30 to-transparent dark:from-[radial-gradient(circle_at_center,_rgba(16,185,129,0.55),_transparent_70%)] rounded-full blur-[100px] animate-pulse"></div>
+          <div class="absolute bottom-10 right-10 w-[800px] h-[800px] bg-gradient-to-tl from-cyan-400/35 via-sky-300/25 to-transparent dark:from-[radial-gradient(circle_at_center,_rgba(6,182,212,0.45),_transparent_70%)] rounded-full blur-[110px]"></div>
+          <div class="absolute top-1/3 left-1/3 w-[650px] h-[650px] bg-gradient-to-tr from-teal-400/30 via-emerald-300/20 to-transparent dark:from-[radial-gradient(circle_at_center,_rgba(20,184,166,0.4),_transparent_70%)] rounded-full blur-[90px]"></div>
         </div>
 
 
