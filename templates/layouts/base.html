@@ -57,27 +57,30 @@
         padding: 0 !important;
     }
 
-    /* Zero-Flash Anti-Flicker Desktop Sidebar Engine */
+    /* Zero-Flash Initial Paint Engine (Applies ONLY before Alpine JS initializes) */
     @media (min-width: 1024px) {
-      html:not(.sidebar-collapsed) aside.desktop-sidebar {
-        width: 16rem !important;
-      }
-      html.sidebar-collapsed aside.desktop-sidebar {
+      html.sidebar-collapsed aside.desktop-sidebar:not([x-data]) {
         width: 5rem !important;
       }
-      html.sidebar-collapsed aside.desktop-sidebar .sidebar-text,
-      html.sidebar-collapsed aside.desktop-sidebar .menu-category-title,
-      html.sidebar-collapsed aside.desktop-sidebar .app-name,
-      html.sidebar-collapsed aside.desktop-sidebar .app-sub-text,
-      html.sidebar-collapsed aside.desktop-sidebar .app-status-badge {
+      html.sidebar-collapsed aside.desktop-sidebar:not([x-data]) .sidebar-text,
+      html.sidebar-collapsed aside.desktop-sidebar:not([x-data]) .menu-category-title,
+      html.sidebar-collapsed aside.desktop-sidebar:not([x-data]) .app-name,
+      html.sidebar-collapsed aside.desktop-sidebar:not([x-data]) .app-sub-text,
+      html.sidebar-collapsed aside.desktop-sidebar:not([x-data]) .app-status-badge {
         display: none !important;
       }
-      html.sidebar-collapsed aside.desktop-sidebar .sidebar-nav-item {
-        justify-content: center !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-      }
     }
+
+    /* Silky Smooth Sidebar Nav & Text Transitions */
+    aside.desktop-sidebar {
+        will-change: width;
+    }
+
+    .sidebar-text, .menu-category-title, .app-name, .app-sub-text, .app-status-badge {
+        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        white-space: nowrap;
+    }
+
 
     /* Ultra-Smooth Page View Swap Animation (120ms Instant Motion) */
     @keyframes pageFadeIn {
