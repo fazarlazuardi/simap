@@ -339,6 +339,46 @@
   <script src="{% static 'js/enterprise-core.js' %}?v=2.6"></script>
 
   <script>
+      // ⚡ DYNAMIC SIDEBAR ACTIVE HIGHLIGHT INDICATOR ENGINE ⚡
+      function updateSidebarActiveState() {
+          var currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+          document.querySelectorAll('.sidebar-nav-item').forEach(function(el) {
+              var href = el.getAttribute('href');
+              if (!href) return;
+              var cleanHref = href.replace(/\/$/, '') || '/';
+              
+              var isActive = false;
+              if (cleanHref === '' || cleanHref === '/' || cleanHref.endsWith('/dashboard')) {
+                  isActive = (currentPath === '' || currentPath === '/' || currentPath.endsWith('/dashboard'));
+              } else {
+                  isActive = currentPath.indexOf(cleanHref) === 0;
+              }
+
+              var iconDiv = el.querySelector('div');
+
+              if (isActive) {
+                  el.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-800/60', 'border-transparent');
+                  el.classList.add('bg-gradient-to-r', 'from-emerald-600', 'via-emerald-500', 'to-teal-500', 'text-white', 'shadow-lg', 'shadow-emerald-900/50', 'border-emerald-400/40');
+                  if (iconDiv) {
+                      iconDiv.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 bg-white/20 text-white shadow-sm';
+                  }
+              } else {
+                  el.classList.remove('bg-gradient-to-r', 'from-emerald-600', 'via-emerald-500', 'to-teal-500', 'text-white', 'shadow-lg', 'shadow-emerald-900/50', 'border-emerald-400/40');
+                  el.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-800/60', 'border-transparent');
+                  if (iconDiv) {
+                      var accentColor = el.getAttribute('data-accent') || 'text-emerald-400';
+                      iconDiv.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 bg-slate-800/80 border border-slate-700/60 ' + accentColor + ' group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300';
+                  }
+              }
+          });
+      }
+      window.updateSidebarActiveState = updateSidebarActiveState;
+
+      document.addEventListener('DOMContentLoaded', updateSidebarActiveState);
+      document.addEventListener('htmx:afterSettle', updateSidebarActiveState);
+      document.addEventListener('htmx:pushedIntoHistory', updateSidebarActiveState);
+      window.addEventListener('popstate', updateSidebarActiveState);
+
       // ⚡ HTMX SPA SWAP ENGINE: RE-INITIALIZE ALPINE JS & PAGE COMPONENT SCRIPTS ON AFTER-SETTLE ⚡
       document.addEventListener('htmx:afterSettle', function(evt) {
           if (window.Alpine && evt.detail && evt.detail.target) {
@@ -353,6 +393,7 @@
       });
 
       $(document).ready(function () {
+
 
           $(document).on('click', '#themeToggleGlobal', function (e) {
               e.preventDefault();

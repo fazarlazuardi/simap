@@ -99,59 +99,57 @@
 
             <!-- 1. Dashboard -->
             <a href="{% url 'users:dashboard' %}" 
+               data-accent="text-emerald-400"
                title="Dashboard Utama"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300{% endif %}">
                     <i class="bi bi-grid-1x2-fill"></i>
                 </div>
                 <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Dashboard</span>
-                {% if request.resolver_match.app_name == 'users' and request.resolver_match.url_name == 'dashboard' %}
-                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
-                {% endif %}
             </a>
 
             <!-- 2. Disposisi -->
             <a href="{% url 'dispositions:list' %}" 
+               data-accent="text-amber-400"
                title="Disposisi Digital"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.app_name == 'dispositions' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'dispositions' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-amber-400 group-hover:bg-amber-500/20 group-hover:border-amber-400/40 group-hover:text-amber-300{% endif %}">
                     <i class="bi bi-send-fill"></i>
                 </div>
                 <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Disposisi Digital</span>
-                {% if request.resolver_match.app_name == 'dispositions' %}
-                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
-                {% endif %}
             </a>
 
             <!-- 3. Surat Tugas -->
             <a href="{% url 'surat_tugas:list' %}" 
+               data-accent="text-sky-400"
                title="Surat Tugas Penugasan"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.app_name == 'surat_tugas' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'surat_tugas' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-sky-400 group-hover:bg-sky-500/20 group-hover:border-sky-400/40 group-hover:text-sky-300{% endif %}">
                     <i class="bi bi-file-earmark-text-fill"></i>
                 </div>
                 <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Surat Tugas</span>
-                {% if request.resolver_match.app_name == 'surat_tugas' %}
-                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
-                {% endif %}
             </a>
 
             <!-- 4. SPPD -->
             <a href="{% url 'sppd_service:list' %}" 
+               data-accent="text-emerald-400"
                title="SPPD & Log Perjalanan"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.app_name == 'sppd_service' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'sppd_service' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300{% endif %}">
                     <i class="bi bi-car-front-fill"></i>
                 </div>
                 <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">SPPD & Log</span>
-                {% if request.resolver_match.app_name == 'sppd_service' %}
-                <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="w-2 h-2 rounded-full bg-white shrink-0 ml-auto"></span>
-                {% endif %}
             </a>
 
             <!-- 5. Laporan (Trace) -->
             <a href="{% url 'reports:index' %}" 
+               data-accent="text-purple-400"
                title="Laporan & Audit Trail"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.app_name == 'reports' and request.resolver_match.url_name == 'index' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'reports' and request.resolver_match.url_name == 'index' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-purple-400 group-hover:bg-purple-500/20 group-hover:border-purple-400/40 group-hover:text-purple-300{% endif %}">
                     <i class="bi bi-diagram-3-fill"></i>
@@ -161,7 +159,9 @@
 
             <!-- 6. Rekap Penanganan -->
             <a href="{% url 'reports:rekap_bantuan' %}" 
+               data-accent="text-indigo-400"
                title="Rekap Penanganan Bantuan"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.url_name == 'rekap_bantuan' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.url_name == 'rekap_bantuan' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-indigo-400 group-hover:bg-indigo-500/20 group-hover:border-indigo-400/40 group-hover:text-indigo-300{% endif %}">
                     <i class="bi bi-pie-chart-fill"></i>
@@ -178,7 +178,9 @@
 
             <!-- Arsip Dokumen -->
             <a href="{% url 'archives:list' %}" 
+               data-accent="text-amber-400"
                title="Manajemen Arsip Dokumen"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.app_name == 'archives' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'archives' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-amber-400 group-hover:bg-amber-500/20 group-hover:border-amber-400/40 group-hover:text-amber-300{% endif %}">
                     <i class="bi bi-folder2-open"></i>
@@ -188,7 +190,9 @@
 
             <!-- Agenda & Kalender -->
             <a href="{% url 'agendas:list' %}" 
+               data-accent="text-sky-400"
                title="Agenda & Kalender Kerja"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.app_name == 'agendas' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'agendas' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-sky-400 group-hover:bg-sky-500/20 group-hover:border-sky-400/40 group-hover:text-sky-300{% endif %}">
                     <i class="bi bi-calendar3"></i>
@@ -198,7 +202,9 @@
 
             <!-- Rapat Internal -->
             <a href="{% url 'internal_meetings:list' %}" 
+               data-accent="text-emerald-400"
                title="Rapat Internal"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.app_name == 'internal_meetings' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.app_name == 'internal_meetings' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300{% endif %}">
                     <i class="bi bi-journal-bookmark-fill"></i>
@@ -208,7 +214,9 @@
 
             <!-- Pesan Amil -->
             <a href="{% url 'notifications:chat_inbox' %}" 
+               data-accent="text-amber-400"
                title="Pesan Internal Amil"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.url_name == 'chat_inbox' or request.resolver_match.url_name == 'chat_inbox_user' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.url_name == 'chat_inbox' or request.resolver_match.url_name == 'chat_inbox_user' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-amber-400 group-hover:bg-amber-500/20 group-hover:border-amber-400/40 group-hover:text-amber-300{% endif %}">
                     <i class="bi bi-chat-dots-fill"></i>
@@ -218,7 +226,9 @@
 
             <!-- DIREKTORI & DATA PEGAWAI -->
             <a href="{% url 'users:employee_list' %}" 
+               data-accent="text-sky-400"
                title="Direktori Pegawai BAZNAS"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'list' or request.resolver_match.url_name == 'employee_detail' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.url_name == 'employee_list' or request.resolver_match.url_name == 'list' or request.resolver_match.url_name == 'employee_detail' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-sky-400 group-hover:bg-sky-500/20 group-hover:border-sky-400/40 group-hover:text-sky-300{% endif %}">
                     <i class="bi bi-people-fill"></i>
@@ -235,7 +245,9 @@
             <div x-cloak x-show="!desktopSidebarOpen && window.innerWidth >= 1024" class="my-2 border-t border-slate-800/80"></div>
 
             <a href="{% url 'notifications:wa_outbox' %}" 
+               data-accent="text-emerald-400"
                title="Outbox WA & Broadcast Matriks"
+               onclick="setTimeout(updateSidebarActiveState, 10)"
                class="sidebar-nav-item group relative flex items-center justify-start gap-3 px-3 py-2.5 my-1 rounded-2xl text-[13px] font-extrabold text-decoration-none min-h-[44px] {% if request.resolver_match.url_name == 'wa_outbox' %}bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-900/50 border border-emerald-400/40{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent{% endif %}">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 {% if request.resolver_match.url_name == 'wa_outbox' %}bg-white/20 text-white shadow-sm{% else %}bg-slate-800/80 border border-slate-700/60 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300{% endif %}">
                     <i class="bi bi-whatsapp"></i>
@@ -243,6 +255,7 @@
                 <span x-cloak x-show="desktopSidebarOpen || window.innerWidth < 1024" class="sidebar-text truncate">Outbox WA & Matriks</span>
             </a>
             {% endif %}
+
 
         </div>
 
