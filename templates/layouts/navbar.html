@@ -14,7 +14,15 @@
             <i class="bi bi-list text-2xl"></i>
         </button>
 
-        <!-- Enterprise Omnisearch Command Palette Trigger (Ctrl + K) -->
+        <!-- Mobile Quick Search Button Trigger (< md) -->
+        <button x-data type="button" 
+                @click="$store.commandPalette.open()" 
+                class="md:hidden w-11 h-11 rounded-xl bg-emerald-900/60 hover:bg-emerald-600 border border-emerald-700/80 text-emerald-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-md shrink-0 min-h-[44px] min-w-[44px]" 
+                title="Pencarian Cepat System (Cari Module / Data)">
+            <i class="bi bi-search text-base"></i>
+        </button>
+
+        <!-- Enterprise Omnisearch Command Palette Trigger (Desktop / Tablet >= md) -->
         <button x-data type="button" 
                 @click="$store.commandPalette.open()" 
                 class="hidden md:flex items-center gap-3.5 px-3.5 py-2 h-11 rounded-xl bg-emerald-900/50 hover:bg-emerald-900/80 border border-emerald-700/60 text-slate-200 transition-all cursor-pointer shadow-sm group min-h-[44px]">
