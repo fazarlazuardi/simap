@@ -200,13 +200,13 @@
             <div class="md:col-span-4">
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5"><i class="bi bi-calendar-range me-1"></i> Periode Perjalanan</label>
                 <div class="flex gap-2">
-                    <input type="date" name="date_from" class="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ filters.date_from }}" placeholder="Dari">
-                    <input type="date" name="date_to" class="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ filters.date_to }}" placeholder="Sampai">
+                    <input type="date" id="sppd_date_from" name="date_from" aria-label="Dari Tanggal Periode" autocomplete="off" class="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ filters.date_from }}" placeholder="Dari">
+                    <input type="date" id="sppd_date_to" name="date_to" aria-label="Sampai Tanggal Periode" autocomplete="off" class="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" value="{{ filters.date_to }}" placeholder="Sampai">
                 </div>
             </div>
             <div class="md:col-span-3">
-                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5"><i class="bi bi-person me-1"></i> Pegawai Diperintahkan</label>
-                <select name="pegawai" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+                <label for="sppd_pegawai" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5"><i class="bi bi-person me-1"></i> Pegawai Diperintahkan</label>
+                <select id="sppd_pegawai" name="pegawai" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
                     <option value="">Semua Pegawai</option>
                     {% for emp in employees %}
                     <option value="{{ emp.id }}" {% if filters.pegawai == emp.id|stringformat:'s' %}selected{% endif %}>{{ emp.full_name }}</option>
@@ -214,14 +214,15 @@
                 </select>
             </div>
             <div class="md:col-span-2">
-                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5"><i class="bi bi-flag me-1"></i> Status SPPD</label>
-                <select name="status" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+                <label for="sppd_status" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5"><i class="bi bi-flag me-1"></i> Status SPPD</label>
+                <select id="sppd_status" name="status" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
                     <option value="">Semua Status</option>
                     {% for code, label in status_choices %}
                     <option value="{{ code }}" {% if filters.status == code %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
+
             <div class="md:col-span-3 flex gap-2">
                 <button type="submit" class="flex-1 py-2 px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5 cursor-pointer">
                     <i class="bi bi-funnel-fill"></i> Terapkan Filter

@@ -15,9 +15,13 @@
             <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
             <input type="text" 
                    id="commandPaletteInput"
+                   name="command_palette_search"
+                   aria-label="Pencarian Cepat Command Palette SIMAP"
+                   autocomplete="off"
                    x-model="$store.commandPalette.query"
                    class="w-full pl-12 pr-12 py-4 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none text-sm font-medium" 
                    placeholder="Ketik pencarian surat, nama amil, atau navigasi modul...">
+
             <button type="button" @click="$store.commandPalette.close()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                 <i class="bi bi-x-lg"></i>
             </button>

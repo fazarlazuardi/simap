@@ -101,6 +101,8 @@
                 <input type="text"
                        id="emp_search_query"
                        name="query"
+                       autocomplete="off"
+                       aria-label="Cari nama pegawai, NIP, atau NIK"
                        class="w-full pl-9 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                        placeholder="Cari nama pegawai, NIP, atau NIK..."
                        value="{{ query }}">
@@ -109,6 +111,7 @@
             <div class="md:col-span-3">
                 <select id="emp_filter_bidang"
                         name="bidang"
+                        aria-label="Filter Struktur Bidang Pegawai"
                         class="w-full px-3.5 py-2.5 rounded-2xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                         onchange="this.form.submit()">
                     <option value="">Semua Struktur Bidang</option>
@@ -121,6 +124,7 @@
             <div class="md:col-span-2">
                 <select id="emp_filter_akun"
                         name="akun"
+                        aria-label="Filter Status Akun Pegawai"
                         class="w-full px-3.5 py-2.5 rounded-2xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                         onchange="this.form.submit()">
                     <option value="">Status Akun</option>
@@ -128,6 +132,7 @@
                     <option value="tidak" {% if filters.akun == 'tidak' %}selected{% endif %}>Belum Ada Akun</option>
                 </select>
             </div>
+
 
             <div class="md:col-span-2 flex gap-2">
                 <button type="submit" class="flex-1 py-2.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all border-0 inline-flex items-center justify-center gap-1.5 cursor-pointer">
@@ -293,8 +298,9 @@
                 {% csrf_token %}
                 <div class="space-y-1.5">
                     <label for="account_emp_name" class="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Nama Pegawai</label>
-                    <input type="text" id="account_emp_name" name="account_emp_name" :value="selectedEmpName" readonly class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <input type="text" id="account_emp_name" name="account_emp_name" autocomplete="off" :value="selectedEmpName" readonly class="w-full px-3.5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200">
                 </div>
+
 
                 <div class="space-y-1.5">
                     <label for="account_username" class="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Username Log In <span class="text-rose-500">*</span></label>
