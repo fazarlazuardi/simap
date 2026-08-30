@@ -199,7 +199,7 @@ def report_index(request):
 
         # --- 4. HEADER TABEL DATA ---
         headers = [
-            'NO.', 'NO. DOKUMEN', 'PENGIRIM', 'NAMA / PERIHAL DOKUMEN', 
+            'NO.', 'NO. DOKUMEN', 'PENGIRIM', 'NAMA / PERIHAL DOKUMEN', 'ALAMAT PEMOHON',
             'NO. DISPOSISI', 'PENANGGUNG JAWAB AKTIF', 'TGL AGENDA', 
             'NO. SPPD / ST', 'NO. LAPORAN', 'STATUS WORKFLOW'
         ]
@@ -240,13 +240,14 @@ def report_index(request):
             report_obj = arc.latest_report
             report_no = report_obj.report_number if report_obj else '-'
             
-            status_str = arc.activity_name if arc.activity_name else arc.get_status_display()
+            status_str = arc.workflow_status_display or arc.activity_name or arc.get_status_display()
 
             row_values = [
                 idx,
                 arc.archive_number or '(DRAFT)',
                 arc.sender or '-',
                 arc.title or '-',
+                arc.address or '-',
                 dispo.disposition_number or (f'DISP-{dispo.id}' if dispo else '-'),
                 pj_list or '-',
                 tgl_agenda,

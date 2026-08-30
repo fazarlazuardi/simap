@@ -121,34 +121,46 @@ def dashboard_index(request):
             # 8-step pipeline: Masuk -> Verifikasi -> Disposisi -> Proses Bidang II -> Survei -> Penyaluran -> Laporan -> Selesai
             steps = ['Masuk', 'Verifikasi', 'Disposisi', 'Proses Bidang II', 'Survei', 'Penyaluran', 'Laporan', 'Selesai']
             
-            has_penyaluran_sppd = False
-            if latest_sppd:
-                purp_str = ((latest_sppd.purpose or '') + ' ' + (latest_sppd.sppd_type or '')).lower()
-                if latest_sppd.sppd_type == 'penyaluran' or any(k in purp_str for k in ['penyaluran', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin', 'bedah rumah', 'kursi roda']):
-                    has_penyaluran_sppd = True
-
-            has_penyaluran_st = False
-            if arc.latest_st:
-                st_str = (arc.latest_st.tentang or '').lower()
-                if any(k in st_str for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
-                    has_penyaluran_st = True
-
             if s == 'selesai':
                 step_idx = 8 # Selesai
             elif has_completed_lhp and s == 'telah_disalurkan':
                 step_idx = 7 # Laporan (LHP Pentasyarufan Akhir)
-            elif s == 'telah_disalurkan' or has_penyaluran_sppd or has_penyaluran_st:
-                step_idx = 6 # Penyaluran Bantuan Mustahik
-            elif s in ['dalam_survei', 'telah_disurvei'] or (latest_sppd and ('survei' in (latest_sppd.purpose or '').lower() or 'verifikasi' in (latest_sppd.purpose or '').lower())) or (arc.latest_st and 'survei' in (arc.latest_st.tentang or '').lower()):
-                step_idx = 5 # Survei Lapangan Mustahik
-            elif s == 'proses':
-                step_idx = 4 # Proses Bidang II
-            elif s in ['didisposisikan', 'disposisi_pimpinan', 'didisposisi_ketua', 'meja_waka4', 'disposisi_waka'] or arc.dispositions.exists():
-                step_idx = 3 # Disposisi Pimpinan
-            elif arc.verified_by_kabid or s in ['verifikasi_kabid', 'terverifikasi']:
-                step_idx = 2 # Verifikasi Kabid IV
+            elif s in ['dalam_survei', 'telah_disurvei']:
+                # Jika status dokumen berada dalam tahap survei
+                if latest_sppd and getattr(latest_sppd, 'sppd_type', '') == 'penyaluran':
+                    step_idx = 6 # Penyaluran Bantuan Mustahik
+                elif arc.latest_st and any(k in (arc.latest_st.tentang or '').lower() for k in ['pentasyarufan', 'penyaluran langsung']):
+                    step_idx = 6 # Penyaluran Bantuan Mustahik
+                else:
+                    step_idx = 5 # Survei Lapangan Mustahik
             else:
-                step_idx = 1 # Masuk (Registrasi FO)
+                has_explicit_penyaluran_sppd = False
+                if latest_sppd:
+                    if getattr(latest_sppd, 'sppd_type', '') == 'penyaluran':
+                        has_explicit_penyaluran_sppd = True
+                    else:
+                        purp_str = (latest_sppd.purpose or '').lower()
+                        if any(k in purp_str for k in ['penyaluran', 'pentasyarufan', 'cairkan', 'disalurkan']):
+                            has_explicit_penyaluran_sppd = True
+
+                has_explicit_penyaluran_st = False
+                if arc.latest_st:
+                    st_str = (arc.latest_st.tentang or '').lower()
+                    if any(k in st_str for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
+                        has_explicit_penyaluran_st = True
+
+                if s == 'telah_disalurkan' or has_explicit_penyaluran_sppd or has_explicit_penyaluran_st:
+                    step_idx = 6 # Penyaluran Bantuan Mustahik
+                elif (latest_sppd and getattr(latest_sppd, 'sppd_type', '') == 'survei') or (latest_sppd and any(k in (latest_sppd.purpose or '').lower() for k in ['survei', 'verifikasi'])) or (arc.latest_st and any(k in (arc.latest_st.tentang or '').lower() for k in ['survei', 'verifikasi'])):
+                    step_idx = 5 # Survei Lapangan Mustahik
+                elif s == 'proses':
+                    step_idx = 4 # Proses Bidang II
+                elif s in ['didisposisikan', 'disposisi_pimpinan', 'didisposisi_ketua', 'meja_waka4', 'disposisi_waka'] or arc.dispositions.exists():
+                    step_idx = 3 # Disposisi Pimpinan
+                elif arc.verified_by_kabid or s in ['verifikasi_kabid', 'terverifikasi']:
+                    step_idx = 2 # Verifikasi Kabid IV
+                else:
+                    step_idx = 1 # Masuk (Registrasi FO)
 
             progress_percent = int(((step_idx - 1) / 7.0) * 100)
             

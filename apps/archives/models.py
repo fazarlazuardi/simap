@@ -398,35 +398,54 @@ class Archive(models.Model):
 
         sppd = self.latest_sppd
         st = self.latest_st
+        is_bantuan_doc = self.is_proposal_bantuan
 
-        # 1. Prioritas Penyaluran Bantuan jika ada SPPD / Surat Tugas Penyaluran
-        has_penyaluran_sppd = False
-        if sppd:
-            purp_lower = ((sppd.purpose or '') + ' ' + (sppd.sppd_type or '')).lower()
-            if sppd.sppd_type == 'penyaluran' or any(k in purp_lower for k in ['penyaluran', 'pentasyarufan', 'cair', 'santunan', 'rutilahu', 'gharimin', 'bedah rumah', 'kursi roda']):
-                has_penyaluran_sppd = True
+        # 1. Khusus Dokumen Permohonan Bantuan Mustahik
+        if is_bantuan_doc:
+            # Jika dokumen berada dalam tahap survei (Perlu Survei di Rekap Penanganan / status dalam_survei)
+            if self.status in ['dalam_survei', 'telah_disurvei']:
+                # Hanya jika sudah ada SPPD/ST Penyaluran eksplisit baru berubah ke PENYALURAN BANTUAN
+                if sppd and getattr(sppd, 'sppd_type', '') == 'penyaluran':
+                    return 'PENYALURAN BANTUAN'
+                if st and any(k in (st.tentang or '').lower() for k in ['pentasyarufan', 'penyaluran langsung']):
+                    return 'PENYALURAN BANTUAN'
+                return 'SURVEI LAPANGAN MUSTAHIK'
 
-        has_penyaluran_st = False
-        if st:
-            st_text = (st.tentang or '').lower()
-            if any(k in st_text for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
-                has_penyaluran_st = True
+            # Prioritas Penyaluran Bantuan jika ada SPPD / Surat Tugas Penyaluran Eksplisit
+            has_penyaluran_sppd = False
+            if sppd:
+                if getattr(sppd, 'sppd_type', '') == 'penyaluran':
+                    has_penyaluran_sppd = True
+                else:
+                    purp_lower = (sppd.purpose or '').lower()
+                    if any(k in purp_lower for k in ['penyaluran', 'pentasyarufan', 'cairkan', 'disalurkan']):
+                        has_penyaluran_sppd = True
 
-        if has_penyaluran_sppd or has_penyaluran_st:
-            return 'PENYALURAN BANTUAN'
+            has_penyaluran_st = False
+            if st:
+                st_text = (st.tentang or '').lower()
+                if any(k in st_text for k in ['penyaluran', 'pentasyarufan', 'disalurkan']):
+                    has_penyaluran_st = True
 
-        # 2. Prioritas Survei Lapangan Mustahik
-        if self.status == 'dalam_survei':
-            return 'SURVEI LAPANGAN MUSTAHIK'
+            if has_penyaluran_sppd or has_penyaluran_st:
+                return 'PENYALURAN BANTUAN'
 
-        if self.status == 'telah_disurvei':
-            return 'TELAH DISURVEI (SIAP PENYALURAN)'
+            if sppd:
+                if getattr(sppd, 'sppd_type', '') == 'survei':
+                    return 'SURVEI LAPANGAN MUSTAHIK'
+                purp_lower = (sppd.purpose or '').lower()
+                if any(k in purp_lower for k in ['survei', 'peninjauan', 'lokasi', 'lapangan', 'cek', 'mustahik']):
+                    return 'SURVEI LAPANGAN MUSTAHIK'
 
+            if st:
+                st_text = (st.tentang or '').lower()
+                if 'survei' in st_text or 'verifikasi' in st_text:
+                    return 'SURVEI LAPANGAN MUSTAHIK'
+
+        # Pengecekan SPPD & Surat Tugas untuk Dokumen Umum maupun Bantuan
         if sppd:
             purp_lower = (sppd.purpose or '').lower()
-            if any(k in purp_lower for k in ['survei', 'peninjauan', 'lokasi', 'lapangan', 'cek', 'mustahik']):
-                return 'SURVEI LAPANGAN MUSTAHIK'
-            elif any(k in purp_lower for k in ['hadir', 'undangan', 'audiensi', 'rapat', 'acara']):
+            if any(k in purp_lower for k in ['hadir', 'undangan', 'audiensi', 'rapat', 'acara']):
                 return 'MENGHADIRI UNDANGAN / RAPAT'
             elif sppd.purpose:
                 return f'PELAKSANAAN SPPD: {sppd.purpose[:35].upper()}'
@@ -434,7 +453,7 @@ class Archive(models.Model):
 
         if st:
             st_text = (st.tentang or '').lower()
-            if 'survei' in st_text:
+            if 'survei' in st_text and is_bantuan_doc:
                 return 'SURVEI LAPANGAN MUSTAHIK'
             return 'TAHAP PENUGASAN (SURAT TUGAS TERBIT)'
 
@@ -443,7 +462,7 @@ class Archive(models.Model):
 
         # 3. Status 'proses' atau saat Waka IV sudah mendisposisikan
         if self.status in ['proses', 'didisposisikan'] or (self.latest_dispo and self.latest_dispo.is_stage_waka):
-            return 'PROSES BIDANG II (PENYALURAN BANTUAN)' if self.is_proposal_bantuan else 'DIPROSES BIDANG TERKAIT'
+            return 'PROSES BIDANG II (PENYALURAN BANTUAN)' if is_bantuan_doc else 'DIPROSES BIDANG TERKAIT'
 
         if self.verified_by_kabid or self.status in ['verifikasi_kabid', 'terverifikasi']:
             return 'TERVERIFIKASI KABID IV'

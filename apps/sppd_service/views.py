@@ -72,22 +72,18 @@ def sppd_list(request):
 
     # Khusus Waka II & Kabid II / POV Waka II: filter daftar SPPD & kandidat disposisi SPPD (Hanya Bantuan Terverifikasi Kabid IV)
     if is_waka_or_kabid_2:
-        valid_sppd_ids = [
-            sp.id for sp in sppds 
-            if sp.disposition and sp.disposition.archive and 
-            (sp.disposition.archive.verified_by_kabid or sp.disposition.archive.status != 'baru') and 
-            WorkflowEngine.is_bantuan(sp.disposition.archive)
-        ]
-        sppds = sppds.filter(id__in=valid_sppd_ids)
+        sppds = sppds.filter(
+            Q(disposition__archive__verified_by_kabid=True) | ~Q(disposition__archive__status='baru')
+        )
 
-    # Disposisi yang bisa dibuat SPPD (Optimasi Prefetching & In-Memory Check)
+    # Disposisi yang bisa dibuat SPPD (Optimasi Query & Slice)
     st_dispo_ids = SuratTugas.objects.filter(disposition__isnull=False).values_list('disposition_id', flat=True)
 
     raw_dispositions = Disposition.objects.filter(
         id__in=st_dispo_ids
     ).exclude(
         archive__status='ditolak'
-    ).select_related('archive', 'archive__category', 'sender').prefetch_related('forwarded_to', 'sppd_list', 'surat_tugas')
+    ).select_related('archive', 'archive__category', 'sender').prefetch_related('forwarded_to', 'sppd_list', 'surat_tugas').order_by('-created_at')[:80]
 
     if is_waka_or_kabid_2:
         raw_dispositions = raw_dispositions.filter(
@@ -148,8 +144,8 @@ def sppd_list(request):
     page_obj_sppd = paginator_sppd.get_page(page_number)
     page_obj_dispo = paginator_dispo.get_page(page_number)
 
-    # Fast Cached Reporting Recap
-    sppd_recap = cache.get_or_set('sppd_recap_data', lambda: ReportingService.get_sppd_recap(), timeout=60)
+    # Fast Cached Reporting Recap (Cache 5 Menit)
+    sppd_recap = cache.get_or_set('sppd_recap_data', lambda: ReportingService.get_sppd_recap(), timeout=300)
     top_employees = [(item['employee'], item['total_sppd']) for item in sppd_recap[:10]]
     sppd_chart_labels = [item['employee'].full_name for item in sppd_recap[:10]]
     sppd_chart_series = [item['total_sppd'] for item in sppd_recap[:10]]
@@ -386,9 +382,7 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
             if archive:
                 target_status = 'dalam_survei' if sppd_type == 'survei' else ('telah_disalurkan' if sppd_type == 'penyaluran' else 'proses')
                 archive.status = target_status
-                archive.activity_name = activity_text
-                archive.status_note = f'SPPD ({sppd_number}) diterbitkan untuk {purpose}.'
-                archive.save(update_fields=['status', 'activity_name', 'status_note', 'updated_at'])
+                archive.save(update_fields=['status', 'updated_at'])
 
             if dispo and dispo.status in ['terisi', 'terverifikasi']:
                 dispo.status = 'proses'
@@ -438,9 +432,9 @@ def sppd_create(request, dispo_pk=None, surat_tugas_pk=None):
         import threading
         threading.Thread(target=NotificationService.send_sppd_notification_auto_by_id, args=(sppd.id,), daemon=True).start()
 
-        cache.delete('sppd_recap_data')
-        messages.success(request, f"SPPD {sppd_number} berhasil diterbitkan secara kilat & Notifikasi WA dikirim.")
-        return redirect('sppd_service:list')
+        messages.success(request, f"SPPD {sppd_number} berhasil diterbitkan & siap dicetak!")
+        from django.urls import reverse
+        return redirect(f"{reverse('sppd_service:print')}?id={sppd.id}")
 
     agenda = Agenda.objects.filter(archive=dispo.archive, status='terjadwal').last()
     default_departure = (

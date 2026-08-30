@@ -257,7 +257,14 @@
                                     <i class="bi bi-person-fill text-slate-400 shrink-0"></i>
                                     <span class="truncate">{{ arc.sender_receiver|default:arc.sender }}</span>
                                 </div>
-                                {% else %}
+                                {% endif %}
+                                {% if arc.address %}
+                                <div class="font-medium text-amber-600 dark:text-amber-400 text-[10px] flex items-center gap-1 truncate" title="{{ arc.address }}">
+                                    <i class="bi bi-geo-alt-fill shrink-0"></i>
+                                    <span class="truncate">{{ arc.address }}</span>
+                                </div>
+                                {% endif %}
+                                {% if not arc.sender_receiver and not arc.sender and not arc.address %}
                                 <span class="text-slate-400 text-xs italic">-</span>
                                 {% endif %}
                             </div>
@@ -390,13 +397,13 @@
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200 whitespace-nowrap font-mono">
                                     BARU
                                 </span>
-                            {% elif 'PENYALURAN' in arc.workflow_status_display|upper or arc.status == 'telah_disalurkan' %}
-                                <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-purple-600 text-white inline-flex items-center gap-1.5 shadow-sm font-mono">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> PENYALURAN
-                                </span>
-                            {% elif 'SURVEI' in arc.workflow_status_display|upper or arc.status == 'dalam_survei' or arc.archive_type == 'proposal' %}
+                            {% elif arc.status == 'dalam_survei' or arc.status == 'telah_disurvei' or arc.workflow_status_display == 'SURVEI LAPANGAN MUSTAHIK' %}
                                 <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-amber-500 text-slate-950 inline-flex items-center gap-1.5 shadow-sm font-mono">
                                     <span class="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping"></span> SURVEI LAPANGAN
+                                </span>
+                            {% elif arc.status == 'telah_disalurkan' or arc.workflow_status_display == 'PENYALURAN BANTUAN' %}
+                                <span class="px-3 py-1 text-[10px] font-extrabold rounded-full bg-purple-600 text-white inline-flex items-center gap-1.5 shadow-sm font-mono">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> PENYALURAN
                                 </span>
                             {% else %}
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30 whitespace-nowrap font-mono">

@@ -26,6 +26,7 @@ def format_archive_row(index, archive):
     reg_number = getattr(archive, 'archive_number', None) or (f"REG-{archive.pk:04d}" if hasattr(archive, 'pk') else '-')
     sender = getattr(archive, 'sender', None) or getattr(archive, 'receiver', None) or getattr(archive, 'agency_origin', '-')
     subject = getattr(archive, 'title', None) or getattr(archive, 'subject', '-')
+    address = getattr(archive, 'address', None) or getattr(archive, 'mustahik_address', '-')
     
     received_date = getattr(archive, 'received_date', None) or getattr(archive, 'letter_date', None) or getattr(archive, 'created_at', None)
     if received_date and hasattr(received_date, 'strftime'):
@@ -92,17 +93,20 @@ def format_archive_row(index, archive):
                     or st_count > 0 or len(sppd_purposes) > 0 or any('proses' in a or 'tugas' in a for a in log_actions)) else "-"
 
     # 5. Survei: MURNI HANYA JIKA MEMILIKI SPPD/ST SURVEI, STATUS DALAM SURVEI, ATAU LOG SURVEI RIIL
-    has_survei_sppd = any('survei' in p or 'mustahik' in p or 'lapangan' in p for p in sppd_purposes)
+    has_survei_sppd = any(sp.sppd_type == 'survei' or any(k in (sp.purpose or '').lower() for k in ['survei', 'peninjauan', 'verifikasi lapangan']) for sp in sppds)
     has_survei_log = any('survei' in a or 'verifikasi lapangan' in a for a in log_actions)
-    v_survey = "✓" if (st == 'dalam_survei' or has_survei_sppd or has_survei_log) else "-"
+    v_survey = "✓" if (st in ['dalam_survei', 'telah_disurvei'] or has_survei_sppd or has_survei_log) else "-"
 
     # 6. Penyaluran: MURNI HANYA JIKA MEMILIKI SPPD/ST PENYALURAN, STATUS TELAH DISALURKAN, ATAU LOG PENYALURAN RIIL
-    has_dist_sppd = any('penyaluran' in p or 'pentasyarufan' in p or 'disalurkan' in p for p in sppd_purposes)
-    has_dist_log = any('penyaluran' in a or 'pentasyarufan' in a or 'disalurkan' in a for a in log_actions)
+    has_dist_sppd = any(sp.sppd_type == 'penyaluran' or any(k in (sp.purpose or '').lower() for k in ['penyaluran', 'pentasyarufan']) for sp in sppds)
+    has_dist_log = any('penyaluran' in a or 'pentasyarufan' in a for a in log_actions)
     v_dist = "✓" if (st == 'telah_disalurkan' or has_dist_sppd or has_dist_log) else "-"
 
-    # 7. Laporan: MURNI HANYA JIKA MEMILIKI BERKAS LAPORAN HASIL (LHP / REPORT) ATAU LOG LAPORAN
-    v_report = "✓" if (getattr(archive, 'latest_report', None) is not None or any('laporan' in a or 'lhp' in a for a in log_actions)) else "-"
+    # 7. Laporan: MURNI HANYA JIKA MEMILIKI BERKAS LAPORAN HASIL (LHP / REPORT AKHIR) YANG TERBIT DENGAN NOMOR LHP
+    rep_obj = getattr(archive, 'latest_report', None)
+    has_valid_lhp = bool(rep_obj and rep_obj.report_number and (rep_obj.file or (rep_obj.content and 'Ditolak' not in rep_obj.content)))
+    has_lhp_log = any('unggah lhp' in a or 'input lhp' in a or 'laporan akhir' in a for a in log_actions)
+    v_report = "✓" if (has_valid_lhp or has_lhp_log or st == 'selesai') else "-"
 
     # 8. Selesai: Ceklis ✓ jika status akhir dokumen selesai
     v_done = "✓" if st == 'selesai' else "-"
@@ -131,31 +135,32 @@ def format_archive_row(index, archive):
 
     detail_link = f'=HYPERLINK("http://localhost:8000/archives/{pk_val}/", "Lihat Detail Sistem")'
 
-    # Return Array TEPAT 23 Item Sesuai Format User
+    # Return Array TEPAT 24 Item Sesuai Format User (Termasuk Alamatalat Pemohon)
     return [
         index,              # 1. No
         reg_number,         # 2. No. Reg. Dokumen
         sender,             # 3. Pengirim / Asal Instansi
         subject,            # 4. Perihal
-        received_date_str,  # 5. Tanggal Diterima
-        doc_type,           # 6. Jenis Dokumen
-        category,           # 7. Kategori Arsip
-        pj_list,            # 8. Penanggung Jawab
-        v_kabid,            # 9. Verifikasi Kabid 4
-        v_ketua,            # 10. Disposisi Ketua
-        v_waka4,            # 11. Disposisi Waka 4
-        v_unit,             # 12. Proses Bidang
-        v_survey,           # 13. Survei Lapangan
-        v_dist,             # 14. Penyaluran
-        v_report,           # 15. Laporan Hasil
-        v_done,             # 16. Selesai & Terekap
-        progress,           # 17. Progres
-        task_letter,        # 18. No. Surat Tugas
-        sppd_no,            # 19. No. SPPD
-        agenda_date_str,    # 20. Tanggal Agenda
-        report_no,          # 21. No. Laporan
-        dok_link,           # 22. Link Dokumen
-        detail_link         # 23. Link Detail
+        address,            # 5. Alamat Pemohon
+        received_date_str,  # 6. Tanggal Diterima
+        doc_type,           # 7. Jenis Dokumen
+        category,           # 8. Kategori Arsip
+        pj_list,            # 9. Penanggung Jawab
+        v_kabid,            # 10. Verifikasi Kabid 4
+        v_ketua,            # 11. Disposisi Ketua
+        v_waka4,            # 12. Disposisi Waka 4
+        v_unit,             # 13. Proses Bidang
+        v_survey,           # 14. Survei Lapangan
+        v_dist,             # 15. Penyaluran
+        v_report,           # 16. Laporan Hasil
+        v_done,             # 17. Selesai & Terekap
+        progress,           # 18. Progres
+        task_letter,        # 19. No. Surat Tugas
+        sppd_no,            # 20. No. SPPD
+        agenda_date_str,    # 21. Tanggal Agenda
+        report_no,          # 22. No. Laporan
+        dok_link,           # 23. Link Dokumen
+        detail_link         # 24. Link Detail
     ]
 
 
@@ -379,17 +384,17 @@ class GoogleDriveService:
                 ['']  # Separator
             ]
 
-            # Baris 5: Header Utama (23 Kolom, I5:P5 untuk 8 Tahapan Progres Dokumen)
+            # Baris 5: Header Utama (24 Kolom, J5:Q5 untuk 8 Tahapan Progres Dokumen)
             header_row1 = [
-                'No', 'No. Reg. Dokumen', 'Pengirim / Asal Instansi', 'Perihal', 'Tanggal Diterima',
+                'No', 'No. Reg. Dokumen', 'Pengirim / Asal Instansi', 'Perihal', 'Alamat Pemohon', 'Tanggal Diterima',
                 'Jenis Dokumen', 'Kategori Arsip', 'Penanggung Jawab',
                 'Progres Dokumen', '', '', '', '', '', '', '',
                 'Progres', 'No. Surat Tugas', 'No. SPPD', 'Tanggal Agenda', 'No. Laporan', 'Link Dokumen', 'Link Detail'
             ]
 
-            # Baris 6: Sub-Header 8 Kolom Vertikal Tahapan Progres Dokumen (I6:P6)
+            # Baris 6: Sub-Header 8 Kolom Vertikal Tahapan Progres Dokumen (J6:Q6)
             header_row2 = [
-                '', '', '', '', '', '', '', '',
+                '', '', '', '', '', '', '', '', '',
                 'Verifikasi Kabid IV', 'Disposisi Ketua', 'Disposisi Waka IV', 'Proses Bidang/Unit',
                 'Survei', 'Penyaluran', 'Laporan', 'Selesai',
                 '', '', '', '', '', '', ''
@@ -469,7 +474,7 @@ class GoogleDriveService:
                     except Exception:
                         pass
 
-                # Pemetaan Warna Khusus 8 Kolom Vertikal (I6:P6 / Index Col 8-15)
+                # Pemetaan Warna Khusus 8 Kolom Vertikal (J6:Q6 / Index Col 9-16)
                 col_colors = [
                     {'bg': {'red': 0.122, 'green': 0.306, 'blue': 0.471}, 'fg': {'red': 1.0, 'green': 1.0, 'blue': 1.0}}, # 1. Biru Tua
                     {'bg': {'red': 0.706, 'green': 0.776, 'blue': 0.906}, 'fg': {'red': 0.0, 'green': 0.0, 'blue': 0.0}}, # 2. Biru Muda
@@ -482,7 +487,7 @@ class GoogleDriveService:
                 ]
 
                 stage_col_styles = []
-                for c_idx, color_def in enumerate(col_colors, start=8):
+                for c_idx, color_def in enumerate(col_colors, start=9):
                     stage_col_styles.append({
                         'repeatCell': {
                             'range': {
@@ -515,13 +520,13 @@ class GoogleDriveService:
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Merge Kop Title C1:W1, C2:W2, C3:W3
+                    # Merge Kop Title C1:X1, C2:X2, C3:X3
                     {
                         'mergeCells': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 0, 'endRowIndex': 1,
-                                'startColumnIndex': 2, 'endColumnIndex': 23
+                                'startColumnIndex': 2, 'endColumnIndex': 24
                             },
                             'mergeType': 'MERGE_ALL'
                         }
@@ -531,7 +536,7 @@ class GoogleDriveService:
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 1, 'endRowIndex': 2,
-                                'startColumnIndex': 2, 'endColumnIndex': 23
+                                'startColumnIndex': 2, 'endColumnIndex': 24
                             },
                             'mergeType': 'MERGE_ALL'
                         }
@@ -541,18 +546,18 @@ class GoogleDriveService:
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 2, 'endRowIndex': 3,
-                                'startColumnIndex': 2, 'endColumnIndex': 23
+                                'startColumnIndex': 2, 'endColumnIndex': 24
                             },
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Style Kop Headers C1:W3 (Hijau BAZNAS #006633, Teks Putih Bold, Rata Kiri, Middle)
+                    # Style Kop Headers C1:X3 (Hijau BAZNAS #006633, Teks Putih Bold, Rata Kiri, Middle)
                     {
                         'repeatCell': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 0, 'endRowIndex': 3,
-                                'startColumnIndex': 2, 'endColumnIndex': 23
+                                'startColumnIndex': 2, 'endColumnIndex': 24
                             },
                             'cell': {
                                 'userEnteredFormat': {
@@ -583,13 +588,13 @@ class GoogleDriveService:
                             'fields': 'userEnteredFormat(backgroundColor,horizontalAlignment,verticalAlignment)'
                         }
                     },
-                    # Border sekeliling Kop (A1:W3)
+                    # Border sekeliling Kop (A1:X3)
                     {
                         'updateBorders': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 0, 'endRowIndex': 3,
-                                'startColumnIndex': 0, 'endColumnIndex': 23
+                                'startColumnIndex': 0, 'endColumnIndex': 24
                             },
                             'top': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.3, 'blue': 0.1}},
                             'bottom': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.3, 'blue': 0.1}},
@@ -597,7 +602,7 @@ class GoogleDriveService:
                             'right': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.3, 'blue': 0.1}}
                         }
                     },
-                    # Merge Vertikal 2 Baris untuk Kolom Utama Non-Progres (A5:H6 & Q5:W6)
+                    # Merge Vertikal 2 Baris untuk Kolom Utama Non-Progres (A5:I6 & R5:X6)
                     *[
                         {
                             'mergeCells': {
@@ -608,9 +613,9 @@ class GoogleDriveService:
                                 },
                                 'mergeType': 'MERGE_ALL'
                             }
-                        } for c in list(range(0, 8)) + list(range(16, 23))
+                        } for c in list(range(0, 9)) + list(range(17, 24))
                     ],
-                    # Style Header Utama Non-Progres (A5:H6 & Q5:W6) - Background Kuning #FFD966, Teks Hitam Bold
+                    # Style Header Utama Non-Progres (A5:I6 & R5:X6) - Background Kuning #FFD966, Teks Hitam Bold
                     *[
                         {
                             'repeatCell': {
@@ -629,26 +634,26 @@ class GoogleDriveService:
                                 },
                                 'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
                             }
-                        } for c in list(range(0, 8)) + list(range(16, 23))
+                        } for c in list(range(0, 9)) + list(range(17, 24))
                     ],
-                    # Merge Horizontal untuk Header "Progres Dokumen" (I5:P5)
+                    # Merge Horizontal untuk Header "Progres Dokumen" (J5:Q5)
                     {
                         'mergeCells': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 4, 'endRowIndex': 5,
-                                'startColumnIndex': 8, 'endColumnIndex': 16
+                                'startColumnIndex': 9, 'endColumnIndex': 17
                             },
                             'mergeType': 'MERGE_ALL'
                         }
                     },
-                    # Style Header "Progres Dokumen" (I5:P5) - Background Abu-abu Terang #EFEFEF, Teks Hitam Bold
+                    # Style Header "Progres Dokumen" (J5:Q5) - Background Abu-abu Terang #EFEFEF, Teks Hitam Bold
                     {
                         'repeatCell': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 4, 'endRowIndex': 5,
-                                'startColumnIndex': 8, 'endColumnIndex': 16
+                                'startColumnIndex': 9, 'endColumnIndex': 17
                             },
                             'cell': {
                                 'userEnteredFormat': {
@@ -661,13 +666,13 @@ class GoogleDriveService:
                             'fields': 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
                         }
                     },
-                    # Bingkai Biru Tebal di Sekeliling "Progres Dokumen" (I5:P5)
+                    # Bingkai Biru Tebal di Sekeliling "Progres Dokumen" (J5:Q5)
                     {
                         'updateBorders': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 4, 'endRowIndex': 5,
-                                'startColumnIndex': 8, 'endColumnIndex': 16
+                                'startColumnIndex': 9, 'endColumnIndex': 17
                             },
                             'top': {'style': 'SOLID_MEDIUM', 'width': 2, 'color': {'red': 0.122, 'green': 0.306, 'blue': 0.471}},
                             'bottom': {'style': 'SOLID_MEDIUM', 'width': 2, 'color': {'red': 0.122, 'green': 0.306, 'blue': 0.471}},
@@ -696,7 +701,7 @@ class GoogleDriveService:
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 6, 'endRowIndex': max(7, 6 + len(processed_rows)),
-                                'startColumnIndex': 0, 'endColumnIndex': 23
+                                'startColumnIndex': 0, 'endColumnIndex': 24
                             },
                             'cell': {
                                 'userEnteredFormat': {
@@ -707,13 +712,13 @@ class GoogleDriveService:
                             'fields': 'userEnteredFormat(wrapStrategy,verticalAlignment)'
                         }
                     },
-                    # Center Alignment khusus untuk Kolom Ceklis Tahapan (I-P / Col 8-15)
+                    # Center Alignment khusus untuk Kolom Ceklis Tahapan (J-Q / Col 9-16)
                     {
                         'repeatCell': {
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 6, 'endRowIndex': max(7, 6 + len(processed_rows)),
-                                'startColumnIndex': 8, 'endColumnIndex': 16
+                                'startColumnIndex': 9, 'endColumnIndex': 17
                             },
                             'cell': {
                                 'userEnteredFormat': {
@@ -730,7 +735,7 @@ class GoogleDriveService:
                             'range': {
                                 'sheetId': first_sheet_id,
                                 'startRowIndex': 4, 'endRowIndex': max(6, 6 + len(processed_rows)),
-                                'startColumnIndex': 0, 'endColumnIndex': 23
+                                'startColumnIndex': 0, 'endColumnIndex': 24
                             },
                             'top': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},
                             'bottom': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.0, 'blue': 0.0}},
@@ -740,7 +745,7 @@ class GoogleDriveService:
                             'innerVertical': {'style': 'SOLID', 'width': 1, 'color': {'red': 0.0, 'green': 0.0, 'blue': 0.0}}
                         }
                     },
-                    # Atur Ukuran Lebar Kolom Cerdas & Pas (Smart Pixel Widths) A s.d W
+                    # Atur Ukuran Lebar Kolom Cerdas & Pas (Smart Pixel Widths) A s.d X (24 Kolom)
                     *[
                         {
                             'updateDimensionProperties': {
@@ -756,27 +761,28 @@ class GoogleDriveService:
                         } for c_idx, width in enumerate([
                             45,   # 1. No (A)
                             180,  # 2. No. Reg. Dokumen (B)
-                            160,  # 3. Pengirim / Asal Instansi (C) - SMART & PAS!
-                            250,  # 4. Perihal (D)
-                            110,  # 5. Tanggal Diterima (E)
-                            110,  # 6. Jenis Dokumen (F)
-                            130,  # 7. Kategori Arsip (G)
-                            160,  # 8. Penanggung Jawab (H)
-                            45,   # 9. Verifikasi Kabid IV (I)
-                            45,   # 10. Disposisi Ketua (J)
-                            45,   # 11. Disposisi Waka IV (K)
-                            45,   # 12. Proses Bidang/Unit (L)
-                            45,   # 13. Survei (M)
-                            45,   # 14. Penyaluran (N)
-                            45,   # 15. Laporan (O)
-                            45,   # 16. Selesai (P)
-                            160,  # 17. Progres (Q)
-                            160,  # 18. No. Surat Tugas (R)
-                            160,  # 19. No. SPPD (S)
-                            110,  # 20. Tanggal Agenda (T)
-                            160,  # 21. No. Laporan (U)
-                            140,  # 22. Link Dokumen (V)
-                            130   # 23. Link Detail (W)
+                            160,  # 3. Pengirim / Asal Instansi (C)
+                            220,  # 4. Perihal (D)
+                            200,  # 5. Alamat Pemohon (E)
+                            110,  # 6. Tanggal Diterima (F)
+                            110,  # 7. Jenis Dokumen (G)
+                            130,  # 8. Kategori Arsip (H)
+                            160,  # 9. Penanggung Jawab (I)
+                            45,   # 10. Verifikasi Kabid IV (J)
+                            45,   # 11. Disposisi Ketua (K)
+                            45,   # 12. Disposisi Waka IV (L)
+                            45,   # 13. Proses Bidang/Unit (M)
+                            45,   # 14. Survei (N)
+                            45,   # 15. Penyaluran (O)
+                            45,   # 16. Laporan (P)
+                            45,   # 17. Selesai (Q)
+                            160,  # 18. Progres (R)
+                            160,  # 19. No. Surat Tugas (S)
+                            160,  # 20. No. SPPD (T)
+                            110,  # 21. Tanggal Agenda (U)
+                            160,  # 22. No. Laporan (V)
+                            140,  # 23. Link Dokumen (W)
+                            130   # 24. Link Detail (X)
                         ])
                     ]
                 ]
