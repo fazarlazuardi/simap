@@ -27,6 +27,8 @@ def notification_list(request):
     })
 
 
+from .utils import invalidate_user_notif_cache
+
 @login_required
 def read_and_redirect(request, pk):
     """Menandai 1 notifikasi tertentu sebagai 'read' dan mengarahkan ke link tautan tujuan."""
@@ -34,6 +36,7 @@ def read_and_redirect(request, pk):
     if notif.status == 'unread':
         notif.status = 'read'
         notif.save(update_fields=['status'])
+    invalidate_user_notif_cache(request.user.pk)
     
     if notif.link_url:
         return redirect(notif.link_url)
@@ -45,6 +48,7 @@ def read_and_redirect(request, pk):
 def mark_all_as_read(request):
     """Menandai seluruh notifikasi user sebagai 'read'."""
     updated_count = Notification.objects.filter(user=request.user, status='unread').update(status='read')
+    invalidate_user_notif_cache(request.user.pk)
 
     if request.headers.get('HX-Request') or request.headers.get('x-requested-with') == 'XMLHttpRequest':
         context = {
@@ -63,6 +67,7 @@ def mark_all_as_read(request):
 def clear_all(request):
     """Menghapus seluruh notifikasi milik user terpilih."""
     Notification.objects.filter(user=request.user).delete()
+    invalidate_user_notif_cache(request.user.pk)
     messages.success(request, "Riwayat notifikasi berhasil dibersihkan.")
     return redirect('notifications:list')
 

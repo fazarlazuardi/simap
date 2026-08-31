@@ -24,6 +24,13 @@ urlpatterns = [
     path('rapat-internal/', include('internal_meetings.urls', namespace='internal_meetings')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+from django.views.static import serve as static_serve
+from django.views.decorators.clickjacking import xframe_options_exempt
+from django.urls import re_path
+
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', xframe_options_exempt(static_serve), {'document_root': settings.MEDIA_ROOT}),
+    re_path(r'^static/(?P<path>.*)$', static_serve, {'document_root': settings.STATIC_ROOT}),
+]
+
+

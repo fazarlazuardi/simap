@@ -232,6 +232,12 @@ class Notification(models.Model):
         if self.notification_type == 'whatsapp' and self.recipient_phone:
             self.wa_direct_link = self.generate_wa_direct_link()
         super().save(*args, **kwargs)
+        if self.user_id:
+            try:
+                from .utils import invalidate_user_notif_cache
+                invalidate_user_notif_cache(self.user_id)
+            except Exception:
+                pass
 
     @classmethod
     def create_system_notif(cls, user, title, message, link_url="", category="general"):

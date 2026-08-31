@@ -107,7 +107,7 @@
                             <td class="text-secondary fw-semibold py-3"><i class="bi bi-file-earmark-word me-2 text-primary"></i>Referensi Surat Tugas</td>
                             <td class="py-3">
                                 {% if sppd.surat_tugas %}
-                                <a href="#" class="text-decoration-none fw-bold text-emerald">
+                                <a href="{% url 'surat_tugas:detail' sppd.surat_tugas.pk %}" class="text-decoration-none fw-bold text-emerald">
                                     <i class="bi bi-file-earmark-check me-1"></i>{{ sppd.surat_tugas.nomor_surat }}
                                 </a>
                                 <br><small class="text-secondary">{{ sppd.surat_tugas.tentang }}</small>

@@ -266,7 +266,7 @@ def archive_upload(request):
                 }
             )
         
-        auto_verify = request.POST.get('auto_verify') == 'on' or request.POST.get('auto_verify') == 'true'
+        auto_verify = request.POST.get('auto_verify') == 'on' or request.POST.get('auto_verify') == 'true' or getattr(request.user, 'is_superadmin', False) or getattr(request.user, 'is_superuser', False)
 
         initial_status = "disposisi_pimpinan" if auto_verify else "baru"
         

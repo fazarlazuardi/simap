@@ -261,12 +261,12 @@
                     </div>
 
                     {% if ".pdf" in archive.file_path.name.lower %}
-                    <div class="w-full h-[420px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner">
-                        <iframe src="{{ archive.file_path.url }}#toolbar=0" class="w-full h-full border-0"></iframe>
+                    <div class="w-full h-[520px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner bg-slate-100 dark:bg-slate-950">
+                        <iframe src="{{ archive.file_path.url }}" class="w-full h-full border-0"></iframe>
                     </div>
                     {% else %}
-                    <div class="text-center p-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 shadow-sm max-h-[420px] overflow-hidden">
-                        <img src="{{ archive.file_path.url }}" class="max-h-[400px] object-contain rounded-xl mx-auto">
+                    <div class="text-center p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 shadow-sm max-h-[520px] overflow-auto">
+                        <img src="{{ archive.file_path.url }}" class="max-h-[480px] object-contain rounded-xl mx-auto shadow-md">
                     </div>
                     {% endif %}
                 {% else %}

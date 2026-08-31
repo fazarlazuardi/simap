@@ -98,12 +98,14 @@ def disposition_list(request):
 
     users = User.objects.filter(is_active_account=True).order_by('username')
 
-    # Archives verified/forwarded but have no disposition yet
+    # Archives verified/forwarded but have no disposition yet (or only have an unfilled draf disposition)
     archives_verified_no_dispo = Archive.objects.filter(
-        status__in=['terverifikasi', 'disposisi_pimpinan']
+        Q(status__in=['terverifikasi', 'disposisi_pimpinan', 'baru']) | Q(verified_by_kabid=True)
+    ).filter(
+        Q(dispositions__isnull=True) | Q(dispositions__status='baru', dispositions__note='')
     ).exclude(
-        dispositions__isnull=False
-    ).select_related('category', 'uploaded_by').order_by('-updated_at')
+        status__in=['didisposisikan', 'proses', 'sudah_ditugaskan', 'dalam_survei', 'telah_disalurkan', 'selesai', 'ditolak']
+    ).select_related('category', 'uploaded_by').distinct().order_by('-updated_at')
     if archive_type:
         archives_verified_no_dispo = archives_verified_no_dispo.filter(archive_type=archive_type)
 
@@ -124,6 +126,8 @@ def disposition_list(request):
     for d in page_obj:
         d.item_perms = request.user.get_disposition_permissions(active_pov, dispo=d)
 
+    dispo_perms = request.user.get_disposition_permissions(active_pov)
+
     return render(request, 'dispositions/list.html', {
         'page_obj': page_obj,
         'dispositions': page_obj,
@@ -139,6 +143,7 @@ def disposition_list(request):
         'pending_batch_count': pending_batch_count,
         'is_batch_ready': is_batch_ready,
         'dispo_success_obj': dispo_success_obj,
+        'dispo_perms': dispo_perms,
     })
 
 
