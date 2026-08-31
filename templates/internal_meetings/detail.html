@@ -1149,29 +1149,33 @@ var quillSummary, quillDecision, quillActionItems;
 // =========================================================================
 // 🚀 BULLETPROOF ENTERPRISE MODAL CONTROLLER (100% CLICKABLE & POP-IN) 🚀
 // =========================================================================
+window.closeModal = function(modalId) {
+    var modalEl = document.getElementById(modalId);
+    if (modalEl) {
+        modalEl.style.setProperty('display', 'none', 'important');
+        modalEl.classList.add('hidden');
+    }
+};
+
+window.closeAllModals = function() {
+    ['modalInputNotulensi', 'modalAttendanceAdjustment', 'modalSendWA', 'modalCancelMeeting'].forEach(function(id) {
+        var modalEl = document.getElementById(id);
+        if (modalEl) {
+            modalEl.style.setProperty('display', 'none', 'important');
+            modalEl.classList.add('hidden');
+        }
+    });
+    document.body.style.overflow = '';
+};
+
 window.openModal = function(modalId) {
+    window.closeAllModals();
     var modalEl = document.getElementById(modalId);
     if (modalEl) {
         modalEl.style.setProperty('display', 'flex', 'important');
         modalEl.classList.remove('hidden', 'd-none');
         document.body.style.overflow = 'hidden';
     }
-};
-
-window.closeModal = function(modalId) {
-    var modalEl = document.getElementById(modalId);
-    if (modalEl) {
-        modalEl.style.setProperty('display', 'none', 'important');
-        modalEl.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-};
-
-window.closeAllModals = function() {
-    ['modalInputNotulensi', 'modalAttendanceAdjustment', 'modalSendWA', 'modalCancelMeeting'].forEach(function(id) {
-        window.closeModal(id);
-    });
-    document.body.style.overflow = '';
 };
 
 window.closeAllMeetingsModalsPure = window.closeAllModals;
@@ -1201,6 +1205,7 @@ window.switchDetailTab = function(tabName) {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+    window.closeAllModals();
     // Esc key modal close
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
