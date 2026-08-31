@@ -291,8 +291,13 @@
             <i class="bi bi-exclamation-circle-fill"></i>
         </div>
         <div>
+            {% if is_bidang_123 %}
+            <h3 class="font-extrabold text-sm text-slate-900 dark:text-white mb-0.5">Ada {{ pending_dispositions }} Lembar Disposisi Pimpinan yang Perlu Ditindaklanjuti Bidang Anda!</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mb-0">Dokumen telah didisposisikan ke Bidang Anda dan menunggu arahan / tindak lanjut pelaksana.</p>
+            {% else %}
             <h3 class="font-extrabold text-sm text-slate-900 dark:text-white mb-0.5">Ada {{ pending_dispositions }} Dokumen Terverifikasi Kabid IV yang Siap Didisposisikan!</h3>
             <p class="text-xs text-slate-600 dark:text-slate-300 mb-0">Dokumen telah diverifikasi Kabid IV dan siap untuk Anda berikan instruksi disposisi.</p>
+            {% endif %}
         </div>
     </div>
     <a href="{% url 'dispositions:list' %}" class="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-md transition-all no-underline inline-flex items-center gap-1.5">

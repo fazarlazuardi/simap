@@ -81,13 +81,34 @@ def dashboard_index(request):
     dokumen_selesai_count = Archive.objects.filter(status='selesai').count()
     total_archives = Archive.objects.count()
 
-    # Disposisi Pending (Fokus Dokumen Terverifikasi yang Siap Didisposisikan Ketua BAZNAS)
-    if request.user.is_superadmin and not is_waka_or_kabid_2:
-        pending_dispositions = Archive.objects.filter(status__in=['terverifikasi', 'disposisi_pimpinan']).exclude(dispositions__isnull=False).count() + Disposition.objects.filter(status='baru').count()
-    elif request.user.is_pimpinan or request.user.is_kabid or is_waka_or_kabid_2:
-        pending_dispositions = Archive.objects.filter(status__in=['terverifikasi', 'disposisi_pimpinan']).exclude(dispositions__isnull=False).count() + Disposition.objects.filter(status='baru').distinct().count()
+    # Disposisi Pending (Fokus Dokumen Terverifikasi untuk Superadmin/Ketua/Kabid4 & Disposisi Terusan untuk Bidang 1, 2, 3)
+    pov = str(active_pov or '').lower().strip()
+    is_bidang_123 = pov in ['waka_1', 'waka_2', 'waka_3', 'kabid_1', 'kabid_2', 'kabid_3'] or (
+        not pov and (
+            (getattr(request.user, 'is_waka_1', False) or getattr(request.user, 'is_kabid_1', False)) or
+            (getattr(request.user, 'is_waka_2', False) or getattr(request.user, 'is_kabid_2', False)) or
+            (getattr(request.user, 'is_waka_3', False) or getattr(request.user, 'is_kabid_3', False))
+        )
+    )
+
+    if is_bidang_123:
+        bidang_dispos = [
+            d for d in Disposition.objects.exclude(status__in=['selesai', 'ditolak'])
+            if request.user.is_dispo_targeted_to_bidang(d, active_pov=active_pov) and not d.has_waka_disposition
+        ]
+        pending_dispositions = len(bidang_dispos)
+    elif pov in ['admin', 'superadmin', 'ketua', 'waka_4', 'kabid_4', 'sdm', 'fo'] or (
+        not pov and (request.user.is_superadmin or request.user.is_ketua or request.user.is_kabid_4 or request.user.is_waka_4)
+    ):
+        pending_dispositions = Archive.objects.filter(
+            Q(status__in=['terverifikasi', 'disposisi_pimpinan', 'baru']) | Q(verified_by_kabid=True)
+        ).filter(
+            Q(dispositions__isnull=True) | Q(dispositions__status='baru', dispositions__note='')
+        ).exclude(
+            status__in=['didisposisikan', 'proses', 'sudah_ditugaskan', 'dalam_survei', 'telah_disalurkan', 'selesai', 'ditolak']
+        ).distinct().count()
     else:
-        pending_dispositions = Disposition.objects.filter(forwarded_to__user_account=request.user, status='terverifikasi').distinct().count()
+        pending_dispositions = Disposition.objects.filter(forwarded_to__user_account=request.user).exclude(status__in=['selesai', 'ditolak']).distinct().count()
 
     # 2. Timeline Aktivitas Hari Ini (Audit Log Trail)
     from audit_logs.models import AuditLog
@@ -351,6 +372,7 @@ def dashboard_index(request):
     context = {
         'active_pov': active_pov,
         'active_pov_name': active_pov_name,
+        'is_bidang_123': is_bidang_123,
         'can_upload': can_upload_archive(request),
         'surat_masuk_count': surat_masuk_count,
         'proposal_aktif_count': proposal_aktif_count,
