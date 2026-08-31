@@ -289,7 +289,12 @@ def meeting_create(request):
                 sync_meeting_to_agenda(meeting)
                 if form.cleaned_data.get('send_wa'):
                     meeting_id_val = meeting.pk
-                    transaction.on_commit(lambda: task_trigger_meeting_invitations.delay(meeting_id_val))
+                    def _safe_dispatch_invitations(m_id):
+                        try:
+                            task_trigger_meeting_invitations.delay(m_id)
+                        except Exception as err_dispatch:
+                            print("[WARN] Failure triggering meeting invitations Celery task:", err_dispatch)
+                    transaction.on_commit(lambda: _safe_dispatch_invitations(meeting_id_val))
 
             AuditService.log_action(request.user, f"Buat Agenda Rapat Internal: {meeting.title}", request)
             messages.success(request, f"Agenda Rapat Internal '{meeting.title}' berhasil dibuat & tercatat di Agenda Kerja.")
@@ -409,6 +414,13 @@ def meeting_notulensi(request, pk):
                 meeting_obj.notulensi_created_at = timezone.now()
                 if meeting_obj.status != 'dibatalkan':
                     meeting_obj.status = 'selesai'
+                from .templatetags.notulensi_filters import clean_notulensi
+                if meeting_obj.notulensi_summary:
+                    meeting_obj.notulensi_summary = str(clean_notulensi(meeting_obj.notulensi_summary))
+                if meeting_obj.notulensi_decision:
+                    meeting_obj.notulensi_decision = str(clean_notulensi(meeting_obj.notulensi_decision))
+                if meeting_obj.notulensi_action_items:
+                    meeting_obj.notulensi_action_items = str(clean_notulensi(meeting_obj.notulensi_action_items))
                 meeting_obj.save()
                 form.save_m2m()
 
@@ -613,7 +625,12 @@ def meeting_notify(request, pk):
             recipient_label = "Seluruh Pegawai BAZNAS"
 
         meeting_id_val = meeting.pk
-        transaction.on_commit(lambda: task_trigger_meeting_invitations.delay(meeting_id_val))
+        def _safe_dispatch_invitations(m_id):
+            try:
+                task_trigger_meeting_invitations.delay(m_id)
+            except Exception as err_dispatch:
+                print("[WARN] Failure triggering meeting invitations Celery task:", err_dispatch)
+        transaction.on_commit(lambda: _safe_dispatch_invitations(meeting_id_val))
         
         AuditService.log_action(request.user, f"Kirim WA Notifikasi Rapat ({recipient_label}): {meeting.title}", request)
         messages.success(request, f"✅ Notifikasi WA Undangan Rapat '{meeting.title}' berhasil dikirimkan ke {recipient_label}.")

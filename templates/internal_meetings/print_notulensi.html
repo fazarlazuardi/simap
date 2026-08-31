@@ -1,4 +1,5 @@
 {% load static %}
+{% load notulensi_filters %}
 <!DOCTYPE html>
 <html lang="id">
 
@@ -239,74 +240,125 @@
         .section-box {
             border: 1px solid #000000;
             border-top: none;
-            padding: 8px 10px;
+            padding: 10px 12px;
             min-height: 50px;
             font-size: 9.5pt;
-            text-align: justify;
-            line-height: 1.35;
+            text-align: justify !important;
+            text-justify: inter-word !important;
+            line-height: 1.45;
             word-wrap: break-word;
             color: #000000;
         }
 
+        .section-box h2 {
+            font-size: 10.5pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            color: #000000;
+            text-align: left !important;
+        }
+
+        .section-box h3 {
+            font-size: 9.5pt;
+            font-weight: bold;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            color: #000000;
+            text-align: left !important;
+        }
+
         .section-box p {
-            margin: 0 0 4px 0;
+            margin: 0 0 6px 0;
+            text-align: justify !important;
+            text-justify: inter-word !important;
+            line-height: 1.45;
         }
 
         .section-box p:last-child {
             margin-bottom: 0;
         }
 
-        .section-box ul,
-        .section-box ol {
-            margin: 3px 0;
-            padding-left: 24px;
+        .section-box .ql-ui {
+            display: none !important;
         }
 
-        /* Standard Lists */
-        .section-box ul {
-            list-style-type: disc !important;
+        .section-box ol,
+        .notulensi-content ol {
+            counter-reset: ql-ol-counter;
+            list-style-type: none !important;
+            padding-left: 0 !important;
+            margin: 6px 0 !important;
         }
 
-        .section-box ol {
-            list-style-type: decimal;
+        /* Direct or ordered items in OL (MS Word Hanging Indent) */
+        .section-box ol > li,
+        .notulensi-content ol > li {
+            counter-increment: ql-ol-counter;
+            list-style-type: none !important;
+            position: relative;
+            padding-left: 24px !important;
+            margin-top: 6px !important;
+            margin-bottom: 6px !important;
+            text-align: justify !important;
+            text-justify: inter-word !important;
+            line-height: 1.45 !important;
         }
 
-        /* Quill List Attributes (data-list="bullet" vs data-list="ordered") */
-        .section-box li[data-list="bullet"],
-        .section-box ol li[data-list="bullet"],
-        .section-box ul li[data-list="bullet"] {
-            list-style-type: disc !important;
+        .section-box ol > li::before,
+        .notulensi-content ol > li::before {
+            content: counter(ql-ol-counter) ".";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 18px;
+            font-weight: bold;
+            text-align: right;
         }
 
-        .section-box li[data-list="ordered"],
-        .section-box ol li[data-list="ordered"],
-        .section-box ul li[data-list="ordered"] {
-            list-style-type: decimal !important;
+        /* Nested Sub-points (MS Word Disc Bullet with Hanging Indent) */
+        .section-box ul.notulensi-subbullet,
+        .notulensi-content ul.notulensi-subbullet {
+            list-style-type: none !important;
+            padding-left: 0 !important;
+            margin: 4px 0 6px 0 !important;
         }
 
-        /* Nested Sub-points (Bulleted sub-item under number) */
-        .section-box ol ul,
+        .section-box ul.notulensi-subbullet > li,
+        .notulensi-content ul.notulensi-subbullet > li {
+            list-style-type: none !important;
+            counter-increment: none !important;
+            position: relative;
+            padding-left: 18px !important;
+            margin-bottom: 3px !important;
+            line-height: 1.4 !important;
+            font-weight: normal !important;
+            text-align: justify !important;
+            text-justify: inter-word !important;
+        }
+
+        .section-box ul.notulensi-subbullet > li::before,
+        .notulensi-content ul.notulensi-subbullet > li::before {
+            content: "•";
+            position: absolute;
+            left: 4px;
+            top: 0;
+            font-weight: bold;
+            font-size: 10.5pt;
+        }
+
         .section-box ul ul,
-        .section-box ol li ul,
-        .section-box ul li ul {
+        .section-box ol ul {
             list-style-type: disc !important;
-            padding-left: 20px;
+            padding-left: 18px;
             margin: 2px 0;
         }
 
         .section-box ol ol,
-        .section-box ol[type="a"],
-        .section-box ol[type="a" i],
-        .section-box ol.type-a {
+        .section-box ol[type="a"] {
             list-style-type: lower-alpha;
-            padding-left: 20px;
-        }
-
-        .section-box ol[type="I"],
-        .section-box ol[type="I" i],
-        .section-box ol ol ol {
-            list-style-type: lower-roman;
-            padding-left: 20px;
+            padding-left: 18px;
         }
 
         .section-box li {
@@ -314,17 +366,14 @@
         }
 
         /* Indentasi Quill */
-        .section-box li.ql-indent-1,
-        .section-box .ql-indent-1 {
-            padding-left: 1.5em;
+        .section-box li.ql-indent-1 {
+            margin-left: 20px !important;
         }
-        .section-box li.ql-indent-2,
-        .section-box .ql-indent-2 {
-            padding-left: 3em;
+        .section-box li.ql-indent-2 {
+            margin-left: 35px !important;
         }
-        .section-box li.ql-indent-3,
-        .section-box .ql-indent-3 {
-            padding-left: 4.5em;
+        .section-box li.ql-indent-3 {
+            margin-left: 50px !important;
         }
 
         /* ==========================================
@@ -533,13 +582,13 @@
                 <!-- 1. RINGKASAN PEMBAHASAN -->
                 <div class="section-group">
                     <div class="section-bar">1. RINGKASAN PEMBAHASAN & RISALAH RAPAT</div>
-                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_summary|default:"-"|safe }}</div>
+                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_summary|clean_notulensi }}</div>
                 </div>
 
                 <!-- 2. KESIMPULAN & KEPUTUSAN -->
                 <div class="section-group">
                     <div class="section-bar">2. KESIMPULAN & KEPUTUSAN RAPAT</div>
-                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_decision|default:"-"|safe }}</div>
+                    <div class="section-box" style="min-height: 60px;">{{ meeting.notulensi_decision|clean_notulensi }}</div>
                 </div>
             </div>
 
@@ -604,7 +653,7 @@
                 <!-- 3. ACTION PLAN -->
                 <div class="section-group" style="margin-top: 10px;">
                     <div class="section-bar">3. RENCANA TINDAK LANJUT (ACTION PLAN)</div>
-                    <div class="section-box" style="min-height: 160px;">{{ meeting.notulensi_action_items|default:"-"|safe }}</div>
+                    <div class="section-box" style="min-height: 160px;">{{ meeting.notulensi_action_items|clean_notulensi }}</div>
                 </div>
             </div>
 

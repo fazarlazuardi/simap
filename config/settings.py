@@ -143,8 +143,8 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
 CELERY_TASK_SOFT_TIME_LIMIT = 120
 CELERY_TASK_TIME_LIMIT = 180
-CELERY_RESULT_EXPIRES = 3600
-CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_ALWAYS_EAGER', default=False)
+CELERY_BROKER_CONNECTION_TIMEOUT = 3
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 1
 
 
 def _is_redis_available(host='127.0.0.1', port=6379):
@@ -156,7 +156,13 @@ def _is_redis_available(host='127.0.0.1', port=6379):
     except Exception:
         return False
 
-if 'test' not in sys.argv and _is_redis_available():
+redis_online = _is_redis_available()
+
+if not redis_online and not env.bool('CELERY_ALWAYS_EAGER', default=False):
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = False
+
+if 'test' not in sys.argv and redis_online:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.redis.RedisCache',

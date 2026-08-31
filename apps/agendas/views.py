@@ -363,7 +363,7 @@ def agenda_list(request):
             agenda_dates_map[d_str].append({
                 'title': b_text,
                 'type': 'meeting' if ag.internal_meeting_id else 'agenda',
-                'url': f"/rapat-internal/{ag.internal_meeting_id}/" if ag.internal_meeting_id else f"/agenda/"
+                'url': f"/rapat-internal/{ag.internal_meeting_id}/" if ag.internal_meeting_id else f"/agendas/"
             })
 
     agenda_dates_json = json.dumps(agenda_dates_map)

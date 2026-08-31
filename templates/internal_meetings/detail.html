@@ -1,18 +1,65 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
+{% load notulensi_filters %}
 
 {% block title %}Detail Rapat - {{ meeting.title }} - BAZNAS Kab. Tangerang{% endblock %}
 
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 <style>
-    /* Rich Notulensi Reader Typography */
-    .notulensi-content ol, .notulensi-content ul { padding-left: 1.5rem; margin-bottom: 0.5rem; }
-    .notulensi-content ul { list-style-type: disc !important; }
-    .notulensi-content ol { list-style-type: decimal; }
-    .notulensi-content li[data-list="bullet"], .notulensi-content ol li[data-list="bullet"], .notulensi-content ul li[data-list="bullet"] { list-style-type: disc !important; }
-    .notulensi-content li[data-list="ordered"], .notulensi-content ol li[data-list="ordered"], .notulensi-content ul li[data-list="ordered"] { list-style-type: decimal !important; }
-    .notulensi-content p { margin-bottom: 0.35rem; }
+    /* Rich Notulensi Reader Typography (MS Word Hanging Indent) */
+    .notulensi-content .ql-ui { display: none !important; }
+    .notulensi-content ol {
+        counter-reset: ql-ol-counter-detail;
+        list-style-type: none !important;
+        padding-left: 0 !important;
+        margin: 6px 0 !important;
+    }
+    .notulensi-content ol > li {
+        counter-increment: ql-ol-counter-detail;
+        list-style-type: none !important;
+        position: relative;
+        padding-left: 24px !important;
+        margin-top: 6px !important;
+        margin-bottom: 6px !important;
+        text-align: justify !important;
+        text-justify: inter-word !important;
+        line-height: 1.5 !important;
+    }
+    .notulensi-content ol > li::before {
+        content: counter(ql-ol-counter-detail) ".";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 18px;
+        font-weight: bold;
+        text-align: right;
+    }
+    .notulensi-content ul.notulensi-subbullet {
+        list-style-type: none !important;
+        padding-left: 0 !important;
+        margin: 4px 0 6px 0 !important;
+    }
+    .notulensi-content ul.notulensi-subbullet > li {
+        list-style-type: none !important;
+        counter-increment: none !important;
+        position: relative;
+        padding-left: 18px !important;
+        margin-bottom: 3px !important;
+        line-height: 1.4 !important;
+        font-weight: normal !important;
+        text-align: justify !important;
+        text-justify: inter-word !important;
+    }
+    .notulensi-content ul.notulensi-subbullet > li::before {
+        content: "•";
+        position: absolute;
+        left: 4px;
+        top: 0;
+        font-weight: bold;
+        font-size: 10.5pt;
+    }
+    .notulensi-content p { margin-bottom: 0.35rem; text-align: justify; text-justify: inter-word; }
     .notulensi-content p:last-child { margin-bottom: 0; }
 
     /* Quill Editor Theme Styling & Dark Mode Compatibility */
@@ -403,7 +450,7 @@
                                 <i class="bi bi-chat-left-text-fill me-1"></i> 1. Ringkasan Pembahasan & Risalah Rapat:
                             </span>
                             <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 notulensi-content text-sm">
-                                {{ meeting.notulensi_summary|default:"-"|safe }}
+                                {{ meeting.notulensi_summary|clean_notulensi }}
                             </div>
                         </div>
 
@@ -413,7 +460,7 @@
                                 <i class="bi bi-check-circle-fill me-1"></i> 2. Kesimpulan & Poin Keputusan Rapat:
                             </span>
                             <div class="decision-callout-enterprise text-slate-900 dark:text-slate-100 notulensi-content text-sm">
-                                {{ meeting.notulensi_decision|default:"-"|safe }}
+                                {{ meeting.notulensi_decision|clean_notulensi }}
                             </div>
                         </div>
 
@@ -423,7 +470,7 @@
                                 <i class="bi bi-list-task me-1"></i> 3. Rencana Tindak Lanjut (Action Items Summary):
                             </span>
                             <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 notulensi-content text-sm">
-                                {{ meeting.notulensi_action_items|default:"-"|safe }}
+                                {{ meeting.notulensi_action_items|clean_notulensi }}
                             </div>
                         </div>
 
@@ -1105,7 +1152,7 @@ var quillSummary, quillDecision, quillActionItems;
 window.openModal = function(modalId) {
     var modalEl = document.getElementById(modalId);
     if (modalEl) {
-        modalEl.style.display = 'flex';
+        modalEl.style.setProperty('display', 'flex', 'important');
         modalEl.classList.remove('hidden', 'd-none');
         document.body.style.overflow = 'hidden';
     }
@@ -1114,7 +1161,7 @@ window.openModal = function(modalId) {
 window.closeModal = function(modalId) {
     var modalEl = document.getElementById(modalId);
     if (modalEl) {
-        modalEl.style.display = 'none';
+        modalEl.style.setProperty('display', 'none', 'important');
         modalEl.classList.add('hidden');
         document.body.style.overflow = '';
     }
@@ -1343,18 +1390,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     var numMatch = trimmedLine.match(/^(\d+)[\.\)]\s+(.*)/);
                     var bulletMatch = trimmedLine.match(/^[\-\*\•\.]\s+(.*)/);
 
-                    if (letterMatch) {
-                        if (inUl) { htmlOutput += '</ul>'; inUl = false; }
-                        if (!inOl) { htmlOutput += '<ol type="a">'; inOl = true; }
-                        htmlOutput += '<li>' + letterMatch[2] + '</li>';
-                    } else if (numMatch) {
+                    if (numMatch) {
                         if (inUl) { htmlOutput += '</ul>'; inUl = false; }
                         if (!inOl) { htmlOutput += '<ol>'; inOl = true; }
                         htmlOutput += '<li>' + numMatch[2] + '</li>';
                     } else if (bulletMatch) {
-                        if (inOl) { htmlOutput += '</ol>'; inOl = false; }
-                        if (!inUl) { htmlOutput += '<ul>'; inUl = true; }
-                        htmlOutput += '<li>' + bulletMatch[1] + '</li>';
+                        if (inOl) {
+                            htmlOutput += '<li class="ql-indent-1" data-list="bullet">' + bulletMatch[1] + '</li>';
+                        } else {
+                            if (!inUl) { htmlOutput += '<ul>'; inUl = true; }
+                            htmlOutput += '<li>' + bulletMatch[1] + '</li>';
+                        }
+                    } else if (letterMatch) {
+                        if (inUl) { htmlOutput += '</ul>'; inUl = false; }
+                        if (inOl) {
+                            htmlOutput += '<li class="ql-indent-1" data-list="ordered">' + letterMatch[2] + '</li>';
+                        } else {
+                            if (!inOl) { htmlOutput += '<ol type="a">'; inOl = true; }
+                            htmlOutput += '<li>' + letterMatch[2] + '</li>';
+                        }
                     } else {
                         if (inOl) { htmlOutput += '</ol>'; inOl = false; }
                         if (inUl) { htmlOutput += '</ul>'; inUl = false; }
@@ -1512,17 +1566,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var notulensiForm = document.getElementById('formNotulensiModal');
     if (notulensiForm) {
         notulensiForm.addEventListener('submit', function() {
-            if (summaryInput) {
-                var htmlSum = convertMarkdownToHTML(quillSummary.root.innerHTML);
-                summaryInput.value = (htmlSum === '<p><br></p>') ? '' : htmlSum;
+            if (summaryInput && quillSummary) {
+                var rawSum = quillSummary.root.innerHTML;
+                summaryInput.value = (rawSum === '<p><br></p>') ? '' : rawSum;
             }
-            if (decisionInput) {
-                var htmlDec = convertMarkdownToHTML(quillDecision.root.innerHTML);
-                decisionInput.value = (htmlDec === '<p><br></p>') ? '' : htmlDec;
+            if (decisionInput && quillDecision) {
+                var rawDec = quillDecision.root.innerHTML;
+                decisionInput.value = (rawDec === '<p><br></p>') ? '' : rawDec;
             }
-            if (actionItemsInput) {
-                var htmlAct = convertMarkdownToHTML(quillActionItems.root.innerHTML);
-                actionItemsInput.value = (htmlAct === '<p><br></p>') ? '' : htmlAct;
+            if (actionItemsInput && quillActionItems) {
+                var rawAct = quillActionItems.root.innerHTML;
+                actionItemsInput.value = (rawAct === '<p><br></p>') ? '' : rawAct;
             }
 
             var submitBtn = notulensiForm.querySelector('button[type="submit"]');

@@ -154,6 +154,23 @@ class Agenda(models.Model):
         self._internal_meeting_id_cache = value
 
     @property
+    def internal_meeting(self):
+        if hasattr(self, '_internal_meeting_obj_cache'):
+            return self._internal_meeting_obj_cache
+        m_id = self.internal_meeting_id
+        if m_id:
+            try:
+                from internal_meetings.models import InternalMeeting
+                return InternalMeeting.objects.filter(pk=m_id).first()
+            except Exception:
+                pass
+        return None
+
+    @internal_meeting.setter
+    def internal_meeting(self, value):
+        self._internal_meeting_obj_cache = value
+
+    @property
     def is_recurring(self):
         if hasattr(self, '_is_recurring_cache'):
             return self._is_recurring_cache
