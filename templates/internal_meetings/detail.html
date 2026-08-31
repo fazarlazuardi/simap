@@ -227,11 +227,20 @@
         background-color: rgba(15, 23, 42, 0.75) !important;
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem;
+        box-sizing: border-box;
+    }
+
+    .enterprise-modal-backdrop.hidden,
+    .enterprise-modal-backdrop[style*="display: none"] {
+        display: none !important;
+    }
+
+    .enterprise-modal-backdrop.active,
+    .enterprise-modal-backdrop.show {
         display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 1.25rem !important;
-        box-sizing: border-box !important;
     }
 
     @keyframes modalPopInFigma {
@@ -1152,8 +1161,13 @@ var quillSummary, quillDecision, quillActionItems;
 window.closeModal = function(modalId) {
     var modalEl = document.getElementById(modalId);
     if (modalEl) {
-        modalEl.style.setProperty('display', 'none', 'important');
         modalEl.classList.add('hidden');
+        modalEl.classList.remove('active', 'show');
+        modalEl.style.setProperty('display', 'none', 'important');
+    }
+    var anyActive = document.querySelector('.enterprise-modal-backdrop.active');
+    if (!anyActive) {
+        document.body.style.overflow = '';
     }
 };
 
@@ -1161,8 +1175,9 @@ window.closeAllModals = function() {
     ['modalInputNotulensi', 'modalAttendanceAdjustment', 'modalSendWA', 'modalCancelMeeting'].forEach(function(id) {
         var modalEl = document.getElementById(id);
         if (modalEl) {
-            modalEl.style.setProperty('display', 'none', 'important');
             modalEl.classList.add('hidden');
+            modalEl.classList.remove('active', 'show');
+            modalEl.style.setProperty('display', 'none', 'important');
         }
     });
     document.body.style.overflow = '';
@@ -1172,8 +1187,9 @@ window.openModal = function(modalId) {
     window.closeAllModals();
     var modalEl = document.getElementById(modalId);
     if (modalEl) {
-        modalEl.style.setProperty('display', 'flex', 'important');
         modalEl.classList.remove('hidden', 'd-none');
+        modalEl.classList.add('active');
+        modalEl.style.setProperty('display', 'flex', 'important');
         document.body.style.overflow = 'hidden';
     }
 };
