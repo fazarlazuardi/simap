@@ -227,10 +227,12 @@
         background-color: rgba(15, 23, 42, 0.75) !important;
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-        align-items: center;
-        justify-content: center;
-        padding: 1.25rem;
-        box-sizing: border-box;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 1rem !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
     }
 
     .enterprise-modal-backdrop.hidden,
@@ -241,6 +243,23 @@
     .enterprise-modal-backdrop.active,
     .enterprise-modal-backdrop.show {
         display: flex !important;
+    }
+
+    .modal-content-card {
+        margin: auto !important;
+        overflow-x: hidden !important;
+        max-width: min(640px, 95vw) !important;
+        word-wrap: break-word !important;
+    }
+
+    .custom-scroll-container {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+
+    .ql-editor, .ql-container {
+        overflow-x: hidden !important;
+        word-wrap: break-word !important;
     }
 
     @keyframes modalPopInFigma {
