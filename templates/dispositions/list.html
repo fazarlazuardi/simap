@@ -177,6 +177,11 @@
 
                         <!-- Status Alur -->
                         <td class="py-3 px-3 text-center">
+                            {% if dispo.is_targeted_to_user_bidang and not dispo.is_completed %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 border border-amber-400 font-mono animate-pulse inline-flex items-center gap-1 mb-1 shadow-2xs">
+                                    <i class="bi bi-bell-fill"></i> PERLU TINDAK LANJUT BIDANG
+                                </span>
+                            {% endif %}
                             {% if dispo.is_completed or dispo.status == 'selesai' or dispo.archive.status == 'selesai' or dispo.report %}
                                 <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 font-mono inline-flex items-center gap-1"><i class="bi bi-check-circle-fill"></i> SELESAI</span>
                             {% elif dispo.status == 'baru' %}
@@ -215,6 +220,10 @@
                                         {% if dispo.has_waka_disposition %}
                                         <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="w-8 h-8 rounded-full bg-sky-500/15 hover:bg-sky-500/25 text-sky-600 dark:text-sky-400 flex items-center justify-center transition-all no-underline" title="Edit / Teruskan Disposisi Waka & Bidang">
                                             <i class="bi bi-pencil-fill text-xs"></i>
+                                        </a>
+                                        {% elif dispo.is_targeted_to_user_bidang %}
+                                        <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-extrabold shadow-md transition-all no-underline inline-flex items-center gap-1.5 animate-pulse" title="Tindak Lanjuti & Teruskan Disposisi Ke Staf/Pelaksana Bidang Anda">
+                                            <i class="bi bi-pencil-square"></i> Tindak Lanjuti Bidang
                                         </a>
                                         {% else %}
                                         <a href="{% url 'dispositions:waka_edit' dispo.pk %}" class="px-3 py-1 rounded-full bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-extrabold shadow-2xs transition-all no-underline inline-flex items-center gap-1" title="Buat Arahan / Teruskan Disposisi">

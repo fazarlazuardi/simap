@@ -98,16 +98,30 @@ def disposition_list(request):
 
     users = User.objects.filter(is_active_account=True).order_by('username')
 
-    # Archives verified/forwarded but have no disposition yet (or only have an unfilled draf disposition)
-    archives_verified_no_dispo = Archive.objects.filter(
-        Q(status__in=['terverifikasi', 'disposisi_pimpinan', 'baru']) | Q(verified_by_kabid=True)
-    ).filter(
-        Q(dispositions__isnull=True) | Q(dispositions__status='baru', dispositions__note='')
-    ).exclude(
-        status__in=['didisposisikan', 'proses', 'sudah_ditugaskan', 'dalam_survei', 'telah_disalurkan', 'selesai', 'ditolak']
-    ).select_related('category', 'uploaded_by').distinct().order_by('-updated_at')
-    if archive_type:
-        archives_verified_no_dispo = archives_verified_no_dispo.filter(archive_type=archive_type)
+    # Antrean Dokumen Terverifikasi yang belum dibuatkan disposisi HANYA untuk Superadmin, Ketua BAZNAS, dan Kabid IV (SDM/FO)
+    show_pending_no_dispo = (
+        getattr(request.user, 'is_superadmin', False) or
+        getattr(request.user, 'is_superuser', False) or
+        getattr(request.user, 'is_ketua', False) or
+        getattr(request.user, 'is_kabid_4', False) or
+        getattr(request.user, 'is_waka_4', False) or
+        getattr(request.user, 'is_sdm', False) or
+        getattr(request.user, 'is_fo', False) or
+        (active_pov in ['admin', 'superadmin', 'ketua', 'waka_4', 'kabid_4', 'sdm', 'fo'])
+    )
+
+    if show_pending_no_dispo:
+        archives_verified_no_dispo = Archive.objects.filter(
+            Q(status__in=['terverifikasi', 'disposisi_pimpinan', 'baru']) | Q(verified_by_kabid=True)
+        ).filter(
+            Q(dispositions__isnull=True) | Q(dispositions__status='baru', dispositions__note='')
+        ).exclude(
+            status__in=['didisposisikan', 'proses', 'sudah_ditugaskan', 'dalam_survei', 'telah_disalurkan', 'selesai', 'ditolak']
+        ).select_related('category', 'uploaded_by').distinct().order_by('-updated_at')
+        if archive_type:
+            archives_verified_no_dispo = archives_verified_no_dispo.filter(archive_type=archive_type)
+    else:
+        archives_verified_no_dispo = Archive.objects.none()
 
     per_page = int(request.GET.get('per_page', 25))
     paginator = Paginator(qs, per_page)
@@ -125,6 +139,7 @@ def disposition_list(request):
 
     for d in page_obj:
         d.item_perms = request.user.get_disposition_permissions(active_pov, dispo=d)
+        d.is_targeted_to_user_bidang = request.user.is_dispo_targeted_to_bidang(d, active_pov=active_pov)
 
     dispo_perms = request.user.get_disposition_permissions(active_pov)
 
